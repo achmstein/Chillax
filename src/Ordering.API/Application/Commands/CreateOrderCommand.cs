@@ -1,0 +1,56 @@
+#nullable enable
+namespace Chillax.Ordering.API.Application.Commands;
+
+using Chillax.Ordering.API.Application.Models;
+using Chillax.Ordering.API.Extensions;
+
+/// <summary>
+/// Command to create a new cafe order.
+/// Simplified for cafe - no address or payment details.
+/// </summary>
+[DataContract]
+public class CreateOrderCommand : IRequest<bool>
+{
+    [DataMember]
+    private readonly List<OrderItemDTO> _orderItems;
+
+    [DataMember]
+    public string UserId { get; private set; } = string.Empty;
+
+    [DataMember]
+    public string UserName { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Table number for cafe delivery (optional)
+    /// </summary>
+    [DataMember]
+    public int? TableNumber { get; private set; }
+
+    /// <summary>
+    /// Special instructions from customer (optional)
+    /// </summary>
+    [DataMember]
+    public string? CustomerNote { get; private set; }
+
+    [DataMember]
+    public IEnumerable<OrderItemDTO> OrderItems => _orderItems;
+
+    public CreateOrderCommand()
+    {
+        _orderItems = new List<OrderItemDTO>();
+    }
+
+    public CreateOrderCommand(
+        List<BasketItem> basketItems,
+        string userId,
+        string userName,
+        int? tableNumber = null,
+        string? customerNote = null)
+    {
+        _orderItems = basketItems.ToOrderItemsDTO().ToList();
+        UserId = userId;
+        UserName = userName;
+        TableNumber = tableNumber;
+        CustomerNote = customerNote;
+    }
+}

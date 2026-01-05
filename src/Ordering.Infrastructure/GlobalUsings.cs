@@ -1,0 +1,12 @@
+﻿global using System.Data;
+global using MediatR;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Design;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.EntityFrameworkCore.Storage;
+global using Chillax.Ordering.Domain.AggregatesModel.BuyerAggregate;
+global using Chillax.Ordering.Domain.AggregatesModel.OrderAggregate;
+global using Chillax.Ordering.Domain.Exceptions;
+global using Chillax.Ordering.Domain.Seedwork;
+global using Chillax.Ordering.Infrastructure.EntityConfigurations;
+global using Chillax.Ordering.Infrastructure.Idempotency;

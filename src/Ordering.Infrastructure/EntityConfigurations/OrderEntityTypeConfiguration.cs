@@ -1,0 +1,34 @@
+namespace Chillax.Ordering.Infrastructure.EntityConfigurations;
+
+class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
+{
+    public void Configure(EntityTypeBuilder<Order> orderConfiguration)
+    {
+        orderConfiguration.ToTable("orders");
+
+        orderConfiguration.Ignore(b => b.DomainEvents);
+
+        orderConfiguration.Property(o => o.Id)
+            .UseHiLo("orderseq");
+
+        orderConfiguration
+            .Property(o => o.OrderStatus)
+            .HasConversion<string>()
+            .HasMaxLength(30);
+
+        orderConfiguration
+            .Property(o => o.Description)
+            .HasMaxLength(500);
+
+        orderConfiguration
+            .Property(o => o.CustomerNote)
+            .HasMaxLength(500);
+
+        orderConfiguration.HasOne(o => o.Buyer)
+            .WithMany()
+            .HasForeignKey(o => o.BuyerId);
+
+        orderConfiguration.HasIndex(o => o.OrderStatus);
+        orderConfiguration.HasIndex(o => o.OrderDate);
+    }
+}
