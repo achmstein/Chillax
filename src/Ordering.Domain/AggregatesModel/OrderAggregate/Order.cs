@@ -58,10 +58,11 @@ public class Order
     public Order(string userId, string userName, int? tableNumber = null, string? customerNote = null, int? buyerId = null) : this()
     {
         BuyerId = buyerId;
-        OrderStatus = OrderStatus.Submitted;
+        OrderStatus = OrderStatus.AwaitingValidation;
         OrderDate = DateTime.UtcNow;
         TableNumber = tableNumber;
         CustomerNote = customerNote;
+        Description = "Order awaiting item availability validation.";
 
         // Add the OrderStartedDomainEvent to the domain events collection
         AddOrderStartedDomainEvent(userId, userName);
@@ -101,6 +102,35 @@ public class Order
     }
 
     /// <summary>
+    /// Set order to submitted after stock validation passes
+    /// </summary>
+    public void SetStockConfirmedStatus()
+    {
+        if (OrderStatus != OrderStatus.AwaitingValidation)
+        {
+            throw new OrderingDomainException($"Cannot confirm stock from status {OrderStatus}. Order must be in AwaitingValidation status.");
+        }
+
+        OrderStatus = OrderStatus.Submitted;
+        Description = "Items validated. Order ready for confirmation.";
+    }
+
+    /// <summary>
+    /// Set order to cancelled when stock validation fails
+    /// </summary>
+    public void SetStockRejectedStatus(IEnumerable<int> unavailableProductIds)
+    {
+        if (OrderStatus != OrderStatus.AwaitingValidation)
+        {
+            throw new OrderingDomainException($"Cannot reject stock from status {OrderStatus}. Order must be in AwaitingValidation status.");
+        }
+
+        OrderStatus = OrderStatus.Cancelled;
+        Description = $"Order cancelled - some items are not available: {string.Join(", ", unavailableProductIds)}";
+        AddDomainEvent(new OrderCancelledDomainEvent(this));
+    }
+
+    /// <summary>
     /// Confirm the order (admin action) - moves to POS
     /// </summary>
     public void SetConfirmedStatus()
@@ -116,13 +146,13 @@ public class Order
     }
 
     /// <summary>
-    /// Cancel the order (can only cancel submitted orders)
+    /// Cancel the order (can cancel submitted or awaiting validation orders)
     /// </summary>
     public void SetCancelledStatus()
     {
-        if (OrderStatus != OrderStatus.Submitted)
+        if (OrderStatus != OrderStatus.Submitted && OrderStatus != OrderStatus.AwaitingValidation)
         {
-            throw new OrderingDomainException($"Cannot cancel order from status {OrderStatus}. Only submitted orders can be cancelled.");
+            throw new OrderingDomainException($"Cannot cancel order from status {OrderStatus}. Only submitted or awaiting validation orders can be cancelled.");
         }
 
         OrderStatus = OrderStatus.Cancelled;

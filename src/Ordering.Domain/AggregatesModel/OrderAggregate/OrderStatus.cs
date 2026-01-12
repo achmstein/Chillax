@@ -3,13 +3,14 @@ using System.Text.Json.Serialization;
 namespace Chillax.Ordering.Domain.AggregatesModel.OrderAggregate;
 
 /// <summary>
-/// Simple order status for cafe orders.
-/// Submitted -> Confirmed (then goes to POS) or Cancelled
+/// Order status for cafe orders.
+/// AwaitingValidation -> Submitted (stock confirmed) -> Confirmed (admin action) or Cancelled
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum OrderStatus
 {
-    Submitted = 1,
-    Confirmed = 2,
-    Cancelled = 3
+    AwaitingValidation = 1,
+    Submitted = 2,
+    Confirmed = 3,
+    Cancelled = 4
 }

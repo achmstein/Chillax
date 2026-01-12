@@ -52,8 +52,8 @@ internal static class Extensions
 
     private static void AddEventBusSubscriptions(this IEventBusBuilder eventBus)
     {
-        // Simplified cafe ordering - no stock validation or payment processing events
-        // Orders go directly from Submitted to Confirmed (admin action)
-        // Payment happens at the POS
+        // Subscribe to stock validation events from Catalog API
+        eventBus.AddSubscription<OrderStockConfirmedIntegrationEvent, OrderStockConfirmedIntegrationEventHandler>();
+        eventBus.AddSubscription<OrderStockRejectedIntegrationEvent, OrderStockRejectedIntegrationEventHandler>();
     }
 }

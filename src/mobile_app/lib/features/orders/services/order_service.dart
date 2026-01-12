@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
+import '../../menu/models/user_preference.dart';
+import '../../menu/services/menu_service.dart';
 import '../models/order.dart';
 
 /// Order service
@@ -13,7 +15,7 @@ class OrderService {
   /// Get user's orders
   Future<List<Order>> getOrders() async {
     final response = await _apiClient.get<List<dynamic>>(
-      '/api/orders',
+      '',
     );
 
     return (response.data ?? [])
@@ -24,7 +26,7 @@ class OrderService {
   /// Get order by ID
   Future<Order> getOrder(int id) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
-      '/api/orders/$id',
+      '$id',
     );
 
     return Order.fromJson(response.data!);
@@ -37,7 +39,7 @@ class OrderService {
     String? customerNote,
   }) async {
     final response = await _apiClient.post<Map<String, dynamic>>(
-      '/api/orders',
+      '',
       data: {
         'tableNumber': tableNumber,
         'customerNote': customerNote,
@@ -50,7 +52,7 @@ class OrderService {
 
   /// Cancel order
   Future<void> cancelOrder(int id) async {
-    await _apiClient.put('/api/orders/$id/cancel');
+    await _apiClient.put('$id/cancel');
   }
 }
 
@@ -101,8 +103,9 @@ class CheckoutState {
 class CheckoutNotifier extends StateNotifier<CheckoutState> {
   final OrderService _orderService;
   final CartNotifier _cartNotifier;
+  final MenuService _menuService;
 
-  CheckoutNotifier(this._orderService, this._cartNotifier)
+  CheckoutNotifier(this._orderService, this._cartNotifier, this._menuService)
       : super(const CheckoutState());
 
   /// Submit order
@@ -120,6 +123,9 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         customerNote: customerNote,
       );
 
+      // Save user preferences for items with customizations
+      await _saveUserPreferences(items);
+
       // Clear cart on success
       _cartNotifier.clear();
 
@@ -134,6 +140,32 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     }
   }
 
+  /// Save user preferences for ordered items with customizations
+  Future<void> _saveUserPreferences(List<CartItem> items) async {
+    try {
+      final preferencesToSave = items
+          .where((item) => item.selectedCustomizations.isNotEmpty)
+          .map((item) => SaveItemPreference(
+                catalogItemId: item.productId,
+                selectedOptions: item.selectedCustomizations
+                    .map((c) => UserPreferenceOption(
+                          customizationId: c.customizationId,
+                          optionId: c.optionId,
+                        ))
+                    .toList(),
+              ))
+          .toList();
+
+      if (preferencesToSave.isNotEmpty) {
+        await _menuService.saveUserPreferences(
+          SaveUserPreferencesRequest(items: preferencesToSave),
+        );
+      }
+    } catch (e) {
+      // Silently fail - preferences are not critical to order success
+    }
+  }
+
   /// Reset checkout state
   void reset() {
     state = const CheckoutState();
@@ -145,5 +177,6 @@ final checkoutProvider =
     StateNotifierProvider<CheckoutNotifier, CheckoutState>((ref) {
   final orderService = ref.watch(orderServiceProvider);
   final cartNotifier = ref.watch(cartProvider.notifier);
-  return CheckoutNotifier(orderService, cartNotifier);
+  final menuService = ref.watch(menuServiceProvider);
+  return CheckoutNotifier(orderService, cartNotifier, menuService);
 });

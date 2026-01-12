@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/cart_item.dart';
 import '../services/cart_service.dart';
 import '../../orders/services/order_service.dart';
 
-/// Shopping cart screen
+/// Shopping cart screen - minimalistic
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
 
@@ -29,126 +31,146 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final cart = ref.watch(cartProvider);
     final checkoutState = ref.watch(checkoutProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cart'),
-        actions: [
-          if (!cart.isEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => _showClearCartDialog(context),
+    return FScaffold(
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Custom header with back button
+            Container(
+              padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: const Icon(FIcons.arrowLeft, size: 22),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Cart',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  if (!cart.isEmpty)
+                    GestureDetector(
+                      onTap: () => _showClearCartDialog(context),
+                      child: const Icon(FIcons.trash2, size: 22),
+                    ),
+                ],
+              ),
             ),
-        ],
-      ),
-      body: cart.isEmpty
-          ? _buildEmptyCart()
-          : Column(
-              children: [
-                // Cart items
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: cart.items.length,
-                    itemBuilder: (context, index) {
-                      return CartItemCard(
-                        item: cart.items[index],
-                        index: index,
-                      );
-                    },
-                  ),
-                ),
-
-                // Order details and checkout
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
+            Expanded(
+              child: cart.isEmpty
+                  ? _buildEmptyCart()
+                  : Column(
                       children: [
-                        // Table number
-                        TextField(
-                          controller: _tableController,
-                          decoration: const InputDecoration(
-                            labelText: 'Table Number (optional)',
-                            prefixIcon: Icon(Icons.table_restaurant),
+                        // Cart items
+                        Expanded(
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: cart.items.length,
+                            separatorBuilder: (_, __) => const FDivider(),
+                            itemBuilder: (context, index) {
+                              return CartItemTile(
+                                item: cart.items[index],
+                                index: index,
+                              );
+                            },
                           ),
-                          keyboardType: TextInputType.number,
                         ),
-                        const SizedBox(height: 12),
-
-                        // Note
-                        TextField(
-                          controller: _noteController,
-                          decoration: const InputDecoration(
-                            labelText: 'Order Note (optional)',
-                            prefixIcon: Icon(Icons.note),
-                          ),
-                          maxLines: 2,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Total
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Total',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        // Order details and checkout
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border(
+                              top: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
                             ),
-                            Text(
-                              '\$${cart.totalPrice.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Checkout button
-                        ElevatedButton(
-                          onPressed: checkoutState.isLoading
-                              ? null
-                              : () => _handleCheckout(cart),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(50),
                           ),
-                          child: checkoutState.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Place Order',
-                                  style: TextStyle(fontSize: 16),
+                          child: SafeArea(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Table number
+                                FTextField(
+                                  control: FTextFieldControl.managed(controller: _tableController),
+                                  label: const Text('Table Number (optional)'),
+                                  hint: 'Enter table number',
+                                  keyboardType: TextInputType.number,
                                 ),
+                                const SizedBox(height: 12),
+                                // Note
+                                FTextField.multiline(
+                                  control: FTextFieldControl.managed(controller: _noteController),
+                                  label: const Text('Order Note (optional)'),
+                                  hint: 'Any special requests',
+                                ),
+                                const SizedBox(height: 16),
+                                // Total
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Total',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      '£${cart.totalPrice.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                // Checkout button
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: checkoutState.isLoading
+                                        ? null
+                                        : () => _handleCheckout(cart),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      disabledBackgroundColor: Colors.grey,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                      shape: const StadiumBorder(),
+                                    ),
+                                    child: checkoutState.isLoading
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Place Order',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ],
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -158,23 +180,23 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.shopping_cart_outlined,
+            FIcons.shoppingCart,
             size: 80,
-            color: Colors.grey.shade400,
+            color: AppTheme.textMuted,
           ),
           const SizedBox(height: 16),
           Text(
             'Your cart is empty',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey.shade600,
+              color: AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Add items from the menu',
             style: TextStyle(
-              color: Colors.grey.shade500,
+              color: AppTheme.textMuted,
             ),
           ),
         ],
@@ -183,24 +205,26 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   void _showClearCartDialog(BuildContext context) {
-    showDialog(
+    showFDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
         title: const Text('Clear Cart'),
-        content: const Text('Remove all items from your cart?'),
+        body: const Text('Remove all items from your cart?'),
+        direction: Axis.horizontal,
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
+          FButton(
+            style: FButtonStyle.outline(),
+            onPress: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            onPressed: () {
+          FButton(
+            style: FButtonStyle.destructive(),
+            onPress: () {
               ref.read(cartProvider.notifier).clear();
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
-            ),
             child: const Text('Clear'),
           ),
         ],
@@ -219,32 +243,30 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         );
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Order placed successfully!'),
-          backgroundColor: AppTheme.successColor,
-        ),
+      showFToast(
+        context: context,
+        title: const Text('Order placed successfully!'),
+        icon: Icon(FIcons.check, color: AppTheme.successColor),
       );
       _tableController.clear();
       _noteController.clear();
     } else if (mounted) {
       final error = ref.read(checkoutProvider).error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error ?? 'Failed to place order'),
-          backgroundColor: AppTheme.errorColor,
-        ),
+      showFToast(
+        context: context,
+        title: Text(error ?? 'Failed to place order'),
+        icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
       );
     }
   }
 }
 
-/// Cart item card
-class CartItemCard extends ConsumerWidget {
+/// Cart item tile - minimalistic
+class CartItemTile extends ConsumerWidget {
   final CartItem item;
   final int index;
 
-  const CartItemCard({
+  const CartItemTile({
     super.key,
     required this.item,
     required this.index,
@@ -252,116 +274,116 @@ class CartItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Item info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Item info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.productName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    if (item.selectedCustomizations.isNotEmpty) ...[
+                      const SizedBox(height: 4),
                       Text(
-                        item.productName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                        item.selectedCustomizations
+                            .map((c) => c.optionName)
+                            .join(', '),
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
                         ),
                       ),
-                      if (item.selectedCustomizations.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          item.selectedCustomizations
-                              .map((c) => c.optionName)
-                              .join(', '),
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                      if (item.specialInstructions != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Note: ${item.specialInstructions}',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
                     ],
+                    if (item.specialInstructions != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Note: ${item.specialInstructions}',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Remove button
+              FButton.icon(
+                style: FButtonStyle.ghost(),
+                onPress: () {
+                  ref.read(cartProvider.notifier).removeItem(index);
+                },
+                child: const Icon(FIcons.x, size: 18),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Quantity and price
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Quantity controls
+              Row(
+                children: [
+                  FButton.icon(
+                    style: FButtonStyle.outline(),
+                    onPress: item.quantity > 1
+                        ? () {
+                            ref
+                                .read(cartProvider.notifier)
+                                .updateQuantity(index, item.quantity - 1);
+                          }
+                        : null,
+                    child: const Icon(FIcons.minus, size: 16),
                   ),
-                ),
-
-                // Remove button
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: () {
-                    ref.read(cartProvider.notifier).removeItem(index);
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Quantity and price
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Quantity controls
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: item.quantity > 1
-                          ? () {
-                              ref
-                                  .read(cartProvider.notifier)
-                                  .updateQuantity(index, item.quantity - 1);
-                            }
-                          : null,
-                      iconSize: 24,
-                    ),
-                    Text(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
                       '${item.quantity}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline),
-                      onPressed: () {
-                        ref
-                            .read(cartProvider.notifier)
-                            .updateQuantity(index, item.quantity + 1);
-                      },
-                      iconSize: 24,
-                    ),
-                  ],
-                ),
-
-                // Price
-                Text(
-                  '\$${item.totalPrice.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
                   ),
+                  FButton.icon(
+                    style: FButtonStyle.outline(),
+                    onPress: () {
+                      ref
+                          .read(cartProvider.notifier)
+                          .updateQuantity(index, item.quantity + 1);
+                    },
+                    child: const Icon(FIcons.plus, size: 16),
+                  ),
+                ],
+              ),
+
+              // Price
+              Text(
+                '£${item.totalPrice.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

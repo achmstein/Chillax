@@ -10,47 +10,54 @@ public class RoomsContextSeed(ILogger<RoomsContextSeed> logger) : IDbSeeder<Room
         {
             var rooms = new List<Room>
             {
-                new("PlayStation Room 1")
+                new("Room 1")
                 {
                     Description = "PS5 with 2 controllers and 55\" TV",
                     HourlyRate = 50.00m,
-                    Status = RoomStatus.Available
+                    Status = RoomStatus.Available,
+                    PictureFileName = "room-1.webp"
                 },
-                new("PlayStation Room 2")
+                new("Room 2")
                 {
                     Description = "PS5 with 2 controllers and 55\" TV",
                     HourlyRate = 50.00m,
-                    Status = RoomStatus.Available
+                    Status = RoomStatus.Available,
+                    PictureFileName = "room-2.webp"
                 },
-                new("PlayStation Room 3")
+                new("Room 3")
+                {
+                    Description = "PS5 with 2 controllers and 55\" TV",
+                    HourlyRate = 50.00m,
+                    Status = RoomStatus.Available,
+                    PictureFileName = "room-3.webp"
+                },
+                new("Room 4")
                 {
                     Description = "PS5 with 4 controllers and 65\" TV - Great for groups",
                     HourlyRate = 60.00m,
-                    Status = RoomStatus.Available
+                    Status = RoomStatus.Available,
+                    PictureFileName = "room-4.webp"
                 },
-                new("PlayStation Room 4")
+                new("Room 5")
                 {
                     Description = "PS5 Pro with VR headset and 65\" TV",
                     HourlyRate = 70.00m,
-                    Status = RoomStatus.Available
+                    Status = RoomStatus.Available,
+                    PictureFileName = "room-5.webp"
                 },
-                new("PlayStation Room 5")
+                new("Room 6")
                 {
                     Description = "PS5 Pro with VR headset and 65\" TV",
                     HourlyRate = 70.00m,
-                    Status = RoomStatus.Available
+                    Status = RoomStatus.Available,
+                    PictureFileName = "room-6.webp"
                 },
-                new("Party Room 1")
+                new("Room VIP")
                 {
-                    Description = "Large room with 2 PS5 consoles, perfect for parties - Fits up to 10 people",
-                    HourlyRate = 100.00m,
-                    Status = RoomStatus.Available
-                },
-                new("Party Room 2")
-                {
-                    Description = "Premium party room with 2 PS5 Pro consoles, VR, and premium sound system - Fits up to 12 people",
-                    HourlyRate = 120.00m,
-                    Status = RoomStatus.Available
+                    Description = "Premium VIP room with 2 PS5 Pro consoles, VR headsets, 75\" OLED TV, premium sound system, and private lounge area - Fits up to 10 people",
+                    HourlyRate = 150.00m,
+                    Status = RoomStatus.Available,
+                    PictureFileName = "room-vip.webp"
                 }
             };
 

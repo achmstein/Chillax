@@ -11,7 +11,7 @@ class RoomService {
   /// Get all rooms
   Future<List<Room>> getRooms() async {
     final response = await _apiClient.get<List<dynamic>>(
-      '/api/rooms',
+      '',
     );
 
     return (response.data ?? [])
@@ -22,7 +22,7 @@ class RoomService {
   /// Get available rooms
   Future<List<Room>> getAvailableRooms() async {
     final response = await _apiClient.get<List<dynamic>>(
-      '/api/rooms/available',
+      'available',
     );
 
     return (response.data ?? [])
@@ -33,7 +33,7 @@ class RoomService {
   /// Get room by ID
   Future<Room> getRoom(int id) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
-      '/api/rooms/$id',
+      '$id',
     );
 
     return Room.fromJson(response.data!);
@@ -42,7 +42,7 @@ class RoomService {
   /// Reserve a room
   Future<RoomSession> reserveRoom(int roomId, DateTime reservationTime) async {
     final response = await _apiClient.post<Map<String, dynamic>>(
-      '/api/rooms/$roomId/reserve',
+      '$roomId/reserve',
       data: {
         'reservationTime': reservationTime.toIso8601String(),
       },
@@ -54,7 +54,7 @@ class RoomService {
   /// Get customer's sessions
   Future<List<RoomSession>> getMySessions() async {
     final response = await _apiClient.get<List<dynamic>>(
-      '/api/sessions/my',
+      'sessions/my',
     );
 
     return (response.data ?? [])
@@ -64,7 +64,7 @@ class RoomService {
 
   /// Cancel reservation
   Future<void> cancelReservation(int sessionId) async {
-    await _apiClient.post('/api/sessions/$sessionId/cancel');
+    await _apiClient.post('sessions/$sessionId/cancel');
   }
 }
 

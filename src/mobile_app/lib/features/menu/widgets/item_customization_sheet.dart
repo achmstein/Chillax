@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/menu_item.dart';
+import '../models/user_preference.dart';
+import '../services/menu_service.dart';
 import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
 
@@ -25,7 +28,13 @@ class _ItemCustomizationSheetState
   @override
   void initState() {
     super.initState();
-    // Pre-select default options
+    // Pre-select default options first
+    _initializeWithDefaults();
+    // Then load saved preferences
+    _loadSavedPreferences();
+  }
+
+  void _initializeWithDefaults() {
     for (final customization in widget.item.customizations) {
       final defaults = customization.options
           .where((o) => o.isDefault)
@@ -36,6 +45,55 @@ class _ItemCustomizationSheetState
       } else if (customization.isRequired && customization.options.isNotEmpty) {
         _selectedOptions[customization.id] = [customization.options.first.id];
       }
+    }
+  }
+
+  Future<void> _loadSavedPreferences() async {
+    final service = ref.read(menuServiceProvider);
+    final preference = await service.getUserPreference(widget.item.id);
+
+    if (preference != null && mounted) {
+      _applyPreference(preference);
+    }
+  }
+
+  void _applyPreference(UserItemPreference preference) {
+    // Group saved options by customization ID
+    final savedByCustomization = <int, List<int>>{};
+    for (final option in preference.selectedOptions) {
+      savedByCustomization
+          .putIfAbsent(option.customizationId, () => [])
+          .add(option.optionId);
+    }
+
+    // Apply saved preferences, validating they still exist
+    for (final customization in widget.item.customizations) {
+      final savedOptions = savedByCustomization[customization.id];
+      if (savedOptions != null && savedOptions.isNotEmpty) {
+        // Filter to only options that still exist in the catalog
+        final validOptions = savedOptions
+            .where((optionId) =>
+                customization.options.any((o) => o.id == optionId))
+            .toList();
+
+        if (validOptions.isNotEmpty) {
+          _selectedOptions[customization.id] = validOptions;
+        }
+      }
+    }
+
+    // Ensure required customizations have a selection
+    for (final customization in widget.item.customizations) {
+      if (customization.isRequired) {
+        final selected = _selectedOptions[customization.id] ?? [];
+        if (selected.isEmpty && customization.options.isNotEmpty) {
+          _selectedOptions[customization.id] = [customization.options.first.id];
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -98,153 +156,175 @@ class _ItemCustomizationSheetState
     ref.read(cartProvider.notifier).addItem(cartItem);
     Navigator.pop(context);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${widget.item.name} added to cart'),
-        duration: const Duration(seconds: 2),
-      ),
+    showFToast(
+      context: context,
+      title: Text('${widget.item.name} added to cart'),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Handle
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.textMuted,
+                borderRadius: BorderRadius.circular(2),
               ),
+            ),
 
-              // Content
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    // Item header
-                    Text(
-                      widget.item.name,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            // Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Item header with close button
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.item.name,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
+                            fontSize: 24,
                           ),
-                    ),
-                    if (widget.item.description.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.item.description,
-                        style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Icon(FIcons.x, size: 24, color: AppTheme.textSecondary),
                       ),
                     ],
+                  ),
+                  if (widget.item.description.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
-                      'Base price: \$${widget.item.price.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Customizations
-                    ...widget.item.customizations.map((customization) =>
-                      _buildCustomizationSection(customization)),
-
-                    // Special instructions
-                    const Text(
-                      'Special Instructions',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _instructionsController,
-                      decoration: const InputDecoration(
-                        hintText: 'Any special requests?',
-                      ),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Quantity selector
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          onPressed: _quantity > 1
-                              ? () => setState(() => _quantity--)
-                              : null,
-                          icon: const Icon(Icons.remove_circle_outline),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            '$_quantity',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => setState(() => _quantity++),
-                          icon: const Icon(Icons.add_circle_outline),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 80), // Space for button
-                  ],
-                ),
-              ),
-
-              // Add to cart button
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5),
+                      widget.item.description,
+                      style: TextStyle(color: AppTheme.textSecondary),
                     ),
                   ],
-                ),
-                child: SafeArea(
-                  child: ElevatedButton(
-                    onPressed: _canAddToCart ? _addToCart : null,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50),
-                    ),
-                    child: Text(
-                      'Add to Cart - \$${_totalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 16),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Base price: £${widget.item.price.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Customizations
+                  ...widget.item.customizations.map((customization) =>
+                    _buildCustomizationSection(customization)),
+
+                  // Special instructions
+                  const Text(
+                    'Special Instructions',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  FTextField.multiline(
+                    control: FTextFieldControl.managed(controller: _instructionsController),
+                    hint: 'Any special requests?',
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Quantity selector
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FButton.icon(
+                        onPress: _quantity > 1
+                            ? () => setState(() => _quantity--)
+                            : null,
+                        child: const Icon(FIcons.minus),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          '$_quantity',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      FButton.icon(
+                        onPress: () => setState(() => _quantity++),
+                        child: const Icon(FIcons.plus),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+
+          // Add to cart button
+          Container(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 12,
+              bottom: 12 + MediaQuery.of(context).padding.bottom,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+              ),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _canAddToCart ? _addToCart : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _canAddToCart ? AppTheme.primaryColor : Colors.grey,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: const StadiumBorder(),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Add to Cart',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      '£${_totalPrice.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
@@ -264,20 +344,10 @@ class _ItemCustomizationSheetState
               ),
             ),
             if (customization.isRequired) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppTheme.errorColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Required',
-                  style: TextStyle(
-                    color: AppTheme.errorColor,
-                    fontSize: 10,
-                  ),
-                ),
+              const Spacer(),
+              FBadge(
+                style: FBadgeStyle.destructive(),
+                child: const Text('Required'),
               ),
             ],
           ],
@@ -288,34 +358,44 @@ class _ItemCustomizationSheetState
           runSpacing: 8,
           children: customization.options.map((option) {
             final isSelected = selectedIds.contains(option.id);
-            return ChoiceChip(
-              label: Text(
-                option.priceAdjustment > 0
-                    ? '${option.name} (+\$${option.priceAdjustment.toStringAsFixed(2)})'
-                    : option.name,
-              ),
-              selected: isSelected,
-              onSelected: (selected) {
+            return GestureDetector(
+              onTap: () {
                 setState(() {
                   if (customization.allowMultiple) {
-                    // Toggle selection
                     final current = List<int>.from(selectedIds);
-                    if (selected) {
-                      current.add(option.id);
-                    } else {
+                    if (isSelected) {
                       current.remove(option.id);
+                    } else {
+                      current.add(option.id);
                     }
                     _selectedOptions[customization.id] = current;
                   } else {
-                    // Single selection
-                    if (selected) {
-                      _selectedOptions[customization.id] = [option.id];
-                    } else if (!customization.isRequired) {
+                    if (isSelected && !customization.isRequired) {
                       _selectedOptions.remove(customization.id);
+                    } else {
+                      _selectedOptions[customization.id] = [option.id];
                     }
                   }
                 });
               },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? AppTheme.primaryColor : AppTheme.textMuted,
+                  ),
+                ),
+                child: Text(
+                  option.priceAdjustment > 0
+                      ? '${option.name} (+£${option.priceAdjustment.toStringAsFixed(2)})'
+                      : option.name,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : AppTheme.textPrimary,
+                  ),
+                ),
+              ),
             );
           }).toList(),
         ),

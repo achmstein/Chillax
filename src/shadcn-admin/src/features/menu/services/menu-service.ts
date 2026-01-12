@@ -1,5 +1,5 @@
 import { catalogApi } from '@/lib/api-client'
-import type { CatalogType, MenuItem, MenuItemFormData, PaginatedItems } from '../types'
+import type { CatalogType, CategoryFormData, MenuItem, MenuItemFormData, PaginatedItems } from '../types'
 
 export const menuService = {
   // Get paginated menu items
@@ -63,5 +63,33 @@ export const menuService = {
   // Get item picture URL
   getItemPictureUrl(id: number): string {
     return `${catalogApi.defaults.baseURL}/api/catalog/items/${id}/pic`
+  },
+
+  // Create a new category
+  async createCategory(data: CategoryFormData): Promise<CatalogType> {
+    const response = await catalogApi.post<CatalogType>('/api/catalog/categories', data)
+    return response.data
+  },
+
+  // Update an existing category
+  async updateCategory(id: number, data: CategoryFormData): Promise<CatalogType> {
+    const response = await catalogApi.put<CatalogType>(`/api/catalog/categories/${id}`, data)
+    return response.data
+  },
+
+  // Delete a category
+  async deleteCategory(id: number): Promise<void> {
+    await catalogApi.delete(`/api/catalog/categories/${id}`)
+  },
+
+  // Get item count per category
+  async getItemCountByCategory(): Promise<Record<number, number>> {
+    // Fetch all items and count by category
+    const response = await catalogApi.get<PaginatedItems<MenuItem>>('/api/catalog/items?pageSize=1000')
+    const counts: Record<number, number> = {}
+    for (const item of response.data.data) {
+      counts[item.catalogTypeId] = (counts[item.catalogTypeId] || 0) + 1
+    }
+    return counts
   },
 }

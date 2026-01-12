@@ -1,10 +1,24 @@
 /// Application configuration
 class AppConfig {
-  // API endpoints
-  static const String catalogApiUrl = 'https://localhost:5221';
-  static const String ordersApiUrl = 'https://localhost:5224';
-  static const String roomsApiUrl = 'https://localhost:5250';
-  static const String identityUrl = 'https://localhost:5243';
+  // Mobile BFF base URL (all API calls go through here)
+  // With adb reverse, use localhost; for emulator use 10.0.2.2
+  static String get bffBaseUrl {
+    // Using localhost works with: adb reverse tcp:27748 tcp:27748
+    return 'http://localhost:27748';
+  }
+
+  // API endpoints (through BFF) - trailing slash required for Dio path resolution
+  static String get catalogApiUrl => '$bffBaseUrl/api/catalog/';
+  static String get ordersApiUrl => '$bffBaseUrl/api/orders/';
+  static String get roomsApiUrl => '$bffBaseUrl/api/rooms/';
+  static String get sessionsApiUrl => '$bffBaseUrl/api/sessions/';
+  static String get loyaltyApiUrl => '$bffBaseUrl/api/loyalty/';
+  static String get notificationsApiUrl => '$bffBaseUrl/api/notifications/';
+
+  // Keycloak configuration (through BFF)
+  static String get keycloakUrl => '$bffBaseUrl/auth';
+  static const String keycloakRealm = 'chillax';
+  static String get identityUrl => '$keycloakUrl/realms/$keycloakRealm';
 
   // OIDC configuration
   static const String clientId = 'chillax-mobile';
@@ -14,6 +28,8 @@ class AppConfig {
     'openid',
     'profile',
     'email',
+    'roles',
+    'offline_access',
     'orders',
     'rooms',
     'catalog',

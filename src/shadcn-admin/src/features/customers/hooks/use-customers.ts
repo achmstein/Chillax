@@ -1,37 +1,33 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { customersApi, type GetCustomersParams } from '@/lib/api'
+import { useQuery } from '@tanstack/react-query'
+import { customersService } from '../services/customers-service'
+import type { CustomerParams } from '../types'
 
 export const customersKeys = {
   all: ['customers'] as const,
   lists: () => [...customersKeys.all, 'list'] as const,
-  list: (params: GetCustomersParams) => [...customersKeys.lists(), params] as const,
+  list: (params: CustomerParams) => [...customersKeys.lists(), params] as const,
+  detail: (id: string) => [...customersKeys.all, 'detail', id] as const,
+  count: (search?: string) => [...customersKeys.all, 'count', search] as const,
 }
 
-export function useCustomers(params: GetCustomersParams = {}) {
+export function useCustomers(params: CustomerParams = {}) {
   return useQuery({
     queryKey: customersKeys.list(params),
-    queryFn: () => customersApi.getCustomers(params),
+    queryFn: () => customersService.getCustomers(params),
   })
 }
 
-export function useBlockCustomer() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (customerId: string) => customersApi.blockCustomer(customerId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customersKeys.lists() })
-    },
+export function useCustomer(userId: string) {
+  return useQuery({
+    queryKey: customersKeys.detail(userId),
+    queryFn: () => customersService.getCustomer(userId),
+    enabled: !!userId,
   })
 }
 
-export function useUnblockCustomer() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (customerId: string) => customersApi.unblockCustomer(customerId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: customersKeys.lists() })
-    },
+export function useCustomerCount(search?: string) {
+  return useQuery({
+    queryKey: customersKeys.count(search),
+    queryFn: () => customersService.getCustomerCount(search),
   })
 }

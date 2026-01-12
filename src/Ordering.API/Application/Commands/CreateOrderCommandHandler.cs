@@ -27,7 +27,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, boo
         var orderStartedIntegrationEvent = new OrderStartedIntegrationEvent(message.UserId);
         await _orderingIntegrationEventService.AddAndSaveEventAsync(orderStartedIntegrationEvent);
 
-        // Create the order (simplified for cafe - no address, no payment)
+        // Create the order (starts in AwaitingValidation status)
         var order = new Order(
             message.UserId,
             message.UserName,
@@ -42,6 +42,15 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, boo
         _logger.LogInformation("Creating Cafe Order - Order: {@Order}", order);
 
         _orderRepository.Add(order);
+
+        // Add event to validate item availability in Catalog (will be published by TransactionBehavior)
+        var orderStockItems = message.OrderItems
+            .Select(i => new OrderStockItem(i.ProductId, i.Units));
+
+        var awaitingValidationEvent = new OrderStatusChangedToAwaitingValidationIntegrationEvent(
+            order.Id, orderStockItems);
+
+        await _orderingIntegrationEventService.AddAndSaveEventAsync(awaitingValidationEvent);
 
         return await _orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
     }

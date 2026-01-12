@@ -1,4 +1,4 @@
-﻿using Aspire.Hosting;
+using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,18 +11,17 @@ public sealed class OrderingApiFixture : WebApplicationFactory<Program>, IAsyncL
     private readonly IHost _app;
 
     public IResourceBuilder<PostgresServerResource> Postgres { get; private set; }
-    public IResourceBuilder<PostgresServerResource> IdentityDB { get; private set; }
-    public IResourceBuilder<ProjectResource> IdentityApi { get; private set; }
+    public IResourceBuilder<KeycloakResource> Keycloak { get; private set; }
 
     private string _postgresConnectionString;
+    private string _keycloakRealmUrl;
 
     public OrderingApiFixture()
     {
         var options = new DistributedApplicationOptions { AssemblyName = typeof(OrderingApiFixture).Assembly.FullName, DisableDashboard = true };
         var appBuilder = DistributedApplication.CreateBuilder(options);
         Postgres = appBuilder.AddPostgres("OrderingDB");
-        IdentityDB = appBuilder.AddPostgres("IdentityDB");
-        IdentityApi = appBuilder.AddProject<Projects.Identity_API>("identity-api").WithReference(IdentityDB);
+        Keycloak = appBuilder.AddKeycloak("keycloak");
         _app = appBuilder.Build();
     }
 
@@ -33,7 +32,8 @@ public sealed class OrderingApiFixture : WebApplicationFactory<Program>, IAsyncL
             config.AddInMemoryCollection(new Dictionary<string, string>
             {
                 { $"ConnectionStrings:{Postgres.Resource.Name}", _postgresConnectionString },
-                { "Identity:Url", IdentityApi.GetEndpoint("http").Url }
+                { "Identity__Url", _keycloakRealmUrl },
+                { "Keycloak__Realm", "chillax" }
             });
         });
         builder.ConfigureServices(services =>
@@ -61,6 +61,8 @@ public sealed class OrderingApiFixture : WebApplicationFactory<Program>, IAsyncL
     {
         await _app.StartAsync();
         _postgresConnectionString = await Postgres.Resource.GetConnectionStringAsync();
+        var keycloakEndpoint = Keycloak.GetEndpoint("http");
+        _keycloakRealmUrl = $"{keycloakEndpoint.Url}/realms/chillax";
     }
 
     private class AutoAuthorizeStartupFilter : IStartupFilter

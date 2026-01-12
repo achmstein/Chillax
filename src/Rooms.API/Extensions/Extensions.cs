@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using Chillax.Rooms.API.Infrastructure;
+using Chillax.Rooms.API.IntegrationEvents.Events;
 
 namespace Chillax.Rooms.API.Extensions;
 
@@ -18,5 +20,15 @@ public static class Extensions
 
         // REVIEW: This is done for development ease but shouldn't be here in production
         builder.Services.AddMigration<RoomsContext, RoomsContextSeed>();
+
+        // Add RabbitMQ event bus for publishing room availability events
+        builder.AddRabbitMqEventBus("eventbus")
+            .ConfigureJsonOptions(options =>
+                options.TypeInfoResolverChain.Add(RoomsIntegrationEventContext.Default));
     }
+}
+
+[JsonSerializable(typeof(RoomBecameAvailableIntegrationEvent))]
+public partial class RoomsIntegrationEventContext : JsonSerializerContext
+{
 }

@@ -1,0 +1,120 @@
+/// Loyalty tier enumeration
+enum LoyaltyTier {
+  bronze,
+  silver,
+  gold,
+  platinum;
+
+  static LoyaltyTier fromString(String value) {
+    return LoyaltyTier.values.firstWhere(
+      (e) => e.name.toLowerCase() == value.toLowerCase(),
+      orElse: () => LoyaltyTier.bronze,
+    );
+  }
+}
+
+/// Represents a customer's loyalty account
+class LoyaltyAccount {
+  final int id;
+  final String userId;
+  final int pointsBalance;
+  final int lifetimePoints;
+  final LoyaltyTier currentTier;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const LoyaltyAccount({
+    required this.id,
+    required this.userId,
+    required this.pointsBalance,
+    required this.lifetimePoints,
+    required this.currentTier,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory LoyaltyAccount.fromJson(Map<String, dynamic> json) {
+    return LoyaltyAccount(
+      id: json['id'] as int,
+      userId: json['userId'] as String,
+      pointsBalance: json['pointsBalance'] as int,
+      lifetimePoints: json['lifetimePoints'] as int,
+      currentTier: LoyaltyTier.fromString(json['currentTier'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'userId': userId,
+        'pointsBalance': pointsBalance,
+        'lifetimePoints': lifetimePoints,
+        'currentTier': currentTier.name,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+      };
+
+  /// Get tier color for UI display
+  int get tierColorValue {
+    switch (currentTier) {
+      case LoyaltyTier.bronze:
+        return 0xFFCD7F32;
+      case LoyaltyTier.silver:
+        return 0xFFC0C0C0;
+      case LoyaltyTier.gold:
+        return 0xFFFFD700;
+      case LoyaltyTier.platinum:
+        return 0xFFE5E4E2;
+    }
+  }
+
+  /// Get points needed for next tier
+  int get pointsToNextTier {
+    switch (currentTier) {
+      case LoyaltyTier.bronze:
+        return 1000 - lifetimePoints;
+      case LoyaltyTier.silver:
+        return 5000 - lifetimePoints;
+      case LoyaltyTier.gold:
+        return 10000 - lifetimePoints;
+      case LoyaltyTier.platinum:
+        return 0; // Already at max tier
+    }
+  }
+
+  /// Get the next tier (if any)
+  LoyaltyTier? get nextTier {
+    switch (currentTier) {
+      case LoyaltyTier.bronze:
+        return LoyaltyTier.silver;
+      case LoyaltyTier.silver:
+        return LoyaltyTier.gold;
+      case LoyaltyTier.gold:
+        return LoyaltyTier.platinum;
+      case LoyaltyTier.platinum:
+        return null;
+    }
+  }
+}
+
+/// Balance summary DTO
+class LoyaltyBalance {
+  final int balance;
+  final int lifetimePoints;
+  final String tier;
+
+  const LoyaltyBalance({
+    required this.balance,
+    required this.lifetimePoints,
+    required this.tier,
+  });
+
+  factory LoyaltyBalance.fromJson(Map<String, dynamic> json) {
+    return LoyaltyBalance(
+      balance: json['balance'] as int,
+      lifetimePoints: json['lifetimePoints'] as int,
+      tier: json['tier'] as String,
+    );
+  }
+}

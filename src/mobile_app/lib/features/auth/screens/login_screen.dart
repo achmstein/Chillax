@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/theme/app_theme.dart';
 
-/// Login screen with OIDC authentication
+/// Login screen with native username/password authentication
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -12,10 +13,29 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _error;
 
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleSignIn() async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+
+    if (username.isEmpty || password.isEmpty) {
+      setState(() {
+        _error = 'Please enter both username and password.';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -23,11 +43,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final authService = ref.read(authServiceProvider.notifier);
-      final success = await authService.signIn();
+      final success = await authService.signIn(username, password);
 
       if (!success && mounted) {
         setState(() {
-          _error = 'Sign in failed. Please try again.';
+          _error = 'Invalid username or password. Please try again.';
         });
       }
     } catch (e) {
@@ -47,96 +67,98 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.theme;
+
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Logo/Brand
-              Icon(
-                Icons.local_cafe,
-                size: 80,
-                color: AppTheme.primaryColor,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Chillax',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Cafe & Gaming',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-
-              // Description
-              Text(
-                'Order your favorite food & drinks, or reserve a PlayStation room.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-
-              // Error message
-              if (_error != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.errorColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _error!,
-                    style: const TextStyle(color: AppTheme.errorColor),
-                    textAlign: TextAlign.center,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo
+                Center(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 120,
+                    height: 120,
                   ),
                 ),
+                const SizedBox(height: 32),
 
-              // Sign in button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _handleSignIn,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                // Error message
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: FAlert(
+                      style: FAlertStyle.destructive(),
+                      icon: const Icon(Icons.error_outline),
+                      title: const Text('Error'),
+                      subtitle: Text(_error!),
+                    ),
+                  ),
+
+                // Username field
+                FTextField.email(
+                  control: FTextFieldControl.managed(controller: _usernameController),
+                  label: const Text('Username or Email'),
+                  hint: 'Enter your username or email',
+                  textInputAction: TextInputAction.next,
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Sign In',
-                        style: TextStyle(fontSize: 16),
+                const SizedBox(height: 16),
+
+                // Password field
+                FTextField.password(
+                  control: FTextFieldControl.managed(controller: _passwordController),
+                  label: const Text('Password'),
+                  hint: 'Enter your password',
+                  textInputAction: TextInputAction.done,
+                  onSubmit: (_) => _handleSignIn(),
+                ),
+                const SizedBox(height: 24),
+
+                // Sign in button
+                FButton(
+                  onPress: _isLoading ? null : _handleSignIn,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Sign In'),
+                ),
+                const SizedBox(height: 16),
+
+                // Register link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Don't have an account? ",
+                      style: theme.typography.sm.copyWith(
+                        color: theme.colors.mutedForeground,
                       ),
-              ),
-              const SizedBox(height: 16),
-
-              // Continue as guest (optional)
-              TextButton(
-                onPressed: () {
-                  // For demo purposes, allow guest browsing
-                  // In production, this might be limited
-                },
-                child: const Text('Browse as Guest'),
-              ),
-            ],
+                    ),
+                    GestureDetector(
+                      onTap: () => context.go('/register'),
+                      child: Text(
+                        'Register',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

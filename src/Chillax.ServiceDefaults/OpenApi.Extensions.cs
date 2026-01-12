@@ -43,8 +43,9 @@ public static partial class Extensions
         var openApi = builder.Configuration.GetSection("OpenApi");
         var identitySection = builder.Configuration.GetSection("Identity");
 
-        var scopes = identitySection.Exists()
-            ? identitySection.GetRequiredSection("Scopes").GetChildren().ToDictionary(p => p.Key, p => p.Value)
+        var scopesSection = identitySection.GetSection("Scopes");
+        var scopes = scopesSection.Exists()
+            ? scopesSection.GetChildren().ToDictionary(p => p.Key, p => p.Value)
             : new Dictionary<string, string?>();
 
 

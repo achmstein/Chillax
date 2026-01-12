@@ -6,7 +6,6 @@
     <Project Path="src/Chillax.ServiceDefaults/Chillax.ServiceDefaults.csproj" />
     <Project Path="src/EventBus/EventBus.csproj" />
     <Project Path="src/EventBusRabbitMQ/EventBusRabbitMQ.csproj" />
-    <Project Path="src/Identity.API/Identity.API.csproj" />
     <Project Path="src/IntegrationEventLogEF/IntegrationEventLogEF.csproj" />
     <Project Path="src/Ordering.API/Ordering.API.csproj" />
     <Project Path="src/OrderProcessor/OrderProcessor.csproj" />
@@ -14,6 +13,9 @@
     <Project Path="src/Ordering.Infrastructure/Ordering.Infrastructure.csproj" />
     <Project Path="src/Webhooks.API/Webhooks.API.csproj" />
     <Project Path="src/Rooms.API/Rooms.API.csproj" />
+    <Project Path="src/Identity.API/Identity.API.csproj" />
+    <Project Path="src/Loyalty.API/Loyalty.API.csproj" />
+    <Project Path="src/Notification.API/Notification.API.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Basket.UnitTests/Basket.UnitTests.csproj" />

@@ -1,4 +1,4 @@
-﻿using Chillax.AppHost;
+using Chillax.AppHost;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -13,24 +13,30 @@ var postgres = builder.AddPostgres("postgres")
     .WithLifetime(ContainerLifetime.Persistent);
 
 var catalogDb = postgres.AddDatabase("catalogdb");
-var identityDb = postgres.AddDatabase("identitydb");
 var orderDb = postgres.AddDatabase("orderingdb");
 var webhooksDb = postgres.AddDatabase("webhooksdb");
 var roomsDb = postgres.AddDatabase("roomsdb");
+var loyaltyDb = postgres.AddDatabase("loyaltydb");
+var notificationDb = postgres.AddDatabase("notificationdb");
 
 var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
 
-// Services
-var identityApi = builder.AddProject<Projects.Identity_API>("identity-api", launchProfileName)
-    .WithExternalHttpEndpoints()
-    .WithReference(identityDb);
+// Keycloak for identity
+var keycloak = builder.AddKeycloak("keycloak", port: 8080)
+    .WithDataVolume()
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithRealmImport("./KeycloakConfiguration/chillax-realm.json");
 
-var identityEndpoint = identityApi.GetEndpoint(launchProfileName);
+// Build Keycloak realm URL for services
+var keycloakEndpoint = keycloak.GetEndpoint("http");
+var keycloakRealmUrl = ReferenceExpression.Create($"{keycloakEndpoint}/realms/chillax");
 
 var basketApi = builder.AddProject<Projects.Basket_API>("basket-api")
     .WithReference(redis)
     .WithReference(rabbitMq).WaitFor(rabbitMq)
-    .WithEnvironment("Identity__Url", identityEndpoint);
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax");
 redis.WithParentRelationship(basketApi);
 
 var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api")
@@ -41,7 +47,9 @@ var orderingApi = builder.AddProject<Projects.Ordering_API>("ordering-api")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
     .WithReference(orderDb).WaitFor(orderDb)
     .WithHttpHealthCheck("/health")
-    .WithEnvironment("Identity__Url", identityEndpoint);
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax");
 
 builder.AddProject<Projects.OrderProcessor>("order-processor")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
@@ -51,22 +59,52 @@ builder.AddProject<Projects.OrderProcessor>("order-processor")
 var webHooksApi = builder.AddProject<Projects.Webhooks_API>("webhooks-api")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
     .WithReference(webhooksDb)
-    .WithEnvironment("Identity__Url", identityEndpoint);
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax");
 
 var roomsApi = builder.AddProject<Projects.Rooms_API>("rooms-api")
     .WithReference(roomsDb).WaitFor(roomsDb)
-    .WithEnvironment("Identity__Url", identityEndpoint);
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax");
 
-// Reverse proxies - Mobile BFF for Flutter app
+var identityApi = builder.AddProject<Projects.Identity_API>("identity-api")
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax")
+    .WithEnvironment("Keycloak__AdminClientId", "identity-api-service")
+    .WithEnvironment("Keycloak__AdminClientSecret", "identity-api-secret");
+
+var loyaltyApi = builder.AddProject<Projects.Loyalty_API>("loyalty-api")
+    .WithReference(loyaltyDb).WaitFor(loyaltyDb)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax");
+
+var notificationApi = builder.AddProject<Projects.Notification_API>("notification-api")
+    .WithReference(notificationDb).WaitFor(notificationDb)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax");
+
+// Reverse proxies - Mobile BFF for Flutter app (fixed port 27748 for adb reverse)
 builder.AddYarp("mobile-bff")
-    .WithExternalHttpEndpoints()
-    .ConfigureMobileBffRoutes(catalogApi, orderingApi, roomsApi, identityApi);
+    .WithEndpoint("http", endpoint =>
+    {
+        endpoint.Port = 27748;
+        endpoint.UriScheme = "http";
+        endpoint.IsExternal = true;
+    })
+    .ConfigureMobileBffRoutes(catalogApi, orderingApi, roomsApi, identityApi, loyaltyApi, notificationApi, keycloak);
 
-// Identity has a reference to all of the apps for callback urls
-identityApi.WithEnvironment("BasketApiClient", basketApi.GetEndpoint("http"))
-           .WithEnvironment("OrderingApiClient", orderingApi.GetEndpoint("http"))
-           .WithEnvironment("WebhooksApiClient", webHooksApi.GetEndpoint("http"))
-           .WithEnvironment("AdminPanelClient", "http://localhost:5173");
+// Reverse proxies - Admin BFF for Admin Tablet app
+builder.AddYarp("admin-bff")
+    .WithExternalHttpEndpoints()
+    .ConfigureAdminBffRoutes(catalogApi, orderingApi, roomsApi, basketApi, identityApi, loyaltyApi, notificationApi, keycloak);
 
 builder.Build().Run();
 

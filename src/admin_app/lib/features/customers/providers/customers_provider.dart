@@ -1,0 +1,107 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_client.dart';
+import '../models/customer.dart';
+
+/// Customers state
+class CustomersState {
+  final bool isLoading;
+  final String? error;
+  final List<Customer> customers;
+  final int totalCount;
+  final String? searchQuery;
+
+  const CustomersState({
+    this.isLoading = false,
+    this.error,
+    this.customers = const [],
+    this.totalCount = 0,
+    this.searchQuery,
+  });
+
+  CustomersState copyWith({
+    bool? isLoading,
+    String? error,
+    List<Customer>? customers,
+    int? totalCount,
+    String? searchQuery,
+    bool clearSearch = false,
+  }) {
+    return CustomersState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      customers: customers ?? this.customers,
+      totalCount: totalCount ?? this.totalCount,
+      searchQuery: clearSearch ? null : (searchQuery ?? this.searchQuery),
+    );
+  }
+}
+
+/// Customers provider
+class CustomersNotifier extends StateNotifier<CustomersState> {
+  final ApiClient _api;
+
+  CustomersNotifier(this._api) : super(const CustomersState());
+
+  Future<void> loadCustomers({int first = 0, int max = 50}) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final queryParams = <String, dynamic>{
+        'first': first,
+        'max': max,
+      };
+
+      if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
+        queryParams['search'] = state.searchQuery;
+      }
+
+      final results = await Future.wait([
+        _api.get('/users', queryParameters: queryParams),
+        _api.get('/users/count'),
+      ]);
+
+      final customersData = results[0].data as List<dynamic>;
+      final countData = results[1].data as Map<String, dynamic>;
+
+      final customers = customersData
+          .map((e) => Customer.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      state = state.copyWith(
+        isLoading: false,
+        customers: customers,
+        totalCount: countData['count'] as int? ?? customers.length,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load customers: $e',
+      );
+    }
+  }
+
+  void setSearchQuery(String? query) {
+    if (query == null || query.isEmpty) {
+      state = state.copyWith(clearSearch: true);
+    } else {
+      state = state.copyWith(searchQuery: query);
+    }
+    loadCustomers();
+  }
+
+  Future<Customer?> getCustomer(String customerId) async {
+    try {
+      final response = await _api.get('/users/$customerId');
+      return Customer.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      return null;
+    }
+  }
+}
+
+/// Customers provider
+final customersProvider =
+    StateNotifierProvider<CustomersNotifier, CustomersState>((ref) {
+  final api = ref.read(usersApiProvider);
+  return CustomersNotifier(api);
+});

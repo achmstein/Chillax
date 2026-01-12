@@ -1,0 +1,82 @@
+name: admin_app
+description: "Chillax Admin App - Cafe management with Forui"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # UI Framework - shadcn-style components
+  forui: ^0.17.0
+
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # HTTP Client
+  dio: ^5.4.0
+
+  # Authentication
+  flutter_secure_storage: ^9.0.0
+
+  # UI Components
+  cached_network_image: ^3.3.1
+
+  # Utils
+  intl: any
+  json_annotation: ^4.8.1
+  freezed_annotation: ^2.4.1
+  equatable: ^2.0.5
+  uuid: ^4.3.3
+
+  # Firebase
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.8
+  json_serializable: ^6.7.1
+  freezed: ^2.4.6
+  riverpod_generator: ^2.3.9
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/images/logo.png
+
+# App icon configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/cup.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/cup.png"
+  adaptive_icon_margin: 16
+  min_sdk_android: 21
+  ios_content_mode: center
+
+# Splash screen configuration
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/logo.png
+  fullscreen: false
+  android_12:
+    color: "#FFFFFF"
+    branding: assets/images/logo.png

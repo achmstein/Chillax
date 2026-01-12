@@ -1,49 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/cart/services/cart_service.dart';
 
-/// Main scaffold with bottom navigation
-class MainScaffold extends ConsumerWidget {
+/// Main scaffold with bottom navigation using Forui
+class MainScaffold extends StatelessWidget {
   final Widget child;
 
   const MainScaffold({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cartCount = ref.watch(cartItemCountProvider);
+  Widget build(BuildContext context) {
+    final currentIndex = _calculateSelectedIndex(context);
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _calculateSelectedIndex(context),
-        onTap: (index) => _onItemTapped(index, context),
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: 'Menu',
-          ),
-          BottomNavigationBarItem(
-            icon: Badge(
-              isLabelVisible: cartCount > 0,
-              label: Text(cartCount.toString()),
-              child: const Icon(Icons.shopping_cart),
+    return FScaffold(
+      child: SafeArea(
+        bottom: false,
+        child: child,
+      ),
+      footer: SafeArea(
+        top: false,
+        child: FBottomNavigationBar(
+          index: currentIndex,
+          onChange: (index) => _onItemTapped(index, context),
+          children: [
+            FBottomNavigationBarItem(
+              icon: const Icon(FIcons.utensils),
+              label: const Text('Menu'),
             ),
-            label: 'Cart',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Orders',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.videogame_asset),
-            label: 'Rooms',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+            FBottomNavigationBarItem(
+              icon: const Icon(FIcons.receipt),
+              label: const Text('Orders'),
+            ),
+            FBottomNavigationBarItem(
+              icon: const Icon(FIcons.gamepad2),
+              label: const Text('Rooms'),
+            ),
+            FBottomNavigationBarItem(
+              icon: const Icon(FIcons.user),
+              label: const Text('Profile'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -51,10 +48,9 @@ class MainScaffold extends ConsumerWidget {
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/menu')) return 0;
-    if (location.startsWith('/cart')) return 1;
-    if (location.startsWith('/orders')) return 2;
-    if (location.startsWith('/rooms')) return 3;
-    if (location.startsWith('/profile')) return 4;
+    if (location.startsWith('/orders')) return 1;
+    if (location.startsWith('/rooms')) return 2;
+    if (location.startsWith('/profile')) return 3;
     return 0;
   }
 
@@ -64,15 +60,12 @@ class MainScaffold extends ConsumerWidget {
         context.go('/menu');
         break;
       case 1:
-        context.go('/cart');
-        break;
-      case 2:
         context.go('/orders');
         break;
-      case 3:
+      case 2:
         context.go('/rooms');
         break;
-      case 4:
+      case 3:
         context.go('/profile');
         break;
     }

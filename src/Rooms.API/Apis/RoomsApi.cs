@@ -1,6 +1,10 @@
 using System.ComponentModel;
+using Chillax.EventBus.Abstractions;
+using Chillax.Rooms.API.Dtos;
 using Chillax.Rooms.API.Infrastructure;
+using Chillax.Rooms.API.IntegrationEvents.Events;
 using Chillax.Rooms.API.Model;
+using Chillax.ServiceDefaults;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +30,12 @@ public static class RoomsApi
             .WithDescription("Get a specific room by its ID")
             .WithTags("Rooms");
 
+        api.MapGet("/{id:int}/pic", GetRoomPictureById)
+            .WithName("GetRoomPicture")
+            .WithSummary("Get room picture")
+            .WithDescription("Get the picture for a room")
+            .WithTags("Rooms");
+
         api.MapGet("/available", GetAvailableRooms)
             .WithName("GetAvailableRooms")
             .WithSummary("Get available rooms")
@@ -36,6 +46,27 @@ public static class RoomsApi
             .WithName("UpdateRoomStatus")
             .WithSummary("Update room status")
             .WithDescription("Update the status of a room (Admin only)")
+            .WithTags("Rooms")
+            .RequireAuthorization();
+
+        api.MapPost("/", CreateRoom)
+            .WithName("CreateRoom")
+            .WithSummary("Create a room")
+            .WithDescription("Create a new PlayStation room (Admin only)")
+            .WithTags("Rooms")
+            .RequireAuthorization();
+
+        api.MapPut("/{id:int}", UpdateRoom)
+            .WithName("UpdateRoom")
+            .WithSummary("Update a room")
+            .WithDescription("Update an existing room's details (Admin only)")
+            .WithTags("Rooms")
+            .RequireAuthorization();
+
+        api.MapDelete("/{id:int}", DeleteRoom)
+            .WithName("DeleteRoom")
+            .WithSummary("Delete a room")
+            .WithDescription("Delete a room (Admin only). Cannot delete rooms with active sessions.")
             .WithTags("Rooms")
             .RequireAuthorization();
 
@@ -69,6 +100,13 @@ public static class RoomsApi
             .WithTags("Sessions")
             .RequireAuthorization();
 
+        api.MapGet("/sessions/my", GetMySessions)
+            .WithName("GetMySessions")
+            .WithSummary("Get my sessions")
+            .WithDescription("Get all sessions for the current authenticated user")
+            .WithTags("Sessions")
+            .RequireAuthorization();
+
         api.MapGet("/sessions/active", GetActiveSessions)
             .WithName("GetActiveSessions")
             .WithSummary("Get active sessions")
@@ -94,15 +132,15 @@ public static class RoomsApi
     }
 
     // Room endpoints
-    public static async Task<Ok<List<Room>>> GetAllRooms(RoomsContext context)
+    public static async Task<Ok<List<RoomDto>>> GetAllRooms(RoomsContext context)
     {
         var rooms = await context.Rooms
             .OrderBy(r => r.Name)
             .ToListAsync();
-        return TypedResults.Ok(rooms);
+        return TypedResults.Ok(rooms.ToDtoList());
     }
 
-    public static async Task<Results<Ok<Room>, NotFound>> GetRoomById(
+    public static async Task<Results<Ok<RoomDto>, NotFound>> GetRoomById(
         RoomsContext context,
         [Description("The room ID")] int id)
     {
@@ -113,19 +151,48 @@ public static class RoomsApi
             return TypedResults.NotFound();
         }
 
-        return TypedResults.Ok(room);
+        return TypedResults.Ok(room.ToDto());
     }
 
-    public static async Task<Ok<List<Room>>> GetAvailableRooms(RoomsContext context)
+    [ProducesResponseType<byte[]>(StatusCodes.Status200OK, "image/webp",
+        ["image/png", "image/gif", "image/jpeg", "image/bmp", "image/tiff",
+          "image/wmf", "image/jp2", "image/svg+xml", "image/webp"])]
+    public static async Task<Results<PhysicalFileHttpResult, NotFound>> GetRoomPictureById(
+        RoomsContext context,
+        IWebHostEnvironment environment,
+        [Description("The room id")] int id)
+    {
+        var room = await context.Rooms.FindAsync(id);
+
+        if (room is null || room.PictureFileName is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        var path = RoomsApiHelpers.GetFullPath(environment.ContentRootPath, room.PictureFileName);
+
+        if (!File.Exists(path))
+        {
+            return TypedResults.NotFound();
+        }
+
+        string imageFileExtension = Path.GetExtension(room.PictureFileName) ?? string.Empty;
+        string mimetype = RoomsApiHelpers.GetImageMimeTypeFromImageFileExtension(imageFileExtension);
+        DateTime lastModified = File.GetLastWriteTimeUtc(path);
+
+        return TypedResults.PhysicalFile(path, mimetype, lastModified: lastModified);
+    }
+
+    public static async Task<Ok<List<RoomDto>>> GetAvailableRooms(RoomsContext context)
     {
         var rooms = await context.Rooms
             .Where(r => r.Status == RoomStatus.Available)
             .OrderBy(r => r.Name)
             .ToListAsync();
-        return TypedResults.Ok(rooms);
+        return TypedResults.Ok(rooms.ToDtoList());
     }
 
-    public static async Task<Results<Ok<Room>, NotFound>> UpdateRoomStatus(
+    public static async Task<Results<Ok<RoomDto>, NotFound>> UpdateRoomStatus(
         RoomsContext context,
         [Description("The room ID")] int id,
         [Description("The new status")] RoomStatus status)
@@ -140,11 +207,85 @@ public static class RoomsApi
         room.Status = status;
         await context.SaveChangesAsync();
 
-        return TypedResults.Ok(room);
+        return TypedResults.Ok(room.ToDto());
+    }
+
+    public static async Task<Created<RoomDto>> CreateRoom(
+        RoomsContext context,
+        CreateRoomRequest request)
+    {
+        var room = new Room(request.Name)
+        {
+            Description = request.Description,
+            HourlyRate = request.HourlyRate,
+            Status = RoomStatus.Available,
+            PictureFileName = request.PictureFileName
+        };
+
+        context.Rooms.Add(room);
+        await context.SaveChangesAsync();
+
+        return TypedResults.Created($"/api/rooms/{room.Id}", room.ToDto());
+    }
+
+    public static async Task<Results<Ok<RoomDto>, NotFound>> UpdateRoom(
+        RoomsContext context,
+        [Description("The room ID")] int id,
+        UpdateRoomRequest request)
+    {
+        var room = await context.Rooms.FindAsync(id);
+
+        if (room == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        room.Name = request.Name;
+        room.Description = request.Description;
+        room.HourlyRate = request.HourlyRate;
+        if (request.PictureFileName != null)
+        {
+            room.PictureFileName = request.PictureFileName;
+        }
+
+        await context.SaveChangesAsync();
+
+        return TypedResults.Ok(room.ToDto());
+    }
+
+    public static async Task<Results<NoContent, NotFound, BadRequest<ProblemDetails>>> DeleteRoom(
+        RoomsContext context,
+        [Description("The room ID")] int id)
+    {
+        var room = await context.Rooms
+            .Include(r => r.Sessions)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (room == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        // Check for active sessions
+        var hasActiveSessions = room.Sessions.Any(s =>
+            s.Status == SessionStatus.Active || s.Status == SessionStatus.Reserved);
+
+        if (hasActiveSessions)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new()
+            {
+                Detail = "Cannot delete room with active or reserved sessions"
+            });
+        }
+
+        context.Rooms.Remove(room);
+        await context.SaveChangesAsync();
+
+        return TypedResults.NoContent();
     }
 
     // Reservation endpoints
-    public static async Task<Results<Created<RoomSession>, NotFound, BadRequest<ProblemDetails>>> ReserveRoom(
+    public static async Task<Results<Created<RoomSessionDto>, NotFound, BadRequest<ProblemDetails>>> ReserveRoom(
         RoomsContext context,
         [Description("The room ID to reserve")] int roomId,
         ReserveRoomRequest request)
@@ -167,6 +308,7 @@ public static class RoomsApi
         var session = new RoomSession(request.CustomerId)
         {
             RoomId = roomId,
+            Room = room,
             CustomerName = request.CustomerName,
             Notes = request.Notes,
             Status = SessionStatus.Reserved
@@ -177,11 +319,11 @@ public static class RoomsApi
         context.RoomSessions.Add(session);
         await context.SaveChangesAsync();
 
-        return TypedResults.Created($"/api/rooms/sessions/{session.Id}", session);
+        return TypedResults.Created($"/api/rooms/sessions/{session.Id}", session.ToDto());
     }
 
     // Session endpoints
-    public static async Task<Results<Ok<RoomSession>, NotFound, BadRequest<ProblemDetails>>> StartSession(
+    public static async Task<Results<Ok<RoomSessionDto>, NotFound, BadRequest<ProblemDetails>>> StartSession(
         RoomsContext context,
         [Description("The session ID")] int sessionId)
     {
@@ -202,7 +344,7 @@ public static class RoomsApi
                 session.Room.Status = RoomStatus.Occupied;
             }
             await context.SaveChangesAsync();
-            return TypedResults.Ok(session);
+            return TypedResults.Ok(session.ToDto());
         }
         catch (InvalidOperationException ex)
         {
@@ -213,8 +355,9 @@ public static class RoomsApi
         }
     }
 
-    public static async Task<Results<Ok<RoomSession>, NotFound, BadRequest<ProblemDetails>>> EndSession(
+    public static async Task<Results<Ok<RoomSessionDto>, NotFound, BadRequest<ProblemDetails>>> EndSession(
         RoomsContext context,
+        IEventBus eventBus,
         [Description("The session ID")] int sessionId)
     {
         var session = await context.RoomSessions
@@ -233,9 +376,17 @@ public static class RoomsApi
             if (session.Room != null)
             {
                 session.Room.Status = RoomStatus.Available;
+                await context.SaveChangesAsync();
+
+                // Publish event to notify subscribers that a room is available
+                await eventBus.PublishAsync(new RoomBecameAvailableIntegrationEvent(
+                    session.Room.Id, session.Room.Name));
             }
-            await context.SaveChangesAsync();
-            return TypedResults.Ok(session);
+            else
+            {
+                await context.SaveChangesAsync();
+            }
+            return TypedResults.Ok(session.ToDto());
         }
         catch (InvalidOperationException ex)
         {
@@ -246,8 +397,9 @@ public static class RoomsApi
         }
     }
 
-    public static async Task<Results<Ok<RoomSession>, NotFound, BadRequest<ProblemDetails>>> CancelSession(
+    public static async Task<Results<Ok<RoomSessionDto>, NotFound, BadRequest<ProblemDetails>>> CancelSession(
         RoomsContext context,
+        IEventBus eventBus,
         [Description("The session ID")] int sessionId)
     {
         var session = await context.RoomSessions
@@ -265,9 +417,17 @@ public static class RoomsApi
             if (session.Room != null)
             {
                 session.Room.Status = RoomStatus.Available;
+                await context.SaveChangesAsync();
+
+                // Publish event to notify subscribers that a room is available
+                await eventBus.PublishAsync(new RoomBecameAvailableIntegrationEvent(
+                    session.Room.Id, session.Room.Name));
             }
-            await context.SaveChangesAsync();
-            return TypedResults.Ok(session);
+            else
+            {
+                await context.SaveChangesAsync();
+            }
+            return TypedResults.Ok(session.ToDto());
         }
         catch (InvalidOperationException ex)
         {
@@ -278,17 +438,30 @@ public static class RoomsApi
         }
     }
 
-    public static async Task<Ok<List<RoomSession>>> GetActiveSessions(RoomsContext context)
+    public static async Task<Ok<List<RoomSessionDto>>> GetMySessions(
+        RoomsContext context,
+        HttpContext httpContext)
+    {
+        var customerId = httpContext.User.GetUserId();
+        var sessions = await context.RoomSessions
+            .Include(s => s.Room)
+            .Where(s => s.CustomerId == customerId)
+            .OrderByDescending(s => s.ReservationTime)
+            .ToListAsync();
+        return TypedResults.Ok(sessions.ToDtoList());
+    }
+
+    public static async Task<Ok<List<RoomSessionDto>>> GetActiveSessions(RoomsContext context)
     {
         var sessions = await context.RoomSessions
             .Include(s => s.Room)
             .Where(s => s.Status == SessionStatus.Active || s.Status == SessionStatus.Reserved)
             .OrderBy(s => s.ReservationTime)
             .ToListAsync();
-        return TypedResults.Ok(sessions);
+        return TypedResults.Ok(sessions.ToDtoList());
     }
 
-    public static async Task<Ok<List<RoomSession>>> GetCustomerSessions(
+    public static async Task<Ok<List<RoomSessionDto>>> GetCustomerSessions(
         RoomsContext context,
         [Description("The customer ID")] string customerId)
     {
@@ -297,10 +470,10 @@ public static class RoomsApi
             .Where(s => s.CustomerId == customerId)
             .OrderByDescending(s => s.ReservationTime)
             .ToListAsync();
-        return TypedResults.Ok(sessions);
+        return TypedResults.Ok(sessions.ToDtoList());
     }
 
-    public static async Task<Results<Ok<RoomSession>, NotFound>> GetSessionById(
+    public static async Task<Results<Ok<RoomSessionDto>, NotFound>> GetSessionById(
         RoomsContext context,
         [Description("The session ID")] int sessionId)
     {
@@ -313,7 +486,7 @@ public static class RoomsApi
             return TypedResults.NotFound();
         }
 
-        return TypedResults.Ok(session);
+        return TypedResults.Ok(session.ToDto());
     }
 }
 
@@ -322,3 +495,37 @@ public record ReserveRoomRequest(
     string? CustomerName = null,
     string? Notes = null
 );
+
+public record CreateRoomRequest(
+    string Name,
+    string? Description = null,
+    decimal HourlyRate = 0,
+    string? PictureFileName = null
+);
+
+public record UpdateRoomRequest(
+    string Name,
+    string? Description = null,
+    decimal HourlyRate = 0,
+    string? PictureFileName = null
+);
+
+public static partial class RoomsApiHelpers
+{
+    public static string GetImageMimeTypeFromImageFileExtension(string extension) => extension switch
+    {
+        ".png" => "image/png",
+        ".gif" => "image/gif",
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".bmp" => "image/bmp",
+        ".tiff" => "image/tiff",
+        ".wmf" => "image/wmf",
+        ".jp2" => "image/jp2",
+        ".svg" => "image/svg+xml",
+        ".webp" => "image/webp",
+        _ => "application/octet-stream",
+    };
+
+    public static string GetFullPath(string contentRootPath, string pictureFileName) =>
+        Path.Combine(contentRootPath, "Pics", pictureFileName);
+}

@@ -1,58 +1,53 @@
 import { useState } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
-import { ConfigDrawer } from '@/components/config-drawer'
+import { Button } from '@/components/ui/button'
 import { CustomersTable } from './components/customers-table'
-import { useCustomers } from './hooks/use-customers'
+import { useCustomers, useCustomerCount } from './hooks/use-customers'
 
 export function Customers() {
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(20)
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<string | undefined>(undefined)
 
-  const { data, isLoading } = useCustomers({
-    page,
-    pageSize,
+  // Calculate offset for API (0-based)
+  const first = (page - 1) * pageSize
+
+  const { data: customers = [], isLoading, refetch } = useCustomers({
+    first,
+    max: pageSize,
     search: search || undefined,
-    status,
   })
+
+  const { data: totalCount = 0 } = useCustomerCount(search || undefined)
 
   return (
     <>
-      <Header fixed>
-        <Search />
-        <div className='ms-auto flex items-center space-x-4'>
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
+      <Header>
+        <div className='flex w-full items-center justify-between'>
+          <div>
+            <h1 className='text-2xl font-bold tracking-tight'>Customers</h1>
+            <p className='text-muted-foreground'>
+              View and manage your customers
+            </p>
+          </div>
+          <Button variant='outline' size='icon' onClick={() => refetch()}>
+            <RefreshCw className='h-4 w-4' />
+          </Button>
         </div>
       </Header>
 
-      <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-2'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Customers</h2>
-            <p className='text-muted-foreground'>
-              Manage your customers and their orders.
-            </p>
-          </div>
-        </div>
-
+      <Main>
         <CustomersTable
-          data={data?.items ?? []}
-          totalCount={data?.totalCount ?? 0}
-          page={data?.page ?? page}
-          pageSize={data?.pageSize ?? pageSize}
-          totalPages={data?.totalPages ?? 0}
+          data={customers}
+          totalCount={totalCount}
+          page={page}
+          pageSize={pageSize}
           isLoading={isLoading}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
           onSearchChange={setSearch}
-          onStatusChange={setStatus}
         />
       </Main>
     </>

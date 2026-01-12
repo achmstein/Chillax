@@ -10,6 +10,9 @@ import {
   Monitor,
   HelpCircle,
   Wrench,
+  Tag,
+  Users,
+  Award,
 } from 'lucide-react'
 import { type SidebarData } from '../types'
 
@@ -37,8 +40,19 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Menu',
-          url: '/menu',
           icon: Coffee,
+          items: [
+            {
+              title: 'Items',
+              url: '/menu',
+              icon: Coffee,
+            },
+            {
+              title: 'Categories',
+              url: '/menu/categories',
+              icon: Tag,
+            },
+          ],
         },
         {
           title: 'Orders',
@@ -49,6 +63,16 @@ export const sidebarData: SidebarData = {
           title: 'PS Rooms',
           url: '/rooms',
           icon: Gamepad2,
+        },
+        {
+          title: 'Customers',
+          url: '/customers',
+          icon: Users,
+        },
+        {
+          title: 'Loyalty',
+          url: '/loyalty',
+          icon: Award,
         },
       ],
     },

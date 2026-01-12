@@ -1,10 +1,11 @@
-import 'package:flutter_appauth/flutter_appauth.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 
 /// Authentication state
 class AuthState {
+  final bool isInitializing;
   final bool isAuthenticated;
   final String? accessToken;
   final String? refreshToken;
@@ -14,6 +15,7 @@ class AuthState {
   final String? name;
 
   const AuthState({
+    this.isInitializing = true,
     this.isAuthenticated = false,
     this.accessToken,
     this.refreshToken,
@@ -24,6 +26,7 @@ class AuthState {
   });
 
   AuthState copyWith({
+    bool? isInitializing,
     bool? isAuthenticated,
     String? accessToken,
     String? refreshToken,
@@ -33,6 +36,7 @@ class AuthState {
     String? name,
   }) {
     return AuthState(
+      isInitializing: isInitializing ?? this.isInitializing,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
@@ -44,50 +48,106 @@ class AuthState {
   }
 }
 
-/// Authentication service using OIDC
+/// Authentication service using native OIDC with Resource Owner Password Credentials
 class AuthService extends StateNotifier<AuthState> {
-  final FlutterAppAuth _appAuth = const FlutterAppAuth();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+  final FlutterSecureStorage _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _idTokenKey = 'id_token';
 
+  /// Token endpoint URL
+  String get _tokenEndpoint => '${AppConfig.identityUrl}/protocol/openid-connect/token';
+
+  /// Logout endpoint URL
+  String get _logoutEndpoint => '${AppConfig.identityUrl}/protocol/openid-connect/logout';
+
   AuthService() : super(const AuthState());
 
   /// Initialize auth state from stored tokens
   Future<void> initialize() async {
-    final accessToken = await _storage.read(key: _accessTokenKey);
-    final refreshToken = await _storage.read(key: _refreshTokenKey);
-    final idToken = await _storage.read(key: _idTokenKey);
+    try {
+      final accessToken = await _storage.read(key: _accessTokenKey);
+      final refreshToken = await _storage.read(key: _refreshTokenKey);
+      final idToken = await _storage.read(key: _idTokenKey);
 
-    if (accessToken != null) {
+      print('Auth init - has access token: ${accessToken != null}');
+      print('Auth init - has refresh token: ${refreshToken != null}');
+
+      if (accessToken != null && refreshToken != null) {
+        // Try to refresh the token to validate it's still valid
+        state = state.copyWith(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          idToken: idToken,
+        );
+
+        final refreshed = await this.refreshToken();
+        print('Auth init - token refresh result: $refreshed');
+        if (refreshed) {
+          state = state.copyWith(
+            isInitializing: false,
+            isAuthenticated: true,
+          );
+          return;
+        }
+      }
+
+      // No valid tokens found
+      print('Auth init - no valid tokens, user needs to login');
       state = state.copyWith(
-        isAuthenticated: true,
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-        idToken: idToken,
+        isInitializing: false,
+        isAuthenticated: false,
+      );
+    } catch (e) {
+      print('Auth initialization error: $e');
+      state = state.copyWith(
+        isInitializing: false,
+        isAuthenticated: false,
       );
     }
   }
 
-  /// Sign in with OIDC
-  Future<bool> signIn() async {
+  /// Sign in with username and password using Resource Owner Password Credentials grant
+  Future<bool> signIn(String username, String password) async {
+    print('Attempting sign in to: $_tokenEndpoint');
     try {
-      final result = await _appAuth.authorizeAndExchangeCode(
-        AuthorizationTokenRequest(
-          AppConfig.clientId,
-          AppConfig.redirectUri,
-          issuer: AppConfig.identityUrl,
-          scopes: AppConfig.scopes,
-          promptValues: ['login'],
+      final response = await _dio.post(
+        _tokenEndpoint,
+        data: {
+          'grant_type': 'password',
+          'client_id': AppConfig.clientId,
+          'username': username,
+          'password': password,
+          'scope': AppConfig.scopes.join(' '),
+        },
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
         ),
       );
 
-      if (result != null) {
-        await _saveTokens(result);
+      print('Sign in response status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = response.data;
+        await _saveTokens(
+          accessToken: data['access_token'],
+          refreshToken: data['refresh_token'],
+          idToken: data['id_token'],
+        );
         return true;
       }
+      return false;
+    } on DioException catch (e) {
+      print('Sign in DioException: ${e.type} - ${e.message}');
+      print('Sign in error response: ${e.response?.statusCode} - ${e.response?.data}');
       return false;
     } catch (e) {
       print('Sign in error: $e');
@@ -95,15 +155,44 @@ class AuthService extends StateNotifier<AuthState> {
     }
   }
 
+  /// Register a new user
+  Future<bool> register(String username, String email, String password) async {
+    try {
+      // Call the BFF registration endpoint which handles Keycloak user creation
+      final response = await _dio.post(
+        '${AppConfig.bffBaseUrl}/api/identity/register',
+        data: {
+          'username': username,
+          'email': email,
+          'password': password,
+        },
+        options: Options(
+          contentType: Headers.jsonContentType,
+        ),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      print('Registration error: ${e.response?.data ?? e.message}');
+      return false;
+    } catch (e) {
+      print('Registration error: $e');
+      return false;
+    }
+  }
+
   /// Sign out
   Future<void> signOut() async {
     try {
-      if (state.idToken != null) {
-        await _appAuth.endSession(
-          EndSessionRequest(
-            idTokenHint: state.idToken,
-            postLogoutRedirectUrl: AppConfig.postLogoutRedirectUri,
-            issuer: AppConfig.identityUrl,
+      if (state.refreshToken != null) {
+        await _dio.post(
+          _logoutEndpoint,
+          data: {
+            'client_id': AppConfig.clientId,
+            'refresh_token': state.refreshToken,
+          },
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
           ),
         );
       }
@@ -116,23 +205,42 @@ class AuthService extends StateNotifier<AuthState> {
 
   /// Refresh access token
   Future<bool> refreshToken() async {
-    if (state.refreshToken == null) return false;
+    if (state.refreshToken == null) {
+      print('Token refresh - no refresh token available');
+      return false;
+    }
 
     try {
-      final result = await _appAuth.token(
-        TokenRequest(
-          AppConfig.clientId,
-          AppConfig.redirectUri,
-          issuer: AppConfig.identityUrl,
-          refreshToken: state.refreshToken,
-          scopes: AppConfig.scopes,
+      print('Token refresh - calling $_tokenEndpoint');
+      final response = await _dio.post(
+        _tokenEndpoint,
+        data: {
+          'grant_type': 'refresh_token',
+          'client_id': AppConfig.clientId,
+          'refresh_token': state.refreshToken,
+        },
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
         ),
       );
 
-      if (result != null) {
-        await _saveTokens(result);
+      if (response.statusCode == 200) {
+        final data = response.data;
+        await _saveTokens(
+          accessToken: data['access_token'],
+          refreshToken: data['refresh_token'],
+          idToken: data['id_token'],
+        );
+        print('Token refresh - success');
         return true;
       }
+      print('Token refresh - failed with status ${response.statusCode}');
+      return false;
+    } on DioException catch (e) {
+      print('Token refresh DioException: ${e.type}');
+      print('Token refresh error response: ${e.response?.statusCode} - ${e.response?.data}');
+      print('Token refresh error message: ${e.message}');
+      await _clearTokens();
       return false;
     } catch (e) {
       print('Token refresh error: $e');
@@ -146,16 +254,26 @@ class AuthService extends StateNotifier<AuthState> {
     return state.accessToken;
   }
 
-  Future<void> _saveTokens(TokenResponse result) async {
-    await _storage.write(key: _accessTokenKey, value: result.accessToken);
-    await _storage.write(key: _refreshTokenKey, value: result.refreshToken);
-    await _storage.write(key: _idTokenKey, value: result.idToken);
+  Future<void> _saveTokens({
+    required String accessToken,
+    String? refreshToken,
+    String? idToken,
+  }) async {
+    print('Saving tokens to secure storage...');
+    await _storage.write(key: _accessTokenKey, value: accessToken);
+    if (refreshToken != null) {
+      await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    }
+    if (idToken != null) {
+      await _storage.write(key: _idTokenKey, value: idToken);
+    }
+    print('Tokens saved successfully');
 
     state = state.copyWith(
       isAuthenticated: true,
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-      idToken: result.idToken,
+      accessToken: accessToken,
+      refreshToken: refreshToken ?? state.refreshToken,
+      idToken: idToken ?? state.idToken,
     );
   }
 
@@ -164,7 +282,7 @@ class AuthService extends StateNotifier<AuthState> {
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _idTokenKey);
 
-    state = const AuthState();
+    state = const AuthState(isInitializing: false);
   }
 }
 

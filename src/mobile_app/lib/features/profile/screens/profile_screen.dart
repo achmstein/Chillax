@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/config/app_config.dart';
 
-/// User profile screen
+/// User profile screen - minimalistic design
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -12,164 +14,171 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authServiceProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // User avatar and info
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: AppTheme.primaryColor.withOpacity(0.2),
-              child: Icon(
-                Icons.person,
-                size: 50,
-                color: AppTheme.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              authState.name ?? 'Guest User',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            if (authState.email != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                authState.email!,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-            const SizedBox(height: 32),
-
-            // Menu items
-            _buildMenuItem(
-              icon: Icons.receipt_long,
-              title: 'Order History',
-              onTap: () {
-                // Already in bottom nav, could deep link to orders tab
-              },
-            ),
-            _buildMenuItem(
-              icon: Icons.videogame_asset,
-              title: 'Session History',
-              onTap: () {
-                // Navigate to rooms tab -> my sessions
-              },
-            ),
-            _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Favorites',
-              onTap: () {
-                // TODO: Implement favorites
-              },
-            ),
-            const Divider(height: 32),
-            _buildMenuItem(
-              icon: Icons.settings,
-              title: 'Settings',
-              onTap: () {
-                // TODO: Implement settings
-              },
-            ),
-            _buildMenuItem(
-              icon: Icons.help_outline,
-              title: 'Help & Support',
-              onTap: () {
-                _showHelpDialog(context);
-              },
-            ),
-            _buildMenuItem(
-              icon: Icons.info_outline,
-              title: 'About',
-              onTap: () {
-                _showAboutDialog(context);
-              },
-            ),
-            const Divider(height: 32),
-
-            // Sign out button
-            if (authState.isAuthenticated)
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => _handleSignOut(context, ref),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Sign Out'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.errorColor,
-                    side: const BorderSide(color: AppTheme.errorColor),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              )
-            else
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _handleSignIn(context, ref),
-                  icon: const Icon(Icons.login),
-                  label: const Text('Sign In'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-
-            const SizedBox(height: 32),
-
-            // App version
-            Text(
-              'Version ${AppConfig.appVersion}',
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 12,
-              ),
-            ),
-          ],
+    return Column(
+      children: [
+        // Header
+        FHeader(
+          title: const Text('Profile', style: TextStyle(fontSize: 18)),
         ),
-      ),
-    );
-  }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
+        // Body
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // User avatar and info
+                FAvatar.raw(
+                  size: 80,
+                  child: Text(
+                    authState.name?.isNotEmpty == true
+                        ? authState.name![0].toUpperCase()
+                        : 'G',
+                    style: const TextStyle(fontSize: 32),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  authState.name ?? 'Guest User',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+                if (authState.email != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    authState.email!,
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
+                ],
+                const SizedBox(height: 32),
+
+                // Menu items using FTile
+                FTileGroup(
+                  children: [
+                    FTile(
+                      prefix: const Icon(FIcons.receipt),
+                      title: const Text('Order History'),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () {
+                        // Navigate to orders
+                      },
+                    ),
+                    FTile(
+                      prefix: const Icon(FIcons.gamepad2),
+                      title: const Text('Session History'),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () => context.push('/sessions'),
+                    ),
+                    FTile(
+                      prefix: const Icon(FIcons.heart),
+                      title: const Text('Favorites'),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () {
+                        // TODO: Implement favorites
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                FTileGroup(
+                  children: [
+                    FTile(
+                      prefix: const Icon(FIcons.settings),
+                      title: const Text('Settings'),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () {
+                        // TODO: Implement settings
+                      },
+                    ),
+                    FTile(
+                      prefix: const Icon(FIcons.lifeBuoy),
+                      title: const Text('Help & Support'),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () => _showHelpDialog(context),
+                    ),
+                    FTile(
+                      prefix: const Icon(FIcons.info),
+                      title: const Text('About'),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () => _showAboutDialog(context),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Sign out / Sign in button
+                SizedBox(
+                  width: double.infinity,
+                  child: authState.isAuthenticated
+                      ? FButton(
+                          style: FButtonStyle.destructive(),
+                          onPress: () => _handleSignOut(context, ref),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(FIcons.logOut),
+                              SizedBox(width: 8),
+                              Text('Sign Out'),
+                            ],
+                          ),
+                        )
+                      : FButton(
+                          onPress: () => _handleSignIn(context, ref),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(FIcons.logIn),
+                              SizedBox(width: 8),
+                              Text('Sign In'),
+                            ],
+                          ),
+                        ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // App version
+                Text(
+                  'Version ${AppConfig.appVersion}',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   void _handleSignOut(BuildContext context, WidgetRef ref) {
-    showDialog(
+    showFDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
         title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
+        body: const Text('Are you sure you want to sign out?'),
+        direction: Axis.horizontal,
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
+          FButton(
+            style: FButtonStyle.outline(),
+            onPress: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            onPressed: () async {
+          FButton(
+            style: FButtonStyle.destructive(),
+            onPress: () async {
               Navigator.pop(context);
               await ref.read(authServiceProvider.notifier).signOut();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
-            ),
             child: const Text('Sign Out'),
           ),
         ],
@@ -177,41 +186,43 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _handleSignIn(BuildContext context, WidgetRef ref) async {
-    await ref.read(authServiceProvider.notifier).signIn();
+  void _handleSignIn(BuildContext context, WidgetRef ref) {
+    context.go('/login');
   }
 
   void _showHelpDialog(BuildContext context) {
-    showDialog(
+    showFDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
         title: const Text('Help & Support'),
-        content: const Column(
+        body: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Need help? Contact us:'),
-            SizedBox(height: 16),
+            const Text('Need help? Contact us:'),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.email, size: 20),
-                SizedBox(width: 8),
-                Text('support@chillax.com'),
+                Icon(FIcons.mail, size: 20, color: AppTheme.textSecondary),
+                const SizedBox(width: 8),
+                const Text('support@chillax.com'),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.phone, size: 20),
-                SizedBox(width: 8),
-                Text('+1 (555) 123-4567'),
+                Icon(FIcons.phone, size: 20, color: AppTheme.textSecondary),
+                const SizedBox(width: 8),
+                const Text('+1 (555) 123-4567'),
               ],
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
+          FButton(
+            onPress: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
         ],
@@ -220,35 +231,37 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
-    showDialog(
+    showFDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
         title: Row(
           children: [
-            Icon(Icons.local_cafe, color: AppTheme.primaryColor),
+            Icon(FIcons.coffee, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
             const Text('Chillax'),
           ],
         ),
-        content: const Column(
+        body: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Cafe & Gaming'),
-            SizedBox(height: 16),
-            Text(
+            const Text('Cafe & Gaming'),
+            const SizedBox(height: 16),
+            const Text(
               'Order delicious food & drinks, or reserve a PlayStation room for an amazing gaming experience.',
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Version ${AppConfig.appVersion}',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: AppTheme.textMuted),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
+          FButton(
+            onPress: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
         ],

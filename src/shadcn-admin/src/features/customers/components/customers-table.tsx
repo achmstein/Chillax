@@ -1,21 +1,18 @@
 import { useState } from 'react'
 import {
-  type ColumnFiltersState,
   type SortingState,
   type VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  DoubleArrowLeftIcon,
-  DoubleArrowRightIcon,
 } from '@radix-ui/react-icons'
-import { cn, getPageNumbers } from '@/lib/utils'
+import { Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -34,7 +31,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTableViewOptions } from '@/components/data-table'
-import { type Customer, customerStatuses } from '../data/schema'
+import { type Customer } from '../types'
 import { customersColumns } from './customers-columns'
 
 interface CustomersTableProps {
@@ -42,12 +39,10 @@ interface CustomersTableProps {
   totalCount: number
   page: number
   pageSize: number
-  totalPages: number
   isLoading?: boolean
   onPageChange: (page: number) => void
   onPageSizeChange: (pageSize: number) => void
   onSearchChange: (search: string) => void
-  onStatusChange: (status: string | undefined) => void
 }
 
 export function CustomersTable({
@@ -55,18 +50,16 @@ export function CustomersTable({
   totalCount,
   page,
   pageSize,
-  totalPages,
   isLoading,
   onPageChange,
   onPageSizeChange,
   onSearchChange,
-  onStatusChange,
 }: CustomersTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState({})
   const [searchValue, setSearchValue] = useState('')
+
+  const totalPages = Math.ceil(totalCount / pageSize)
 
   const table = useReactTable({
     data,
@@ -75,33 +68,31 @@ export function CustomersTable({
     pageCount: totalPages,
     state: {
       sorting,
-      columnFilters,
       columnVisibility,
-      rowSelection,
       pagination: {
         pageIndex: page - 1,
         pageSize,
       },
     },
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
   })
 
-  const pageNumbers = getPageNumbers(page, totalPages)
-
   const handleSearch = (value: string) => {
     setSearchValue(value)
-    // Debounce the search
-    const timeoutId = setTimeout(() => {
-      onSearchChange(value)
-      onPageChange(1) // Reset to first page on search
-    }, 300)
-    return () => clearTimeout(timeoutId)
+  }
+
+  const handleSearchSubmit = () => {
+    onSearchChange(searchValue)
+    onPageChange(1)
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit()
+    }
   }
 
   return (
@@ -110,31 +101,26 @@ export function CustomersTable({
       <div className='flex items-center justify-between'>
         <div className='flex flex-1 items-center space-x-2'>
           <Input
-            placeholder='Search customers...'
+            placeholder='Search by name, email, or username...'
             value={searchValue}
             onChange={(event) => handleSearch(event.target.value)}
-            className='h-8 w-[150px] lg:w-[250px]'
+            onKeyDown={handleKeyPress}
+            className='h-8 w-[250px] lg:w-[350px]'
           />
-          <Select
-            onValueChange={(value) => {
-              onStatusChange(value === 'all' ? undefined : value)
-              onPageChange(1)
-            }}
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={handleSearchSubmit}
           >
-            <SelectTrigger className='h-8 w-[130px]'>
-              <SelectValue placeholder='All statuses' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>All statuses</SelectItem>
-              {customerStatuses.map((status) => (
-                <SelectItem key={status.value} value={status.value}>
-                  {status.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            Search
+          </Button>
         </div>
-        <DataTableViewOptions table={table} />
+        <div className='flex items-center gap-2'>
+          <span className='text-sm text-muted-foreground'>
+            {totalCount} customers
+          </span>
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
 
       {/* Table */}
@@ -172,21 +158,23 @@ export function CustomersTable({
                   colSpan={customersColumns.length}
                   className='h-24 text-center'
                 >
-                  Loading...
+                  <div className='flex items-center justify-center gap-2'>
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                    Loading...
+                  </div>
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
                   className='group/row'
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
                       className={cn(
-                        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                        'bg-background group-hover/row:bg-muted',
                         cell.column.columnDef.meta?.className
                       )}
                     >
@@ -215,7 +203,7 @@ export function CustomersTable({
       {/* Pagination */}
       <div className='flex items-center justify-between px-2'>
         <div className='text-muted-foreground flex-1 text-sm'>
-          {totalCount} total customers
+          Showing {data.length} of {totalCount} customers
         </div>
         <div className='flex items-center space-x-6 lg:space-x-8'>
           <div className='flex items-center space-x-2'>
@@ -231,7 +219,7 @@ export function CustomersTable({
                 <SelectValue placeholder={pageSize} />
               </SelectTrigger>
               <SelectContent side='top'>
-                {[10, 20, 30, 40, 50].map((size) => (
+                {[10, 20, 30, 50].map((size) => (
                   <SelectItem key={size} value={`${size}`}>
                     {size}
                   </SelectItem>
@@ -245,15 +233,6 @@ export function CustomersTable({
           <div className='flex items-center space-x-2'>
             <Button
               variant='outline'
-              className='hidden h-8 w-8 p-0 lg:flex'
-              onClick={() => onPageChange(1)}
-              disabled={page <= 1}
-            >
-              <span className='sr-only'>Go to first page</span>
-              <DoubleArrowLeftIcon className='h-4 w-4' />
-            </Button>
-            <Button
-              variant='outline'
               className='h-8 w-8 p-0'
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
@@ -261,24 +240,6 @@ export function CustomersTable({
               <span className='sr-only'>Go to previous page</span>
               <ChevronLeftIcon className='h-4 w-4' />
             </Button>
-
-            {/* Page number buttons */}
-            {pageNumbers.map((pageNumber, index) => (
-              <div key={`${pageNumber}-${index}`} className='hidden items-center md:flex'>
-                {pageNumber === '...' ? (
-                  <span className='text-muted-foreground px-1 text-sm'>...</span>
-                ) : (
-                  <Button
-                    variant={page === pageNumber ? 'default' : 'outline'}
-                    className='h-8 min-w-8 px-2'
-                    onClick={() => onPageChange(pageNumber as number)}
-                  >
-                    {pageNumber}
-                  </Button>
-                )}
-              </div>
-            ))}
-
             <Button
               variant='outline'
               className='h-8 w-8 p-0'
@@ -287,15 +248,6 @@ export function CustomersTable({
             >
               <span className='sr-only'>Go to next page</span>
               <ChevronRightIcon className='h-4 w-4' />
-            </Button>
-            <Button
-              variant='outline'
-              className='hidden h-8 w-8 p-0 lg:flex'
-              onClick={() => onPageChange(totalPages)}
-              disabled={page >= totalPages}
-            >
-              <span className='sr-only'>Go to last page</span>
-              <DoubleArrowRightIcon className='h-4 w-4' />
             </Button>
           </div>
         </div>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "464165934148",
+    "project_id": "chillax-183f1",
+    "storage_bucket": "chillax-183f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:464165934148:android:7a0be33f356e7c9b53d811",
+        "android_client_info": {
+          "package_name": "com.chillax.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACWtDBUyMM1aqiMI_RPZkIFk25K7UShjI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:464165934148:android:47b9194bc261959753d811",
+        "android_client_info": {
+          "package_name": "com.chillax.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACWtDBUyMM1aqiMI_RPZkIFk25K7UShjI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

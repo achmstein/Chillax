@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/menu_item.dart';
 import '../services/menu_service.dart';
@@ -8,228 +10,676 @@ import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
 import '../widgets/item_customization_sheet.dart';
 
-/// Menu screen showing food and drinks
-class MenuScreen extends ConsumerWidget {
+/// Provider for grouped menu items by category
+final groupedMenuItemsProvider = FutureProvider<Map<String, List<MenuItem>>>((ref) async {
+  final service = ref.watch(menuServiceProvider);
+  final categories = await service.getCategories();
+  final items = await service.getMenuItems();
+
+  final grouped = <String, List<MenuItem>>{};
+  for (final category in categories) {
+    final categoryItems = items.where((item) => item.catalogTypeId == category.id).toList();
+    if (categoryItems.isNotEmpty) {
+      grouped[category.name] = categoryItems;
+    }
+  }
+  return grouped;
+});
+
+/// Menu screen showing food and drinks grouped by category
+class MenuScreen extends ConsumerStatefulWidget {
   const MenuScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectedCategory = ref.watch(selectedCategoryProvider);
-    final categoriesAsync = ref.watch(categoriesProvider);
-    final menuItemsAsync = ref.watch(menuItemsProvider(selectedCategory));
+  ConsumerState<MenuScreen> createState() => _MenuScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Implement search
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Category filter chips
-          categoriesAsync.when(
-            loading: () => const SizedBox(
-              height: 60,
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (error, _) => const SizedBox.shrink(),
-            data: (categories) => SizedBox(
-              height: 60,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+class _MenuScreenState extends ConsumerState<MenuScreen> {
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  final Map<String, GlobalKey> _categoryKeys = {};
+
+  String? _selectedCategory;
+  bool _showSearch = false;
+  double _lastScrollOffset = 0;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final offset = _scrollController.offset;
+    final isScrollingDown = offset > _lastScrollOffset;
+
+    // Don't show search during programmatic scroll (category tap)
+    if (!_isProgrammaticScroll) {
+      // Show search when scrolling down past threshold, hide when scrolling up
+      if (offset > 50 && isScrollingDown && !_showSearch) {
+        setState(() => _showSearch = true);
+      } else if (offset < 50 || (!isScrollingDown && offset < _lastScrollOffset - 30)) {
+        if (_showSearch && _searchQuery.isEmpty) {
+          setState(() => _showSearch = false);
+        }
+      }
+    }
+
+    _lastScrollOffset = offset;
+
+    // Update selected category based on scroll position (skip during programmatic scroll)
+    if (!_isProgrammaticScroll) {
+      _updateSelectedCategory();
+    }
+  }
+
+  void _updateSelectedCategory() {
+    if (_categoryKeys.isEmpty) return;
+
+    String? visibleCategory;
+    double minDistance = double.infinity;
+
+    for (final entry in _categoryKeys.entries) {
+      final key = entry.value;
+      final context = key.currentContext;
+      if (context != null) {
+        final box = context.findRenderObject() as RenderBox?;
+        if (box != null) {
+          final position = box.localToGlobal(Offset.zero);
+          final distance = (position.dy - 150).abs(); // 150 is approximate header height
+          if (distance < minDistance && position.dy < 200) {
+            minDistance = distance;
+            visibleCategory = entry.key;
+          }
+        }
+      }
+    }
+
+    if (visibleCategory != null && visibleCategory != _selectedCategory) {
+      setState(() => _selectedCategory = visibleCategory);
+    }
+  }
+
+  bool _isProgrammaticScroll = false;
+
+  void _scrollToCategory(String category) {
+    final key = _categoryKeys[category];
+    if (key?.currentContext != null) {
+      _isProgrammaticScroll = true;
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+      ).then((_) {
+        _isProgrammaticScroll = false;
+      });
+      setState(() => _selectedCategory = category);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final groupedItemsAsync = ref.watch(groupedMenuItemsProvider);
+    final cart = ref.watch(cartProvider);
+    final hasItems = !cart.isEmpty;
+
+    return Column(
+      children: [
+        // Header
+        FHeader(
+          title: const Text('Menu', style: TextStyle(fontSize: 18)),
+        ),
+
+        // Content
+        Expanded(
+          child: groupedItemsAsync.when(
+            loading: () => Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+            error: (error, _) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: const Text('All'),
-                      selected: selectedCategory == null,
-                      onSelected: (_) {
-                        ref.read(selectedCategoryProvider.notifier).state = null;
-                      },
-                    ),
+                  Icon(FIcons.circleAlert, size: 48, color: AppTheme.textMuted),
+                  const SizedBox(height: 16),
+                  Text('Failed to load menu: $error'),
+                  const SizedBox(height: 16),
+                  FButton(
+                    onPress: () => ref.refresh(groupedMenuItemsProvider),
+                    child: const Text('Retry'),
                   ),
-                  ...categories.map((category) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          label: Text(category.name),
-                          selected: selectedCategory == category.id,
-                          onSelected: (_) {
-                            ref.read(selectedCategoryProvider.notifier).state =
-                                category.id;
-                          },
-                        ),
-                      )),
                 ],
               ),
             ),
-          ),
+            data: (groupedItems) {
+              if (groupedItems.isEmpty) {
+                return const Center(child: Text('No items available'));
+              }
 
-          // Menu items grid
-          Expanded(
-            child: menuItemsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              // Initialize category keys
+              for (final category in groupedItems.keys) {
+                _categoryKeys.putIfAbsent(category, () => GlobalKey());
+              }
+
+              // Set initial selected category
+              _selectedCategory ??= groupedItems.keys.first;
+
+              // Filter items based on search
+              final filteredItems = _filterItems(groupedItems);
+
+              return Column(
+                children: [
+                  // Search bar (animated) - above category menu
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: _showSearch ? 56 : 0,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 200),
+                      opacity: _showSearch ? 1 : 0,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Search menu...',
+                              prefixIcon: const Icon(Icons.search, size: 20),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear, size: 20),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() => _searchQuery = '');
+                                      },
+                                    )
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide(color: AppTheme.textMuted.withOpacity(0.3)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide(color: AppTheme.textMuted.withOpacity(0.3)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide(color: AppTheme.primaryColor),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              isDense: true,
+                            ),
+                            onChanged: (value) => setState(() => _searchQuery = value),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Sticky category menu
+                  _CategoryMenu(
+                    categories: groupedItems.keys.toList(),
+                    selectedCategory: _selectedCategory,
+                    onCategoryTap: _scrollToCategory,
+                  ),
+
+                  // Menu items
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: AppTheme.primaryColor,
+                      onRefresh: () async => ref.refresh(groupedMenuItemsProvider),
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.only(bottom: 16),
+                        cacheExtent: 2000, // Pre-render off-screen items for category scrolling
+                        itemCount: filteredItems.length,
+                        itemBuilder: (context, index) {
+                          final category = filteredItems.keys.elementAt(index);
+                          final items = filteredItems[category]!;
+                          return _CategorySection(
+                            key: _categoryKeys[category],
+                            categoryName: category,
+                            items: items,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+
+        // View Cart button (fixed at bottom)
+        if (hasItems)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+              ),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => context.push('/cart'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: const StadiumBorder(),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                    const SizedBox(height: 16),
-                    Text('Failed to load menu: $error'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => ref.refresh(menuItemsProvider(selectedCategory)),
-                      child: const Text('Retry'),
+                    const Text(
+                      'View Cart',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      '£${cart.totalPrice.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
                   ],
                 ),
               ),
-              data: (items) => items.isEmpty
-                  ? const Center(
-                      child: Text('No items available'),
-                    )
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.75,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        return MenuItemCard(item: items[index]);
-                      },
-                    ),
             ),
           ),
-        ],
+      ],
+    );
+  }
+
+  Map<String, List<MenuItem>> _filterItems(Map<String, List<MenuItem>> items) {
+    if (_searchQuery.isEmpty) return items;
+
+    final filtered = <String, List<MenuItem>>{};
+    final query = _searchQuery.toLowerCase();
+
+    for (final entry in items.entries) {
+      final matchingItems = entry.value
+          .where((item) =>
+              item.name.toLowerCase().contains(query) ||
+              item.description.toLowerCase().contains(query))
+          .toList();
+      if (matchingItems.isNotEmpty) {
+        filtered[entry.key] = matchingItems;
+      }
+    }
+    return filtered;
+  }
+}
+
+/// Horizontal category menu
+class _CategoryMenu extends StatefulWidget {
+  final List<String> categories;
+  final String? selectedCategory;
+  final Function(String) onCategoryTap;
+
+  const _CategoryMenu({
+    required this.categories,
+    required this.selectedCategory,
+    required this.onCategoryTap,
+  });
+
+  @override
+  State<_CategoryMenu> createState() => _CategoryMenuState();
+}
+
+class _CategoryMenuState extends State<_CategoryMenu> {
+  final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _chipKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (final category in widget.categories) {
+      _chipKeys[category] = GlobalKey();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_CategoryMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedCategory != oldWidget.selectedCategory) {
+      _scrollToSelectedCategory();
+    }
+  }
+
+  void _scrollToSelectedCategory() {
+    if (widget.selectedCategory == null) return;
+    final key = _chipKeys[widget.selectedCategory];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 200),
+        alignment: 0.5,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+        ),
+      ),
+      child: ListView.builder(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        itemCount: widget.categories.length,
+        itemBuilder: (context, index) {
+          final category = widget.categories[index];
+          final isSelected = category == widget.selectedCategory;
+          return GestureDetector(
+            key: _chipKeys[category],
+            onTap: () => widget.onCategoryTap(category),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                category,
+                style: TextStyle(
+                  color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-/// Menu item card
-class MenuItemCard extends ConsumerWidget {
-  final MenuItem item;
+/// Category section with header and items
+class _CategorySection extends StatelessWidget {
+  final String categoryName;
+  final List<MenuItem> items;
 
-  const MenuItemCard({super.key, required this.item});
+  const _CategorySection({
+    super.key,
+    required this.categoryName,
+    required this.items,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Category header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text(
+            categoryName,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ),
+        // Items
+        ...items.asMap().entries.map((entry) => MenuItemTile(
+          item: entry.value,
+          isLast: entry.key == items.length - 1,
+        )),
+      ],
+    );
+  }
+}
+
+/// Menu item tile - list style with stepper
+class MenuItemTile extends ConsumerWidget {
+  final MenuItem item;
+  final bool isLast;
+
+  const MenuItemTile({super.key, required this.item, this.isLast = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => _showCustomizationSheet(context, ref),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    final cart = ref.watch(cartProvider);
+    final cartQuantity = _getCartQuantity(cart, item.id);
+
+    return GestureDetector(
+      onTap: () => _showCustomizationSheet(context, ref),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: isLast
+            ? null
+            : BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+                ),
+              ),
+        child: Row(
           children: [
             // Image
-            Expanded(
-              flex: 3,
-              child: item.pictureUri != null
-                  ? CachedNetworkImage(
-                      imageUrl: item.pictureUri!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey.shade200,
-                        child: const Center(
-                          child: CircularProgressIndicator(),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 64,
+                height: 64,
+                child: item.pictureUri != null
+                    ? Image.network(
+                        item.pictureUri!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stack) => Container(
+                          color: AppTheme.backgroundColor,
+                          child: const Icon(FIcons.utensils, size: 24),
                         ),
+                      )
+                    : Container(
+                        color: AppTheme.backgroundColor,
+                        child: const Icon(FIcons.utensils, size: 24),
                       ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.restaurant, size: 40),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.restaurant, size: 40),
-                    ),
+              ),
             ),
+            const SizedBox(width: 12),
 
             // Info
             Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  if (item.description.isNotEmpty) ...[
+                    const SizedBox(height: 2),
                     Text(
-                      item.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                      item.description,
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 13,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '\$${item.price.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '£${item.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
+
+            // Quantity stepper or add button
+            cartQuantity > 0
+                ? _QuantityStepper(
+                    quantity: cartQuantity,
+                    onIncrement: () => _addToCart(ref),
+                    onDecrement: () => _decrementFromCart(ref, cart, item.id),
+                  )
+                : GestureDetector(
+                    onTap: () => _handleAddTap(context, ref),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        FIcons.plus,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),
     );
   }
 
+  int _getCartQuantity(Cart cart, int productId) {
+    int total = 0;
+    for (final cartItem in cart.items) {
+      if (cartItem.productId == productId) {
+        total += cartItem.quantity;
+      }
+    }
+    return total;
+  }
+
+  void _handleAddTap(BuildContext context, WidgetRef ref) {
+    if (item.customizations.isEmpty) {
+      _addToCart(ref);
+    } else {
+      _showCustomizationSheet(context, ref);
+    }
+  }
+
+  void _addToCart(WidgetRef ref) {
+    final cartItem = CartItem.fromMenuItem(item);
+    ref.read(cartProvider.notifier).addItem(cartItem);
+  }
+
+  void _decrementFromCart(WidgetRef ref, Cart cart, int productId) {
+    for (int i = cart.items.length - 1; i >= 0; i--) {
+      if (cart.items[i].productId == productId) {
+        if (cart.items[i].quantity > 1) {
+          ref.read(cartProvider.notifier).updateQuantity(i, cart.items[i].quantity - 1);
+        } else {
+          ref.read(cartProvider.notifier).removeItem(i);
+        }
+        break;
+      }
+    }
+  }
+
   void _showCustomizationSheet(BuildContext context, WidgetRef ref) {
     if (item.customizations.isEmpty) {
-      // No customizations, add directly
-      final cartItem = CartItem.fromMenuItem(item);
-      ref.read(cartProvider.notifier).addItem(cartItem);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${item.name} added to cart'),
-          duration: const Duration(seconds: 2),
-          action: SnackBarAction(
-            label: 'View Cart',
-            onPressed: () {
-              // Navigate to cart
-            },
-          ),
-        ),
-      );
+      _addToCart(ref);
     } else {
-      // Show customization sheet
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
+        useRootNavigator: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: Colors.black.withOpacity(0.5),
         builder: (context) => ItemCustomizationSheet(item: item),
       );
     }
+  }
+}
+
+/// Quantity stepper widget
+class _QuantityStepper extends StatelessWidget {
+  final int quantity;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
+
+  const _QuantityStepper({
+    required this.quantity,
+    required this.onIncrement,
+    required this.onDecrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 34,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppTheme.primaryColor),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: onDecrement,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                quantity == 1 ? FIcons.trash2 : FIcons.minus,
+                color: quantity == 1 ? AppTheme.errorColor : AppTheme.primaryColor,
+                size: 18,
+              ),
+            ),
+          ),
+          Container(
+            constraints: const BoxConstraints(minWidth: 24),
+            alignment: Alignment.center,
+            child: Text(
+              '$quantity',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: onIncrement,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                FIcons.plus,
+                color: AppTheme.primaryColor,
+                size: 18,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

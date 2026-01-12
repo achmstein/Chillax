@@ -1,5 +1,8 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using Chillax.Catalog.API.Dtos;
+using Chillax.ServiceDefaults;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -62,6 +65,30 @@ public static class CatalogApi
             .WithDescription("Get a list of menu categories (Drinks, Food, Snacks, Desserts)")
             .WithTags("Categories");
 
+        api.MapGet("/categories/{id:int}", GetCategoryById)
+            .WithName("GetCategory")
+            .WithSummary("Get menu category")
+            .WithDescription("Get a menu category by ID")
+            .WithTags("Categories");
+
+        api.MapPost("/categories", CreateCategory)
+            .WithName("CreateCategory")
+            .WithSummary("Create a menu category")
+            .WithDescription("Create a new menu category")
+            .WithTags("Categories");
+
+        api.MapPut("/categories/{id:int}", UpdateCategory)
+            .WithName("UpdateCategory")
+            .WithSummary("Update a menu category")
+            .WithDescription("Update an existing menu category")
+            .WithTags("Categories");
+
+        api.MapDelete("/categories/{id:int}", DeleteCategory)
+            .WithName("DeleteCategory")
+            .WithSummary("Delete menu category")
+            .WithDescription("Delete the specified menu category")
+            .WithTags("Categories");
+
         // CRUD endpoints
         api.MapPost("/items", CreateItem)
             .WithName("CreateItem")
@@ -94,20 +121,50 @@ public static class CatalogApi
             .WithDescription("Get all customization options for a menu item")
             .WithTags("Customizations");
 
+        // User preferences endpoints
+        api.MapGet("/preferences/{catalogItemId:int}", GetUserPreference)
+            .WithName("GetUserPreference")
+            .WithSummary("Get user's saved preferences for a menu item")
+            .WithDescription("Get the user's saved customization preferences for a specific menu item")
+            .WithTags("Preferences")
+            .RequireAuthorization();
+
+        api.MapGet("/preferences", GetUserPreferences)
+            .WithName("GetUserPreferences")
+            .WithSummary("Get all user preferences")
+            .WithDescription("Get all saved customization preferences for the current user")
+            .WithTags("Preferences")
+            .RequireAuthorization();
+
+        api.MapPost("/preferences/batch", GetUserPreferencesForItems)
+            .WithName("GetUserPreferencesForItems")
+            .WithSummary("Get preferences for multiple items")
+            .WithDescription("Get the user's saved preferences for a list of catalog item IDs")
+            .WithTags("Preferences")
+            .RequireAuthorization();
+
+        api.MapPost("/preferences", SaveUserPreferences)
+            .WithName("SaveUserPreferences")
+            .WithSummary("Save user preferences")
+            .WithDescription("Save the user's customization preferences for multiple items (called after successful order)")
+            .WithTags("Preferences")
+            .RequireAuthorization();
+
         return app;
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public static async Task<Ok<PaginatedItems<CatalogItem>>> GetAllItems(
-        [AsParameters] PaginationRequest paginationRequest,
+    public static async Task<Ok<List<CatalogItemDto>>> GetAllItems(
         [AsParameters] CatalogServices services,
+        HttpContext httpContext,
         [Description("Filter by category")] int? categoryId = null)
     {
-        var pageSize = paginationRequest.PageSize;
-        var pageIndex = paginationRequest.PageIndex;
+        var baseUrl = GetBaseUrl(httpContext);
 
         var query = services.Context.CatalogItems
             .Include(c => c.CatalogType)
+            .Include(c => c.Customizations)
+                .ThenInclude(c => c.Options)
             .AsQueryable();
 
         if (categoryId.HasValue)
@@ -115,28 +172,22 @@ public static class CatalogApi
             query = query.Where(c => c.CatalogTypeId == categoryId.Value);
         }
 
-        var totalItems = await query.LongCountAsync();
-
-        var itemsOnPage = await query
-            .OrderBy(c => c.Name)
-            .Skip(pageSize * pageIndex)
-            .Take(pageSize)
-            .ToListAsync();
-
-        return TypedResults.Ok(new PaginatedItems<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage));
+        var items = await query.OrderBy(c => c.Name).ToListAsync();
+        return TypedResults.Ok(items.ToDtoList(baseUrl));
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public static async Task<Ok<PaginatedItems<CatalogItem>>> GetAvailableItems(
-        [AsParameters] PaginationRequest paginationRequest,
+    public static async Task<Ok<List<CatalogItemDto>>> GetAvailableItems(
         [AsParameters] CatalogServices services,
+        HttpContext httpContext,
         [Description("Filter by category")] int? categoryId = null)
     {
-        var pageSize = paginationRequest.PageSize;
-        var pageIndex = paginationRequest.PageIndex;
+        var baseUrl = GetBaseUrl(httpContext);
 
         var query = services.Context.CatalogItems
             .Include(c => c.CatalogType)
+            .Include(c => c.Customizations)
+                .ThenInclude(c => c.Options)
             .Where(c => c.IsAvailable);
 
         if (categoryId.HasValue)
@@ -144,34 +195,30 @@ public static class CatalogApi
             query = query.Where(c => c.CatalogTypeId == categoryId.Value);
         }
 
-        var totalItems = await query.LongCountAsync();
-
-        var itemsOnPage = await query
-            .OrderBy(c => c.Name)
-            .Skip(pageSize * pageIndex)
-            .Take(pageSize)
-            .ToListAsync();
-
-        return TypedResults.Ok(new PaginatedItems<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage));
+        var items = await query.OrderBy(c => c.Name).ToListAsync();
+        return TypedResults.Ok(items.ToDtoList(baseUrl));
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public static async Task<Ok<List<CatalogItem>>> GetItemsByIds(
+    public static async Task<Ok<List<CatalogItemDto>>> GetItemsByIds(
         [AsParameters] CatalogServices services,
+        HttpContext httpContext,
         [Description("List of ids for menu items to return")] int[] ids)
     {
+        var baseUrl = GetBaseUrl(httpContext);
         var items = await services.Context.CatalogItems
             .Include(c => c.CatalogType)
             .Include(c => c.Customizations)
                 .ThenInclude(c => c.Options)
             .Where(item => ids.Contains(item.Id))
             .ToListAsync();
-        return TypedResults.Ok(items);
+        return TypedResults.Ok(items.ToDtoList(baseUrl));
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public static async Task<Results<Ok<CatalogItem>, NotFound, BadRequest<ProblemDetails>>> GetItemById(
+    public static async Task<Results<Ok<CatalogItemDto>, NotFound, BadRequest<ProblemDetails>>> GetItemById(
         [AsParameters] CatalogServices services,
+        HttpContext httpContext,
         [Description("The menu item id")] int id)
     {
         if (id <= 0)
@@ -182,6 +229,7 @@ public static class CatalogApi
             });
         }
 
+        var baseUrl = GetBaseUrl(httpContext);
         var item = await services.Context.CatalogItems
             .Include(ci => ci.CatalogType)
             .Include(ci => ci.Customizations)
@@ -193,20 +241,24 @@ public static class CatalogApi
             return TypedResults.NotFound();
         }
 
-        return TypedResults.Ok(item);
+        return TypedResults.Ok(item.ToDto(baseUrl));
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public static async Task<Ok<PaginatedItems<CatalogItem>>> GetItemsByName(
+    public static async Task<Ok<PaginatedItemsDto<CatalogItemDto>>> GetItemsByName(
         [AsParameters] PaginationRequest paginationRequest,
         [AsParameters] CatalogServices services,
+        HttpContext httpContext,
         [Description("The name to search for")] string name)
     {
         var pageSize = paginationRequest.PageSize;
         var pageIndex = paginationRequest.PageIndex;
+        var baseUrl = GetBaseUrl(httpContext);
 
         var query = services.Context.CatalogItems
             .Include(c => c.CatalogType)
+            .Include(c => c.Customizations)
+                .ThenInclude(c => c.Options)
             .Where(c => c.Name.ToLower().Contains(name.ToLower()));
 
         var totalItems = await query.LongCountAsync();
@@ -217,20 +269,25 @@ public static class CatalogApi
             .Take(pageSize)
             .ToListAsync();
 
-        return TypedResults.Ok(new PaginatedItems<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage));
+        var dtos = itemsOnPage.ToDtoList(baseUrl);
+        return TypedResults.Ok(new PaginatedItemsDto<CatalogItemDto>(pageIndex, pageSize, totalItems, dtos));
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
-    public static async Task<Ok<PaginatedItems<CatalogItem>>> GetItemsByType(
+    public static async Task<Ok<PaginatedItemsDto<CatalogItemDto>>> GetItemsByType(
         [AsParameters] PaginationRequest paginationRequest,
         [AsParameters] CatalogServices services,
+        HttpContext httpContext,
         [Description("The category id")] int typeId)
     {
         var pageSize = paginationRequest.PageSize;
         var pageIndex = paginationRequest.PageIndex;
+        var baseUrl = GetBaseUrl(httpContext);
 
         var query = services.Context.CatalogItems
             .Include(c => c.CatalogType)
+            .Include(c => c.Customizations)
+                .ThenInclude(c => c.Options)
             .Where(c => c.CatalogTypeId == typeId);
 
         var totalItems = await query.LongCountAsync();
@@ -241,7 +298,8 @@ public static class CatalogApi
             .Take(pageSize)
             .ToListAsync();
 
-        return TypedResults.Ok(new PaginatedItems<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage));
+        var dtos = itemsOnPage.ToDtoList(baseUrl);
+        return TypedResults.Ok(new PaginatedItemsDto<CatalogItemDto>(pageIndex, pageSize, totalItems, dtos));
     }
 
     [ProducesResponseType<byte[]>(StatusCodes.Status200OK, "application/octet-stream",
@@ -268,10 +326,80 @@ public static class CatalogApi
         return TypedResults.PhysicalFile(path, mimetype, lastModified: lastModified);
     }
 
-    public static async Task<Ok<List<CatalogType>>> GetCategories(CatalogContext context)
+    public static async Task<Ok<List<CatalogTypeDto>>> GetCategories(CatalogContext context)
     {
         var categories = await context.CatalogTypes.OrderBy(x => x.Type).ToListAsync();
-        return TypedResults.Ok(categories);
+        return TypedResults.Ok(categories.ToDtoList());
+    }
+
+    public static async Task<Results<Ok<CatalogTypeDto>, NotFound>> GetCategoryById(
+        CatalogContext context,
+        [Description("The category id")] int id)
+    {
+        var category = await context.CatalogTypes.FindAsync(id);
+
+        if (category is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Ok(category.ToDto());
+    }
+
+    public static async Task<Created<CatalogTypeDto>> CreateCategory(
+        CatalogContext context,
+        CatalogType category)
+    {
+        var newCategory = new CatalogType(category.Type);
+        context.CatalogTypes.Add(newCategory);
+        await context.SaveChangesAsync();
+
+        return TypedResults.Created($"/api/catalog/categories/{newCategory.Id}", newCategory.ToDto());
+    }
+
+    public static async Task<Results<Ok<CatalogTypeDto>, NotFound>> UpdateCategory(
+        CatalogContext context,
+        [Description("The category id")] int id,
+        CatalogType categoryToUpdate)
+    {
+        var category = await context.CatalogTypes.FindAsync(id);
+
+        if (category is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        category.Type = categoryToUpdate.Type;
+        await context.SaveChangesAsync();
+
+        return TypedResults.Ok(category.ToDto());
+    }
+
+    public static async Task<Results<NoContent, NotFound, Conflict<ProblemDetails>>> DeleteCategory(
+        CatalogContext context,
+        [Description("The category id")] int id)
+    {
+        var category = await context.CatalogTypes.FindAsync(id);
+
+        if (category is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        // Check if any items use this category
+        var hasItems = await context.CatalogItems.AnyAsync(i => i.CatalogTypeId == id);
+        if (hasItems)
+        {
+            return TypedResults.Conflict<ProblemDetails>(new()
+            {
+                Detail = "Cannot delete category that has menu items. Move or delete the items first."
+            });
+        }
+
+        context.CatalogTypes.Remove(category);
+        await context.SaveChangesAsync();
+
+        return TypedResults.NoContent();
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -352,11 +480,16 @@ public static class CatalogApi
         return TypedResults.NoContent();
     }
 
-    public static async Task<Results<Ok<CatalogItem>, NotFound>> ToggleItemAvailability(
+    public static async Task<Results<Ok<CatalogItemDto>, NotFound>> ToggleItemAvailability(
         [AsParameters] CatalogServices services,
+        HttpContext httpContext,
         [Description("The id of the menu item")] int id)
     {
-        var item = await services.Context.CatalogItems.SingleOrDefaultAsync(x => x.Id == id);
+        var item = await services.Context.CatalogItems
+            .Include(c => c.CatalogType)
+            .Include(c => c.Customizations)
+                .ThenInclude(c => c.Options)
+            .SingleOrDefaultAsync(x => x.Id == id);
 
         if (item is null)
         {
@@ -366,10 +499,11 @@ public static class CatalogApi
         item.IsAvailable = !item.IsAvailable;
         await services.Context.SaveChangesAsync();
 
-        return TypedResults.Ok(item);
+        var baseUrl = GetBaseUrl(httpContext);
+        return TypedResults.Ok(item.ToDto(baseUrl));
     }
 
-    public static async Task<Results<Ok<List<ItemCustomization>>, NotFound>> GetItemCustomizations(
+    public static async Task<Results<Ok<List<ItemCustomizationDto>>, NotFound>> GetItemCustomizations(
         [AsParameters] CatalogServices services,
         [Description("The id of the menu item")] int id)
     {
@@ -386,7 +520,7 @@ public static class CatalogApi
             .OrderBy(c => c.DisplayOrder)
             .ToListAsync();
 
-        return TypedResults.Ok(customizations);
+        return TypedResults.Ok(customizations.ToDtoList());
     }
 
     private static string GetImageMimeTypeFromImageFileExtension(string extension) => extension switch
@@ -405,4 +539,150 @@ public static class CatalogApi
 
     public static string GetFullPath(string contentRootPath, string pictureFileName) =>
         Path.Combine(contentRootPath, "Pics", pictureFileName);
+
+    private static string GetBaseUrl(HttpContext httpContext)
+    {
+        var request = httpContext.Request;
+
+        // Check for forwarded headers (when behind a reverse proxy like YARP)
+        var forwardedHost = request.Headers["X-Forwarded-Host"].FirstOrDefault();
+        var forwardedProto = request.Headers["X-Forwarded-Proto"].FirstOrDefault();
+
+        if (!string.IsNullOrEmpty(forwardedHost))
+        {
+            var scheme = forwardedProto ?? request.Scheme;
+            return $"{scheme}://{forwardedHost}";
+        }
+
+        return $"{request.Scheme}://{request.Host}";
+    }
+
+    // User preferences handlers
+    public static async Task<Results<Ok<UserItemPreferenceDto>, NotFound>> GetUserPreference(
+        [AsParameters] CatalogServices services,
+        ClaimsPrincipal user,
+        [Description("The catalog item id")] int catalogItemId)
+    {
+        var userId = user.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return TypedResults.NotFound();
+        }
+
+        var preference = await services.Context.UserItemPreferences
+            .Include(p => p.SelectedOptions)
+            .FirstOrDefaultAsync(p => p.UserId == userId && p.CatalogItemId == catalogItemId);
+
+        if (preference == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Ok(preference.ToDto());
+    }
+
+    public static async Task<Ok<List<UserItemPreferenceDto>>> GetUserPreferences(
+        [AsParameters] CatalogServices services,
+        ClaimsPrincipal user)
+    {
+        var userId = user.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return TypedResults.Ok(new List<UserItemPreferenceDto>());
+        }
+
+        var preferences = await services.Context.UserItemPreferences
+            .Include(p => p.SelectedOptions)
+            .Where(p => p.UserId == userId)
+            .ToListAsync();
+
+        return TypedResults.Ok(preferences.ToDtoList());
+    }
+
+    public static async Task<Ok<List<UserItemPreferenceDto>>> GetUserPreferencesForItems(
+        [AsParameters] CatalogServices services,
+        ClaimsPrincipal user,
+        [FromBody] int[] catalogItemIds)
+    {
+        var userId = user.GetUserId();
+        if (string.IsNullOrEmpty(userId) || catalogItemIds.Length == 0)
+        {
+            return TypedResults.Ok(new List<UserItemPreferenceDto>());
+        }
+
+        var preferences = await services.Context.UserItemPreferences
+            .Include(p => p.SelectedOptions)
+            .Where(p => p.UserId == userId && catalogItemIds.Contains(p.CatalogItemId))
+            .ToListAsync();
+
+        return TypedResults.Ok(preferences.ToDtoList());
+    }
+
+    public static async Task<Ok> SaveUserPreferences(
+        [AsParameters] CatalogServices services,
+        ClaimsPrincipal user,
+        [FromBody] SaveUserPreferencesRequest request)
+    {
+        var userId = user.GetUserId();
+        if (string.IsNullOrEmpty(userId) || request.Items.Count == 0)
+        {
+            return TypedResults.Ok();
+        }
+
+        foreach (var item in request.Items)
+        {
+            if (item.SelectedOptions.Count == 0)
+            {
+                continue;
+            }
+
+            // Find or create preference
+            var existingPreference = await services.Context.UserItemPreferences
+                .Include(p => p.SelectedOptions)
+                .FirstOrDefaultAsync(p =>
+                    p.UserId == userId &&
+                    p.CatalogItemId == item.CatalogItemId);
+
+            if (existingPreference != null)
+            {
+                // Update existing preference - clear old options and add new ones
+                services.Context.UserPreferenceOptions.RemoveRange(existingPreference.SelectedOptions);
+                existingPreference.SelectedOptions.Clear();
+
+                foreach (var option in item.SelectedOptions)
+                {
+                    existingPreference.SelectedOptions.Add(new Model.UserPreferenceOption
+                    {
+                        CustomizationId = option.CustomizationId,
+                        OptionId = option.OptionId
+                    });
+                }
+                existingPreference.LastUpdated = DateTime.UtcNow;
+            }
+            else
+            {
+                // Create new preference
+                var newPreference = new Model.UserItemPreference
+                {
+                    UserId = userId,
+                    CatalogItemId = item.CatalogItemId,
+                    LastUpdated = DateTime.UtcNow
+                };
+
+                foreach (var option in item.SelectedOptions)
+                {
+                    newPreference.SelectedOptions.Add(new Model.UserPreferenceOption
+                    {
+                        CustomizationId = option.CustomizationId,
+                        OptionId = option.OptionId
+                    });
+                }
+
+                services.Context.UserItemPreferences.Add(newPreference);
+            }
+        }
+
+        await services.Context.SaveChangesAsync();
+        return TypedResults.Ok();
+    }
 }

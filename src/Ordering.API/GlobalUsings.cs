@@ -12,6 +12,7 @@ global using Chillax.Ordering.API.Application.Behaviors;
 global using Chillax.Ordering.API.Application.Commands;
 global using Chillax.Ordering.API.Application.IntegrationEvents;
 global using Chillax.Ordering.API.Application.IntegrationEvents.Events;
+global using Chillax.Ordering.API.Application.IntegrationEvents.EventHandling;
 global using Chillax.Ordering.API.Application.Models;
 global using Chillax.Ordering.API.Application.Queries;
 global using Chillax.Ordering.API.Application.Validations;

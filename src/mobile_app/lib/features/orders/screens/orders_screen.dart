@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/order.dart';
 import '../services/order_service.dart';
 
-/// Orders history screen
+/// Orders history screen - minimalistic
 class OrdersScreen extends ConsumerWidget {
   const OrdersScreen({super.key});
 
@@ -13,46 +14,48 @@ class OrdersScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(ordersProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Orders'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.refresh(ordersProvider),
-          ),
-        ],
-      ),
-      body: ordersAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-              const SizedBox(height: 16),
-              Text('Failed to load orders: $error'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.refresh(ordersProvider),
-                child: const Text('Retry'),
+    return Column(
+      children: [
+        // Header
+        FHeader(
+          title: const Text('Orders', style: TextStyle(fontSize: 18)),
+        ),
+
+        // Body
+        Expanded(
+          child: ordersAsync.when(
+            loading: () => Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+            error: (error, _) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(FIcons.circleAlert, size: 48, color: AppTheme.textMuted),
+                  const SizedBox(height: 16),
+                  Text('Failed to load orders: $error'),
+                  const SizedBox(height: 16),
+                  FButton(
+                    onPress: () => ref.refresh(ordersProvider),
+                    child: const Text('Retry'),
+                  ),
+                ],
               ),
-            ],
+            ),
+            data: (orders) => orders.isEmpty
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: () async => ref.refresh(ordersProvider),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: orders.length,
+                      separatorBuilder: (_, __) => const FDivider(),
+                      itemBuilder: (context, index) {
+                        return OrderTile(order: orders[index]);
+                      },
+                    ),
+                  ),
           ),
         ),
-        data: (orders) => orders.isEmpty
-            ? _buildEmptyState()
-            : RefreshIndicator(
-                onRefresh: () async => ref.refresh(ordersProvider),
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) {
-                    return OrderCard(order: orders[index]);
-                  },
-                ),
-              ),
-      ),
+      ],
     );
   }
 
@@ -62,23 +65,23 @@ class OrdersScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.receipt_long_outlined,
+            FIcons.receipt,
             size: 80,
-            color: Colors.grey.shade400,
+            color: AppTheme.textMuted,
           ),
           const SizedBox(height: 16),
           Text(
             'No orders yet',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey.shade600,
+              color: AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Your order history will appear here',
             style: TextStyle(
-              color: Colors.grey.shade500,
+              color: AppTheme.textMuted,
             ),
           ),
         ],
@@ -87,94 +90,108 @@ class OrdersScreen extends ConsumerWidget {
   }
 }
 
-/// Order card widget
-class OrderCard extends StatelessWidget {
+/// Order tile - minimalistic expandable
+class OrderTile extends StatefulWidget {
   final Order order;
 
-  const OrderCard({super.key, required this.order});
+  const OrderTile({super.key, required this.order});
+
+  @override
+  State<OrderTile> createState() => _OrderTileState();
+}
+
+class _OrderTileState extends State<OrderTile> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, yyyy h:mm a');
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ExpansionTile(
-        title: Row(
-          children: [
-            Text(
-              'Order #${order.id}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
-            _buildStatusBadge(order.status),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Row(
-            children: [
-              Text(
-                dateFormat.format(order.date),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header - tappable to expand
+        FTappable(
+          onPress: () => setState(() => _expanded = !_expanded),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Order #${widget.order.id}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatusBadge(widget.order.status),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            dateFormat.format(widget.order.date),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                          if (widget.order.tableNumber != null) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '• Table ${widget.order.tableNumber}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (order.tableNumber != null) ...[
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'Table ${order.tableNumber}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
+                Text(
+                  '£${widget.order.total.toStringAsFixed(2)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  _expanded ? FIcons.chevronUp : FIcons.chevronDown,
+                  size: 16,
+                  color: AppTheme.textMuted,
                 ),
               ],
-            ],
+            ),
           ),
         ),
-        trailing: Text(
-          '\$${order.total.toStringAsFixed(2)}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryColor,
-          ),
-        ),
-        children: [
+
+        // Expanded content
+        if (_expanded) ...[
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Order items
-                if (order.items.isNotEmpty) ...[
-                  const Text(
-                    'Items',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...order.items.map((item) => Padding(
+                if (widget.order.items.isNotEmpty) ...[
+                  ...widget.order.items.map((item) => Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Row(
                           children: [
-                            Text('${item.units}x '),
+                            Text(
+                              '${item.units}x ',
+                              style: TextStyle(color: AppTheme.textSecondary),
+                            ),
                             Expanded(child: Text(item.productName)),
                             Text(
-                              '\$${item.totalPrice.toStringAsFixed(2)}',
-                              style: TextStyle(color: Colors.grey.shade600),
+                              '£${item.totalPrice.toStringAsFixed(2)}',
+                              style: TextStyle(color: AppTheme.textSecondary),
                             ),
                           ],
                         ),
@@ -182,13 +199,14 @@ class OrderCard extends StatelessWidget {
                 ],
 
                 // Customer note
-                if (order.customerNote != null) ...[
-                  const SizedBox(height: 12),
+                if (widget.order.customerNote != null) ...[
+                  const SizedBox(height: 8),
                   Text(
-                    'Note: ${order.customerNote}',
+                    'Note: ${widget.order.customerNote}',
                     style: TextStyle(
                       fontStyle: FontStyle.italic,
-                      color: Colors.grey.shade600,
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
                     ),
                   ),
                 ],
@@ -196,43 +214,18 @@ class OrderCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
+      ],
     );
   }
 
   Widget _buildStatusBadge(OrderStatus status) {
-    Color backgroundColor;
-    Color textColor;
-
     switch (status) {
       case OrderStatus.submitted:
-        backgroundColor = AppTheme.warningColor.withOpacity(0.2);
-        textColor = AppTheme.warningColor;
-        break;
+        return FBadge(style: FBadgeStyle.secondary(), child: Text(status.label));
       case OrderStatus.confirmed:
-        backgroundColor = AppTheme.successColor.withOpacity(0.2);
-        textColor = AppTheme.successColor;
-        break;
+        return FBadge(style: FBadgeStyle.primary(), child: Text(status.label));
       case OrderStatus.cancelled:
-        backgroundColor = AppTheme.errorColor.withOpacity(0.2);
-        textColor = AppTheme.errorColor;
-        break;
+        return FBadge(style: FBadgeStyle.destructive(), child: Text(status.label));
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        status.label,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
   }
 }

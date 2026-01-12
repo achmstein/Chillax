@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../notifications/services/notification_service.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
 
@@ -11,347 +13,191 @@ class RoomsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('PlayStation Rooms'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Available Rooms'),
-              Tab(text: 'My Sessions'),
-            ],
-          ),
-        ),
-        body: const TabBarView(
-          children: [
-            RoomsTab(),
-            MySessionsTab(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Tab showing available rooms
-class RoomsTab extends ConsumerWidget {
-  const RoomsTab({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
     final roomsAsync = ref.watch(roomsProvider);
 
-    return roomsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text('Failed to load rooms: $error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.refresh(roomsProvider),
-              child: const Text('Retry'),
-            ),
-          ],
+    return Column(
+      children: [
+        // Header
+        FHeader(
+          title: const Text('Rooms', style: TextStyle(fontSize: 18)),
         ),
-      ),
-      data: (rooms) => RefreshIndicator(
-        onRefresh: () async => ref.refresh(roomsProvider),
-        child: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.85,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          itemCount: rooms.length,
-          itemBuilder: (context, index) {
-            return RoomCard(room: rooms[index]);
-          },
-        ),
-      ),
-    );
-  }
-}
 
-/// Room card widget
-class RoomCard extends ConsumerWidget {
-  final Room room;
-
-  const RoomCard({super.key, required this.room});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isAvailable = room.status == RoomStatus.available;
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: isAvailable ? () => _showReservationDialog(context, ref) : null,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Status banner
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              color: _getStatusColor(room.status),
-              child: Text(
-                room.status.label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-
-            // Room image/icon
-            Expanded(
-              child: Container(
-                color: Colors.grey.shade100,
-                child: Icon(
-                  Icons.videogame_asset,
-                  size: 48,
-                  color: isAvailable ? AppTheme.primaryColor : Colors.grey,
-                ),
-              ),
-            ),
-
-            // Room info
-            Padding(
-              padding: const EdgeInsets.all(12),
+        // Rooms list
+        Expanded(
+          child: roomsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    room.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '\$${room.hourlyRate.toStringAsFixed(0)}/hour',
-                    style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Icon(FIcons.circleAlert, size: 48, color: AppTheme.textMuted),
+                  const SizedBox(height: 16),
+                  Text('Failed to load rooms'),
+                  const SizedBox(height: 16),
+                  FButton(
+                    onPress: () => ref.refresh(roomsProvider),
+                    child: const Text('Retry'),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
+            data: (rooms) {
+              final allUnavailable = rooms.isNotEmpty &&
+                  rooms.every((r) => r.status != RoomStatus.available);
 
-  Color _getStatusColor(RoomStatus status) {
-    switch (status) {
-      case RoomStatus.available:
-        return AppTheme.successColor;
-      case RoomStatus.occupied:
-        return AppTheme.errorColor;
-      case RoomStatus.reserved:
-        return AppTheme.warningColor;
-      case RoomStatus.maintenance:
-        return Colors.grey;
-    }
-  }
-
-  void _showReservationDialog(BuildContext context, WidgetRef ref) {
-    DateTime selectedTime = DateTime.now();
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Text('Reserve ${room.name}'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Rate: \$${room.hourlyRate.toStringAsFixed(0)}/hour'),
-                const SizedBox(height: 16),
-                const Text('Reservation Time:'),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final date = await showDatePicker(
-                            context: context,
-                            initialDate: selectedTime,
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 30)),
-                          );
-                          if (date != null) {
-                            setState(() {
-                              selectedTime = DateTime(
-                                date.year,
-                                date.month,
-                                date.day,
-                                selectedTime.hour,
-                                selectedTime.minute,
-                              );
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.calendar_today, size: 16),
-                        label: Text(
-                          DateFormat('MMM d').format(selectedTime),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final time = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.fromDateTime(selectedTime),
-                          );
-                          if (time != null) {
-                            setState(() {
-                              selectedTime = DateTime(
-                                selectedTime.year,
-                                selectedTime.month,
-                                selectedTime.day,
-                                time.hour,
-                                time.minute,
-                              );
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.access_time, size: 16),
-                        label: Text(
-                          DateFormat('h:mm a').format(selectedTime),
-                        ),
-                      ),
-                    ),
-                  ],
+              return RefreshIndicator(
+                onRefresh: () async => ref.refresh(roomsProvider),
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: rooms.length + (allUnavailable ? 1 : 0),
+                  separatorBuilder: (_, index) {
+                    if (allUnavailable && index == 0) return const SizedBox.shrink();
+                    return Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: AppTheme.textMuted.withOpacity(0.2),
+                    );
+                  },
+                  itemBuilder: (context, index) {
+                    if (allUnavailable && index == 0) {
+                      return const Padding(
+                        padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: NotifyMeBanner(),
+                      );
+                    }
+                    final roomIndex = allUnavailable ? index - 1 : index;
+                    return RoomListItem(room: rooms[roomIndex]);
+                  },
                 ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  final success = await ref
-                      .read(reservationProvider.notifier)
-                      .reserveRoom(room.id, selectedTime);
-
-                  if (success) {
-                    ref.refresh(roomsProvider);
-                    ref.refresh(mySessionsProvider);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Room reserved successfully!'),
-                          backgroundColor: AppTheme.successColor,
-                        ),
-                      );
-                    }
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Failed to reserve room'),
-                          backgroundColor: AppTheme.errorColor,
-                        ),
-                      );
-                    }
-                  }
-                },
-                child: const Text('Reserve'),
-              ),
-            ],
-          );
-        },
-      ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-/// Tab showing user's sessions
-class MySessionsTab extends ConsumerWidget {
-  const MySessionsTab({super.key});
+/// Banner prompting user to subscribe for room availability notifications
+class NotifyMeBanner extends ConsumerWidget {
+  const NotifyMeBanner({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sessionsAsync = ref.watch(mySessionsProvider);
+    final subscriptionAsync = ref.watch(roomAvailabilitySubscriptionProvider);
 
-    return sessionsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text('Failed to load sessions: $error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.refresh(mySessionsProvider),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
       ),
-      data: (sessions) => sessions.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: () async => ref.refresh(mySessionsProvider),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: sessions.length,
-                itemBuilder: (context, index) {
-                  return SessionCard(session: sessions[index]);
-                },
-              ),
-            ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.videogame_asset_off,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No sessions yet',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey.shade600,
-            ),
+          Row(
+            children: [
+              Icon(FIcons.bell, size: 20, color: AppTheme.primaryColor),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'All rooms are currently busy',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
-            'Reserve a room to get started',
+            'Get notified when a room becomes available',
             style: TextStyle(
-              color: Colors.grey.shade500,
+              color: AppTheme.textSecondary,
+              fontSize: 13,
             ),
+          ),
+          const SizedBox(height: 12),
+          subscriptionAsync.when(
+            loading: () => const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            error: (_, __) => FButton(
+              onPress: () => ref.refresh(roomAvailabilitySubscriptionProvider),
+              child: const Text('Retry'),
+            ),
+            data: (isSubscribed) => isSubscribed
+                ? Row(
+                    children: [
+                      Icon(FIcons.check, size: 16, color: AppTheme.successColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'You will be notified when a room is available',
+                          style: TextStyle(
+                            color: AppTheme.successColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      FButton(
+                        style: FButtonStyle.outline(),
+                        onPress: () async {
+                          final success = await ref
+                              .read(roomAvailabilitySubscriptionProvider.notifier)
+                              .unsubscribe();
+                          if (success && context.mounted) {
+                            showFToast(
+                              context: context,
+                              title: const Text('Unsubscribed from notifications'),
+                              icon: Icon(FIcons.check, color: AppTheme.textMuted),
+                            );
+                          }
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                    ],
+                  )
+                : SizedBox(
+                    width: double.infinity,
+                    child: FButton(
+                      onPress: () async {
+                        final success = await ref
+                            .read(roomAvailabilitySubscriptionProvider.notifier)
+                            .subscribe();
+                        if (context.mounted) {
+                          if (success) {
+                            showFToast(
+                              context: context,
+                              title: const Text('You will be notified!'),
+                              icon: Icon(FIcons.bell, color: AppTheme.successColor),
+                            );
+                          } else {
+                            showFToast(
+                              context: context,
+                              title: const Text('Failed to subscribe'),
+                              icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+                            );
+                          }
+                        }
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(FIcons.bell, size: 16),
+                          SizedBox(width: 8),
+                          Text('Notify Me'),
+                        ],
+                      ),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -359,127 +205,350 @@ class MySessionsTab extends ConsumerWidget {
   }
 }
 
-/// Session card widget
-class SessionCard extends StatelessWidget {
-  final RoomSession session;
+/// Room list item - minimal design like menu items
+class RoomListItem extends ConsumerWidget {
+  final Room room;
 
-  const SessionCard({super.key, required this.session});
+  const RoomListItem({super.key, required this.room});
 
   @override
-  Widget build(BuildContext context) {
-    final dateFormat = DateFormat('MMM d, yyyy h:mm a');
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isAvailable = room.status == RoomStatus.available;
+    final statusColor = _getStatusColor();
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return GestureDetector(
+      onTap: isAvailable ? () => _showReservationDialog(context, ref) : null,
+      behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Header
-            Row(
-              children: [
-                const Icon(Icons.videogame_asset),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    session.roomName,
+            // Gamepad icon
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: isAvailable
+                    ? AppTheme.primaryColor.withOpacity(0.1)
+                    : AppTheme.textMuted.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                FIcons.gamepad2,
+                size: 28,
+                color: isAvailable ? AppTheme.primaryColor : AppTheme.textMuted,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Room info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    room.name,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
                     ),
                   ),
-                ),
-                _buildStatusBadge(session.status),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Times
-            Row(
-              children: [
-                const Icon(Icons.event, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(
-                  dateFormat.format(session.reservationTime),
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-
-            if (session.status == SessionStatus.active) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.timer, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Duration: ${session.formattedDuration}',
-                    style: TextStyle(color: Colors.grey.shade600),
+                  if (room.description != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      room.description!,
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 13,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text(
+                        '£${room.hourlyRate.toStringAsFixed(0)}/hr',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '• ${room.status.label}',
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
 
-            if (session.totalCost != null) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.attach_money, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Total: \$${session.totalCost!.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            // Action
+            if (isAvailable)
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  FIcons.calendarPlus,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
-            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusBadge(SessionStatus status) {
-    Color backgroundColor;
-    Color textColor;
-
-    switch (status) {
-      case SessionStatus.reserved:
-        backgroundColor = AppTheme.warningColor.withOpacity(0.2);
-        textColor = AppTheme.warningColor;
-        break;
-      case SessionStatus.active:
-        backgroundColor = AppTheme.successColor.withOpacity(0.2);
-        textColor = AppTheme.successColor;
-        break;
-      case SessionStatus.completed:
-        backgroundColor = Colors.grey.withOpacity(0.2);
-        textColor = Colors.grey;
-        break;
-      case SessionStatus.cancelled:
-        backgroundColor = AppTheme.errorColor.withOpacity(0.2);
-        textColor = AppTheme.errorColor;
-        break;
+  Color _getStatusColor() {
+    switch (room.status) {
+      case RoomStatus.available:
+        return AppTheme.successColor;
+      case RoomStatus.occupied:
+        return AppTheme.errorColor;
+      case RoomStatus.reserved:
+        return AppTheme.warningColor;
+      case RoomStatus.maintenance:
+        return AppTheme.textMuted;
     }
+  }
 
+  void _showReservationDialog(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ReservationSheet(room: room),
+    );
+  }
+}
+
+/// Reservation bottom sheet
+class ReservationSheet extends ConsumerStatefulWidget {
+  final Room room;
+
+  const ReservationSheet({super.key, required this.room});
+
+  @override
+  ConsumerState<ReservationSheet> createState() => _ReservationSheetState();
+}
+
+class _ReservationSheetState extends ConsumerState<ReservationSheet> {
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Text(
-        status.label,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.textMuted,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Reserve ${widget.room.name}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(FIcons.x, size: 24, color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '£${widget.room.hourlyRate.toStringAsFixed(0)}/hour',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Date picker
+              const Text(
+                'Select Date',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 30)),
+                  );
+                  if (date != null) {
+                    setState(() => _selectedDate = date);
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppTheme.textMuted.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(FIcons.calendar, size: 18, color: AppTheme.textSecondary),
+                      const SizedBox(width: 12),
+                      Text(
+                        DateFormat('EEEE, MMM d, yyyy').format(_selectedDate),
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Time picker
+              const Text(
+                'Select Time',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () async {
+                  final time = await showTimePicker(
+                    context: context,
+                    initialTime: _selectedTime,
+                  );
+                  if (time != null) {
+                    setState(() => _selectedTime = time);
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppTheme.textMuted.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(FIcons.clock, size: 18, color: AppTheme.textSecondary),
+                      const SizedBox(width: 12),
+                      Text(
+                        _selectedTime.format(context),
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Reserve button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleReserve,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Confirm Reservation',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Future<void> _handleReserve() async {
+    setState(() => _isLoading = true);
+
+    final selectedDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    final success = await ref
+        .read(reservationProvider.notifier)
+        .reserveRoom(widget.room.id, selectedDateTime);
+
+    setState(() => _isLoading = false);
+
+    if (success && mounted) {
+      Navigator.pop(context);
+      ref.refresh(roomsProvider);
+      ref.refresh(mySessionsProvider);
+      showFToast(
+        context: context,
+        title: const Text('Room reserved successfully!'),
+        icon: Icon(FIcons.check, color: AppTheme.successColor),
+      );
+    } else if (mounted) {
+      showFToast(
+        context: context,
+        title: const Text('Failed to reserve room'),
+        icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+      );
+    }
+  }
 }
+

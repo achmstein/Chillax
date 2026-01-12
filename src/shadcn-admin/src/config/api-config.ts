@@ -7,4 +7,5 @@ export const API_CONFIG = {
   orders: import.meta.env.VITE_ORDERS_API_URL || 'https://localhost:5224',
   rooms: import.meta.env.VITE_ROOMS_API_URL || 'https://localhost:5250',
   identity: import.meta.env.VITE_IDENTITY_URL || 'https://localhost:5243',
+  loyalty: import.meta.env.VITE_LOYALTY_API_URL || 'https://localhost:5260',
 } as const

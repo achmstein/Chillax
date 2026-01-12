@@ -110,7 +110,7 @@ class MenuCategory {
   factory MenuCategory.fromJson(Map<String, dynamic> json) {
     return MenuCategory(
       id: json['id'] as int,
-      name: json['name'] as String,
+      name: json['type'] as String? ?? json['name'] as String? ?? '',
     );
   }
 }

@@ -35,3 +35,5 @@ function createApiClient(baseURL: string): AxiosInstance {
 export const catalogApi = createApiClient(API_CONFIG.catalog)
 export const ordersApi = createApiClient(API_CONFIG.orders)
 export const roomsApi = createApiClient(API_CONFIG.rooms)
+export const identityApi = createApiClient(API_CONFIG.identity)
+export const loyaltyApi = createApiClient(API_CONFIG.loyalty)

@@ -182,11 +182,14 @@ internal static class Extensions
         return builder;
     }
 
-    public static IResourceBuilder<YarpResource> ConfigureMobileBffRoutes(this IResourceBuilder<YarpResource> builder,
+    public static IResourceBuilder<YarpResource> ConfigureMobileBffRoutes<TKeycloak>(this IResourceBuilder<YarpResource> builder,
         IResourceBuilder<ProjectResource> catalogApi,
         IResourceBuilder<ProjectResource> orderingApi,
         IResourceBuilder<ProjectResource> roomsApi,
-        IResourceBuilder<ProjectResource> identityApi)
+        IResourceBuilder<ProjectResource> identityApi,
+        IResourceBuilder<ProjectResource> loyaltyApi,
+        IResourceBuilder<ProjectResource> notificationApi,
+        IResourceBuilder<TKeycloak> keycloak) where TKeycloak : IResourceWithEndpoints
     {
         return builder.WithConfiguration(yarp =>
         {
@@ -194,43 +197,57 @@ internal static class Extensions
 
             yarp.AddRoute("/catalog-api/api/catalog/items", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
 
             yarp.AddRoute("/catalog-api/api/catalog/items/by", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
 
             yarp.AddRoute("/catalog-api/api/catalog/items/{id}", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
 
             yarp.AddRoute("/catalog-api/api/catalog/items/by/{name}", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
 
             yarp.AddRoute("/catalog-api/api/catalog/items/withsemanticrelevance/{text}", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
 
             yarp.AddRoute("/catalog-api/api/catalog/items/withsemanticrelevance", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["2.0"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
 
             yarp.AddRoute("/catalog-api/api/catalog/items/type/{typeId}", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
 
             yarp.AddRoute("/catalog-api/api/catalog/catalogTypes", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
 
             yarp.AddRoute("/catalog-api/api/catalog/items/{id}/pic", catalogCluster)
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }])
-                .WithTransformPathRemovePrefix("/catalog-api");
+                .WithTransformPathRemovePrefix("/catalog-api")
+                .WithTransformXForwarded();
+
+            // Image route - no api-version required for direct browser/img tag access
+            yarp.AddRoute("/api/catalog/items/{id}/pic", catalogCluster)
+                .WithTransformXForwarded();
 
             // Generic catalog catch-all route
             yarp.AddRoute("/api/catalog/{*any}", catalogCluster)
-                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }]);
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }])
+                .WithTransformXForwarded();
 
             // Ordering routes
             yarp.AddRoute("/api/orders/{*any}", orderingApi.GetEndpoint("http"))
@@ -244,9 +261,74 @@ internal static class Extensions
             yarp.AddRoute("/api/sessions/{*any}", roomsApi.GetEndpoint("http"))
                 .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }]);
 
-            // Identity routes
-            yarp.AddRoute("/identity/{*any}", identityApi.GetEndpoint("http"))
-                .WithTransformPathRemovePrefix("/identity");
+            // Identity routes (for user registration)
+            yarp.AddRoute("/api/identity/{*any}", identityApi.GetEndpoint("http"));
+
+            // Loyalty routes
+            yarp.AddRoute("/api/loyalty/{*any}", loyaltyApi.GetEndpoint("http"))
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }]);
+
+            // Notification routes
+            yarp.AddRoute("/api/notifications/{*any}", notificationApi.GetEndpoint("http"));
+
+            // Keycloak routes (for mobile app authentication)
+            yarp.AddRoute("/auth/{*any}", keycloak.GetEndpoint("http"))
+                .WithTransformPathRemovePrefix("/auth");
+        });
+    }
+
+    public static IResourceBuilder<YarpResource> ConfigureAdminBffRoutes<TKeycloak>(this IResourceBuilder<YarpResource> builder,
+        IResourceBuilder<ProjectResource> catalogApi,
+        IResourceBuilder<ProjectResource> orderingApi,
+        IResourceBuilder<ProjectResource> roomsApi,
+        IResourceBuilder<ProjectResource> basketApi,
+        IResourceBuilder<ProjectResource> identityApi,
+        IResourceBuilder<ProjectResource> loyaltyApi,
+        IResourceBuilder<ProjectResource> notificationApi,
+        IResourceBuilder<TKeycloak> keycloak) where TKeycloak : IResourceWithEndpoints
+    {
+        return builder.WithConfiguration(yarp =>
+        {
+            var catalogCluster = yarp.AddCluster(catalogApi);
+
+            // Image route - no api-version required for direct browser/img tag access
+            yarp.AddRoute("/api/catalog/items/{id}/pic", catalogCluster)
+                .WithTransformXForwarded();
+
+            // Catalog routes
+            yarp.AddRoute("/api/catalog/{*any}", catalogCluster)
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1", "2.0"], Mode = QueryParameterMatchMode.Exact }])
+                .WithTransformXForwarded();
+
+            // Ordering routes
+            yarp.AddRoute("/api/orders/{*any}", orderingApi.GetEndpoint("http"))
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }]);
+
+            // Rooms routes
+            yarp.AddRoute("/api/rooms/{*any}", roomsApi.GetEndpoint("http"))
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }]);
+
+            // Sessions routes
+            yarp.AddRoute("/api/sessions/{*any}", roomsApi.GetEndpoint("http"))
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }]);
+
+            // Basket routes
+            yarp.AddRoute("/api/basket/{*any}", basketApi.GetEndpoint("http"))
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }]);
+
+            // Identity routes (for user management)
+            yarp.AddRoute("/api/identity/{*any}", identityApi.GetEndpoint("http"));
+
+            // Loyalty routes
+            yarp.AddRoute("/api/loyalty/{*any}", loyaltyApi.GetEndpoint("http"))
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }]);
+
+            // Notification routes
+            yarp.AddRoute("/api/notifications/{*any}", notificationApi.GetEndpoint("http"));
+
+            // Keycloak routes (for admin tablet authentication)
+            yarp.AddRoute("/auth/{*any}", keycloak.GetEndpoint("http"))
+                .WithTransformPathRemovePrefix("/auth");
         });
     }
 }

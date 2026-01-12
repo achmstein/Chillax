@@ -176,30 +176,46 @@ internal static class OpenApiOptionsExtensions
     {
         public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
         {
+            // Try to get Keycloak URL from configuration (Aspire injects Identity__Url)
+            var keycloakRealmUrl = configuration["Identity__Url"];
+
+            // Fallback to Identity section for backwards compatibility
             var identitySection = configuration.GetSection("Identity");
-            if (!identitySection.Exists())
+            if (string.IsNullOrEmpty(keycloakRealmUrl))
+            {
+                if (!identitySection.Exists())
+                {
+                    return Task.CompletedTask;
+                }
+                keycloakRealmUrl = identitySection["Url"];
+            }
+
+            if (string.IsNullOrEmpty(keycloakRealmUrl))
             {
                 return Task.CompletedTask;
             }
 
-            var identityUrlExternal = identitySection.GetRequiredValue("Url");
-            var scopes = identitySection.GetRequiredSection("Scopes").GetChildren().ToDictionary(p => p.Key, p => p.Value ?? string.Empty);
+            // Get scopes from Identity section if available
+            var scopes = identitySection.GetSection("Scopes").Exists()
+                ? identitySection.GetSection("Scopes").GetChildren().ToDictionary(p => p.Key, p => p.Value ?? string.Empty)
+                : new Dictionary<string, string>();
+
+            // Keycloak uses /protocol/openid-connect endpoints
             var securityScheme = new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.OAuth2,
                 Flows = new OpenApiOAuthFlows()
                 {
-                    // TODO: Change this to use Authorization Code flow with PKCE
                     Implicit = new OpenApiOAuthFlow()
                     {
-                        AuthorizationUrl = new Uri($"{identityUrlExternal}/connect/authorize"),
-                        TokenUrl = new Uri($"{identityUrlExternal}/connect/token"),
+                        AuthorizationUrl = new Uri($"{keycloakRealmUrl}/protocol/openid-connect/auth"),
+                        TokenUrl = new Uri($"{keycloakRealmUrl}/protocol/openid-connect/token"),
                         Scopes = scopes,
                     }
                 }
             };
             document.Components ??= new();
-            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();  
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
             document.Components.SecuritySchemes.Add("oauth2", securityScheme);
             return Task.CompletedTask;
         }

@@ -1,40 +1,29 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { type Customer } from '../data/schema'
-import { CustomersRowActions } from './customers-row-actions'
+import { type Customer, getCustomerDisplayName, getCustomerInitials } from '../types'
 
 export const customersColumns: ColumnDef<Customer>[] = [
   {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label='Select all'
-        className='translate-y-[2px]'
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label='Select row'
-        className='translate-y-[2px]'
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
+    id: 'avatar',
+    header: '',
+    cell: ({ row }) => {
+      const customer = row.original
+      return (
+        <Avatar className='h-8 w-8'>
+          <AvatarFallback className='bg-primary/10 text-primary text-xs'>
+            {getCustomerInitials(customer)}
+          </AvatarFallback>
+        </Avatar>
+      )
+    },
     meta: {
-      className: 'w-[40px]',
+      className: 'w-[50px]',
     },
   },
   {
-    accessorKey: 'fullName',
+    id: 'name',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Name' />
     ),
@@ -42,84 +31,42 @@ export const customersColumns: ColumnDef<Customer>[] = [
       const customer = row.original
       return (
         <div className='flex flex-col'>
-          <span className='font-medium'>{customer.fullName}</span>
-          <span className='text-muted-foreground text-xs'>{customer.email}</span>
+          <span className='font-medium'>{getCustomerDisplayName(customer)}</span>
+          <span className='text-muted-foreground text-xs'>{customer.email || '-'}</span>
         </div>
       )
     },
   },
   {
-    accessorKey: 'phoneNumber',
+    accessorKey: 'username',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Phone' />
+      <DataTableColumnHeader column={column} title='Username' />
     ),
-    cell: ({ row }) => row.original.phoneNumber || '-',
+    cell: ({ row }) => row.original.username || '-',
   },
   {
-    accessorKey: 'isBlocked',
+    id: 'joinDate',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Joined' />
+    ),
+    cell: ({ row }) => {
+      const timestamp = row.original.createdTimestamp
+      if (!timestamp) return '-'
+      return new Date(timestamp).toLocaleDateString()
+    },
+  },
+  {
+    accessorKey: 'enabled',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Status' />
     ),
     cell: ({ row }) => {
-      const customer = row.original
-      if (customer.isBlocked) {
-        return <Badge variant='destructive'>Blocked</Badge>
-      }
-      if (!customer.emailVerified) {
-        return <Badge variant='secondary'>Unverified</Badge>
-      }
-      return <Badge variant='default'>Active</Badge>
-    },
-    filterFn: (row, _id, filterValue: string[]) => {
-      const customer = row.original
-      if (!filterValue.length) return true
-
-      const status = customer.isBlocked
-        ? 'blocked'
-        : !customer.emailVerified
-          ? 'unverified'
-          : 'active'
-
-      return filterValue.includes(status)
-    },
-  },
-  {
-    accessorKey: 'totalOrders',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Orders' />
-    ),
-    cell: ({ row }) => row.original.totalOrders,
-  },
-  {
-    accessorKey: 'totalSpent',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Total Spent' />
-    ),
-    cell: ({ row }) => {
-      const amount = row.original.totalSpent
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(amount)
-      return formatted
-    },
-  },
-  {
-    accessorKey: 'lastOrderAt',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Last Order' />
-    ),
-    cell: ({ row }) => {
-      const date = row.original.lastOrderAt
-      if (!date) return '-'
-      return new Date(date).toLocaleDateString()
-    },
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => <CustomersRowActions customer={row.original} />,
-    meta: {
-      className: 'w-[50px]',
+      const enabled = row.original.enabled
+      return enabled ? (
+        <Badge variant='default'>Active</Badge>
+      ) : (
+        <Badge variant='destructive'>Disabled</Badge>
+      )
     },
   },
 ]

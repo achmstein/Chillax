@@ -50,3 +50,7 @@ export interface PaginatedItems<T> {
   count: number
   data: T[]
 }
+
+export interface CategoryFormData {
+  type: string
+}

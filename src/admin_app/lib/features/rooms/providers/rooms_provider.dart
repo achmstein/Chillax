@@ -1,0 +1,157 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_client.dart';
+import '../models/room.dart';
+
+/// Rooms state
+class RoomsState {
+  final bool isLoading;
+  final String? error;
+  final List<Room> rooms;
+  final List<RoomSession> activeSessions;
+
+  const RoomsState({
+    this.isLoading = false,
+    this.error,
+    this.rooms = const [],
+    this.activeSessions = const [],
+  });
+
+  RoomsState copyWith({
+    bool? isLoading,
+    String? error,
+    List<Room>? rooms,
+    List<RoomSession>? activeSessions,
+  }) {
+    return RoomsState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      rooms: rooms ?? this.rooms,
+      activeSessions: activeSessions ?? this.activeSessions,
+    );
+  }
+}
+
+/// Rooms provider
+class RoomsNotifier extends StateNotifier<RoomsState> {
+  final ApiClient _api;
+
+  RoomsNotifier(this._api) : super(const RoomsState());
+
+  Future<void> loadRooms() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final results = await Future.wait([
+        _api.get('/api/rooms'),
+        _api.get('/api/sessions/active'),
+      ]);
+
+      final roomsData = results[0].data as List<dynamic>;
+      final sessionsData = results[1].data as List<dynamic>;
+
+      final rooms = roomsData
+          .map((e) => Room.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      final sessions = sessionsData
+          .map((e) => RoomSession.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      state = state.copyWith(
+        isLoading: false,
+        rooms: rooms,
+        activeSessions: sessions,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load rooms: $e',
+      );
+    }
+  }
+
+  Future<bool> reserveRoom(int roomId) async {
+    try {
+      await _api.post('/api/rooms/$roomId/reserve', data: {
+        'reservationTime': DateTime.now().toIso8601String(),
+      });
+      await loadRooms();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to reserve room: $e');
+      return false;
+    }
+  }
+
+  Future<bool> startSession(int sessionId) async {
+    try {
+      await _api.post('/api/sessions/$sessionId/start');
+      await loadRooms();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to start session: $e');
+      return false;
+    }
+  }
+
+  Future<bool> endSession(int sessionId) async {
+    try {
+      await _api.post('/api/sessions/$sessionId/end');
+      await loadRooms();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to end session: $e');
+      return false;
+    }
+  }
+
+  Future<bool> cancelSession(int sessionId) async {
+    try {
+      await _api.post('/api/sessions/$sessionId/cancel');
+      await loadRooms();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to cancel session: $e');
+      return false;
+    }
+  }
+
+  Future<bool> createRoom(Room room) async {
+    try {
+      await _api.post('/api/rooms', data: room.toJson());
+      await loadRooms();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to create room: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateRoom(Room room) async {
+    try {
+      await _api.put('/api/rooms/${room.id}', data: room.toJson());
+      await loadRooms();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to update room: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteRoom(int roomId) async {
+    try {
+      await _api.delete('/api/rooms/$roomId');
+      await loadRooms();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to delete room: $e');
+      return false;
+    }
+  }
+}
+
+/// Rooms provider
+final roomsProvider = StateNotifierProvider<RoomsNotifier, RoomsState>((ref) {
+  final api = ref.read(roomsApiProvider);
+  return RoomsNotifier(api);
+});

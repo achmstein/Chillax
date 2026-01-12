@@ -50,7 +50,8 @@ public class OrderStatusChangedToConfirmedDomainEventHandler
             order.OrderStatus,
             buyer.Name,
             buyer.IdentityGuid,
-            order.TableNumber);
+            order.TableNumber,
+            order.GetTotal());
 
         await _orderingIntegrationEventService.AddAndSaveEventAsync(integrationEvent);
     }

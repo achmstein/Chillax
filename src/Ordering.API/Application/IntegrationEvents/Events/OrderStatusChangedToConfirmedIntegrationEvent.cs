@@ -11,14 +11,16 @@ public record OrderStatusChangedToConfirmedIntegrationEvent : IntegrationEvent
     public string BuyerName { get; }
     public string BuyerIdentityGuid { get; }
     public int? TableNumber { get; }
+    public decimal OrderTotal { get; }
 
     public OrderStatusChangedToConfirmedIntegrationEvent(
-        int orderId, OrderStatus orderStatus, string buyerName, string buyerIdentityGuid, int? tableNumber)
+        int orderId, OrderStatus orderStatus, string buyerName, string buyerIdentityGuid, int? tableNumber, decimal orderTotal)
     {
         OrderId = orderId;
         OrderStatus = orderStatus;
         BuyerName = buyerName;
         BuyerIdentityGuid = buyerIdentityGuid;
         TableNumber = tableNumber;
+        OrderTotal = orderTotal;
     }
 }
