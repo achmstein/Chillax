@@ -54,9 +54,9 @@ class CustomerDetailScreen extends ConsumerWidget {
                     Center(
                       child: Column(
                         children: [
-                          FAvatar(
-                            fallback: Text(customer.initials),
+                          FAvatar.raw(
                             size: 80,
+                            child: Text(customer.initials),
                           ),
                           const SizedBox(height: 16),
                           Text(

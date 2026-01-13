@@ -52,8 +52,8 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
     try {
       final results = await Future.wait([
-        _api.get('/api/catalog/items'),
-        _api.get('/api/catalog/catalogtypes'),
+        _api.get('items'),
+        _api.get('catalogtypes'),
       ]);
 
       final itemsData = results[0].data as List<dynamic>;
@@ -90,7 +90,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
   Future<bool> updateItemAvailability(int itemId, bool isAvailable) async {
     try {
-      await _api.patch('/api/catalog/items/$itemId', data: {
+      await _api.patch('items/$itemId', data: {
         'isAvailable': isAvailable,
       });
 
@@ -112,7 +112,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
   Future<bool> createItem(MenuItem item) async {
     try {
-      await _api.post('/api/catalog/items', data: item.toJson());
+      await _api.post('items', data: item.toJson());
       await loadMenu();
       return true;
     } catch (e) {
@@ -123,7 +123,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
   Future<bool> updateItem(MenuItem item) async {
     try {
-      await _api.put('/api/catalog/items/${item.id}', data: item.toJson());
+      await _api.put('items/${item.id}', data: item.toJson());
       await loadMenu();
       return true;
     } catch (e) {
@@ -134,7 +134,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
   Future<bool> deleteItem(int itemId) async {
     try {
-      await _api.delete('/api/catalog/items/$itemId');
+      await _api.delete('items/$itemId');
       await loadMenu();
       return true;
     } catch (e) {
@@ -146,7 +146,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
   // Category CRUD operations
   Future<bool> createCategory(String name) async {
     try {
-      await _api.post('/api/catalog/categories', data: {'type': name});
+      await _api.post('categories', data: {'type': name});
       await loadMenu();
       return true;
     } catch (e) {
@@ -157,7 +157,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
   Future<bool> updateCategory(int id, String name) async {
     try {
-      await _api.put('/api/catalog/categories/$id', data: {'type': name});
+      await _api.put('categories/$id', data: {'type': name});
       await loadMenu();
       return true;
     } catch (e) {
@@ -168,7 +168,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
   Future<bool> deleteCategory(int id) async {
     try {
-      await _api.delete('/api/catalog/categories/$id');
+      await _api.delete('categories/$id');
       await loadMenu();
       return true;
     } catch (e) {

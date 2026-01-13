@@ -5,6 +5,7 @@ import '../auth/auth_service.dart';
 import '../widgets/admin_scaffold.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/orders/screens/orders_screen.dart';
+import '../../features/service_requests/screens/service_requests_screen.dart';
 import '../../features/rooms/screens/rooms_screen.dart';
 import '../../features/menu/screens/menu_list_screen.dart';
 import '../../features/menu/screens/categories_screen.dart';
@@ -122,6 +123,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/orders',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: OrdersScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/service-requests',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ServiceRequestsScreen(),
             ),
           ),
           GoRoute(

@@ -21,7 +21,7 @@ class AppConfig {
   static String get identityUrl => '$keycloakUrl/realms/$keycloakRealm';
 
   // OIDC configuration
-  static const String clientId = 'chillax-mobile';
+  static const String clientId = 'mobile-app';
   static const String redirectUri = 'com.chillax.app://callback';
   static const String postLogoutRedirectUri = 'com.chillax.app://';
   static const List<String> scopes = [

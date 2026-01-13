@@ -50,7 +50,7 @@ class SessionsScreen extends ConsumerWidget {
                   const Text('Failed to load sessions'),
                   const SizedBox(height: 16),
                   FButton(
-                    onPress: () => ref.refresh(mySessionsProvider),
+                    onPress: () => ref.read(mySessionsProvider.notifier).refresh(),
                     child: const Text('Retry'),
                   ),
                 ],
@@ -59,7 +59,7 @@ class SessionsScreen extends ConsumerWidget {
             data: (sessions) => sessions.isEmpty
                 ? _buildEmptyState()
                 : RefreshIndicator(
-                    onRefresh: () async => ref.refresh(mySessionsProvider),
+                    onRefresh: () => ref.read(mySessionsProvider.notifier).refresh(),
                     child: ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: sessions.length,

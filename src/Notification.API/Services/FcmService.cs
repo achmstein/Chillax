@@ -6,10 +6,11 @@ namespace Chillax.Notification.API.Services;
 
 public class FcmService : IFcmService
 {
+    private const string FirebaseCredentialsFileName = "firebase-credentials.json";
     private readonly ILogger<FcmService> _logger;
     private readonly bool _isInitialized;
 
-    public FcmService(IConfiguration configuration, ILogger<FcmService> logger)
+    public FcmService(ILogger<FcmService> logger)
     {
         _logger = logger;
 
@@ -17,20 +18,20 @@ public class FcmService : IFcmService
         {
             if (FirebaseApp.DefaultInstance == null)
             {
-                var serviceAccountJson = configuration["Firebase:ServiceAccountJson"];
+                var credentialsPath = FindCredentialsFile();
 
-                if (!string.IsNullOrEmpty(serviceAccountJson))
+                if (credentialsPath != null)
                 {
                     FirebaseApp.Create(new AppOptions
                     {
-                        Credential = GoogleCredential.FromJson(serviceAccountJson)
+                        Credential = GoogleCredential.FromFile(credentialsPath)
                     });
                     _isInitialized = true;
-                    _logger.LogInformation("Firebase initialized successfully");
+                    _logger.LogInformation("Firebase initialized successfully from {Path}", credentialsPath);
                 }
                 else
                 {
-                    _logger.LogWarning("Firebase:ServiceAccountJson not configured. FCM notifications will be simulated.");
+                    _logger.LogWarning("{FileName} not found. FCM notifications will be simulated.", FirebaseCredentialsFileName);
                     _isInitialized = false;
                 }
             }
@@ -44,6 +45,21 @@ public class FcmService : IFcmService
             _logger.LogError(ex, "Failed to initialize Firebase");
             _isInitialized = false;
         }
+    }
+
+    private string? FindCredentialsFile()
+    {
+        // Check current directory
+        var currentDir = Path.Combine(Directory.GetCurrentDirectory(), FirebaseCredentialsFileName);
+        if (File.Exists(currentDir))
+            return currentDir;
+
+        // Check app base directory
+        var baseDir = Path.Combine(AppContext.BaseDirectory, FirebaseCredentialsFileName);
+        if (File.Exists(baseDir))
+            return baseDir;
+
+        return null;
     }
 
     public async Task<bool> SendNotificationAsync(string fcmToken, string title, string body, Dictionary<string, string>? data = null)

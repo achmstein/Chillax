@@ -32,6 +32,7 @@ public static class RoomMappers
             Id = session.Id,
             RoomId = session.RoomId,
             RoomName = session.Room?.Name,
+            HourlyRate = session.Room?.HourlyRate ?? 0,
             CustomerId = session.CustomerId,
             CustomerName = session.CustomerName,
             ReservationTime = session.ReservationTime,

@@ -119,13 +119,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                 ],
                               ),
                             )
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(16),
+                          : ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
                               itemCount: state.categories.length,
+                              separatorBuilder: (_, __) => const FDivider(),
                               itemBuilder: (context, index) {
                                 final category = state.categories[index];
                                 final itemCount = notifier.getItemCountForCategory(category.id);
-                                return _CategoryCard(
+                                return _CategoryListItem(
                                   category: category,
                                   itemCount: itemCount,
                                   onEdit: () => _showCategoryForm(context, category: category),
@@ -259,13 +260,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 }
 
-class _CategoryCard extends StatelessWidget {
+class _CategoryListItem extends StatelessWidget {
   final MenuCategory category;
   final int itemCount;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _CategoryCard({
+  const _CategoryListItem({
     required this.category,
     required this.itemCount,
     required this.onEdit,
@@ -277,76 +278,71 @@ class _CategoryCard extends StatelessWidget {
     final theme = context.theme;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: FCard(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          // Icon
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: theme.colors.secondary,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.category,
+              color: theme.colors.primary,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Name and count
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category.name,
+                  style: theme.typography.base.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$itemCount item${itemCount != 1 ? 's' : ''}',
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Actions
+          Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.colors.secondary,
-                  borderRadius: BorderRadius.circular(8),
+              IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  color: theme.colors.mutedForeground,
                 ),
-                child: Icon(
-                  Icons.category,
-                  color: theme.colors.primary,
-                ),
+                onPressed: onEdit,
+                tooltip: 'Edit category',
               ),
-              const SizedBox(width: 16),
-              // Name and count
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      category.name,
-                      style: theme.typography.lg.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$itemCount item${itemCount != 1 ? 's' : ''}',
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                      ),
-                    ),
-                  ],
+              IconButton(
+                icon: Icon(
+                  Icons.delete,
+                  color: itemCount > 0
+                      ? theme.colors.mutedForeground.withValues(alpha: 0.5)
+                      : theme.colors.destructive,
                 ),
-              ),
-              // Actions
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.edit,
-                      color: theme.colors.mutedForeground,
-                    ),
-                    onPressed: onEdit,
-                    tooltip: 'Edit category',
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete,
-                      color: itemCount > 0
-                          ? theme.colors.mutedForeground.withValues(alpha: 0.5)
-                          : theme.colors.destructive,
-                    ),
-                    onPressed: onDelete,
-                    tooltip: itemCount > 0
-                        ? 'Cannot delete: has items'
-                        : 'Delete category',
-                  ),
-                ],
+                onPressed: onDelete,
+                tooltip: itemCount > 0
+                    ? 'Cannot delete: has items'
+                    : 'Delete category',
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

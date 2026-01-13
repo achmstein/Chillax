@@ -34,24 +34,24 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
     return MaterialApp.router(
       title: 'Chillax Admin',
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.light,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1),
+          seedColor: const Color(0xFF18181B), // zinc-900 (black)
         ),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1),
+          seedColor: const Color(0xFF18181B), // zinc-900 (black)
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
       ),
       routerConfig: router,
       builder: (context, child) {
-        final brightness = MediaQuery.platformBrightnessOf(context);
         return FTheme(
-          data: AppTheme.getTheme(brightness),
+          data: AppTheme.light,
           child: child ?? const SizedBox.shrink(),
         );
       },

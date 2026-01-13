@@ -287,9 +287,19 @@ public static class RoomsApi
     // Reservation endpoints
     public static async Task<Results<Created<RoomSessionDto>, NotFound, BadRequest<ProblemDetails>>> ReserveRoom(
         RoomsContext context,
+        HttpContext httpContext,
         [Description("The room ID to reserve")] int roomId,
-        ReserveRoomRequest request)
+        ReserveRoomRequest? request = null)
     {
+        var customerId = httpContext.User.GetUserId();
+        if (string.IsNullOrEmpty(customerId))
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new()
+            {
+                Detail = "User ID not found in token"
+            });
+        }
+
         var room = await context.Rooms.FindAsync(roomId);
 
         if (room == null)
@@ -305,12 +315,14 @@ public static class RoomsApi
             });
         }
 
-        var session = new RoomSession(request.CustomerId)
+        var customerName = httpContext.User.GetUserName() ?? request?.CustomerName;
+
+        var session = new RoomSession(customerId)
         {
             RoomId = roomId,
             Room = room,
-            CustomerName = request.CustomerName,
-            Notes = request.Notes,
+            CustomerName = customerName,
+            Notes = request?.Notes,
             Status = SessionStatus.Reserved
         };
 
@@ -491,7 +503,6 @@ public static class RoomsApi
 }
 
 public record ReserveRoomRequest(
-    string CustomerId,
     string? CustomerName = null,
     string? Notes = null
 );

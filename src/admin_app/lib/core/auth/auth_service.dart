@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
-import '../network/api_client.dart';
 import '../services/firebase_service.dart';
 
 /// Authentication state
@@ -120,6 +119,10 @@ class AuthService extends StateNotifier<AuthState> {
 
   /// Sign in with username and password using Resource Owner Password Credentials grant
   Future<SignInResult> signIn(String username, String password) async {
+    debugPrint('Auth: Attempting sign in for user: $username');
+    debugPrint('Auth: Token endpoint: $_tokenEndpoint');
+    debugPrint('Auth: Client ID: ${AppConfig.clientId}');
+
     try {
       final response = await _dio.post(
         _tokenEndpoint,
@@ -135,6 +138,8 @@ class AuthService extends StateNotifier<AuthState> {
         ),
       );
 
+      debugPrint('Auth: Response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = response.data;
         await _saveTokens(
@@ -142,6 +147,8 @@ class AuthService extends StateNotifier<AuthState> {
           refreshToken: data['refresh_token'],
           idToken: data['id_token'],
         );
+
+        debugPrint('Auth: Tokens saved, isAdmin: ${state.isAdmin}');
 
         if (!state.isAdmin) {
           await signOut();
@@ -153,12 +160,15 @@ class AuthService extends StateNotifier<AuthState> {
 
         return SignInResult.success;
       }
+      debugPrint('Auth: Unexpected status code: ${response.statusCode}');
       return SignInResult.failed;
     } on DioException catch (e) {
-      print('Sign in error: ${e.response?.data ?? e.message}');
+      debugPrint('Auth: DioException - Status: ${e.response?.statusCode}');
+      debugPrint('Auth: DioException - Data: ${e.response?.data}');
+      debugPrint('Auth: DioException - Message: ${e.message}');
       return SignInResult.failed;
     } catch (e) {
-      print('Sign in error: $e');
+      debugPrint('Auth: Exception: $e');
       return SignInResult.failed;
     }
   }
@@ -280,7 +290,7 @@ class AuthService extends StateNotifier<AuthState> {
 
       // Register with backend
       final response = await _dio.post(
-        '${AppConfig.notificationsApiUrl}/subscriptions/admin-orders',
+        '${AppConfig.notificationsApiUrl}subscriptions/admin-orders',
         data: {'fcmToken': fcmToken},
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
@@ -301,7 +311,7 @@ class AuthService extends StateNotifier<AuthState> {
 
     try {
       await _dio.delete(
-        '${AppConfig.notificationsApiUrl}/subscriptions/admin-orders',
+        '${AppConfig.notificationsApiUrl}subscriptions/admin-orders',
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
         ),
@@ -334,8 +344,12 @@ class AuthService extends StateNotifier<AuthState> {
   List<String> _extractRoles(Map<String, dynamic> claims) {
     final roles = <String>[];
 
+    debugPrint('Auth: Extracting roles from claims');
+    debugPrint('Auth: Claims keys: ${claims.keys.toList()}');
+
     // Try 'role' claim (flat roles from Keycloak mapper)
     if (claims['role'] != null) {
+      debugPrint('Auth: Found "role" claim: ${claims['role']}');
       if (claims['role'] is List) {
         roles.addAll((claims['role'] as List).cast<String>());
       } else if (claims['role'] is String) {
@@ -343,15 +357,31 @@ class AuthService extends StateNotifier<AuthState> {
       }
     }
 
+    // Try 'roles' claim (plural)
+    if (claims['roles'] != null) {
+      debugPrint('Auth: Found "roles" claim: ${claims['roles']}');
+      if (claims['roles'] is List) {
+        roles.addAll((claims['roles'] as List).cast<String>());
+      } else if (claims['roles'] is String) {
+        roles.add(claims['roles'] as String);
+      }
+    }
+
     // Try 'realm_access.roles' claim
     if (claims['realm_access'] != null) {
       final realmAccess = claims['realm_access'] as Map<String, dynamic>;
+      debugPrint('Auth: Found "realm_access": $realmAccess');
       if (realmAccess['roles'] != null) {
         roles.addAll((realmAccess['roles'] as List).cast<String>());
       }
     }
 
-    return roles.toSet().toList();
+    final uniqueRoles = roles.toSet().toList();
+    debugPrint('Auth: Extracted roles: $uniqueRoles');
+    debugPrint('Auth: Looking for admin role: "${AppConfig.adminRole}"');
+    debugPrint('Auth: Is admin: ${uniqueRoles.contains(AppConfig.adminRole)}');
+
+    return uniqueRoles;
   }
 }
 

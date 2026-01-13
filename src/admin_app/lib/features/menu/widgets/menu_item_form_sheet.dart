@@ -101,14 +101,8 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       ),
                       const SizedBox(height: 8),
                       FTextField(
-                        controller: _nameController,
+                        control: FTextFieldControl.managed(controller: _nameController),
                         hint: 'Enter item name',
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Name is required';
-                          }
-                          return null;
-                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -120,8 +114,8 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      FTextField(
-                        controller: _descriptionController,
+                      FTextField.multiline(
+                        control: FTextFieldControl.managed(controller: _descriptionController),
                         hint: 'Enter item description',
                         maxLines: 3,
                       ),
@@ -136,7 +130,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       ),
                       const SizedBox(height: 8),
                       FTextField(
-                        controller: _priceController,
+                        control: FTextFieldControl.managed(controller: _priceController),
                         hint: '0.00',
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
@@ -144,16 +138,6 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                           FilteringTextInputFormatter.allow(
                               RegExp(r'^\d*\.?\d{0,2}')),
                         ],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Price is required';
-                          }
-                          final price = double.tryParse(value);
-                          if (price == null || price < 0) {
-                            return 'Enter a valid price';
-                          }
-                          return null;
-                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -165,22 +149,22 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      FSelectMenuTile(
-                        title: Text(_selectedCategoryId != null
-                            ? state.categories
-                                    .firstWhere(
-                                        (c) => c.id == _selectedCategoryId,
-                                        orElse: () =>
-                                            MenuCategory(id: 0, name: 'Select'))
-                                    .name
-                            : 'Select category'),
-                        menu: state.categories.map((category) {
-                          return FSelectTile(
-                            title: Text(category.name),
+                      DropdownButton<int>(
+                        value: _selectedCategoryId,
+                        hint: Text(
+                          'Select category',
+                          style: theme.typography.sm.copyWith(
+                            color: theme.colors.mutedForeground,
+                          ),
+                        ),
+                        isExpanded: true,
+                        items: state.categories.map((category) {
+                          return DropdownMenuItem<int>(
                             value: category.id,
+                            child: Text(category.name),
                           );
                         }).toList(),
-                        onSelect: (value) {
+                        onChanged: (value) {
                           setState(() {
                             _selectedCategoryId = value;
                           });
@@ -197,7 +181,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       ),
                       const SizedBox(height: 8),
                       FTextField(
-                        controller: _prepTimeController,
+                        control: FTextFieldControl.managed(controller: _prepTimeController),
                         hint: 'e.g. 10',
                         keyboardType: TextInputType.number,
                         inputFormatters: [

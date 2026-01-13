@@ -17,6 +17,9 @@ app.MapDefaultEndpoints();
 
 app.UseStatusCodePages();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapRoomsApi();
 
 app.UseDefaultOpenApi();

@@ -14,6 +14,9 @@ var app = builder.Build();
 app.UseDefaultOpenApi();
 app.MapDefaultEndpoints();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapNotificationApi();
 
 app.Run();

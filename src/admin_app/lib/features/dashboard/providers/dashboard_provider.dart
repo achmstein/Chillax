@@ -116,7 +116,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
   Future<List<Order>> _fetchPendingOrders() async {
     try {
-      final response = await _ordersApi.get('/api/orders');
+      final response = await _ordersApi.get('');
       final data = response.data as List<dynamic>;
       return data
           .map((e) => Order.fromJson(e as Map<String, dynamic>))
@@ -129,7 +129,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
   Future<List<RoomSession>> _fetchActiveSessions() async {
     try {
-      final response = await _roomsApi.get('/api/sessions/active');
+      final response = await _roomsApi.get('sessions/active');
       final data = response.data as List<dynamic>;
       return data
           .map((e) => RoomSession.fromJson(e as Map<String, dynamic>))
@@ -141,7 +141,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
   Future<Map<String, dynamic>> _fetchRoomStats() async {
     try {
-      final response = await _roomsApi.get('/api/rooms');
+      final response = await _roomsApi.get('');
       final data = response.data as List<dynamic>;
       final rooms = data.map((e) => Room.fromJson(e as Map<String, dynamic>)).toList();
       return {
@@ -155,7 +155,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
   Future<Map<String, dynamic>> _fetchMenuStats() async {
     try {
-      final response = await _catalogApi.get('/api/catalog/items');
+      final response = await _catalogApi.get('items');
       final data = response.data as List<dynamic>;
       return {'total': data.length};
     } catch (e) {
@@ -165,7 +165,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
   Future<double> _fetchTodayRevenue() async {
     try {
-      final response = await _ordersApi.get('/api/orders');
+      final response = await _ordersApi.get('');
       final data = response.data as List<dynamic>;
       final today = DateTime.now();
       final todayOrders = data

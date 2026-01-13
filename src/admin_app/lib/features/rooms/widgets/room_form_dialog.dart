@@ -64,14 +64,8 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
             ),
             const SizedBox(height: 8),
             FTextField(
-              controller: _nameController,
+              control: FTextFieldControl.managed(controller: _nameController),
               hint: 'e.g. PlayStation Room 1',
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Name is required';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 16),
 
@@ -83,8 +77,8 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
               ),
             ),
             const SizedBox(height: 8),
-            FTextField(
-              controller: _descriptionController,
+            FTextField.multiline(
+              control: FTextFieldControl.managed(controller: _descriptionController),
               hint: 'Optional description',
               maxLines: 2,
             ),
@@ -99,23 +93,13 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
             ),
             const SizedBox(height: 8),
             FTextField(
-              controller: _hourlyRateController,
+              control: FTextFieldControl.managed(controller: _hourlyRateController),
               hint: '0.00',
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
               ],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Hourly rate is required';
-                }
-                final rate = double.tryParse(value);
-                if (rate == null || rate < 0) {
-                  return 'Enter a valid rate';
-                }
-                return null;
-              },
             ),
           ],
         ),

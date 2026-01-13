@@ -404,11 +404,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReserveRoomRequest"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ReserveRoomRequest"
+                  }
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -874,14 +880,8 @@
         }
       },
       "ReserveRoomRequest": {
-        "required": [
-          "customerId"
-        ],
         "type": "object",
         "properties": {
-          "customerId": {
-            "type": "string"
-          },
           "customerName": {
             "type": [
               "null",
@@ -959,6 +959,14 @@
               "null",
               "string"
             ]
+          },
+          "hourlyRate": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
           },
           "customerId": {
             "type": "string"

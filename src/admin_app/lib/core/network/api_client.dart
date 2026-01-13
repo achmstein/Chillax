@@ -17,6 +17,7 @@ class ApiClient {
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30),
           headers: {'Content-Type': 'application/json'},
+          queryParameters: {'api-version': '1.0'}, // Required by YARP BFF routes
         )) {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -89,14 +90,9 @@ final roomsApiProvider = Provider<ApiClient>((ref) {
   return ApiClient(authService, baseUrl: AppConfig.roomsApiUrl);
 });
 
-final basketApiProvider = Provider<ApiClient>((ref) {
+final identityApiProvider = Provider<ApiClient>((ref) {
   final authService = ref.read(authServiceProvider.notifier);
-  return ApiClient(authService, baseUrl: AppConfig.basketApiUrl);
-});
-
-final usersApiProvider = Provider<ApiClient>((ref) {
-  final authService = ref.read(authServiceProvider.notifier);
-  return ApiClient(authService, baseUrl: AppConfig.usersApiUrl);
+  return ApiClient(authService, baseUrl: AppConfig.identityApiUrl);
 });
 
 final loyaltyApiProvider = Provider<ApiClient>((ref) {

@@ -249,119 +249,121 @@ class _MenuItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
 
-    return FCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image placeholder
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: theme.colors.secondary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.restaurant,
-                    color: theme.colors.mutedForeground,
-                  ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colors.border),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image placeholder
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: theme.colors.secondary,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        style: theme.typography.base.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      FBadge(style: FBadgeStyle.secondary(),
-                        child: Text(item.catalogTypeName),
-                      ),
-                    ],
-                  ),
+                child: Icon(
+                  Icons.restaurant,
+                  color: theme.colors.mutedForeground,
                 ),
-                // Action buttons
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit,
-                        size: 18,
-                        color: theme.colors.mutedForeground,
-                      ),
-                      onPressed: onEdit,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete,
-                        size: 18,
-                        color: theme.colors.destructive,
-                      ),
-                      onPressed: onDelete,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Spacer(),
-            Text(
-              item.description,
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.mutedForeground,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  currencyFormat.format(item.price),
-                  style: theme.typography.lg.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colors.primary,
-                  ),
-                ),
-                Row(
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.isAvailable ? 'Available' : 'Unavailable',
-                      style: theme.typography.xs.copyWith(
-                        color: theme.colors.mutedForeground,
+                      item.name,
+                      style: theme.typography.base.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 8),
-                    FSwitch(
-                      value: item.isAvailable,
-                      onChange: onToggleAvailability,
+                    const SizedBox(height: 4),
+                    FBadge(style: FBadgeStyle.secondary(),
+                      child: Text(item.catalogTypeName),
                     ),
                   ],
                 ),
-              ],
+              ),
+              // Action buttons
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.edit,
+                      size: 18,
+                      color: theme.colors.mutedForeground,
+                    ),
+                    onPressed: onEdit,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete,
+                      size: 18,
+                      color: theme.colors.destructive,
+                    ),
+                    onPressed: onDelete,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            item.description,
+            style: theme.typography.sm.copyWith(
+              color: theme.colors.mutedForeground,
             ),
-          ],
-        ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                currencyFormat.format(item.price),
+                style: theme.typography.lg.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colors.primary,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    item.isAvailable ? 'Available' : 'Unavailable',
+                    style: theme.typography.xs.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FSwitch(
+                    value: item.isAvailable,
+                    onChange: onToggleAvailability,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

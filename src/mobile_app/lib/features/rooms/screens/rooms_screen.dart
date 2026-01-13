@@ -1,19 +1,49 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../notifications/services/notification_service.dart';
+import '../../service_request/models/service_request.dart';
+import '../../service_request/services/service_request_service.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
 
 /// Rooms screen for viewing and reserving PlayStation rooms
-class RoomsScreen extends ConsumerWidget {
+class RoomsScreen extends ConsumerStatefulWidget {
   const RoomsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RoomsScreen> createState() => _RoomsScreenState();
+}
+
+class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh sessions when app comes to foreground
+    if (state == AppLifecycleState.resumed) {
+      ref.read(mySessionsProvider.notifier).refresh();
+      ref.refresh(roomsProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final roomsAsync = ref.watch(roomsProvider);
+    final sessionsAsync = ref.watch(mySessionsProvider);
 
     return Column(
       children: [
@@ -22,60 +52,577 @@ class RoomsScreen extends ConsumerWidget {
           title: const Text('Rooms', style: TextStyle(fontSize: 18)),
         ),
 
-        // Rooms list
+        // Content
         Expanded(
-          child: roomsAsync.when(
+          child: sessionsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(FIcons.circleAlert, size: 48, color: AppTheme.textMuted),
-                  const SizedBox(height: 16),
-                  Text('Failed to load rooms'),
-                  const SizedBox(height: 16),
-                  FButton(
-                    onPress: () => ref.refresh(roomsProvider),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-            data: (rooms) {
-              final allUnavailable = rooms.isNotEmpty &&
-                  rooms.every((r) => r.status != RoomStatus.available);
+            error: (_, __) => _buildRoomsList(context, roomsAsync, null, null),
+            data: (sessions) {
+              final activeSession = sessions
+                  .where((s) => s.status == SessionStatus.active)
+                  .firstOrNull;
+              final reservedSession = sessions
+                  .where((s) => s.status == SessionStatus.reserved)
+                  .firstOrNull;
 
-              return RefreshIndicator(
-                onRefresh: () async => ref.refresh(roomsProvider),
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: rooms.length + (allUnavailable ? 1 : 0),
-                  separatorBuilder: (_, index) {
-                    if (allUnavailable && index == 0) return const SizedBox.shrink();
-                    return Divider(
-                      height: 1,
-                      indent: 16,
-                      endIndent: 16,
-                      color: AppTheme.textMuted.withOpacity(0.2),
-                    );
-                  },
-                  itemBuilder: (context, index) {
-                    if (allUnavailable && index == 0) {
-                      return const Padding(
-                        padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
-                        child: NotifyMeBanner(),
-                      );
-                    }
-                    final roomIndex = allUnavailable ? index - 1 : index;
-                    return RoomListItem(room: rooms[roomIndex]);
-                  },
-                ),
-              );
+              // If user has active session, show session view
+              if (activeSession != null) {
+                return _ActiveSessionView(session: activeSession);
+              }
+
+              // If user has reserved session, show reservation + rooms
+              return _buildRoomsList(context, roomsAsync, reservedSession, null);
             },
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildRoomsList(
+    BuildContext context,
+    AsyncValue<List<Room>> roomsAsync,
+    RoomSession? reservedSession,
+    RoomSession? activeSession,
+  ) {
+    return roomsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(FIcons.circleAlert, size: 48, color: AppTheme.textMuted),
+            const SizedBox(height: 16),
+            const Text('Failed to load rooms'),
+            const SizedBox(height: 16),
+            FButton(
+              onPress: () => ref.refresh(roomsProvider),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+      data: (rooms) {
+        final allUnavailable = rooms.isNotEmpty &&
+            rooms.every((r) => r.status != RoomStatus.available);
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            ref.refresh(roomsProvider);
+            ref.read(mySessionsProvider.notifier).refresh();
+          },
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: _getItemCount(rooms, reservedSession, allUnavailable),
+            itemBuilder: (context, index) {
+              int currentIndex = index;
+
+              // Reserved session banner (always first if exists)
+              if (reservedSession != null && currentIndex == 0) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: _ReservedSessionBanner(session: reservedSession),
+                );
+              }
+              if (reservedSession != null) currentIndex--;
+
+              // Notify me banner (if all rooms unavailable)
+              if (allUnavailable && currentIndex == 0) {
+                return const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: NotifyMeBanner(),
+                );
+              }
+              if (allUnavailable) currentIndex--;
+
+              // Room items
+              final room = rooms[currentIndex];
+              return Column(
+                children: [
+                  RoomListItem(
+                    room: room,
+                    canReserve: reservedSession == null,
+                  ),
+                  if (currentIndex < rooms.length - 1)
+                    Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: AppTheme.textMuted.withOpacity(0.2),
+                    ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  int _getItemCount(List<Room> rooms, RoomSession? reservedSession, bool allUnavailable) {
+    int count = rooms.length;
+    if (reservedSession != null) count++;
+    if (allUnavailable) count++;
+    return count;
+  }
+}
+
+/// Active session view - shown when user is currently playing
+class _ActiveSessionView extends ConsumerStatefulWidget {
+  final RoomSession session;
+
+  const _ActiveSessionView({required this.session});
+
+  @override
+  ConsumerState<_ActiveSessionView> createState() => _ActiveSessionViewState();
+}
+
+class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = widget.session;
+
+    return RefreshIndicator(
+      onRefresh: () => ref.read(mySessionsProvider.notifier).refresh(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Main session card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.primaryColor,
+                    AppTheme.primaryColor.withOpacity(0.8),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Room name
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Icon(FIcons.gamepad2, color: Colors.white, size: 24),
+                      const SizedBox(width: 8),
+                      Text(
+                        session.roomName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Session Active',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Timer
+                  Text(
+                    session.formattedDuration,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'monospace',
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '£${session.hourlyRate.toStringAsFixed(0)}/hour',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Quick actions
+            Text(
+              'Need something?',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Action buttons grid
+            Row(
+              children: [
+                Expanded(
+                  child: _QuickActionButton(
+                    icon: FIcons.user,
+                    label: 'Call Waiter',
+                    onTap: () => _submitRequest(ServiceRequestType.callWaiter),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _QuickActionButton(
+                    icon: FIcons.gamepad2,
+                    label: 'Controller',
+                    onTap: () => _submitRequest(ServiceRequestType.controllerChange),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _QuickActionButton(
+                    icon: FIcons.receipt,
+                    label: 'Get Bill',
+                    onTap: () => _submitRequest(ServiceRequestType.receiptToPay),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submitRequest(ServiceRequestType type) async {
+    final session = widget.session;
+    final request = CreateServiceRequest(
+      sessionId: session.id,
+      roomId: session.roomId,
+      roomName: session.roomName,
+      requestType: type,
+    );
+
+    final success = await ref.read(serviceRequestProvider.notifier).submitRequest(request);
+
+    if (mounted) {
+      if (success) {
+        showFToast(
+          context: context,
+          title: Text(_getSuccessMessage(type)),
+          icon: Icon(FIcons.check, color: AppTheme.successColor),
+        );
+      } else {
+        final error = ref.read(serviceRequestProvider).error;
+        showFToast(
+          context: context,
+          title: Text(error ?? 'Failed to send request'),
+          icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+        );
+      }
+    }
+  }
+
+  String _getSuccessMessage(ServiceRequestType type) {
+    switch (type) {
+      case ServiceRequestType.callWaiter:
+        return 'Waiter has been notified';
+      case ServiceRequestType.controllerChange:
+        return 'Controller request sent';
+      case ServiceRequestType.receiptToPay:
+        return 'Bill request sent';
+    }
+  }
+}
+
+class _QuickActionButton extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _QuickActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  State<_QuickActionButton> createState() => _QuickActionButtonState();
+}
+
+class _QuickActionButtonState extends State<_QuickActionButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: _isPressed
+                ? AppTheme.primaryColor.withOpacity(0.15)
+                : AppTheme.textMuted.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _isPressed
+                  ? AppTheme.primaryColor.withOpacity(0.3)
+                  : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(widget.icon, size: 24, color: AppTheme.primaryColor),
+              const SizedBox(height: 8),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppTheme.textMuted),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: AppTheme.textMuted,
+            fontSize: 13,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Reserved session banner - matches active session card style
+class _ReservedSessionBanner extends ConsumerWidget {
+  final RoomSession session;
+
+  const _ReservedSessionBanner({required this.session});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.warningColor,
+            AppTheme.warningColor.withOpacity(0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.warningColor.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Room name
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(FIcons.gamepad2, color: Colors.white, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                session.roomName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Status badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text(
+              'Reserved',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Date and time
+          Text(
+            DateFormat('EEEE, MMM d').format(session.reservationTime),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            DateFormat('h:mm a').format(session.reservationTime),
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'monospace',
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Cancel link
+          GestureDetector(
+            onTap: () => _cancelReservation(context, ref),
+            child: Text(
+              'Cancel Reservation',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.9),
+                fontSize: 13,
+                decoration: TextDecoration.underline,
+                decorationColor: Colors.white.withOpacity(0.9),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _cancelReservation(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showAdaptiveDialog<bool>(
+      context: context,
+      builder: (context) => FDialog(
+        direction: Axis.horizontal,
+        title: const Text('Cancel Reservation?'),
+        body: const Text('Are you sure you want to cancel your reservation?'),
+        actions: [
+          FButton(
+            style: FButtonStyle.outline(),
+            onPress: () => Navigator.pop(context, false),
+            child: const Text('No, Keep'),
+          ),
+          FButton(
+            style: FButtonStyle.destructive(),
+            onPress: () => Navigator.pop(context, true),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final service = ref.read(roomServiceProvider);
+        await service.cancelReservation(session.id);
+        ref.read(mySessionsProvider.notifier).refresh();
+        ref.refresh(roomsProvider);
+        if (context.mounted) {
+          showFToast(
+            context: context,
+            title: const Text('Reservation cancelled'),
+            icon: Icon(FIcons.check, color: AppTheme.successColor),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          showFToast(
+            context: context,
+            title: const Text('Failed to cancel reservation'),
+            icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+          );
+        }
+      }
+    }
   }
 }
 
@@ -208,12 +755,17 @@ class NotifyMeBanner extends ConsumerWidget {
 /// Room list item - minimal design like menu items
 class RoomListItem extends ConsumerWidget {
   final Room room;
+  final bool canReserve;
 
-  const RoomListItem({super.key, required this.room});
+  const RoomListItem({
+    super.key,
+    required this.room,
+    this.canReserve = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAvailable = room.status == RoomStatus.available;
+    final isAvailable = room.status == RoomStatus.available && canReserve;
     final statusColor = _getStatusColor();
 
     return GestureDetector(
@@ -303,6 +855,22 @@ class RoomListItem extends ConsumerWidget {
                   color: Colors.white,
                   size: 18,
                 ),
+              )
+            else if (room.status == RoomStatus.available && !canReserve)
+              // Room is available but user already has reservation
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.textMuted.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Available',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 12,
+                  ),
+                ),
               ),
           ],
         ),
@@ -313,7 +881,7 @@ class RoomListItem extends ConsumerWidget {
   Color _getStatusColor() {
     switch (room.status) {
       case RoomStatus.available:
-        return AppTheme.successColor;
+        return canReserve ? AppTheme.successColor : AppTheme.textMuted;
       case RoomStatus.occupied:
         return AppTheme.errorColor;
       case RoomStatus.reserved:
@@ -536,7 +1104,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
     if (success && mounted) {
       Navigator.pop(context);
       ref.refresh(roomsProvider);
-      ref.refresh(mySessionsProvider);
+      ref.read(mySessionsProvider.notifier).refresh();
       showFToast(
         context: context,
         title: const Text('Room reserved successfully!'),
@@ -551,4 +1119,3 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
     }
   }
 }
-

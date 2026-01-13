@@ -9,7 +9,7 @@ const adminUrl = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5173'
 
 export const oidcConfig: AuthProviderProps = {
   authority: `${keycloakUrl}/realms/${realm}`,
-  client_id: 'chillax-admin',
+  client_id: 'admin-panel',
   redirect_uri: `${adminUrl}/auth/callback`,
   post_logout_redirect_uri: adminUrl,
   response_type: 'code',

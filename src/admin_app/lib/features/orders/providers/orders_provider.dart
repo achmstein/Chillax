@@ -41,7 +41,7 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _api.get('/api/orders');
+      final response = await _api.get('');
       final data = response.data as List<dynamic>;
       final orders = data
           .map((e) => Order.fromJson(e as Map<String, dynamic>))
@@ -67,7 +67,7 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
 
   Future<bool> confirmOrder(int orderId) async {
     try {
-      await _api.put('/api/orders/$orderId/confirm');
+      await _api.put('$orderId/confirm');
       await loadOrders();
       return true;
     } catch (e) {
@@ -78,7 +78,7 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
 
   Future<bool> cancelOrder(int orderId) async {
     try {
-      await _api.put('/api/orders/$orderId/cancel');
+      await _api.put('$orderId/cancel');
       await loadOrders();
       return true;
     } catch (e) {

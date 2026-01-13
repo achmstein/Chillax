@@ -42,8 +42,8 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
     try {
       final results = await Future.wait([
-        _api.get('/api/rooms'),
-        _api.get('/api/sessions/active'),
+        _api.get(''),
+        _api.get('sessions/active'),
       ]);
 
       final roomsData = results[0].data as List<dynamic>;
@@ -72,7 +72,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   Future<bool> reserveRoom(int roomId) async {
     try {
-      await _api.post('/api/rooms/$roomId/reserve', data: {
+      await _api.post('$roomId/reserve', data: {
         'reservationTime': DateTime.now().toIso8601String(),
       });
       await loadRooms();
@@ -85,7 +85,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   Future<bool> startSession(int sessionId) async {
     try {
-      await _api.post('/api/sessions/$sessionId/start');
+      await _api.post('sessions/$sessionId/start');
       await loadRooms();
       return true;
     } catch (e) {
@@ -96,7 +96,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   Future<bool> endSession(int sessionId) async {
     try {
-      await _api.post('/api/sessions/$sessionId/end');
+      await _api.post('sessions/$sessionId/end');
       await loadRooms();
       return true;
     } catch (e) {
@@ -107,7 +107,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   Future<bool> cancelSession(int sessionId) async {
     try {
-      await _api.post('/api/sessions/$sessionId/cancel');
+      await _api.post('sessions/$sessionId/cancel');
       await loadRooms();
       return true;
     } catch (e) {
@@ -118,7 +118,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   Future<bool> createRoom(Room room) async {
     try {
-      await _api.post('/api/rooms', data: room.toJson());
+      await _api.post('', data: room.toJson());
       await loadRooms();
       return true;
     } catch (e) {
@@ -129,7 +129,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   Future<bool> updateRoom(Room room) async {
     try {
-      await _api.put('/api/rooms/${room.id}', data: room.toJson());
+      await _api.put('${room.id}', data: room.toJson());
       await loadRooms();
       return true;
     } catch (e) {
@@ -140,7 +140,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   Future<bool> deleteRoom(int roomId) async {
     try {
-      await _api.delete('/api/rooms/$roomId');
+      await _api.delete('$roomId');
       await loadRooms();
       return true;
     } catch (e) {

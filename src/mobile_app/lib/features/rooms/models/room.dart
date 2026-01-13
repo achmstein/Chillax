@@ -73,6 +73,7 @@ class RoomSession {
   final int id;
   final int roomId;
   final String roomName;
+  final double hourlyRate;
   final DateTime reservationTime;
   final DateTime? startTime;
   final DateTime? endTime;
@@ -83,6 +84,7 @@ class RoomSession {
     required this.id,
     required this.roomId,
     required this.roomName,
+    required this.hourlyRate,
     required this.reservationTime,
     this.startTime,
     this.endTime,
@@ -112,6 +114,7 @@ class RoomSession {
       id: json['id'] as int,
       roomId: json['roomId'] as int,
       roomName: json['roomName'] as String? ?? 'Room ${json['roomId']}',
+      hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
       reservationTime: DateTime.parse(json['reservationTime'] as String),
       startTime: json['startTime'] != null
           ? DateTime.parse(json['startTime'] as String)

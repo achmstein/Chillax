@@ -12,5 +12,6 @@ public class NotificationSubscription
 public enum SubscriptionType
 {
     RoomAvailability = 1,
-    AdminOrderNotification = 2
+    AdminOrderNotification = 2,
+    ServiceRequests = 3
 }

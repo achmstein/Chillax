@@ -12,6 +12,9 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 var orders = app.NewVersionedApi("Orders");
 
 orders.MapOrdersApiV1()

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 
-/// App theme configuration using Forui
+/// App theme configuration using Forui - zinc theme (black) to match mobile app
 class AppTheme {
-  /// Light theme - Violet for admin app
-  static FThemeData get light => FThemes.violet.light;
+  /// Light theme - Zinc (black) for admin app
+  static FThemeData get light => FThemes.zinc.light;
 
-  /// Dark theme - Violet for admin app
-  static FThemeData get dark => FThemes.violet.dark;
+  /// Dark theme - Zinc (black) for admin app
+  static FThemeData get dark => FThemes.zinc.dark;
 
   /// Get theme based on brightness
   static FThemeData getTheme(Brightness brightness) {

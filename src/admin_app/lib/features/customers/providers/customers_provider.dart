@@ -102,6 +102,6 @@ class CustomersNotifier extends StateNotifier<CustomersState> {
 /// Customers provider
 final customersProvider =
     StateNotifierProvider<CustomersNotifier, CustomersState>((ref) {
-  final api = ref.read(usersApiProvider);
+  final api = ref.read(identityApiProvider);
   return CustomersNotifier(api);
 });

@@ -60,9 +60,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             children: [
               Expanded(
                 child: FTextField(
-                  controller: _searchController,
+                  control: FTextFieldControl.managed(controller: _searchController),
                   hint: 'Search customers...',
-                  prefix: const Icon(Icons.search),
                   onSubmit: (_) {
                     ref
                         .read(customersProvider.notifier)
@@ -145,12 +144,12 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ),
                     )
                   : ListView.separated(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: state.customers.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (_, __) => const FDivider(),
                       itemBuilder: (context, index) {
                         final customer = state.customers[index];
-                        return _CustomerCard(
+                        return _CustomerListItem(
                           customer: customer,
                           dateFormat: dateFormat,
                           onTap: () => _showCustomerDetail(context, customer),
@@ -171,12 +170,12 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 }
 
-class _CustomerCard extends StatelessWidget {
+class _CustomerListItem extends StatelessWidget {
   final Customer customer;
   final DateFormat dateFormat;
   final VoidCallback onTap;
 
-  const _CustomerCard({
+  const _CustomerListItem({
     required this.customer,
     required this.dateFormat,
     required this.onTap,
@@ -186,62 +185,60 @@ class _CustomerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
 
-    return FCard(
-      child: FTappable(
-        onPress: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Avatar
-              FAvatar(
-                fallback: Text(customer.initials),
-                size: 48,
-              ),
-              const SizedBox(width: 16),
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            customer.displayName,
-                            style: theme.typography.base.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+    return FTappable(
+      onPress: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            // Avatar
+            FAvatar.raw(
+              size: 48,
+              child: Text(customer.initials),
+            ),
+            const SizedBox(width: 16),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          customer.displayName,
+                          style: theme.typography.base.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        if (!customer.enabled)
-                          FBadge(
-                            style: FBadgeStyle.outline(),
-                            child: const Text('Disabled'),
-                          ),
-                      ],
+                      ),
+                      if (!customer.enabled)
+                        FBadge(
+                          style: FBadgeStyle.outline(),
+                          child: const Text('Disabled'),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  if (customer.email != null)
+                    Text(
+                      customer.email!,
+                      style: theme.typography.sm.copyWith(
+                        color: theme.colors.mutedForeground,
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    if (customer.email != null)
-                      Text(
-                        customer.email!,
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
+                  if (customer.createdAt != null)
+                    Text(
+                      'Joined ${dateFormat.format(customer.createdAt!)}',
+                      style: theme.typography.xs.copyWith(
+                        color: theme.colors.mutedForeground,
                       ),
-                    if (customer.createdAt != null)
-                      Text(
-                        'Joined ${dateFormat.format(customer.createdAt!)}',
-                        style: theme.typography.xs.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                  ],
-                ),
+                    ),
+                ],
               ),
-              const Icon(Icons.chevron_right),
-            ],
-          ),
+            ),
+            Icon(Icons.chevron_right, color: theme.colors.mutedForeground),
+          ],
         ),
       ),
     );

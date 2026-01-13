@@ -5,6 +5,7 @@ namespace Chillax.Notification.API.Infrastructure;
 public class NotificationContext(DbContextOptions<NotificationContext> options) : DbContext(options)
 {
     public DbSet<NotificationSubscription> Subscriptions => Set<NotificationSubscription>();
+    public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +25,30 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
 
             // Unique constraint: one subscription per user per type
             entity.HasIndex(e => new { e.UserId, e.Type }).IsUnique();
+        });
+
+        modelBuilder.Entity<ServiceRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.UserName).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.RoomName).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.RequestType).IsRequired();
+            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.AcknowledgedBy).HasMaxLength(256);
+
+            // Index for efficient lookups by user and status
+            entity.HasIndex(e => new { e.UserId, e.Status });
+
+            // Index for efficient lookups by room and status
+            entity.HasIndex(e => new { e.RoomId, e.Status });
+
+            // Index for ordering by created date
+            entity.HasIndex(e => e.CreatedAt);
+
+            // Index for pending requests
+            entity.HasIndex(e => e.Status);
         });
     }
 }

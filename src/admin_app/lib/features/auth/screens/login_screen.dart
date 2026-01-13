@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/config/app_config.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   final String? error;
@@ -87,99 +86,84 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = context.theme;
 
-    return FScaffold(
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: FCard(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.coffee,
-                      size: 64,
-                      color: theme.colors.primary,
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Logo
+                  Center(
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      width: 200,
+                      height: 200,
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      AppConfig.appName,
-                      style: theme.typography.xl2.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Admin subtitle
+                  Center(
+                    child: Text(
                       'Admin Dashboard',
                       style: theme.typography.base.copyWith(
                         color: theme.colors.mutedForeground,
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    if (_errorMessage != null) ...[
-                      FAlert(
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Error message
+                  if (_errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: FAlert(
                         style: FAlertStyle.destructive(),
-                        icon: const Icon(Icons.warning),
-                        title: const Text('Access Denied'),
+                        icon: const Icon(Icons.error_outline),
+                        title: const Text('Error'),
                         subtitle: Text(_errorMessage!),
                       ),
-                      const SizedBox(height: 24),
-                    ],
+                    ),
 
-                    // Username field
-                    FTextField.email(
-                      control: FTextFieldControl.managed(controller: _usernameController),
-                      label: const Text('Username or Email'),
-                      hint: 'Enter your username or email',
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 16),
+                  // Username field
+                  FTextField.email(
+                    control: FTextFieldControl.managed(controller: _usernameController),
+                    label: const Text('Username or Email'),
+                    hint: 'Enter your username or email',
+                    textInputAction: TextInputAction.next,
+                  ),
+                  const SizedBox(height: 16),
 
-                    // Password field
-                    FTextField.password(
-                      control: FTextFieldControl.managed(controller: _passwordController),
-                      label: const Text('Password'),
-                      hint: 'Enter your password',
-                      textInputAction: TextInputAction.done,
-                      onSubmit: (_) => _signIn(),
-                    ),
-                    const SizedBox(height: 24),
+                  // Password field
+                  FTextField.password(
+                    control: FTextFieldControl.managed(controller: _passwordController),
+                    label: const Text('Password'),
+                    hint: 'Enter your password',
+                    textInputAction: TextInputAction.done,
+                    onSubmit: (_) => _signIn(),
+                  ),
+                  const SizedBox(height: 24),
 
-                    SizedBox(
-                      width: double.infinity,
-                      child: FButton(
-                        onPress: _isLoading ? null : _signIn,
-                        child: _isLoading
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: theme.colors.primaryForeground,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text('Signing in...'),
-                                ],
-                              )
-                            : const Text('Sign In'),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Version ${AppConfig.appVersion}',
-                      style: theme.typography.xs.copyWith(
-                        color: theme.colors.mutedForeground,
-                      ),
-                    ),
-                  ],
-                ),
+                  // Sign in button
+                  FButton(
+                    onPress: _isLoading ? null : _signIn,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Sign In'),
+                  ),
+                ],
               ),
             ),
           ),

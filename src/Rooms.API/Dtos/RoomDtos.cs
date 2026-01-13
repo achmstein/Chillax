@@ -23,6 +23,7 @@ public record RoomSessionDto
     public int Id { get; init; }
     public int RoomId { get; init; }
     public string? RoomName { get; init; }
+    public decimal HourlyRate { get; init; }
     public string CustomerId { get; init; } = string.Empty;
     public string? CustomerName { get; init; }
     public DateTime ReservationTime { get; init; }

@@ -257,15 +257,6 @@
       }
     },
     {
-      "name": "basket",
-      "description": "Basket API access",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "true"
-      }
-    },
-    {
       "name": "catalog",
       "description": "Catalog API access",
       "protocol": "openid-connect",
@@ -295,7 +286,7 @@
   ],
   "clients": [
     {
-      "clientId": "chillax-mobile",
+      "clientId": "mobile-app",
       "name": "Chillax Mobile App",
       "enabled": true,
       "publicClient": true,
@@ -315,7 +306,6 @@
         "email",
         "roles",
         "orders",
-        "basket",
         "catalog",
         "rooms"
       ],
@@ -332,7 +322,7 @@
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.client.audience": "chillax-mobile",
+            "included.client.audience": "mobile-app",
             "id.token.claim": "false",
             "access.token.claim": "true"
           }
@@ -340,7 +330,7 @@
       ]
     },
     {
-      "clientId": "chillax-admin",
+      "clientId": "admin-panel",
       "name": "Chillax Admin Panel",
       "enabled": true,
       "publicClient": true,
@@ -364,7 +354,6 @@
         "email",
         "roles",
         "orders",
-        "basket",
         "catalog",
         "rooms"
       ],
@@ -381,7 +370,7 @@
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.client.audience": "chillax-admin",
+            "included.client.audience": "admin-panel",
             "id.token.claim": "false",
             "access.token.claim": "true"
           }
@@ -389,8 +378,8 @@
       ]
     },
     {
-      "clientId": "chillax-admin-tablet",
-      "name": "Chillax Admin Tablet App",
+      "clientId": "admin-app",
+      "name": "Chillax Admin App",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
@@ -409,7 +398,6 @@
         "email",
         "roles",
         "orders",
-        "basket",
         "catalog",
         "rooms"
       ],
@@ -426,7 +414,7 @@
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.client.audience": "chillax-admin-tablet",
+            "included.client.audience": "admin-app",
             "id.token.claim": "false",
             "access.token.claim": "true"
           }
@@ -454,7 +442,6 @@
         "profile",
         "roles",
         "orders",
-        "basket",
         "webhooks"
       ],
       "optionalClientScopes": [
@@ -485,26 +472,6 @@
       ],
       "optionalClientScopes": [
         "offline_access"
-      ]
-    },
-    {
-      "clientId": "basketswaggerui",
-      "name": "Basket Swagger UI",
-      "enabled": true,
-      "publicClient": true,
-      "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
-      "implicitFlowEnabled": true,
-      "protocol": "openid-connect",
-      "redirectUris": [
-        "*/swagger/oauth2-redirect.html"
-      ],
-      "webOrigins": [
-        "+"
-      ],
-      "defaultClientScopes": [
-        "openid",
-        "basket"
       ]
     },
     {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/room.dart';
@@ -87,10 +88,46 @@ final availableRoomsProvider = FutureProvider<List<Room>>((ref) async {
 });
 
 /// Provider for customer sessions
-final mySessionsProvider = FutureProvider<List<RoomSession>>((ref) async {
+final mySessionsProvider = StateNotifierProvider<MySessionsNotifier, AsyncValue<List<RoomSession>>>((ref) {
   final service = ref.watch(roomServiceProvider);
-  return service.getMySessions();
+  return MySessionsNotifier(service);
 });
+
+/// Sessions notifier - refreshes on demand (app resume, screen focus, pull-to-refresh)
+class MySessionsNotifier extends StateNotifier<AsyncValue<List<RoomSession>>> {
+  final RoomService _roomService;
+
+  MySessionsNotifier(this._roomService) : super(const AsyncValue.loading()) {
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions({bool silent = false}) async {
+    if (!silent) {
+      state = const AsyncValue.loading();
+    }
+
+    try {
+      final sessions = await _roomService.getMySessions();
+      if (mounted) {
+        state = AsyncValue.data(sessions);
+      }
+    } catch (e, st) {
+      if (mounted && !silent) {
+        state = AsyncValue.error(e, st);
+      }
+    }
+  }
+
+  /// Refresh sessions (silent - no loading indicator)
+  Future<void> refresh() async {
+    await _loadSessions(silent: true);
+  }
+
+  /// Force refresh with loading indicator
+  Future<void> forceRefresh() async {
+    await _loadSessions(silent: false);
+  }
+}
 
 /// Reservation state
 class ReservationState {

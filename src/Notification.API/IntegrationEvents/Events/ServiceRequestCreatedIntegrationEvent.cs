@@ -1,0 +1,11 @@
+using Chillax.Notification.API.Model;
+
+namespace Chillax.Notification.API.IntegrationEvents.Events;
+
+public record ServiceRequestCreatedIntegrationEvent(
+    int RequestId,
+    string UserName,
+    int RoomId,
+    string RoomName,
+    ServiceRequestType RequestType,
+    DateTime CreatedAt) : IntegrationEvent;

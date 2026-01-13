@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import '../../../core/network/api_client.dart';
 import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
 import '../../menu/models/user_preference.dart';
 import '../../menu/services/menu_service.dart';
 import '../models/order.dart';
+
+const _uuid = Uuid();
 
 /// Order service
 class OrderService {
@@ -45,6 +48,7 @@ class OrderService {
         'customerNote': customerNote,
         'items': items.map((item) => item.toJson()).toList(),
       },
+      headers: {'x-requestid': _uuid.v4()},
     );
 
     return Order.fromJson(response.data!);

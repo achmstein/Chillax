@@ -5,6 +5,7 @@ using Chillax.ServiceDefaults;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddDefaultAuthentication();
 
 // Add HttpClient for Keycloak Admin API
 builder.Services.AddHttpClient("KeycloakAdmin", client =>
@@ -15,6 +16,9 @@ builder.Services.AddHttpClient("KeycloakAdmin", client =>
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Registration endpoint
 app.MapPost("/api/identity/register", async (RegisterRequest request, IHttpClientFactory httpClientFactory, IConfiguration config) =>

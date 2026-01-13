@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Security.Claims;
+using Chillax.Notification.API.IntegrationEvents.Events;
 using Chillax.Notification.API.Model;
 using Chillax.ServiceDefaults;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -43,6 +44,45 @@ public static class NotificationApi
             .WithSummary("Unsubscribe from admin order notifications")
             .WithDescription("Unregister admin device from order notifications (typically on logout)")
             .WithTags("Admin Subscriptions");
+
+        // Service request subscription (for staff)
+        api.MapPost("/subscriptions/service-requests", SubscribeToServiceRequests)
+            .WithName("SubscribeToServiceRequests")
+            .WithSummary("Subscribe to service request notifications")
+            .WithDescription("Register staff device to receive FCM notifications when users request help")
+            .WithTags("Staff Subscriptions");
+
+        api.MapDelete("/subscriptions/service-requests", UnsubscribeFromServiceRequests)
+            .WithName("UnsubscribeFromServiceRequests")
+            .WithSummary("Unsubscribe from service request notifications")
+            .WithDescription("Unregister staff device from service request notifications")
+            .WithTags("Staff Subscriptions");
+
+        // Service request endpoints (for users)
+        api.MapPost("/service-requests", CreateServiceRequest)
+            .WithName("CreateServiceRequest")
+            .WithSummary("Create a service request")
+            .WithDescription("Request waiter, controller change, or receipt")
+            .WithTags("Service Requests");
+
+        // Service request management (for staff/admin)
+        api.MapGet("/service-requests/pending", GetPendingServiceRequests)
+            .WithName("GetPendingServiceRequests")
+            .WithSummary("Get pending service requests")
+            .WithDescription("Get all pending service requests for staff dashboard")
+            .WithTags("Service Requests");
+
+        api.MapPut("/service-requests/{id}/acknowledge", AcknowledgeServiceRequest)
+            .WithName("AcknowledgeServiceRequest")
+            .WithSummary("Acknowledge a service request")
+            .WithDescription("Mark request as acknowledged by staff")
+            .WithTags("Service Requests");
+
+        api.MapPut("/service-requests/{id}/complete", CompleteServiceRequest)
+            .WithName("CompleteServiceRequest")
+            .WithSummary("Complete a service request")
+            .WithDescription("Mark request as completed")
+            .WithTags("Service Requests");
 
         return app;
     }
@@ -180,6 +220,194 @@ public static class NotificationApi
 
         return TypedResults.NoContent();
     }
+
+    // Service request subscription handlers
+    public static async Task<Results<Ok<SubscriptionResponse>, Created<SubscriptionResponse>>> SubscribeToServiceRequests(
+        NotificationContext context,
+        ClaimsPrincipal user,
+        SubscribeRequest request)
+    {
+        var userId = user.GetUserId()!;
+
+        var existing = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.ServiceRequests);
+
+        if (existing != null)
+        {
+            if (existing.FcmToken != request.FcmToken)
+            {
+                existing.FcmToken = request.FcmToken;
+                await context.SaveChangesAsync();
+            }
+            return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
+        }
+
+        var subscription = new NotificationSubscription
+        {
+            UserId = userId,
+            FcmToken = request.FcmToken,
+            Type = SubscriptionType.ServiceRequests,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.Subscriptions.Add(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.Created(
+            "/api/notifications/subscriptions/service-requests",
+            new SubscriptionResponse(subscription.Id, subscription.Type, subscription.CreatedAt));
+    }
+
+    public static async Task<Results<NoContent, NotFound>> UnsubscribeFromServiceRequests(
+        NotificationContext context,
+        ClaimsPrincipal user)
+    {
+        var userId = user.GetUserId()!;
+
+        var subscription = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.ServiceRequests);
+
+        if (subscription == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        context.Subscriptions.Remove(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.NoContent();
+    }
+
+    // Service request handlers
+    public static async Task<Results<Created<ServiceRequestResponse>, BadRequest<string>>> CreateServiceRequest(
+        NotificationContext context,
+        IEventBus eventBus,
+        ClaimsPrincipal user,
+        CreateServiceRequestDto request)
+    {
+        var userId = user.GetUserId()!;
+        var userName = user.GetUserName() ?? "Guest";
+
+        // Check for recent duplicate request (within 30 seconds)
+        var recentRequest = await context.ServiceRequests
+            .Where(r => r.UserId == userId
+                && r.SessionId == request.SessionId
+                && r.RequestType == request.RequestType
+                && r.Status == ServiceRequestStatus.Pending
+                && r.CreatedAt > DateTime.UtcNow.AddSeconds(-30))
+            .FirstOrDefaultAsync();
+
+        if (recentRequest != null)
+        {
+            return TypedResults.BadRequest("A similar request was made recently. Please wait before making another request.");
+        }
+
+        var serviceRequest = new ServiceRequest
+        {
+            UserId = userId,
+            UserName = userName,
+            SessionId = request.SessionId,
+            RoomId = request.RoomId,
+            RoomName = request.RoomName,
+            RequestType = request.RequestType,
+            Status = ServiceRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.ServiceRequests.Add(serviceRequest);
+        await context.SaveChangesAsync();
+
+        // Publish event to notify staff
+        await eventBus.PublishAsync(new ServiceRequestCreatedIntegrationEvent(
+            serviceRequest.Id,
+            serviceRequest.UserName,
+            serviceRequest.RoomId,
+            serviceRequest.RoomName,
+            serviceRequest.RequestType,
+            serviceRequest.CreatedAt));
+
+        return TypedResults.Created(
+            $"/api/notifications/service-requests/{serviceRequest.Id}",
+            new ServiceRequestResponse(
+                serviceRequest.Id,
+                serviceRequest.UserName,
+                serviceRequest.RoomId,
+                serviceRequest.RoomName,
+                serviceRequest.RequestType,
+                serviceRequest.Status,
+                serviceRequest.CreatedAt));
+    }
+
+    public static async Task<Ok<List<ServiceRequestResponse>>> GetPendingServiceRequests(
+        NotificationContext context)
+    {
+        var requests = await context.ServiceRequests
+            .Where(r => r.Status == ServiceRequestStatus.Pending || r.Status == ServiceRequestStatus.Acknowledged)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new ServiceRequestResponse(
+                r.Id,
+                r.UserName,
+                r.RoomId,
+                r.RoomName,
+                r.RequestType,
+                r.Status,
+                r.CreatedAt))
+            .ToListAsync();
+
+        return TypedResults.Ok(requests);
+    }
+
+    public static async Task<Results<Ok<ServiceRequestResponse>, NotFound>> AcknowledgeServiceRequest(
+        NotificationContext context,
+        ClaimsPrincipal user,
+        [Description("The service request ID")] int id)
+    {
+        var request = await context.ServiceRequests.FindAsync(id);
+
+        if (request == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        request.Status = ServiceRequestStatus.Acknowledged;
+        request.AcknowledgedAt = DateTime.UtcNow;
+        request.AcknowledgedBy = user.GetUserName() ?? user.GetUserId();
+
+        await context.SaveChangesAsync();
+
+        return TypedResults.Ok(new ServiceRequestResponse(
+            request.Id,
+            request.UserName,
+            request.RoomId,
+            request.RoomName,
+            request.RequestType,
+            request.Status,
+            request.CreatedAt));
+    }
+
+    public static async Task<Results<Ok<ServiceRequestResponse>, NotFound>> CompleteServiceRequest(
+        NotificationContext context,
+        [Description("The service request ID")] int id)
+    {
+        var request = await context.ServiceRequests.FindAsync(id);
+
+        if (request == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        request.Status = ServiceRequestStatus.Completed;
+        await context.SaveChangesAsync();
+
+        return TypedResults.Ok(new ServiceRequestResponse(
+            request.Id,
+            request.UserName,
+            request.RoomId,
+            request.RoomName,
+            request.RequestType,
+            request.Status,
+            request.CreatedAt));
+    }
 }
 
 public record SubscribeRequest(
@@ -189,5 +417,22 @@ public record SubscribeRequest(
 public record SubscriptionResponse(
     int Id,
     SubscriptionType Type,
+    DateTime CreatedAt
+);
+
+public record CreateServiceRequestDto(
+    [property: Description("The user's active session ID")] int SessionId,
+    [property: Description("The room ID")] int RoomId,
+    [property: Description("The room name")] string RoomName,
+    [property: Description("The type of request")] ServiceRequestType RequestType
+);
+
+public record ServiceRequestResponse(
+    int Id,
+    string UserName,
+    int RoomId,
+    string RoomName,
+    ServiceRequestType RequestType,
+    ServiceRequestStatus Status,
     DateTime CreatedAt
 );
