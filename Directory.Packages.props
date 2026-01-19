@@ -72,7 +72,7 @@
     <!-- Keycloak -->
     <PackageVersion Include="Aspire.Hosting.Keycloak" Version="$(AspireUnstablePackagesVersion)" />
     <PackageVersion Include="Keycloak.AuthServices.Authentication" Version="2.5.3" />
-    <PackageVersion Include="Keycloak.AuthServices.Authorization" Version="2.5.3" />
+    <PackageVersion Include="Keycloak.AuthServices.Authorization" Version="2.8.0" />
     <!-- Scaffolding -->
     <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.0-rc.1.23461.3" />
     <!-- Grpc -->
