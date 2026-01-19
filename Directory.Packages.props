@@ -92,6 +92,6 @@
     <!-- Before license change -->
     <PackageVersion Include="MediatR" Version="13.0.0" />
     <!-- Firebase -->
-    <PackageVersion Include="FirebaseAdmin" Version="3.1.0" />
+    <PackageVersion Include="FirebaseAdmin" Version="3.4.0" />
   </ItemGroup>
 </Project>
