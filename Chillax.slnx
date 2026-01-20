@@ -10,6 +10,8 @@
     <Project Path="src/Ordering.Domain/Ordering.Domain.csproj" />
     <Project Path="src/Ordering.Infrastructure/Ordering.Infrastructure.csproj" />
     <Project Path="src/Rooms.API/Rooms.API.csproj" />
+    <Project Path="src/Rooms.Domain/Rooms.Domain.csproj" />
+    <Project Path="src/Rooms.Infrastructure/Rooms.Infrastructure.csproj" />
     <Project Path="src/Identity.API/Identity.API.csproj" />
     <Project Path="src/Loyalty.API/Loyalty.API.csproj" />
     <Project Path="src/Notification.API/Notification.API.csproj" />

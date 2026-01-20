@@ -1,6 +1,11 @@
 using System.Text.Json.Serialization;
-using Chillax.Rooms.API.Infrastructure;
-using Chillax.Rooms.API.IntegrationEvents.Events;
+using Chillax.Rooms.API.Application.IntegrationEvents.Events;
+using Chillax.Rooms.API.Application.Queries;
+using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
+using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
+using Chillax.Rooms.Infrastructure;
+using Chillax.Rooms.Infrastructure.Idempotency;
+using Chillax.Rooms.Infrastructure.Repositories;
 
 namespace Chillax.Rooms.API.Extensions;
 
@@ -18,10 +23,27 @@ public static class Extensions
             return;
         }
 
-        builder.AddNpgsqlDbContext<RoomsContext>("roomsdb");
+        builder.AddNpgsqlDbContext<RoomsContext>("roomsdb", configureDbContextOptions: options =>
+        {
+            // Ensure the schema is created for the new DDD model
+        });
 
         // REVIEW: This is done for development ease but shouldn't be here in production
-        builder.Services.AddMigration<RoomsContext, RoomsContextSeed>();
+        builder.Services.AddMigration<RoomsContext, Chillax.Rooms.Infrastructure.RoomsContextSeed>();
+
+        // Add MediatR for CQRS
+        builder.Services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblyContaining(typeof(Program));
+        });
+
+        // Register repositories
+        builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+        builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+        builder.Services.AddScoped<IRequestManager, RequestManager>();
+
+        // Register queries
+        builder.Services.AddScoped<IRoomQueries, RoomQueries>();
 
         // Add RabbitMQ event bus for publishing room availability events
         builder.AddRabbitMqEventBus("eventbus")
@@ -31,6 +53,7 @@ public static class Extensions
 }
 
 [JsonSerializable(typeof(RoomBecameAvailableIntegrationEvent))]
+[JsonSerializable(typeof(SessionCompletedIntegrationEvent))]
 public partial class RoomsIntegrationEventContext : JsonSerializerContext
 {
 }

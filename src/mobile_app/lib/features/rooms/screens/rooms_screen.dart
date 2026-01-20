@@ -104,7 +104,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
       ),
       data: (rooms) {
         final allUnavailable = rooms.isNotEmpty &&
-            rooms.every((r) => r.status != RoomStatus.available);
+            rooms.every((r) => !r.canBookNow);
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -765,7 +765,7 @@ class RoomListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAvailable = room.status == RoomStatus.available && canReserve;
+    final isAvailable = room.canBookNow && canReserve;
     final statusColor = _getStatusColor();
 
     return GestureDetector(
@@ -830,7 +830,7 @@ class RoomListItem extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '• ${room.status.label}',
+                        '• ${room.displayStatus.label}',
                         style: TextStyle(
                           color: statusColor,
                           fontSize: 13,
@@ -856,7 +856,7 @@ class RoomListItem extends ConsumerWidget {
                   size: 18,
                 ),
               )
-            else if (room.status == RoomStatus.available && !canReserve)
+            else if (room.canBookNow && !canReserve)
               // Room is available but user already has reservation
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -879,14 +879,14 @@ class RoomListItem extends ConsumerWidget {
   }
 
   Color _getStatusColor() {
-    switch (room.status) {
-      case RoomStatus.available:
+    switch (room.displayStatus) {
+      case RoomDisplayStatus.available:
         return canReserve ? AppTheme.successColor : AppTheme.textMuted;
-      case RoomStatus.occupied:
+      case RoomDisplayStatus.occupied:
         return AppTheme.errorColor;
-      case RoomStatus.reserved:
+      case RoomDisplayStatus.reservedSoon:
         return AppTheme.warningColor;
-      case RoomStatus.maintenance:
+      case RoomDisplayStatus.maintenance:
         return AppTheme.textMuted;
     }
   }
@@ -913,7 +913,6 @@ class ReservationSheet extends ConsumerStatefulWidget {
 }
 
 class _ReservationSheetState extends ConsumerState<ReservationSheet> {
-  DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   bool _isLoading = false;
 
@@ -972,41 +971,29 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
               ),
               const SizedBox(height: 24),
 
-              // Date picker
+              // Date (same-day only)
               const Text(
-                'Select Date',
+                'Date',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 30)),
-                  );
-                  if (date != null) {
-                    setState(() => _selectedDate = date);
-                  }
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppTheme.textMuted.withOpacity(0.3)),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(FIcons.calendar, size: 18, color: AppTheme.textSecondary),
-                      const SizedBox(width: 12),
-                      Text(
-                        DateFormat('EEEE, MMM d, yyyy').format(_selectedDate),
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ],
-                  ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppTheme.textMuted.withOpacity(0.05),
+                  border: Border.all(color: AppTheme.textMuted.withOpacity(0.2)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(FIcons.calendar, size: 18, color: AppTheme.textSecondary),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Today - ${DateFormat('EEEE, MMM d').format(DateTime.now())}',
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -1087,17 +1074,19 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
   Future<void> _handleReserve() async {
     setState(() => _isLoading = true);
 
-    final selectedDateTime = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
+    // Same-day only - use today's date with selected time
+    final today = DateTime.now();
+    final scheduledStartTime = DateTime(
+      today.year,
+      today.month,
+      today.day,
       _selectedTime.hour,
       _selectedTime.minute,
     );
 
     final success = await ref
         .read(reservationProvider.notifier)
-        .reserveRoom(widget.room.id, selectedDateTime);
+        .reserveRoom(widget.room.id, scheduledStartTime);
 
     setState(() => _isLoading = false);
 

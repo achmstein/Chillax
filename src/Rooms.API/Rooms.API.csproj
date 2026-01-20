@@ -32,6 +32,13 @@
   <ItemGroup>
     <ProjectReference Include="..\Chillax.ServiceDefaults\Chillax.ServiceDefaults.csproj" />
     <ProjectReference Include="..\EventBusRabbitMQ\EventBusRabbitMQ.csproj" />
+    <ProjectReference Include="..\IntegrationEventLogEF\IntegrationEventLogEF.csproj" />
+    <ProjectReference Include="..\Rooms.Domain\Rooms.Domain.csproj" />
+    <ProjectReference Include="..\Rooms.Infrastructure\Rooms.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>

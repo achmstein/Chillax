@@ -40,16 +40,25 @@ class RoomService {
     return Room.fromJson(response.data!);
   }
 
-  /// Reserve a room
-  Future<RoomSession> reserveRoom(int roomId, DateTime reservationTime) async {
-    final response = await _apiClient.post<Map<String, dynamic>>(
+  /// Reserve a room (same-day only)
+  Future<int> reserveRoom(int roomId, DateTime scheduledStartTime) async {
+    // Enforce same-day only booking
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final bookingDay = DateTime(scheduledStartTime.year, scheduledStartTime.month, scheduledStartTime.day);
+
+    if (bookingDay.isAfter(today)) {
+      throw Exception('Reservations can only be made for today');
+    }
+
+    final response = await _apiClient.post<int>(
       '$roomId/reserve',
       data: {
-        'reservationTime': reservationTime.toIso8601String(),
+        'scheduledStartTime': scheduledStartTime.toIso8601String(),
       },
     );
 
-    return RoomSession.fromJson(response.data!);
+    return response.data!;
   }
 
   /// Get customer's sessions
@@ -133,23 +142,23 @@ class MySessionsNotifier extends StateNotifier<AsyncValue<List<RoomSession>>> {
 class ReservationState {
   final bool isLoading;
   final String? error;
-  final RoomSession? session;
+  final int? reservationId;
 
   const ReservationState({
     this.isLoading = false,
     this.error,
-    this.session,
+    this.reservationId,
   });
 
   ReservationState copyWith({
     bool? isLoading,
     String? error,
-    RoomSession? session,
+    int? reservationId,
   }) {
     return ReservationState(
       isLoading: isLoading ?? this.isLoading,
       error: error,
-      session: session ?? this.session,
+      reservationId: reservationId ?? this.reservationId,
     );
   }
 }
@@ -160,13 +169,13 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
 
   ReservationNotifier(this._roomService) : super(const ReservationState());
 
-  /// Reserve a room
-  Future<bool> reserveRoom(int roomId, DateTime reservationTime) async {
+  /// Reserve a room (same-day only)
+  Future<bool> reserveRoom(int roomId, DateTime scheduledStartTime) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final session = await _roomService.reserveRoom(roomId, reservationTime);
-      state = state.copyWith(isLoading: false, session: session);
+      final reservationId = await _roomService.reserveRoom(roomId, scheduledStartTime);
+      state = state.copyWith(isLoading: false, reservationId: reservationId);
       return true;
     } catch (e) {
       state = state.copyWith(
