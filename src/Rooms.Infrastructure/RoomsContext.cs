@@ -12,22 +12,20 @@ public class RoomsContext : DbContext, IUnitOfWork
 {
     public DbSet<Room> Rooms { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<SessionMember> SessionMembers { get; set; }
 
     private readonly IMediator? _mediator;
     private IDbContextTransaction? _currentTransaction;
 
-    public RoomsContext(DbContextOptions<RoomsContext> options) : base(options) { }
+    public RoomsContext(DbContextOptions<RoomsContext> options, IMediator? mediator = null) : base(options)
+    {
+        _mediator = mediator;
+        System.Diagnostics.Debug.WriteLine("RoomsContext::ctor ->" + this.GetHashCode());
+    }
 
     public IDbContextTransaction? GetCurrentTransaction() => _currentTransaction;
 
     public bool HasActiveTransaction => _currentTransaction != null;
-
-    public RoomsContext(DbContextOptions<RoomsContext> options, IMediator mediator) : base(options)
-    {
-        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-
-        System.Diagnostics.Debug.WriteLine("RoomsContext::ctor ->" + this.GetHashCode());
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,6 +33,7 @@ public class RoomsContext : DbContext, IUnitOfWork
         modelBuilder.ApplyConfiguration(new ClientRequestEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new RoomEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ReservationEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new SessionMemberEntityTypeConfiguration());
         modelBuilder.UseIntegrationEventLogs();
     }
 

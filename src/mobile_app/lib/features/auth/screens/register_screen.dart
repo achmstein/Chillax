@@ -13,6 +13,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -23,6 +24,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -31,13 +33,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    final name = _nameController.text.trim();
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
     // Validation
-    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || username.isEmpty || email.isEmpty || password.isEmpty) {
       setState(() {
         _error = 'Please fill in all fields.';
       });
@@ -66,7 +69,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     try {
       final authService = ref.read(authServiceProvider.notifier);
-      final success = await authService.register(username, email, password);
+      final success = await authService.register(name, username, email, password);
 
       if (mounted) {
         if (success) {
@@ -111,6 +114,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final theme = context.theme;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -145,7 +149,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: FAlert(
                       style: FAlertStyle.primary(),
-                      icon: const Icon(Icons.check_circle_outline),
+                      icon: Icon(FIcons.check),
                       title: const Text('Success'),
                       subtitle: Text(_success!),
                     ),
@@ -157,11 +161,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: FAlert(
                       style: FAlertStyle.destructive(),
-                      icon: const Icon(Icons.error_outline),
+                      icon: Icon(FIcons.circleAlert),
                       title: const Text('Error'),
                       subtitle: Text(_error!),
                     ),
                   ),
+
+                // Name field
+                FTextField(
+                  control: FTextFieldControl.managed(controller: _nameController),
+                  label: const Text('Name'),
+                  hint: 'Your display name',
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 16),
 
                 // Username field
                 FTextField(

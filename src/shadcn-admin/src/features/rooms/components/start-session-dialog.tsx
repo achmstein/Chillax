@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Gamepad2 } from 'lucide-react'
+import { Loader2, Gamepad2, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -10,11 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { roomsService } from '../services/rooms-service'
-import type { Room } from '../types'
+import { AccessCodeDisplay } from './access-code-display'
+import type { Room, WalkInSessionResult } from '../types'
 
 interface StartSessionDialogProps {
   open: boolean
@@ -28,35 +29,66 @@ export function StartSessionDialog({
   room,
 }: StartSessionDialogProps) {
   const queryClient = useQueryClient()
-  const [customerName, setCustomerName] = useState('')
+  const [notes, setNotes] = useState('')
+  const [sessionResult, setSessionResult] = useState<WalkInSessionResult | null>(null)
 
-  const reserveMutation = useMutation({
+  const startWalkInMutation = useMutation({
     mutationFn: async () => {
-      // First reserve the room
-      const session = await roomsService.reserveRoom(
-        room!.id,
-        'walk-in', // For walk-in customers
-        customerName || undefined
-      )
-      // Then immediately start the session
-      return roomsService.startSession(session.id)
+      return roomsService.startWalkInSession(room!.id, notes || undefined)
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] })
       queryClient.invalidateQueries({ queryKey: ['sessions'] })
+      setSessionResult(result)
       toast.success(`Session started for ${room?.name}`)
-      setCustomerName('')
-      onOpenChange(false)
     },
     onError: () => {
       toast.error('Failed to start session')
     },
   })
 
+  const handleClose = () => {
+    setNotes('')
+    setSessionResult(null)
+    onOpenChange(false)
+  }
+
   if (!room) return null
 
+  // Show access code after session started
+  if (sessionResult) {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className='sm:max-w-[400px]'>
+          <DialogHeader>
+            <DialogTitle className='flex items-center gap-2'>
+              <CheckCircle className='h-5 w-5 text-green-500' />
+              Session Started
+            </DialogTitle>
+            <DialogDescription>
+              Share the access code with customers to join
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='py-4'>
+            <AccessCodeDisplay
+              accessCode={sessionResult.accessCode}
+              roomName={room.name}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button onClick={handleClose}>
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className='sm:max-w-[400px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
@@ -77,29 +109,34 @@ export function StartSessionDialog({
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='customerName'>Customer Name (Optional)</Label>
-            <Input
-              id='customerName'
-              placeholder='Enter customer name'
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
+            <Label htmlFor='notes'>Notes (Optional)</Label>
+            <Textarea
+              id='notes'
+              placeholder='Add any notes for this session'
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
             />
           </div>
+
+          <p className='text-sm text-muted-foreground'>
+            An access code will be generated for customers to join this session.
+          </p>
         </div>
 
         <DialogFooter>
           <Button
             type='button'
             variant='outline'
-            onClick={() => onOpenChange(false)}
+            onClick={handleClose}
           >
             Cancel
           </Button>
           <Button
-            onClick={() => reserveMutation.mutate()}
-            disabled={reserveMutation.isPending}
+            onClick={() => startWalkInMutation.mutate()}
+            disabled={startWalkInMutation.isPending}
           >
-            {reserveMutation.isPending && (
+            {startWalkInMutation.isPending && (
               <Loader2 className='mr-2 h-4 w-4 animate-spin' />
             )}
             Start Session

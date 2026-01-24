@@ -86,6 +86,7 @@ class RoomSession {
   final double? totalCost;
   final SessionStatus status;
   final String? notes;
+  final String? accessCode;
 
   RoomSession({
     required this.id,
@@ -99,6 +100,7 @@ class RoomSession {
     this.totalCost,
     required this.status,
     this.notes,
+    this.accessCode,
   });
 
   /// For backward compatibility with existing code
@@ -138,6 +140,7 @@ class RoomSession {
       totalCost: (json['totalCost'] as num?)?.toDouble(),
       status: SessionStatus.fromValue(json['status'] as int),
       notes: json['notes'] as String?,
+      accessCode: json['accessCode'] as String?,
     );
   }
 }
@@ -154,5 +157,59 @@ class ReserveRoomRequest {
       'scheduledStartTime': scheduledStartTime.toIso8601String(),
       if (notes != null) 'notes': notes,
     };
+  }
+}
+
+/// Session preview (before joining)
+class SessionPreview {
+  final int sessionId;
+  final int roomId;
+  final String roomName;
+  final DateTime startTime;
+  final int memberCount;
+
+  SessionPreview({
+    required this.sessionId,
+    required this.roomId,
+    required this.roomName,
+    required this.startTime,
+    required this.memberCount,
+  });
+
+  factory SessionPreview.fromJson(Map<String, dynamic> json) {
+    return SessionPreview(
+      sessionId: json['sessionId'] as int,
+      roomId: json['roomId'] as int,
+      roomName: json['roomName'] as String,
+      startTime: DateTime.parse(json['startTime'] as String),
+      memberCount: json['memberCount'] as int,
+    );
+  }
+}
+
+/// Result of joining a session
+class JoinSessionResult {
+  final int reservationId;
+  final int roomId;
+  final String roomName;
+  final bool isOwner;
+  final DateTime startTime;
+
+  JoinSessionResult({
+    required this.reservationId,
+    required this.roomId,
+    required this.roomName,
+    required this.isOwner,
+    required this.startTime,
+  });
+
+  factory JoinSessionResult.fromJson(Map<String, dynamic> json) {
+    return JoinSessionResult(
+      reservationId: json['reservationId'] as int,
+      roomId: json['roomId'] as int,
+      roomName: json['roomName'] as String,
+      isOwner: json['isOwner'] as bool,
+      startTime: DateTime.parse(json['startTime'] as String),
+    );
   }
 }

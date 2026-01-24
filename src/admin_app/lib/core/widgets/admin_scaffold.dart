@@ -32,6 +32,7 @@ const List<NavItem> mainNavItems = [
 const List<NavItem> secondaryNavItems = [
   NavItem(route: '/menu', label: 'Menu', icon: Icons.restaurant_menu_outlined),
   NavItem(route: '/loyalty', label: 'Loyalty', icon: Icons.card_giftcard_outlined),
+  NavItem(route: '/accounts', label: 'Accounts', icon: Icons.account_balance_wallet_outlined),
   NavItem(route: '/customers', label: 'Customers', icon: Icons.people_outline),
   NavItem(route: '/settings', label: 'Settings', icon: Icons.settings_outlined),
 ];

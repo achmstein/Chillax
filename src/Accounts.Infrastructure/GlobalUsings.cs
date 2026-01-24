@@ -1,0 +1,11 @@
+global using System.Data;
+global using MediatR;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Design;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.EntityFrameworkCore.Storage;
+global using Microsoft.Extensions.Logging;
+global using Chillax.Accounts.Domain.AggregatesModel.CustomerAccountAggregate;
+global using Chillax.Accounts.Domain.Exceptions;
+global using Chillax.Accounts.Domain.SeedWork;
+global using Chillax.Accounts.Infrastructure.EntityConfigurations;

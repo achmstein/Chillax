@@ -75,12 +75,16 @@ class Room {
   }
 
   factory Room.fromJson(Map<String, dynamic> json) {
+    // API returns 'displayStatus', fallback to 'status' for backwards compatibility
+    final statusValue = json['displayStatus'] ?? json['status'];
     return Room(
       id: json['id'] as int,
       name: json['name'] as String,
       description: json['description'] as String?,
-      status: RoomStatus.fromValue(json['status'] as int),
-      hourlyRate: (json['hourlyRate'] as num).toDouble(),
+      status: statusValue != null
+          ? RoomStatus.fromValue(statusValue as int)
+          : RoomStatus.available,
+      hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0.0,
       pictureUri: json['pictureUri'] as String?,
     );
   }
@@ -106,6 +110,7 @@ class RoomSession {
   final double? totalCost;
   final SessionStatus status;
   final double hourlyRate;
+  final String? accessCode;
 
   RoomSession({
     required this.id,
@@ -117,6 +122,7 @@ class RoomSession {
     this.totalCost,
     required this.status,
     this.hourlyRate = 0,
+    this.accessCode,
   });
 
   /// Calculate duration if session has started
@@ -144,20 +150,40 @@ class RoomSession {
   }
 
   factory RoomSession.fromJson(Map<String, dynamic> json) {
+    // Handle status - API may return 'status' as int or enum value
+    final statusValue = json['status'];
+    SessionStatus status;
+    if (statusValue is int) {
+      status = SessionStatus.fromValue(statusValue);
+    } else if (statusValue is String) {
+      // Handle string enum names
+      status = SessionStatus.values.firstWhere(
+        (e) => e.name.toLowerCase() == statusValue.toLowerCase(),
+        orElse: () => SessionStatus.reserved,
+      );
+    } else {
+      status = SessionStatus.reserved;
+    }
+
+    // Handle date fields - API uses different field names
+    final reservationTime = json['reservationTime'] ?? json['scheduledStartTime'];
+    final startTime = json['startTime'] ?? json['actualStartTime'];
+
     return RoomSession(
       id: json['id'] as int,
       roomId: json['roomId'] as int,
       roomName: json['roomName'] as String? ?? 'Room ${json['roomId']}',
-      reservationTime: DateTime.parse(json['reservationTime'] as String),
-      startTime: json['startTime'] != null
-          ? DateTime.parse(json['startTime'] as String)
+      reservationTime: DateTime.parse(reservationTime as String),
+      startTime: startTime != null
+          ? DateTime.parse(startTime as String)
           : null,
       endTime: json['endTime'] != null
           ? DateTime.parse(json['endTime'] as String)
           : null,
       totalCost: (json['totalCost'] as num?)?.toDouble(),
-      status: SessionStatus.fromValue(json['status'] as int),
+      status: status,
       hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
+      accessCode: json['accessCode'] as String?,
     );
   }
 }

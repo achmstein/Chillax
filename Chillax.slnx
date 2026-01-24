@@ -15,6 +15,9 @@
     <Project Path="src/Identity.API/Identity.API.csproj" />
     <Project Path="src/Loyalty.API/Loyalty.API.csproj" />
     <Project Path="src/Notification.API/Notification.API.csproj" />
+    <Project Path="src/Accounts.API/Accounts.API.csproj" />
+    <Project Path="src/Accounts.Domain/Accounts.Domain.csproj" />
+    <Project Path="src/Accounts.Infrastructure/Accounts.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Catalog.FunctionalTests/Catalog.FunctionalTests.csproj" />

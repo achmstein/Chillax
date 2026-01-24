@@ -47,7 +47,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         // Content
         Expanded(
           child: state.isLoading && state.stats.pendingOrdersCount == 0
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: FProgress())
               : RefreshIndicator(
                   onRefresh: () => ref.read(dashboardProvider.notifier).loadDashboard(),
                   child: ListView(
@@ -369,13 +369,10 @@ class _PendingOrderTile extends StatelessWidget {
               Expanded(
                 child: SizedBox(
                   height: 32,
-                  child: OutlinedButton(
-                    onPressed: onCancel,
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      side: BorderSide(color: theme.colors.border),
-                    ),
-                    child: Text('Cancel', style: theme.typography.xs),
+                  child: FButton(
+                    style: FButtonStyle.outline(),
+                    onPress: onCancel,
+                    child: const Text('Cancel'),
                   ),
                 ),
               ),
@@ -383,14 +380,9 @@ class _PendingOrderTile extends StatelessWidget {
               Expanded(
                 child: SizedBox(
                   height: 32,
-                  child: ElevatedButton(
-                    onPressed: onConfirm,
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      backgroundColor: theme.colors.primary,
-                      foregroundColor: theme.colors.primaryForeground,
-                    ),
-                    child: Text('Confirm', style: theme.typography.xs),
+                  child: FButton(
+                    onPress: onConfirm,
+                    child: const Text('Confirm'),
                   ),
                 ),
               ),

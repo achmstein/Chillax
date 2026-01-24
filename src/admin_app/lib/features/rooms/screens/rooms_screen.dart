@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/config/app_config.dart';
 import '../models/room.dart';
 import '../providers/rooms_provider.dart';
+import '../widgets/access_code_display.dart';
 import '../widgets/room_form_dialog.dart';
 
 class RoomsScreen extends ConsumerStatefulWidget {
@@ -494,32 +495,45 @@ class _RoomTileState extends State<_RoomTile> {
                 borderRadius:
                     const BorderRadius.vertical(bottom: Radius.circular(11)),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Timer
-                  Text(
-                    widget.session!.formattedDuration,
-                    style: theme.typography.base.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'monospace',
+                  // Access code row
+                  if (widget.session!.accessCode != null) ...[
+                    AccessCodeDisplay(
+                      code: widget.session!.accessCode!,
+                      compact: true,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    currencyFormat.format(widget.session!.liveCost),
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  SizedBox(
-                    height: 32,
-                    child: FButton(
-                      style: FButtonStyle.destructive(),
-                      onPress: widget.onEndSession,
-                      child: const Text('End'),
-                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  // Timer and cost row
+                  Row(
+                    children: [
+                      Text(
+                        widget.session!.formattedDuration,
+                        style: theme.typography.base.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        currencyFormat.format(widget.session!.liveCost),
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        height: 32,
+                        child: FButton(
+                          style: FButtonStyle.destructive(),
+                          onPress: widget.onEndSession,
+                          child: const Text('End'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -536,21 +550,34 @@ class _RoomTileState extends State<_RoomTile> {
                 borderRadius:
                     const BorderRadius.vertical(bottom: Radius.circular(11)),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Reserved - ready to start',
-                    style: theme.typography.xs.copyWith(
-                      color: theme.colors.mutedForeground,
+                  // Access code row
+                  if (widget.session!.accessCode != null) ...[
+                    AccessCodeDisplay(
+                      code: widget.session!.accessCode!,
+                      compact: true,
                     ),
-                  ),
-                  const Spacer(),
-                  SizedBox(
-                    height: 32,
-                    child: FButton(
-                      onPress: widget.onStartSession,
-                      child: const Text('Start'),
-                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  Row(
+                    children: [
+                      Text(
+                        'Reserved - ready to start',
+                        style: theme.typography.xs.copyWith(
+                          color: theme.colors.mutedForeground,
+                        ),
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        height: 32,
+                        child: FButton(
+                          onPress: widget.onStartSession,
+                          child: const Text('Start'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -799,6 +826,14 @@ class _RoomCardState extends State<_RoomCard> {
 
           // Active session
           if (isActive && widget.session != null) ...[
+            // Access code
+            if (widget.session!.accessCode != null) ...[
+              AccessCodeDisplay(
+                code: widget.session!.accessCode!,
+                compact: true,
+              ),
+              const SizedBox(height: 8),
+            ],
             Row(
               children: [
                 Text(
@@ -832,6 +867,14 @@ class _RoomCardState extends State<_RoomCard> {
 
           // Reserved
           if (isReserved && widget.session != null) ...[
+            // Access code
+            if (widget.session!.accessCode != null) ...[
+              AccessCodeDisplay(
+                code: widget.session!.accessCode!,
+                compact: true,
+              ),
+              const SizedBox(height: 8),
+            ],
             Text(
               'Reserved - ready to start',
               style: theme.typography.xs.copyWith(
@@ -1005,6 +1048,15 @@ class _SessionTileState extends State<_SessionTile> {
             ],
           ),
           const SizedBox(height: 12),
+
+          // Access code
+          if (session.accessCode != null) ...[
+            AccessCodeDisplay(
+              code: session.accessCode!,
+              compact: true,
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // Stats row
           Row(

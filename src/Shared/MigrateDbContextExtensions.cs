@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
 namespace Microsoft.AspNetCore.Hosting;
 

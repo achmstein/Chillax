@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Chillax.Rooms.Infrastructure;
 
-public class RoomsContextSeed(ILogger<RoomsContextSeed> logger) : IDbSeeder<RoomsContext>
+public class RoomsContextSeed(ILogger<RoomsContextSeed> logger)
 {
     public async Task SeedAsync(RoomsContext context)
     {

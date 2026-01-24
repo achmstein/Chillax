@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/network/api_client.dart';
 import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
@@ -38,12 +39,16 @@ class OrderService {
   /// Create new order from cart
   Future<Order> createOrder({
     required List<CartItem> items,
+    required String userId,
+    required String userName,
     int? tableNumber,
     String? customerNote,
   }) async {
     final response = await _apiClient.post<Map<String, dynamic>>(
       '',
       data: {
+        'userId': userId,
+        'userName': userName,
         'tableNumber': tableNumber,
         'customerNote': customerNote,
         'items': items.map((item) => item.toJson()).toList(),
@@ -108,8 +113,9 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   final OrderService _orderService;
   final CartNotifier _cartNotifier;
   final MenuService _menuService;
+  final AuthState _authState;
 
-  CheckoutNotifier(this._orderService, this._cartNotifier, this._menuService)
+  CheckoutNotifier(this._orderService, this._cartNotifier, this._menuService, this._authState)
       : super(const CheckoutState());
 
   /// Submit order
@@ -123,6 +129,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
     try {
       final order = await _orderService.createOrder(
         items: items,
+        userId: _authState.userId ?? '',
+        userName: _authState.name ?? 'Guest',
         tableNumber: tableNumber,
         customerNote: customerNote,
       );
@@ -182,5 +190,6 @@ final checkoutProvider =
   final orderService = ref.watch(orderServiceProvider);
   final cartNotifier = ref.watch(cartProvider.notifier);
   final menuService = ref.watch(menuServiceProvider);
-  return CheckoutNotifier(orderService, cartNotifier, menuService);
+  final authState = ref.watch(authServiceProvider);
+  return CheckoutNotifier(orderService, cartNotifier, menuService, authState);
 });

@@ -104,3 +104,8 @@ final notificationsApiProvider = Provider<ApiClient>((ref) {
   final authService = ref.read(authServiceProvider.notifier);
   return ApiClient(authService, baseUrl: AppConfig.notificationsApiUrl);
 });
+
+final accountsApiProvider = Provider<ApiClient>((ref) {
+  final authService = ref.read(authServiceProvider.notifier);
+  return ApiClient(authService, baseUrl: AppConfig.accountsApiUrl);
+});

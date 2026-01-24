@@ -189,6 +189,7 @@ internal static class Extensions
         IResourceBuilder<ProjectResource> identityApi,
         IResourceBuilder<ProjectResource> loyaltyApi,
         IResourceBuilder<ProjectResource> notificationApi,
+        IResourceBuilder<ProjectResource> accountsApi,
         IResourceBuilder<TKeycloak> keycloak) where TKeycloak : IResourceWithEndpoints
     {
         return builder.WithConfiguration(yarp =>
@@ -270,6 +271,10 @@ internal static class Extensions
 
             // Notification routes
             yarp.AddRoute("/api/notifications/{*any}", notificationApi.GetEndpoint("http"));
+
+            // Accounts routes
+            yarp.AddRoute("/api/accounts/{*any}", accountsApi.GetEndpoint("http"))
+                .WithMatchRouteQueryParameter([new() { Name = "api-version", Values = ["1.0", "1"], Mode = QueryParameterMatchMode.Exact }]);
 
             // Keycloak routes (for mobile app authentication)
             yarp.AddRoute("/auth/{*any}", keycloak.GetEndpoint("http"))

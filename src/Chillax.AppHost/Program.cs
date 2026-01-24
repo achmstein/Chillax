@@ -11,6 +11,7 @@ var postgres = builder.AddPostgres("postgres")
     .WithImageTag("latest")
     .WithLifetime(ContainerLifetime.Persistent);
 
+var accountsDb = postgres.AddDatabase("accountsdb");
 var catalogDb = postgres.AddDatabase("catalogdb");
 var orderDb = postgres.AddDatabase("orderingdb");
 var roomsDb = postgres.AddDatabase("roomsdb");
@@ -52,7 +53,8 @@ var roomsApi = builder.AddProject<Projects.Rooms_API>("rooms-api")
     .WithEnvironment("Keycloak__Realm", "chillax");
 
 var identityApi = builder.AddProject<Projects.Identity_API>("identity-api")
-    .WithReference(keycloak)
+    .WithReference(keycloak).WaitFor(keycloak)
+    .WithHttpHealthCheck("/health")
     .WithEnvironment("Identity__Url", keycloakRealmUrl)
     .WithEnvironment("Keycloak__Realm", "chillax")
     .WithEnvironment("Keycloak__AdminClientId", "identity-api-service")
@@ -72,6 +74,12 @@ var notificationApi = builder.AddProject<Projects.Notification_API>("notificatio
     .WithEnvironment("Identity__Url", keycloakRealmUrl)
     .WithEnvironment("Keycloak__Realm", "chillax");
 
+var accountsApi = builder.AddProject<Projects.Accounts_API>("accounts-api")
+    .WithReference(accountsDb).WaitFor(accountsDb)
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax");
+
 // Reverse proxy - BFF for Flutter apps (fixed port 27748 for adb reverse)
 // Used by both mobile app and admin app
 builder.AddYarp("mobile-bff")
@@ -81,7 +89,7 @@ builder.AddYarp("mobile-bff")
         endpoint.UriScheme = "http";
         endpoint.IsExternal = true;
     })
-    .ConfigureMobileBffRoutes(catalogApi, orderingApi, roomsApi, identityApi, loyaltyApi, notificationApi, keycloak);
+    .ConfigureMobileBffRoutes(catalogApi, orderingApi, roomsApi, identityApi, loyaltyApi, notificationApi, accountsApi, keycloak);
 
 builder.Build().Run();
 

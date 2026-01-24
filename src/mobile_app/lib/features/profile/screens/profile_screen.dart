@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/config/app_config.dart';
+import '../widgets/balance_card.dart';
 
 /// User profile screen - minimalistic design
 class ProfileScreen extends ConsumerWidget {
@@ -52,7 +53,12 @@ class ProfileScreen extends ConsumerWidget {
                     style: TextStyle(color: AppTheme.textSecondary),
                   ),
                 ],
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+
+                // Balance card (only shown when customer has balance)
+                if (authState.isAuthenticated) const BalanceCard(),
+
+                const SizedBox(height: 8),
 
                 // Menu items using FTile
                 FTileGroup(

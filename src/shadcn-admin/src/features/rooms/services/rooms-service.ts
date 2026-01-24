@@ -1,5 +1,5 @@
 import { roomsApi } from '@/lib/api-client'
-import type { Room, RoomSession, EndSessionResult } from '../types'
+import type { Room, RoomSession, EndSessionResult, WalkInSessionResult } from '../types'
 
 export const roomsService = {
   // Get all rooms with their current status
@@ -31,7 +31,15 @@ export const roomsService = {
 
   // Start a session (admin starts the timer)
   async startSession(sessionId: number): Promise<RoomSession> {
-    const response = await roomsApi.post<RoomSession>(`/api/sessions/${sessionId}/start`)
+    const response = await roomsApi.post<RoomSession>(`/api/rooms/sessions/${sessionId}/start`)
+    return response.data
+  },
+
+  // Start a walk-in session without customer (returns access code)
+  async startWalkInSession(roomId: number, notes?: string): Promise<WalkInSessionResult> {
+    const response = await roomsApi.post<WalkInSessionResult>(`/api/rooms/sessions/walk-in/${roomId}`, {
+      notes,
+    })
     return response.data
   },
 

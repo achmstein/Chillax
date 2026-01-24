@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
@@ -19,6 +20,11 @@ class RoomsScreen extends ConsumerStatefulWidget {
 }
 
 class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingObserver {
+  final _codeController = TextEditingController();
+  final _codeFocusNode = FocusNode();
+  bool _isJoining = false;
+  String? _joinError;
+
   @override
   void initState() {
     super.initState();
@@ -28,6 +34,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _codeController.dispose();
+    _codeFocusNode.dispose();
     super.dispose();
   }
 
@@ -40,42 +48,186 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     }
   }
 
+  Future<void> _joinSession() async {
+    final code = _codeController.text.trim();
+    if (code.length != 6) {
+      setState(() => _joinError = 'Enter 6-digit code');
+      return;
+    }
+
+    setState(() {
+      _isJoining = true;
+      _joinError = null;
+    });
+
+    try {
+      final service = ref.read(roomServiceProvider);
+      await service.joinSession(code);
+
+      if (mounted) {
+        _codeController.clear();
+        _codeFocusNode.unfocus();
+        ref.read(mySessionsProvider.notifier).refresh();
+        ref.refresh(roomsProvider);
+        showFToast(
+          context: context,
+          title: const Text('Joined session!'),
+          icon: Icon(FIcons.check, color: AppTheme.successColor),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _joinError = 'Invalid code');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isJoining = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final roomsAsync = ref.watch(roomsProvider);
     final sessionsAsync = ref.watch(mySessionsProvider);
 
-    return Column(
-      children: [
-        // Header
-        FHeader(
-          title: const Text('Rooms', style: TextStyle(fontSize: 18)),
-        ),
+    // Determine if user has an active session
+    final hasActiveSession = sessionsAsync.whenOrNull(
+      data: (sessions) => sessions.any((s) => s.status == SessionStatus.active),
+    ) ?? false;
 
-        // Content
-        Expanded(
-          child: sessionsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => _buildRoomsList(context, roomsAsync, null, null),
-            data: (sessions) {
-              final activeSession = sessions
-                  .where((s) => s.status == SessionStatus.active)
-                  .firstOrNull;
-              final reservedSession = sessions
-                  .where((s) => s.status == SessionStatus.reserved)
-                  .firstOrNull;
-
-              // If user has active session, show session view
-              if (activeSession != null) {
-                return _ActiveSessionView(session: activeSession);
-              }
-
-              // If user has reserved session, show reservation + rooms
-              return _buildRoomsList(context, roomsAsync, reservedSession, null);
-            },
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: false,
+      bottomNavigationBar: !hasActiveSession ? _buildJoinSessionBar() : null,
+      body: Column(
+        children: [
+          // Header
+          FHeader(
+            title: const Text('Rooms', style: TextStyle(fontSize: 18)),
           ),
+
+          // Content
+          Expanded(
+            child: sessionsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => _buildRoomsList(context, roomsAsync, null, null),
+              data: (sessions) {
+                final activeSession = sessions
+                    .where((s) => s.status == SessionStatus.active)
+                    .firstOrNull;
+                final reservedSession = sessions
+                    .where((s) => s.status == SessionStatus.reserved)
+                    .firstOrNull;
+
+                // If user has active session, show session view
+                if (activeSession != null) {
+                  return _ActiveSessionView(session: activeSession);
+                }
+
+                // If user has reserved session, show reservation + rooms
+                return _buildRoomsList(context, roomsAsync, reservedSession, null);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJoinSessionBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+          children: [
+            // Code input
+            Expanded(
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppTheme.textMuted.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: _joinError != null
+                      ? Border.all(color: AppTheme.errorColor.withOpacity(0.5))
+                      : null,
+                ),
+                child: TextField(
+                  controller: _codeController,
+                  focusNode: _codeFocusNode,
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 8,
+                    fontFamily: 'monospace',
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    hintText: 'Enter code',
+                    hintStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      letterSpacing: 0,
+                      color: AppTheme.textMuted,
+                    ),
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  onChanged: (_) {
+                    if (_joinError != null) {
+                      setState(() => _joinError = null);
+                    }
+                  },
+                  onSubmitted: (_) => _joinSession(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Join button
+            SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed: _isJoining ? null : _joinSession,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                ),
+                child: _isJoining
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Join',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+              ),
+            ),
+          ],
         ),
-      ],
     );
   }
 
@@ -262,6 +414,59 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                       ),
                     ),
                   ),
+
+                  // Access code display
+                  if (session.accessCode != null) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      'Share code with friends',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () {
+                        // Copy to clipboard
+                        Clipboard.setData(ClipboardData(text: session.accessCode!));
+                        showFToast(
+                          context: context,
+                          title: const Text('Code copied!'),
+                          icon: Icon(FIcons.check, color: AppTheme.successColor),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              session.accessCode!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'monospace',
+                                letterSpacing: 6,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(
+                              FIcons.copy,
+                              color: Colors.white.withOpacity(0.7),
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
 
                   // Timer

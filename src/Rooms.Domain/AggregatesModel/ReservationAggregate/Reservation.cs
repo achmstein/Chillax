@@ -23,8 +23,24 @@ public class Reservation : Entity, IAggregateRoot
     /// </summary>
     public Room? Room { get; private set; }
 
-    public string CustomerId { get; private set; }
+    /// <summary>
+    /// Customer ID - nullable for walk-ins that have no owner initially
+    /// </summary>
+    public string? CustomerId { get; private set; }
     public string? CustomerName { get; private set; }
+
+    /// <summary>
+    /// 6-digit access code for joining the session
+    /// </summary>
+    public string? AccessCode { get; private set; }
+
+    /// <summary>
+    /// When the access code was generated
+    /// </summary>
+    public DateTime? AccessCodeGeneratedAt { get; private set; }
+
+    private readonly List<SessionMember> _sessionMembers = new();
+    public IReadOnlyCollection<SessionMember> SessionMembers => _sessionMembers.AsReadOnly();
 
     /// <summary>
     /// When the reservation was created
@@ -62,7 +78,6 @@ public class Reservation : Entity, IAggregateRoot
 
     protected Reservation()
     {
-        CustomerId = string.Empty;
     }
 
     /// <summary>
@@ -103,7 +118,7 @@ public class Reservation : Entity, IAggregateRoot
     }
 
     /// <summary>
-    /// Create an immediate session (walk-in, starts now)
+    /// Create an immediate session (walk-in, starts now) with an assigned customer
     /// </summary>
     public static Reservation CreateWalkIn(
         int roomId,
@@ -131,6 +146,37 @@ public class Reservation : Entity, IAggregateRoot
             Status = ReservationStatus.Active
         };
 
+        reservation.GenerateAccessCode();
+        reservation.AddDomainEvent(new SessionStartedDomainEvent(reservation));
+        return reservation;
+    }
+
+    /// <summary>
+    /// Create an immediate session (walk-in, starts now) without an assigned customer.
+    /// The first customer to join via access code becomes the owner.
+    /// </summary>
+    public static Reservation CreateWalkInWithoutOwner(
+        int roomId,
+        decimal hourlyRate,
+        string? notes = null)
+    {
+        if (hourlyRate <= 0)
+            throw new RoomsDomainException("Hourly rate must be greater than zero");
+
+        var reservation = new Reservation
+        {
+            RoomId = roomId,
+            CustomerId = null,
+            CustomerName = null,
+            ScheduledStartTime = DateTime.UtcNow,
+            ActualStartTime = DateTime.UtcNow,
+            HourlyRate = hourlyRate,
+            Notes = notes,
+            CreatedAt = DateTime.UtcNow,
+            Status = ReservationStatus.Active
+        };
+
+        reservation.GenerateAccessCode();
         reservation.AddDomainEvent(new SessionStartedDomainEvent(reservation));
         return reservation;
     }
@@ -145,6 +191,8 @@ public class Reservation : Entity, IAggregateRoot
 
         ActualStartTime = DateTime.UtcNow;
         Status = ReservationStatus.Active;
+
+        GenerateAccessCode();
 
         AddDomainEvent(new SessionStartedDomainEvent(this));
     }
@@ -245,4 +293,126 @@ public class Reservation : Entity, IAggregateRoot
     {
         return Status == ReservationStatus.Active || Status == ReservationStatus.Reserved;
     }
+
+    /// <summary>
+    /// Generate a new 6-digit access code for the session
+    /// </summary>
+    public void GenerateAccessCode()
+    {
+        AccessCode = Random.Shared.Next(100000, 999999).ToString();
+        AccessCodeGeneratedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Regenerate the access code (e.g., if compromised)
+    /// </summary>
+    public void RegenerateAccessCode()
+    {
+        if (Status != ReservationStatus.Active)
+            throw new RoomsDomainException("Can only regenerate access code for active sessions");
+
+        GenerateAccessCode();
+    }
+
+    /// <summary>
+    /// Add a member to the session. First joiner of a walk-in session becomes the owner.
+    /// </summary>
+    public void AddMember(string customerId, string? customerName)
+    {
+        if (string.IsNullOrWhiteSpace(customerId))
+            throw new RoomsDomainException("Customer ID is required");
+
+        if (Status != ReservationStatus.Active)
+            throw new RoomsDomainException("Can only join active sessions");
+
+        if (HasMember(customerId))
+            throw new RoomsDomainException("Customer is already a member of this session");
+
+        // Determine role: first joiner of walk-in (no owner) becomes owner
+        var role = SessionMemberRole.Member;
+        if (CustomerId == null && !_sessionMembers.Any())
+        {
+            role = SessionMemberRole.Owner;
+            // Also set as the primary customer
+            CustomerId = customerId;
+            CustomerName = customerName;
+        }
+
+        var member = new SessionMember(Id, customerId, customerName, role);
+        _sessionMembers.Add(member);
+    }
+
+    /// <summary>
+    /// Remove a member from the session
+    /// </summary>
+    public void RemoveMember(string customerId)
+    {
+        if (string.IsNullOrWhiteSpace(customerId))
+            throw new RoomsDomainException("Customer ID is required");
+
+        var member = _sessionMembers.FirstOrDefault(m => m.CustomerId == customerId);
+        if (member == null)
+            throw new RoomsDomainException("Customer is not a member of this session");
+
+        if (member.Role == SessionMemberRole.Owner)
+            throw new RoomsDomainException("Cannot remove the session owner");
+
+        _sessionMembers.Remove(member);
+    }
+
+    /// <summary>
+    /// Check if a customer is a member (owner or member) of this session
+    /// </summary>
+    public bool HasMember(string customerId)
+    {
+        if (string.IsNullOrWhiteSpace(customerId))
+            return false;
+
+        // Check if they're the primary customer
+        if (CustomerId == customerId)
+            return true;
+
+        // Check session members list
+        return _sessionMembers.Any(m => m.CustomerId == customerId);
+    }
+
+    /// <summary>
+    /// Get the role of a customer in this session
+    /// </summary>
+    public SessionMemberRole? GetMemberRole(string customerId)
+    {
+        if (string.IsNullOrWhiteSpace(customerId))
+            return null;
+
+        // Primary customer is always owner
+        if (CustomerId == customerId)
+            return SessionMemberRole.Owner;
+
+        return _sessionMembers
+            .FirstOrDefault(m => m.CustomerId == customerId)
+            ?.Role;
+    }
+
+    /// <summary>
+    /// Assign a customer to a walk-in session (admin action)
+    /// </summary>
+    public void AssignCustomer(string customerId, string? customerName)
+    {
+        if (string.IsNullOrWhiteSpace(customerId))
+            throw new RoomsDomainException("Customer ID is required");
+
+        if (Status != ReservationStatus.Active)
+            throw new RoomsDomainException("Can only assign customers to active sessions");
+
+        if (CustomerId != null)
+            throw new RoomsDomainException("Session already has an assigned customer");
+
+        CustomerId = customerId;
+        CustomerName = customerName;
+
+        // Also add as owner member
+        var member = new SessionMember(Id, customerId, customerName, SessionMemberRole.Owner);
+        _sessionMembers.Add(member);
+    }
 }
+

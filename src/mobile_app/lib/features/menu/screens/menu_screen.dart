@@ -192,10 +192,10 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                             controller: _searchController,
                             decoration: InputDecoration(
                               hintText: 'Search menu...',
-                              prefixIcon: const Icon(Icons.search, size: 20),
+                              prefixIcon: const Icon(FIcons.search, size: 20),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
-                                      icon: const Icon(Icons.clear, size: 20),
+                                      icon: const Icon(FIcons.x, size: 20),
                                       onPressed: () {
                                         _searchController.clear();
                                         setState(() => _searchQuery = '');

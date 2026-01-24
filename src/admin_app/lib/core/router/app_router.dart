@@ -11,6 +11,7 @@ import '../../features/menu/screens/menu_list_screen.dart';
 import '../../features/menu/screens/categories_screen.dart';
 import '../../features/customers/screens/customers_screen.dart';
 import '../../features/loyalty/screens/loyalty_screen.dart';
+import '../../features/accounts/screens/accounts_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 
@@ -159,6 +160,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/loyalty',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: LoyaltyScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/accounts',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: AccountsScreen(),
             ),
           ),
           GoRoute(

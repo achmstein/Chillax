@@ -31,4 +31,9 @@ public interface IRoomQueries
     /// Get reservation by ID
     /// </summary>
     Task<ReservationViewModel?> GetReservationByIdAsync(int reservationId);
+
+    /// <summary>
+    /// Get session preview by access code (for joining)
+    /// </summary>
+    Task<SessionPreviewViewModel?> GetSessionPreviewByCodeAsync(string accessCode);
 }

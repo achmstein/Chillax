@@ -6,6 +6,7 @@ using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
 using Chillax.Rooms.Infrastructure;
 using Chillax.Rooms.Infrastructure.Idempotency;
 using Chillax.Rooms.Infrastructure.Repositories;
+using RoomsContext = Chillax.Rooms.Infrastructure.RoomsContext;
 
 namespace Chillax.Rooms.API.Extensions;
 
@@ -29,7 +30,12 @@ public static class Extensions
         });
 
         // REVIEW: This is done for development ease but shouldn't be here in production
-        builder.Services.AddMigration<RoomsContext, Chillax.Rooms.Infrastructure.RoomsContextSeed>();
+        builder.Services.AddMigration<RoomsContext>(async (context, sp) =>
+        {
+            var logger = sp.GetRequiredService<ILogger<RoomsContextSeed>>();
+            var seeder = new RoomsContextSeed(logger);
+            await seeder.SeedAsync(context);
+        });
 
         // Add MediatR for CQRS
         builder.Services.AddMediatR(cfg =>

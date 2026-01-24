@@ -44,3 +44,8 @@ export interface EndSessionResult {
   totalCost: number
   durationMinutes: number
 }
+
+export interface WalkInSessionResult {
+  reservationId: number
+  accessCode: string
+}

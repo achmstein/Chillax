@@ -49,14 +49,20 @@ app.MapPost("/api/identity/register", async (RegisterRequest request, IHttpClien
     var accessToken = tokenJson.GetProperty("access_token").GetString();
 
     // Create user via Admin REST API
-    // Admin API is at the realm level: {keycloak-base}/admin/realms/{realm}/users
     var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
     var usersEndpoint = $"{adminUrl}/admin/realms/{realm}/users";
+
+    // Split name into first/last if space present
+    var nameParts = request.Name?.Split(' ', 2) ?? [];
+    var firstName = nameParts.Length > 0 ? nameParts[0] : request.Name;
+    var lastName = nameParts.Length > 1 ? nameParts[1] : null;
 
     var userPayload = new
     {
         username = request.Username,
         email = request.Email,
+        firstName = firstName,
+        lastName = lastName,
         enabled = true,
         emailVerified = true,
         requiredActions = Array.Empty<string>(),
@@ -262,7 +268,7 @@ app.MapGet("/api/identity/users/count", async (IHttpClientFactory httpClientFact
 
 app.Run();
 
-record RegisterRequest(string Username, string Email, string Password);
+record RegisterRequest(string? Name, string Username, string Email, string Password);
 
 record UserDto(
     string Id,

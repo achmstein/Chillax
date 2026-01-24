@@ -29,7 +29,10 @@ public record ReservationViewModel
     public int RoomId { get; init; }
     public string RoomName { get; init; } = string.Empty;
     public decimal HourlyRate { get; init; }
-    public string CustomerId { get; init; } = string.Empty;
+    /// <summary>
+    /// Customer ID - null for walk-in sessions without assigned customer
+    /// </summary>
+    public string? CustomerId { get; init; }
     public string? CustomerName { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime ScheduledStartTime { get; init; }
@@ -38,4 +41,20 @@ public record ReservationViewModel
     public decimal? TotalCost { get; init; }
     public ReservationStatus Status { get; init; }
     public string? Notes { get; init; }
+    /// <summary>
+    /// 6-digit access code for joining the session
+    /// </summary>
+    public string? AccessCode { get; init; }
+}
+
+/// <summary>
+/// Preview information for a session before joining
+/// </summary>
+public record SessionPreviewViewModel
+{
+    public int SessionId { get; init; }
+    public int RoomId { get; init; }
+    public string RoomName { get; init; } = string.Empty;
+    public DateTime StartTime { get; init; }
+    public int MemberCount { get; init; }
 }

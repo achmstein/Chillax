@@ -36,4 +36,14 @@ public interface IReservationRepository : IRepository<Reservation>
     /// Check if room has any conflicting reservations at a specific time
     /// </summary>
     Task<bool> HasConflictingReservationAsync(int roomId, DateTime scheduledTime, int bufferMinutes = 15);
+
+    /// <summary>
+    /// Get an active session by access code
+    /// </summary>
+    Task<Reservation?> GetByAccessCodeAsync(string accessCode);
+
+    /// <summary>
+    /// Get reservation with session members loaded
+    /// </summary>
+    Task<Reservation?> GetWithMembersAsync(int reservationId);
 }

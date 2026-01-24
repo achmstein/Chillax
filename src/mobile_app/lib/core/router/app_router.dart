@@ -9,6 +9,7 @@ import '../../features/orders/screens/orders_screen.dart';
 import '../../features/rooms/screens/rooms_screen.dart';
 import '../../features/rooms/screens/sessions_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/transactions_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../widgets/main_scaffold.dart';
@@ -107,6 +108,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/sessions',
         builder: (context, state) => const SessionsScreen(),
+      ),
+
+      // Transactions route (separate from shell for push navigation)
+      GoRoute(
+        path: '/transactions',
+        builder: (context, state) => const TransactionsScreen(),
       ),
 
       // Main shell with bottom navigation

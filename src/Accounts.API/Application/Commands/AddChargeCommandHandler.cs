@@ -1,0 +1,49 @@
+using Chillax.Accounts.Domain.AggregatesModel.CustomerAccountAggregate;
+using Chillax.Accounts.Domain.Exceptions;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
+namespace Chillax.Accounts.API.Application.Commands;
+
+public class AddChargeCommandHandler : IRequestHandler<AddChargeCommand, bool>
+{
+    private readonly ICustomerAccountRepository _accountRepository;
+    private readonly ILogger<AddChargeCommandHandler> _logger;
+
+    public AddChargeCommandHandler(
+        ICustomerAccountRepository accountRepository,
+        ILogger<AddChargeCommandHandler> logger)
+    {
+        _accountRepository = accountRepository;
+        _logger = logger;
+    }
+
+    public async Task<bool> Handle(AddChargeCommand request, CancellationToken cancellationToken)
+    {
+        var account = await _accountRepository.GetWithTransactionsByCustomerIdAsync(request.CustomerId);
+
+        if (account == null)
+        {
+            account = new CustomerAccount(request.CustomerId, request.CustomerName);
+            _accountRepository.Add(account);
+            await _accountRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
+
+            account = await _accountRepository.GetWithTransactionsByCustomerIdAsync(request.CustomerId);
+            if (account == null)
+                throw new AccountsDomainException("Failed to create customer account");
+        }
+        else if (request.CustomerName != null && account.CustomerName != request.CustomerName)
+        {
+            account.UpdateCustomerName(request.CustomerName);
+        }
+
+        account.AddCharge(request.Amount, request.Description, request.AddedBy);
+
+        _logger.LogInformation("Adding charge of {Amount} to customer {CustomerId} by {AddedBy}",
+            request.Amount, request.CustomerId, request.AddedBy);
+
+        await _accountRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
+
+        return true;
+    }
+}

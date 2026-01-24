@@ -1,7 +1,8 @@
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
-using Chillax.Rooms.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Room = Chillax.Rooms.Domain.AggregatesModel.RoomAggregate.Room;
+using RoomsContext = Chillax.Rooms.Infrastructure.RoomsContext;
 
 namespace Chillax.Rooms.API.Application.Queries;
 
@@ -61,9 +62,12 @@ public class RoomQueries : IRoomQueries
 
     public async Task<IEnumerable<ReservationViewModel>> GetCustomerReservationsAsync(string customerId)
     {
+        // Include sessions where customer is owner OR a session member
         var reservations = await _context.Reservations
             .Include(r => r.Room)
-            .Where(r => r.CustomerId == customerId)
+            .Include(r => r.SessionMembers)
+            .Where(r => r.CustomerId == customerId ||
+                        r.SessionMembers.Any(m => m.CustomerId == customerId))
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
@@ -129,6 +133,28 @@ public class RoomQueries : IRoomQueries
         return RoomDisplayStatus.Available;
     }
 
+    public async Task<SessionPreviewViewModel?> GetSessionPreviewByCodeAsync(string accessCode)
+    {
+        var reservation = await _context.Reservations
+            .Include(r => r.Room)
+            .Include(r => r.SessionMembers)
+            .Where(r => r.AccessCode == accessCode)
+            .Where(r => r.Status == ReservationStatus.Active)
+            .FirstOrDefaultAsync();
+
+        if (reservation == null)
+            return null;
+
+        return new SessionPreviewViewModel
+        {
+            SessionId = reservation.Id,
+            RoomId = reservation.RoomId,
+            RoomName = reservation.Room?.Name ?? $"Room {reservation.RoomId}",
+            StartTime = reservation.ActualStartTime ?? reservation.CreatedAt,
+            MemberCount = reservation.SessionMembers.Count
+        };
+    }
+
     private static ReservationViewModel MapToViewModel(Reservation reservation)
     {
         return new ReservationViewModel
@@ -145,7 +171,8 @@ public class RoomQueries : IRoomQueries
             EndTime = reservation.EndTime,
             TotalCost = reservation.TotalCost,
             Status = reservation.Status,
-            Notes = reservation.Notes
+            Notes = reservation.Notes,
+            AccessCode = reservation.AccessCode
         };
     }
 }

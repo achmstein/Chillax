@@ -34,7 +34,8 @@ public class SessionEndedDomainEventHandler : INotificationHandler<SessionEndedD
         await _eventBus.PublishAsync(roomAvailableEvent);
 
         // Publish session completed event (for billing/loyalty)
-        if (reservation.ActualStartTime.HasValue && reservation.EndTime.HasValue)
+        // Only publish if we have a customer ID (walk-ins without assigned customers don't get billing events)
+        if (reservation.ActualStartTime.HasValue && reservation.EndTime.HasValue && reservation.CustomerId != null)
         {
             var duration = reservation.EndTime.Value - reservation.ActualStartTime.Value;
             var sessionCompletedEvent = new SessionCompletedIntegrationEvent(

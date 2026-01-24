@@ -3,12 +3,12 @@ using Chillax.Rooms.API.Application.Commands;
 using Chillax.Rooms.API.Application.Queries;
 using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
 using Chillax.Rooms.Domain.Exceptions;
-using Chillax.Rooms.Infrastructure;
 using Chillax.ServiceDefaults;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RoomsContext = Chillax.Rooms.Infrastructure.RoomsContext;
 
 namespace Chillax.Rooms.API.Apis;
 
@@ -72,6 +72,36 @@ public static class RoomsApi
             .WithName("CancelSession")
             .WithSummary("Cancel a session")
             .WithDescription("Cancel a reservation or active session")
+            .WithTags("Sessions")
+            .RequireAuthorization();
+
+        // Walk-in session endpoints (Admin)
+        api.MapPost("/sessions/walk-in/{roomId:int}", StartWalkInSession)
+            .WithName("StartWalkInSession")
+            .WithSummary("Start a walk-in session")
+            .WithDescription("Start a walk-in session without an assigned customer. Returns access code for customers to join.")
+            .WithTags("Sessions")
+            .RequireAuthorization();
+
+        // Session membership endpoints (Customer)
+        api.MapPost("/sessions/join", JoinSession)
+            .WithName("JoinSession")
+            .WithSummary("Join a session")
+            .WithDescription("Join an active session using the 6-digit access code")
+            .WithTags("Sessions")
+            .RequireAuthorization();
+
+        api.MapPost("/sessions/{sessionId:int}/leave", LeaveSession)
+            .WithName("LeaveSession")
+            .WithSummary("Leave a session")
+            .WithDescription("Leave a session you've joined (cannot leave if you're the owner)")
+            .WithTags("Sessions")
+            .RequireAuthorization();
+
+        api.MapGet("/sessions/by-code/{code}", GetSessionByCode)
+            .WithName("GetSessionByCode")
+            .WithSummary("Preview session by access code")
+            .WithDescription("Get session preview before joining")
             .WithTags("Sessions")
             .RequireAuthorization();
 
@@ -278,6 +308,89 @@ public static class RoomsApi
 
         return TypedResults.Ok(session);
     }
+
+    public static async Task<Results<Created<StartWalkInSessionResult>, BadRequest<ProblemDetails>>> StartWalkInSession(
+        [FromServices] IMediator mediator,
+        [Description("The room ID")] int roomId,
+        WalkInSessionRequest? request = null)
+    {
+        try
+        {
+            var command = new StartWalkInSessionCommand(roomId, request?.Notes);
+            var result = await mediator.Send(command);
+            return TypedResults.Created($"/api/rooms/sessions/{result.ReservationId}", result);
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
+    public static async Task<Results<Ok<JoinSessionResult>, BadRequest<ProblemDetails>>> JoinSession(
+        [FromServices] IMediator mediator,
+        HttpContext httpContext,
+        JoinSessionRequest request)
+    {
+        var customerId = httpContext.User.GetUserId();
+        if (string.IsNullOrEmpty(customerId))
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new()
+            {
+                Detail = "User ID not found in token"
+            });
+        }
+
+        var customerName = httpContext.User.GetUserName();
+
+        try
+        {
+            var command = new JoinSessionCommand(request.AccessCode, customerId, customerName);
+            var result = await mediator.Send(command);
+            return TypedResults.Ok(result);
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
+    public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> LeaveSession(
+        [FromServices] IMediator mediator,
+        HttpContext httpContext,
+        [Description("The session ID")] int sessionId)
+    {
+        var customerId = httpContext.User.GetUserId();
+        if (string.IsNullOrEmpty(customerId))
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new()
+            {
+                Detail = "User ID not found in token"
+            });
+        }
+
+        try
+        {
+            var command = new LeaveSessionCommand(sessionId, customerId);
+            var result = await mediator.Send(command);
+            return result ? TypedResults.Ok() : TypedResults.NotFound();
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
+    public static async Task<Results<Ok<SessionPreviewViewModel>, NotFound>> GetSessionByCode(
+        [FromServices] IRoomQueries queries,
+        [Description("The 6-digit access code")] string code)
+    {
+        var preview = await queries.GetSessionPreviewByCodeAsync(code);
+        if (preview == null)
+        {
+            return TypedResults.NotFound();
+        }
+        return TypedResults.Ok(preview);
+    }
 }
 
 public record ReserveRoomRequest(
@@ -285,3 +398,7 @@ public record ReserveRoomRequest(
     string? CustomerName = null,
     string? Notes = null
 );
+
+public record WalkInSessionRequest(string? Notes = null);
+
+public record JoinSessionRequest(string AccessCode);

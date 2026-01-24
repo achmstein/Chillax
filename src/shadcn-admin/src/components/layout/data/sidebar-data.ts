@@ -13,6 +13,7 @@ import {
   Tag,
   Users,
   Award,
+  Wallet,
 } from 'lucide-react'
 import { type SidebarData } from '../types'
 
@@ -73,6 +74,11 @@ export const sidebarData: SidebarData = {
           title: 'Loyalty',
           url: '/loyalty',
           icon: Award,
+        },
+        {
+          title: 'Accounts',
+          url: '/accounts',
+          icon: Wallet,
         },
       ],
     },

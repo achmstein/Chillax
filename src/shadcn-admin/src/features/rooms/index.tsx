@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Gamepad2, Play, Square, Clock, User, Wrench } from 'lucide-react'
+import { Gamepad2, Play, Clock, User, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -192,71 +192,6 @@ export function RoomsManagement() {
           </CardContent>
         </Card>
 
-        {/* Active Sessions Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Sessions</CardTitle>
-            <CardDescription>
-              Currently running sessions with live timers
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {activeSessions.filter((s) => s.status === 'active').length === 0 ? (
-              <p className='text-center text-muted-foreground py-8'>
-                No active sessions at the moment
-              </p>
-            ) : (
-              <div className='space-y-4'>
-                {activeSessions
-                  .filter((s) => s.status === 'active')
-                  .map((session) => {
-                    const room = rooms.find((r) => r.id === session.roomId)
-                    return (
-                      <div
-                        key={session.id}
-                        className='flex items-center justify-between rounded-lg border p-4'
-                      >
-                        <div className='flex items-center gap-4'>
-                          <div className='bg-red-500/10 text-red-500 rounded-full p-2'>
-                            <Play className='h-4 w-4' />
-                          </div>
-                          <div>
-                            <h4 className='font-medium'>{room?.name}</h4>
-                            {session.customerName && (
-                              <p className='text-sm text-muted-foreground'>
-                                {session.customerName}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className='flex items-center gap-6'>
-                          <div className='text-right'>
-                            <div className='font-mono text-lg'>
-                              {session.startTime && formatDuration(session.startTime)}
-                            </div>
-                            <div className='text-sm text-muted-foreground'>
-                              ~{session.startTime && room
-                                ? calculateCurrentCost(session.startTime, room.hourlyRate).toFixed(2)
-                                : '0.00'} EGP
-                            </div>
-                          </div>
-                          <Button
-                            variant='destructive'
-                            size='sm'
-                            onClick={() => endSessionMutation.mutate(session.id)}
-                            disabled={endSessionMutation.isPending}
-                          >
-                            <Square className='mr-2 h-4 w-4' />
-                            End
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </Main>
 
       <StartSessionDialog

@@ -76,6 +76,32 @@ class RoomService {
   Future<void> cancelReservation(int sessionId) async {
     await _apiClient.post('sessions/$sessionId/cancel');
   }
+
+  /// Get session preview by access code
+  Future<SessionPreview?> getSessionPreview(String accessCode) async {
+    try {
+      final response = await _apiClient.get<Map<String, dynamic>>(
+        'sessions/by-code/$accessCode',
+      );
+      return SessionPreview.fromJson(response.data!);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Join a session via access code
+  Future<JoinSessionResult> joinSession(String accessCode) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      'sessions/join',
+      data: {'accessCode': accessCode},
+    );
+    return JoinSessionResult.fromJson(response.data!);
+  }
+
+  /// Leave a session
+  Future<void> leaveSession(int sessionId) async {
+    await _apiClient.post('sessions/$sessionId/leave');
+  }
 }
 
 /// Provider for room service

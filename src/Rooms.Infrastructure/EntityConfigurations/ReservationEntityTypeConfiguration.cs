@@ -14,8 +14,12 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
         builder.Ignore(r => r.DomainEvents);
 
         builder.Property(r => r.CustomerId)
-            .IsRequired()
             .HasMaxLength(100);
+
+        builder.Property(r => r.AccessCode)
+            .HasMaxLength(6);
+
+        builder.Property(r => r.AccessCodeGeneratedAt);
 
         builder.Property(r => r.CustomerName)
             .HasMaxLength(200);
@@ -51,11 +55,22 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
             .HasForeignKey(r => r.RoomId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasMany(r => r.SessionMembers)
+            .WithOne()
+            .HasForeignKey(sm => sm.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure access to the backing field for SessionMembers
+        builder.Navigation(r => r.SessionMembers)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         // Indexes
         builder.HasIndex(r => r.CustomerId);
         builder.HasIndex(r => r.Status);
         builder.HasIndex(r => r.ScheduledStartTime);
         builder.HasIndex(r => new { r.RoomId, r.Status });
         builder.HasIndex(r => new { r.CustomerId, r.Status });
+        builder.HasIndex(r => r.AccessCode);
     }
 }
+

@@ -70,6 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final theme = context.theme;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -94,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: FAlert(
                       style: FAlertStyle.destructive(),
-                      icon: const Icon(Icons.error_outline),
+                      icon: Icon(FIcons.circleAlert),
                       title: const Text('Error'),
                       subtitle: Text(_error!),
                     ),

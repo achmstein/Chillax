@@ -19,7 +19,7 @@ void main() {
   );
 }
 
-/// Main application widget
+/// Main application widget0
 class ChillaxApp extends ConsumerStatefulWidget {
   const ChillaxApp({super.key});
 

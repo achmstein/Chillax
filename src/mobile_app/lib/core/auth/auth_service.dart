@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -156,12 +158,13 @@ class AuthService extends StateNotifier<AuthState> {
   }
 
   /// Register a new user
-  Future<bool> register(String username, String email, String password) async {
+  Future<bool> register(String name, String username, String email, String password) async {
     try {
       // Call the BFF registration endpoint which handles Keycloak user creation
       final response = await _dio.post(
         '${AppConfig.bffBaseUrl}/api/identity/register',
         data: {
+          'name': name,
           'username': username,
           'email': email,
           'password': password,
@@ -254,6 +257,24 @@ class AuthService extends StateNotifier<AuthState> {
     return state.accessToken;
   }
 
+  /// Decode JWT token payload (without verification - just for reading claims)
+  Map<String, dynamic>? _decodeJwtPayload(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+
+      // Decode the payload (second part)
+      final payload = parts[1];
+      // Add padding if needed
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      return jsonDecode(decoded) as Map<String, dynamic>;
+    } catch (e) {
+      print('Error decoding JWT: $e');
+      return null;
+    }
+  }
+
   Future<void> _saveTokens({
     required String accessToken,
     String? refreshToken,
@@ -269,11 +290,30 @@ class AuthService extends StateNotifier<AuthState> {
     }
     print('Tokens saved successfully');
 
+    // Extract user info from token
+    String? userId;
+    String? email;
+    String? name;
+
+    // Try to decode id_token first (has user info), fallback to access_token
+    final tokenToDecode = idToken ?? accessToken;
+    final claims = _decodeJwtPayload(tokenToDecode);
+    if (claims != null) {
+      userId = claims['sub'] as String?;
+      email = claims['email'] as String?;
+      // Keycloak: 'name' is full name (firstName + lastName), 'preferred_username' is username
+      name = claims['name'] as String? ?? claims['preferred_username'] as String?;
+      print('Extracted user info - userId: $userId, email: $email, name: $name');
+    }
+
     state = state.copyWith(
       isAuthenticated: true,
       accessToken: accessToken,
       refreshToken: refreshToken ?? state.refreshToken,
       idToken: idToken ?? state.idToken,
+      userId: userId,
+      email: email,
+      name: name,
     );
   }
 

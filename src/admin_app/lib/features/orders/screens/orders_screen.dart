@@ -103,7 +103,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
         // Content
         Expanded(
           child: state.isLoading && orders.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: FProgress())
               : orders.isEmpty
                   ? _EmptyState(isPending: _selectedTab == 1)
                   : RefreshIndicator(
@@ -369,13 +369,10 @@ class _OrderTileState extends State<_OrderTile> {
                           Expanded(
                             child: SizedBox(
                               height: 32,
-                              child: OutlinedButton(
-                                onPressed: widget.onCancel,
-                                style: OutlinedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  side: BorderSide(color: theme.colors.border),
-                                ),
-                                child: Text('Cancel', style: theme.typography.xs),
+                              child: FButton(
+                                style: FButtonStyle.outline(),
+                                onPress: widget.onCancel,
+                                child: const Text('Cancel'),
                               ),
                             ),
                           ),
@@ -385,14 +382,9 @@ class _OrderTileState extends State<_OrderTile> {
                           Expanded(
                             child: SizedBox(
                               height: 32,
-                              child: ElevatedButton(
-                                onPressed: widget.onConfirm,
-                                style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  backgroundColor: theme.colors.primary,
-                                  foregroundColor: theme.colors.primaryForeground,
-                                ),
-                                child: Text('Confirm', style: theme.typography.xs),
+                              child: FButton(
+                                onPress: widget.onConfirm,
+                                child: const Text('Confirm'),
                               ),
                             ),
                           ),

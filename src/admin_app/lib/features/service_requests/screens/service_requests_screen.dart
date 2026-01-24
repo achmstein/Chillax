@@ -51,13 +51,13 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
               _StatChip(
                 label: 'Pending',
                 count: state.pendingRequests.length,
-                color: Colors.orange,
+                color: theme.colors.destructive,
               ),
               const SizedBox(width: 12),
               _StatChip(
                 label: 'Acknowledged',
                 count: state.acknowledgedRequests.length,
-                color: Colors.blue,
+                color: theme.colors.primary,
               ),
             ],
           ),
@@ -329,21 +329,26 @@ class _RequestTypeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.theme;
     IconData icon;
     Color color;
 
     switch (type) {
       case ServiceRequestType.callWaiter:
         icon = Icons.person_pin;
-        color = Colors.blue;
+        color = theme.colors.primary;
         break;
       case ServiceRequestType.controllerChange:
         icon = Icons.gamepad;
-        color = Colors.purple;
+        color = theme.colors.secondary.computeLuminance() > 0.5
+            ? const Color(0xFF9333EA) // purple-600
+            : const Color(0xFFA855F7); // purple-500
         break;
       case ServiceRequestType.receiptToPay:
         icon = Icons.receipt_long;
-        color = Colors.green;
+        color = theme.colors.secondary.computeLuminance() > 0.5
+            ? const Color(0xFF16A34A) // green-600
+            : const Color(0xFF22C55E); // green-500
         break;
     }
 
