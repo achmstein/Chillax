@@ -109,14 +109,20 @@ class CheckoutState {
 }
 
 /// Checkout notifier
-class CheckoutNotifier extends StateNotifier<CheckoutState> {
-  final OrderService _orderService;
-  final CartNotifier _cartNotifier;
-  final MenuService _menuService;
-  final AuthState _authState;
+class CheckoutNotifier extends Notifier<CheckoutState> {
+  late final OrderService _orderService;
+  late final CartNotifier _cartNotifier;
+  late final MenuService _menuService;
+  late final AuthState _authState;
 
-  CheckoutNotifier(this._orderService, this._cartNotifier, this._menuService, this._authState)
-      : super(const CheckoutState());
+  @override
+  CheckoutState build() {
+    _orderService = ref.watch(orderServiceProvider);
+    _cartNotifier = ref.watch(cartProvider.notifier);
+    _menuService = ref.watch(menuServiceProvider);
+    _authState = ref.watch(authServiceProvider);
+    return const CheckoutState();
+  }
 
   /// Submit order
   Future<bool> submitOrder({
@@ -186,10 +192,4 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
 
 /// Provider for checkout
 final checkoutProvider =
-    StateNotifierProvider<CheckoutNotifier, CheckoutState>((ref) {
-  final orderService = ref.watch(orderServiceProvider);
-  final cartNotifier = ref.watch(cartProvider.notifier);
-  final menuService = ref.watch(menuServiceProvider);
-  final authState = ref.watch(authServiceProvider);
-  return CheckoutNotifier(orderService, cartNotifier, menuService, authState);
-});
+    NotifierProvider<CheckoutNotifier, CheckoutState>(CheckoutNotifier.new);

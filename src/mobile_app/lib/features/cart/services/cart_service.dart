@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/cart_item.dart';
 
 /// Cart state notifier
-class CartNotifier extends StateNotifier<Cart> {
-  CartNotifier() : super(Cart());
+class CartNotifier extends Notifier<Cart> {
+  @override
+  Cart build() => Cart();
 
   /// Add item to cart
   void addItem(CartItem item) {
@@ -27,9 +28,7 @@ class CartNotifier extends StateNotifier<Cart> {
 }
 
 /// Provider for cart state
-final cartProvider = StateNotifierProvider<CartNotifier, Cart>((ref) {
-  return CartNotifier();
-});
+final cartProvider = NotifierProvider<CartNotifier, Cart>(CartNotifier.new);
 
 /// Provider for cart item count
 final cartItemCountProvider = Provider<int>((ref) {

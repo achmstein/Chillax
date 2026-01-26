@@ -107,7 +107,7 @@ class _ActiveSessionsWidgetState extends ConsumerState<ActiveSessionsWidget> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: widget.sessions.length,
-              separatorBuilder: (_, __) => const FDivider(),
+              separatorBuilder: (_, _) => const FDivider(),
               itemBuilder: (context, index) {
                 final session = widget.sessions[index];
                 return Padding(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/menu_item.dart';
@@ -204,11 +203,11 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                                   : null,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: AppTheme.textMuted.withOpacity(0.3)),
+                                borderSide: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.3)),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: AppTheme.textMuted.withOpacity(0.3)),
+                                borderSide: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.3)),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
@@ -266,7 +265,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(
-                top: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+                top: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
               ),
             ),
             child: SizedBox(
@@ -380,7 +379,7 @@ class _CategoryMenuState extends State<_CategoryMenu> {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+          bottom: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
         ),
       ),
       child: ListView.builder(
@@ -478,7 +477,7 @@ class MenuItemTile extends ConsumerWidget {
             ? null
             : BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+                  bottom: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
                 ),
               ),
         child: Row(
@@ -615,7 +614,7 @@ class MenuItemTile extends ConsumerWidget {
         isScrollControlled: true,
         useRootNavigator: true,
         backgroundColor: Colors.transparent,
-        barrierColor: Colors.black.withOpacity(0.5),
+        barrierColor: Colors.black.withValues(alpha: 0.5),
         builder: (context) => ItemCustomizationSheet(item: item),
       );
     }

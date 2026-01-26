@@ -8,12 +8,16 @@ class RoomsState {
   final String? error;
   final List<Room> rooms;
   final List<RoomSession> activeSessions;
+  final List<RoomSession>? sessionHistory;
+  final bool isLoadingHistory;
 
   const RoomsState({
     this.isLoading = false,
     this.error,
     this.rooms = const [],
     this.activeSessions = const [],
+    this.sessionHistory,
+    this.isLoadingHistory = false,
   });
 
   RoomsState copyWith({
@@ -21,21 +25,29 @@ class RoomsState {
     String? error,
     List<Room>? rooms,
     List<RoomSession>? activeSessions,
+    List<RoomSession>? sessionHistory,
+    bool? isLoadingHistory,
   }) {
     return RoomsState(
       isLoading: isLoading ?? this.isLoading,
       error: error,
       rooms: rooms ?? this.rooms,
       activeSessions: activeSessions ?? this.activeSessions,
+      sessionHistory: sessionHistory ?? this.sessionHistory,
+      isLoadingHistory: isLoadingHistory ?? this.isLoadingHistory,
     );
   }
 }
 
 /// Rooms provider
-class RoomsNotifier extends StateNotifier<RoomsState> {
-  final ApiClient _api;
+class RoomsNotifier extends Notifier<RoomsState> {
+  late final ApiClient _api;
 
-  RoomsNotifier(this._api) : super(const RoomsState());
+  @override
+  RoomsState build() {
+    _api = ref.read(roomsApiProvider);
+    return const RoomsState();
+  }
 
   Future<void> loadRooms() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -148,10 +160,47 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
       return false;
     }
   }
+
+  /// Start a walk-in session directly (without reservation)
+  Future<bool> startWalkInSession(int roomId) async {
+    try {
+      await _api.post('$roomId/walk-in');
+      await loadRooms();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to start walk-in session: $e');
+      return false;
+    }
+  }
+
+  /// Load session history for a specific room
+  Future<void> loadSessionHistory(int roomId) async {
+    state = state.copyWith(isLoadingHistory: true, sessionHistory: null);
+
+    try {
+      final response = await _api.get('$roomId/sessions/history');
+      final historyData = response.data as List<dynamic>;
+      final history = historyData
+          .map((e) => RoomSession.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      state = state.copyWith(
+        isLoadingHistory: false,
+        sessionHistory: history,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingHistory: false,
+        sessionHistory: [],
+      );
+    }
+  }
+
+  /// Clear session history when closing detail sheet
+  void clearSessionHistory() {
+    state = state.copyWith(sessionHistory: null);
+  }
 }
 
 /// Rooms provider
-final roomsProvider = StateNotifierProvider<RoomsNotifier, RoomsState>((ref) {
-  final api = ref.read(roomsApiProvider);
-  return RoomsNotifier(api);
-});
+final roomsProvider = NotifierProvider<RoomsNotifier, RoomsState>(RoomsNotifier.new);

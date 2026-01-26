@@ -32,10 +32,14 @@ class OrdersState {
 }
 
 /// Orders provider
-class OrdersNotifier extends StateNotifier<OrdersState> {
-  final ApiClient _api;
+class OrdersNotifier extends Notifier<OrdersState> {
+  late final ApiClient _api;
 
-  OrdersNotifier(this._api) : super(const OrdersState());
+  @override
+  OrdersState build() {
+    _api = ref.read(ordersApiProvider);
+    return const OrdersState();
+  }
 
   Future<void> loadOrders() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -89,7 +93,4 @@ class OrdersNotifier extends StateNotifier<OrdersState> {
 }
 
 /// Orders provider
-final ordersProvider = StateNotifierProvider<OrdersNotifier, OrdersState>((ref) {
-  final api = ref.read(ordersApiProvider);
-  return OrdersNotifier(api);
-});
+final ordersProvider = NotifierProvider<OrdersNotifier, OrdersState>(OrdersNotifier.new);

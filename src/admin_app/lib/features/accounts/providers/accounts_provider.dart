@@ -60,12 +60,16 @@ class AccountsState {
 }
 
 /// Accounts provider
-class AccountsNotifier extends StateNotifier<AccountsState> {
-  final ApiClient _accountsApi;
-  final ApiClient _identityApi;
+class AccountsNotifier extends Notifier<AccountsState> {
+  late final ApiClient _accountsApi;
+  late final ApiClient _identityApi;
 
-  AccountsNotifier(this._accountsApi, this._identityApi)
-      : super(const AccountsState());
+  @override
+  AccountsState build() {
+    _accountsApi = ref.read(accountsApiProvider);
+    _identityApi = ref.read(identityApiProvider);
+    return const AccountsState();
+  }
 
   Future<void> loadAccounts() async {
     state = state.copyWith(isLoading: true, clearError: true);
@@ -230,8 +234,4 @@ class AccountsNotifier extends StateNotifier<AccountsState> {
 
 /// Accounts provider
 final accountsProvider =
-    StateNotifierProvider<AccountsNotifier, AccountsState>((ref) {
-  final accountsApi = ref.read(accountsApiProvider);
-  final identityApi = ref.read(identityApiProvider);
-  return AccountsNotifier(accountsApi, identityApi);
-});
+    NotifierProvider<AccountsNotifier, AccountsState>(AccountsNotifier.new);

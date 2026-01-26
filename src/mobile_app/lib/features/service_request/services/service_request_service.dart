@@ -51,10 +51,14 @@ class ServiceRequestState {
 }
 
 /// Notifier for managing service request state
-class ServiceRequestNotifier extends StateNotifier<ServiceRequestState> {
-  final ServiceRequestService _service;
+class ServiceRequestNotifier extends Notifier<ServiceRequestState> {
+  late final ServiceRequestService _service;
 
-  ServiceRequestNotifier(this._service) : super(const ServiceRequestState());
+  @override
+  ServiceRequestState build() {
+    _service = ref.watch(serviceRequestServiceProvider);
+    return const ServiceRequestState();
+  }
 
   /// Submit a service request
   Future<bool> submitRequest(CreateServiceRequest request) async {
@@ -83,7 +87,4 @@ class ServiceRequestNotifier extends StateNotifier<ServiceRequestState> {
 
 /// Provider for service request notifier
 final serviceRequestProvider =
-    StateNotifierProvider<ServiceRequestNotifier, ServiceRequestState>((ref) {
-  final service = ref.watch(serviceRequestServiceProvider);
-  return ServiceRequestNotifier(service);
-});
+    NotifierProvider<ServiceRequestNotifier, ServiceRequestState>(ServiceRequestNotifier.new);

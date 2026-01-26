@@ -106,12 +106,14 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 });
 
 /// State notifier for room availability subscription
-class RoomAvailabilityNotifier extends StateNotifier<AsyncValue<bool>> {
-  final NotificationService _notificationService;
+class RoomAvailabilityNotifier extends Notifier<AsyncValue<bool>> {
+  late final NotificationService _notificationService;
 
-  RoomAvailabilityNotifier(this._notificationService)
-      : super(const AsyncValue.loading()) {
+  @override
+  AsyncValue<bool> build() {
+    _notificationService = ref.read(notificationServiceProvider);
     _loadSubscriptionStatus();
+    return const AsyncValue.loading();
   }
 
   Future<void> _loadSubscriptionStatus() async {
@@ -165,7 +167,4 @@ class RoomAvailabilityNotifier extends StateNotifier<AsyncValue<bool>> {
 
 /// Provider for room availability subscription state
 final roomAvailabilitySubscriptionProvider =
-    StateNotifierProvider<RoomAvailabilityNotifier, AsyncValue<bool>>((ref) {
-  final notificationService = ref.read(notificationServiceProvider);
-  return RoomAvailabilityNotifier(notificationService);
-});
+    NotifierProvider<RoomAvailabilityNotifier, AsyncValue<bool>>(RoomAvailabilityNotifier.new);

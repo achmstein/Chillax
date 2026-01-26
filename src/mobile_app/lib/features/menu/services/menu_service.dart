@@ -111,8 +111,16 @@ final categoriesProvider = FutureProvider<List<MenuCategory>>((ref) async {
   return service.getCategories();
 });
 
+/// Notifier for selected category
+class SelectedCategoryNotifier extends Notifier<int?> {
+  @override
+  int? build() => null;
+
+  void select(int? categoryId) => state = categoryId;
+}
+
 /// Provider for selected category
-final selectedCategoryProvider = StateProvider<int?>((ref) => null);
+final selectedCategoryProvider = NotifierProvider<SelectedCategoryNotifier, int?>(SelectedCategoryNotifier.new);
 
 /// Provider for user's preference for a specific item
 final userPreferenceProvider = FutureProvider.family<UserItemPreference?, int>(

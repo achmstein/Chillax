@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/ui_components.dart';
 import '../models/customer.dart';
 import '../providers/customers_provider.dart';
-import 'customer_detail_screen.dart';
 
 class CustomersScreen extends ConsumerStatefulWidget {
   const CustomersScreen({super.key});
@@ -39,23 +40,30 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        FHeader(
-          title: const Text('Customers'),
-          suffixes: [
-            FHeaderAction(
-              icon: const Icon(Icons.refresh),
-              onPress: () {
-                ref.read(customersProvider.notifier).loadCustomers();
-              },
-            ),
-          ],
+        // Action bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Text(
+                'Customers',
+                style: theme.typography.base.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 22),
+                onPressed: () => ref.read(customersProvider.notifier).loadCustomers(),
+                tooltip: 'Refresh',
+              ),
+            ],
+          ),
         ),
-        const FDivider(),
 
         // Search bar
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: kScreenPadding,
           child: Row(
             children: [
               Expanded(
@@ -108,7 +116,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         // Error
         if (state.error != null)
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: kScreenPadding,
             child: FAlert(
               style: FAlertStyle.destructive(),
               icon: const Icon(Icons.warning),
@@ -120,31 +128,16 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         // Content
         Expanded(
           child: state.isLoading && state.customers.isEmpty
-              ? const Center(child: FProgress())
+              ? const ShimmerLoadingList()
               : state.customers.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.people_outline,
-                            size: 64,
-                            color: theme.colors.mutedForeground,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            state.searchQuery != null
-                                ? 'No customers found'
-                                : 'No customers yet',
-                            style: theme.typography.lg.copyWith(
-                              color: theme.colors.mutedForeground,
-                            ),
-                          ),
-                        ],
-                      ),
+                  ? EmptyState(
+                      icon: Icons.people_outline,
+                      title: state.searchQuery != null
+                          ? 'No customers found'
+                          : 'No customers yet',
                     )
                   : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: kScreenPadding,
                       itemCount: state.customers.length,
                       separatorBuilder: (_, __) => const FDivider(),
                       itemBuilder: (context, index) {
@@ -162,11 +155,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 
   void _showCustomerDetail(BuildContext context, Customer customer) {
-    showFSheet(
-      context: context,
-      side: FLayout.rtl,
-      builder: (context) => CustomerDetailScreen(customer: customer),
-    );
+    context.go('/customers/${customer.id}');
   }
 }
 

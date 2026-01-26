@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/ui_components.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
 
@@ -32,19 +33,22 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
 
     return Column(
       children: [
-        // Header
+        // Action bar
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               Text(
                 'Orders',
-                style: theme.typography.lg.copyWith(fontWeight: FontWeight.w600),
+                style: theme.typography.base.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: () => ref.read(ordersProvider.notifier).loadOrders(),
-                child: Icon(Icons.refresh, size: 20, color: theme.colors.mutedForeground),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 22),
+                onPressed: () => ref.read(ordersProvider.notifier).loadOrders(),
+                tooltip: 'Refresh',
               ),
             ],
           ),
@@ -52,7 +56,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
 
         // Tabs
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               _Tab(
@@ -72,8 +76,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             ],
           ),
         ),
-
-        const SizedBox(height: 8),
 
         // Error
         if (state.error != null)
@@ -103,14 +105,18 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
         // Content
         Expanded(
           child: state.isLoading && orders.isEmpty
-              ? const Center(child: FProgress())
+              ? const ShimmerLoadingList()
               : orders.isEmpty
-                  ? _EmptyState(isPending: _selectedTab == 1)
+                  ? EmptyState(
+                      icon: _selectedTab == 1 ? Icons.check_circle_outline : Icons.inbox,
+                      title: _selectedTab == 1 ? 'No pending orders' : 'No orders yet',
+                    )
                   : RefreshIndicator(
                       onRefresh: () => ref.read(ordersProvider.notifier).loadOrders(),
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ListView.separated(
+                        padding: kScreenPadding,
                         itemCount: orders.length,
+                        separatorBuilder: (_, __) => const FDivider(),
                         itemBuilder: (context, index) {
                           final order = orders[index];
                           return _OrderTile(
@@ -219,35 +225,6 @@ class _Tab extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  final bool isPending;
-
-  const _EmptyState({required this.isPending});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            isPending ? Icons.check_circle_outline : Icons.inbox,
-            size: 48,
-            color: theme.colors.mutedForeground,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            isPending ? 'No pending orders' : 'No orders yet',
-            style: theme.typography.base.copyWith(color: theme.colors.mutedForeground),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _OrderTile extends StatefulWidget {
   final Order order;
   final VoidCallback? onConfirm;
@@ -272,131 +249,120 @@ class _OrderTileState extends State<_OrderTile> {
     final dateFormat = DateFormat('MMM d, h:mm a');
     final currencyFormat = NumberFormat.currency(symbol: '\$');
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: theme.colors.border)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header - tappable
-          GestureDetector(
-            onTap: () => setState(() => _expanded = !_expanded),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Order #${widget.order.id}',
-                              style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(width: 8),
-                            _StatusBadge(status: widget.order.status),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${widget.order.items.length} items • ${currencyFormat.format(widget.order.total)} • ${dateFormat.format(widget.order.date)}',
-                          style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
-                        ),
-                      ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header - tappable
+        GestureDetector(
+          onTap: () => setState(() => _expanded = !_expanded),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Order #${widget.order.id}',
+                            style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(width: 8),
+                          _StatusBadge(status: widget.order.status),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${widget.order.items.length} items • ${currencyFormat.format(widget.order.total)} • ${dateFormat.format(widget.order.date)}',
+                        style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                      ),
+                    ],
+                  ),
+                ),
+                if (widget.order.tableNumber != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colors.secondary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'T${widget.order.tableNumber}',
+                      style: theme.typography.xs,
                     ),
                   ),
-                  if (widget.order.tableNumber != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: theme.colors.secondary,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'T${widget.order.tableNumber}',
-                        style: theme.typography.xs,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Icon(
-                    _expanded ? Icons.expand_less : Icons.expand_more,
-                    size: 20,
-                    color: theme.colors.mutedForeground,
-                  ),
+                  const SizedBox(width: 8),
                 ],
-              ),
+                Icon(
+                  _expanded ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: theme.colors.mutedForeground,
+                ),
+              ],
             ),
           ),
+        ),
 
-          // Expanded content
-          if (_expanded) ...[
-            // Items
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...widget.order.items.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      children: [
-                        Text(
-                          '${item.units}x ',
-                          style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
-                        ),
+        // Expanded content
+        if (_expanded) ...[
+          // Items
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...widget.order.items.map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${item.units}x ',
+                        style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                      ),
+                      Expanded(
+                        child: Text(item.productName, style: theme.typography.sm),
+                      ),
+                      Text(
+                        currencyFormat.format(item.totalPrice),
+                        style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                      ),
+                    ],
+                  ),
+                )),
+
+                // Actions for pending orders
+                if (widget.onConfirm != null || widget.onCancel != null) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      if (widget.onCancel != null)
                         Expanded(
-                          child: Text(item.productName, style: theme.typography.sm),
-                        ),
-                        Text(
-                          currencyFormat.format(item.totalPrice),
-                          style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
-                        ),
-                      ],
-                    ),
-                  )),
-
-                  // Actions for pending orders
-                  if (widget.onConfirm != null || widget.onCancel != null) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        if (widget.onCancel != null)
-                          Expanded(
-                            child: SizedBox(
-                              height: 32,
-                              child: FButton(
-                                style: FButtonStyle.outline(),
-                                onPress: widget.onCancel,
-                                child: const Text('Cancel'),
-                              ),
-                            ),
+                          child: FButton(
+                            style: FButtonStyle.outline(),
+                            onPress: widget.onCancel,
+                            child: const Text('Cancel'),
                           ),
-                        if (widget.onConfirm != null && widget.onCancel != null)
-                          const SizedBox(width: 8),
-                        if (widget.onConfirm != null)
-                          Expanded(
-                            child: SizedBox(
-                              height: 32,
-                              child: FButton(
-                                onPress: widget.onConfirm,
-                                child: const Text('Confirm'),
-                              ),
-                            ),
+                        ),
+                      if (widget.onConfirm != null && widget.onCancel != null)
+                        const SizedBox(width: 8),
+                      if (widget.onConfirm != null)
+                        Expanded(
+                          child: FButton(
+                            onPress: widget.onConfirm,
+                            child: const Text('Confirm'),
                           ),
-                      ],
-                    ),
-                  ],
+                        ),
+                    ],
+                  ),
                 ],
-              ),
+              ],
             ),
-          ],
+          ),
         ],
-      ),
+      ],
     );
   }
 }

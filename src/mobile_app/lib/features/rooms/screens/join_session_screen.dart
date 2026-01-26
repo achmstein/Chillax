@@ -94,7 +94,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
       if (mounted) {
         // Refresh sessions and go back
         ref.read(mySessionsProvider.notifier).refresh();
-        ref.refresh(roomsProvider);
+        ref.invalidate(roomsProvider);
         Navigator.pop(context, true);
         showFToast(
           context: context,
@@ -142,7 +142,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
@@ -212,7 +212,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: const StadiumBorder(),
-                    disabledBackgroundColor: AppTheme.textMuted.withOpacity(0.2),
+                    disabledBackgroundColor: AppTheme.textMuted.withValues(alpha: 0.2),
                   ),
                   child: _isJoining
                       ? const SizedBox(
@@ -242,12 +242,12 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
   Widget _buildCodeInput() {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.textMuted.withOpacity(0.05),
+        color: AppTheme.textMuted.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _error != null
-              ? AppTheme.errorColor.withOpacity(0.5)
-              : AppTheme.textMuted.withOpacity(0.2),
+              ? AppTheme.errorColor.withValues(alpha: 0.5)
+              : AppTheme.textMuted.withValues(alpha: 0.2),
         ),
       ),
       child: TextField(
@@ -272,7 +272,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
             fontWeight: FontWeight.bold,
             letterSpacing: 12,
             fontFamily: 'monospace',
-            color: AppTheme.textMuted.withOpacity(0.3),
+            color: AppTheme.textMuted.withValues(alpha: 0.3),
           ),
         ),
         inputFormatters: [
@@ -305,13 +305,13 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.successColor.withOpacity(0.1),
-            AppTheme.successColor.withOpacity(0.05),
+            AppTheme.successColor.withValues(alpha: 0.1),
+            AppTheme.successColor.withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.successColor.withOpacity(0.3),
+          color: AppTheme.successColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -341,7 +341,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(

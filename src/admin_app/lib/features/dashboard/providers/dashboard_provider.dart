@@ -52,14 +52,22 @@ class DashboardState {
 }
 
 /// Dashboard provider
-class DashboardNotifier extends StateNotifier<DashboardState> {
-  final ApiClient _ordersApi;
-  final ApiClient _roomsApi;
-  final ApiClient _catalogApi;
+class DashboardNotifier extends Notifier<DashboardState> {
+  late final ApiClient _ordersApi;
+  late final ApiClient _roomsApi;
+  late final ApiClient _catalogApi;
   Timer? _refreshTimer;
 
-  DashboardNotifier(this._ordersApi, this._roomsApi, this._catalogApi)
-      : super(const DashboardState());
+  @override
+  DashboardState build() {
+    _ordersApi = ref.read(ordersApiProvider);
+    _roomsApi = ref.read(roomsApiProvider);
+    _catalogApi = ref.read(catalogApiProvider);
+    ref.onDispose(() {
+      _refreshTimer?.cancel();
+    });
+    return const DashboardState();
+  }
 
   Future<void> loadDashboard() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -182,18 +190,8 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     }
   }
 
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
-  }
 }
 
 /// Dashboard provider
 final dashboardProvider =
-    StateNotifierProvider<DashboardNotifier, DashboardState>((ref) {
-  final ordersApi = ref.read(ordersApiProvider);
-  final roomsApi = ref.read(roomsApiProvider);
-  final catalogApi = ref.read(catalogApiProvider);
-  return DashboardNotifier(ordersApi, roomsApi, catalogApi);
-});
+    NotifierProvider<DashboardNotifier, DashboardState>(DashboardNotifier.new);

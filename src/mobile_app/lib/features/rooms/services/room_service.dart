@@ -123,17 +123,17 @@ final availableRoomsProvider = FutureProvider<List<Room>>((ref) async {
 });
 
 /// Provider for customer sessions
-final mySessionsProvider = StateNotifierProvider<MySessionsNotifier, AsyncValue<List<RoomSession>>>((ref) {
-  final service = ref.watch(roomServiceProvider);
-  return MySessionsNotifier(service);
-});
+final mySessionsProvider = NotifierProvider<MySessionsNotifier, AsyncValue<List<RoomSession>>>(MySessionsNotifier.new);
 
 /// Sessions notifier - refreshes on demand (app resume, screen focus, pull-to-refresh)
-class MySessionsNotifier extends StateNotifier<AsyncValue<List<RoomSession>>> {
-  final RoomService _roomService;
+class MySessionsNotifier extends Notifier<AsyncValue<List<RoomSession>>> {
+  late final RoomService _roomService;
 
-  MySessionsNotifier(this._roomService) : super(const AsyncValue.loading()) {
+  @override
+  AsyncValue<List<RoomSession>> build() {
+    _roomService = ref.watch(roomServiceProvider);
     _loadSessions();
+    return const AsyncValue.loading();
   }
 
   Future<void> _loadSessions({bool silent = false}) async {
@@ -143,11 +143,9 @@ class MySessionsNotifier extends StateNotifier<AsyncValue<List<RoomSession>>> {
 
     try {
       final sessions = await _roomService.getMySessions();
-      if (mounted) {
-        state = AsyncValue.data(sessions);
-      }
+      state = AsyncValue.data(sessions);
     } catch (e, st) {
-      if (mounted && !silent) {
+      if (!silent) {
         state = AsyncValue.error(e, st);
       }
     }
@@ -190,10 +188,14 @@ class ReservationState {
 }
 
 /// Reservation notifier
-class ReservationNotifier extends StateNotifier<ReservationState> {
-  final RoomService _roomService;
+class ReservationNotifier extends Notifier<ReservationState> {
+  late final RoomService _roomService;
 
-  ReservationNotifier(this._roomService) : super(const ReservationState());
+  @override
+  ReservationState build() {
+    _roomService = ref.watch(roomServiceProvider);
+    return const ReservationState();
+  }
 
   /// Reserve a room (same-day only)
   Future<bool> reserveRoom(int roomId, DateTime scheduledStartTime) async {
@@ -220,7 +222,4 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
 
 /// Provider for reservation
 final reservationProvider =
-    StateNotifierProvider<ReservationNotifier, ReservationState>((ref) {
-  final roomService = ref.watch(roomServiceProvider);
-  return ReservationNotifier(roomService);
-});
+    NotifierProvider<ReservationNotifier, ReservationState>(ReservationNotifier.new);

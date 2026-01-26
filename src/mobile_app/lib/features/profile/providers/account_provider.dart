@@ -31,11 +31,16 @@ class AccountState {
 }
 
 /// Account notifier for mobile app
-class AccountNotifier extends StateNotifier<AccountState> {
-  final AccountService _accountService;
-  final AuthState _authState;
+class AccountNotifier extends Notifier<AccountState> {
+  late final AccountService _accountService;
+  late final AuthState _authState;
 
-  AccountNotifier(this._accountService, this._authState) : super(const AccountState());
+  @override
+  AccountState build() {
+    _accountService = ref.read(accountServiceProvider);
+    _authState = ref.watch(authServiceProvider);
+    return const AccountState();
+  }
 
   /// Load account balance
   Future<void> loadAccount() async {
@@ -81,8 +86,4 @@ class AccountNotifier extends StateNotifier<AccountState> {
 }
 
 /// Account provider
-final accountProvider = StateNotifierProvider<AccountNotifier, AccountState>((ref) {
-  final accountService = ref.read(accountServiceProvider);
-  final authState = ref.watch(authServiceProvider);
-  return AccountNotifier(accountService, authState);
-});
+final accountProvider = NotifierProvider<AccountNotifier, AccountState>(AccountNotifier.new);

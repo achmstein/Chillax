@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
@@ -51,16 +52,12 @@ class AuthState {
 }
 
 /// Authentication service using native OIDC with Resource Owner Password Credentials
-class AuthService extends StateNotifier<AuthState> {
+class AuthService extends Notifier<AuthState> {
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ));
-  final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
-  );
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
@@ -72,7 +69,8 @@ class AuthService extends StateNotifier<AuthState> {
   /// Logout endpoint URL
   String get _logoutEndpoint => '${AppConfig.identityUrl}/protocol/openid-connect/logout';
 
-  AuthService() : super(const AuthState());
+  @override
+  AuthState build() => const AuthState();
 
   /// Initialize auth state from stored tokens
   Future<void> initialize() async {
@@ -81,8 +79,8 @@ class AuthService extends StateNotifier<AuthState> {
       final refreshToken = await _storage.read(key: _refreshTokenKey);
       final idToken = await _storage.read(key: _idTokenKey);
 
-      print('Auth init - has access token: ${accessToken != null}');
-      print('Auth init - has refresh token: ${refreshToken != null}');
+      debugPrint('Auth init - has access token: ${accessToken != null}');
+      debugPrint('Auth init - has refresh token: ${refreshToken != null}');
 
       if (accessToken != null && refreshToken != null) {
         // Try to refresh the token to validate it's still valid
@@ -93,7 +91,7 @@ class AuthService extends StateNotifier<AuthState> {
         );
 
         final refreshed = await this.refreshToken();
-        print('Auth init - token refresh result: $refreshed');
+        debugPrint('Auth init - token refresh result: $refreshed');
         if (refreshed) {
           state = state.copyWith(
             isInitializing: false,
@@ -104,13 +102,13 @@ class AuthService extends StateNotifier<AuthState> {
       }
 
       // No valid tokens found
-      print('Auth init - no valid tokens, user needs to login');
+      debugPrint('Auth init - no valid tokens, user needs to login');
       state = state.copyWith(
         isInitializing: false,
         isAuthenticated: false,
       );
     } catch (e) {
-      print('Auth initialization error: $e');
+      debugPrint('Auth initialization error: $e');
       state = state.copyWith(
         isInitializing: false,
         isAuthenticated: false,
@@ -120,7 +118,7 @@ class AuthService extends StateNotifier<AuthState> {
 
   /// Sign in with username and password using Resource Owner Password Credentials grant
   Future<bool> signIn(String username, String password) async {
-    print('Attempting sign in to: $_tokenEndpoint');
+    debugPrint('Attempting sign in to: $_tokenEndpoint');
     try {
       final response = await _dio.post(
         _tokenEndpoint,
@@ -136,7 +134,7 @@ class AuthService extends StateNotifier<AuthState> {
         ),
       );
 
-      print('Sign in response status: ${response.statusCode}');
+      debugPrint('Sign in response status: ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = response.data;
         await _saveTokens(
@@ -148,11 +146,11 @@ class AuthService extends StateNotifier<AuthState> {
       }
       return false;
     } on DioException catch (e) {
-      print('Sign in DioException: ${e.type} - ${e.message}');
-      print('Sign in error response: ${e.response?.statusCode} - ${e.response?.data}');
+      debugPrint('Sign in DioException: ${e.type} - ${e.message}');
+      debugPrint('Sign in error response: ${e.response?.statusCode} - ${e.response?.data}');
       return false;
     } catch (e) {
-      print('Sign in error: $e');
+      debugPrint('Sign in error: $e');
       return false;
     }
   }
@@ -176,10 +174,10 @@ class AuthService extends StateNotifier<AuthState> {
 
       return response.statusCode == 200 || response.statusCode == 201;
     } on DioException catch (e) {
-      print('Registration error: ${e.response?.data ?? e.message}');
+      debugPrint('Registration error: ${e.response?.data ?? e.message}');
       return false;
     } catch (e) {
-      print('Registration error: $e');
+      debugPrint('Registration error: $e');
       return false;
     }
   }
@@ -200,7 +198,7 @@ class AuthService extends StateNotifier<AuthState> {
         );
       }
     } catch (e) {
-      print('Sign out error: $e');
+      debugPrint('Sign out error: $e');
     } finally {
       await _clearTokens();
     }
@@ -209,12 +207,12 @@ class AuthService extends StateNotifier<AuthState> {
   /// Refresh access token
   Future<bool> refreshToken() async {
     if (state.refreshToken == null) {
-      print('Token refresh - no refresh token available');
+      debugPrint('Token refresh - no refresh token available');
       return false;
     }
 
     try {
-      print('Token refresh - calling $_tokenEndpoint');
+      debugPrint('Token refresh - calling $_tokenEndpoint');
       final response = await _dio.post(
         _tokenEndpoint,
         data: {
@@ -234,19 +232,19 @@ class AuthService extends StateNotifier<AuthState> {
           refreshToken: data['refresh_token'],
           idToken: data['id_token'],
         );
-        print('Token refresh - success');
+        debugPrint('Token refresh - success');
         return true;
       }
-      print('Token refresh - failed with status ${response.statusCode}');
+      debugPrint('Token refresh - failed with status ${response.statusCode}');
       return false;
     } on DioException catch (e) {
-      print('Token refresh DioException: ${e.type}');
-      print('Token refresh error response: ${e.response?.statusCode} - ${e.response?.data}');
-      print('Token refresh error message: ${e.message}');
+      debugPrint('Token refresh DioException: ${e.type}');
+      debugPrint('Token refresh error response: ${e.response?.statusCode} - ${e.response?.data}');
+      debugPrint('Token refresh error message: ${e.message}');
       await _clearTokens();
       return false;
     } catch (e) {
-      print('Token refresh error: $e');
+      debugPrint('Token refresh error: $e');
       await _clearTokens();
       return false;
     }
@@ -270,7 +268,7 @@ class AuthService extends StateNotifier<AuthState> {
       final decoded = utf8.decode(base64Url.decode(normalized));
       return jsonDecode(decoded) as Map<String, dynamic>;
     } catch (e) {
-      print('Error decoding JWT: $e');
+      debugPrint('Error decoding JWT: $e');
       return null;
     }
   }
@@ -280,7 +278,7 @@ class AuthService extends StateNotifier<AuthState> {
     String? refreshToken,
     String? idToken,
   }) async {
-    print('Saving tokens to secure storage...');
+    debugPrint('Saving tokens to secure storage...');
     await _storage.write(key: _accessTokenKey, value: accessToken);
     if (refreshToken != null) {
       await _storage.write(key: _refreshTokenKey, value: refreshToken);
@@ -288,7 +286,7 @@ class AuthService extends StateNotifier<AuthState> {
     if (idToken != null) {
       await _storage.write(key: _idTokenKey, value: idToken);
     }
-    print('Tokens saved successfully');
+    debugPrint('Tokens saved successfully');
 
     // Extract user info from token
     String? userId;
@@ -303,7 +301,7 @@ class AuthService extends StateNotifier<AuthState> {
       email = claims['email'] as String?;
       // Keycloak: 'name' is full name (firstName + lastName), 'preferred_username' is username
       name = claims['name'] as String? ?? claims['preferred_username'] as String?;
-      print('Extracted user info - userId: $userId, email: $email, name: $name');
+      debugPrint('Extracted user info - userId: $userId, email: $email, name: $name');
     }
 
     state = state.copyWith(
@@ -327,9 +325,7 @@ class AuthService extends StateNotifier<AuthState> {
 }
 
 /// Provider for auth service
-final authServiceProvider = StateNotifierProvider<AuthService, AuthState>((ref) {
-  return AuthService();
-});
+final authServiceProvider = NotifierProvider<AuthService, AuthState>(AuthService.new);
 
 /// Provider for auth state
 final isAuthenticatedProvider = Provider<bool>((ref) {

@@ -85,7 +85,7 @@ class PendingOrdersWidget extends ConsumerWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: orders.length > 5 ? 5 : orders.length,
-              separatorBuilder: (_, __) => const FDivider(),
+              separatorBuilder: (_, _) => const FDivider(),
               itemBuilder: (context, index) {
                 final order = orders[index];
                 return Padding(

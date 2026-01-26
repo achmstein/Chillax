@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_service.dart';
 import '../config/app_config.dart';
@@ -23,7 +24,7 @@ class ApiClient {
     _dio.interceptors.add(LogInterceptor(
       requestBody: true,
       responseBody: true,
-      logPrint: (obj) => print('[Dio] $obj'),
+      logPrint: (obj) => debugPrint('[Dio] $obj'),
     ));
 
     _dio.interceptors.add(InterceptorsWrapper(

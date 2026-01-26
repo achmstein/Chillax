@@ -14,10 +14,6 @@ class MainScaffold extends ConsumerWidget {
     final currentIndex = _calculateSelectedIndex(context);
 
     return FScaffold(
-      child: SafeArea(
-        bottom: false,
-        child: child,
-      ),
       footer: SafeArea(
         top: false,
         child: FBottomNavigationBar(
@@ -42,6 +38,10 @@ class MainScaffold extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: child,
       ),
     );
   }

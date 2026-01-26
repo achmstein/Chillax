@@ -194,13 +194,11 @@ class _SettingsItem extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback? onTap;
 
   const _SettingsItem({
     required this.icon,
     required this.title,
     required this.subtitle,
-    this.onTap,
   });
 
   @override
@@ -236,18 +234,9 @@ class _SettingsItem extends StatelessWidget {
               ],
             ),
           ),
-          if (onTap != null)
-            const Icon(Icons.chevron_right),
         ],
       ),
     );
-
-    if (onTap != null) {
-      return FTappable(
-        onPress: onTap,
-        child: content,
-      );
-    }
 
     return content;
   }

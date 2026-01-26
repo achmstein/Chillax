@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/ui_components.dart';
 import '../models/loyalty_account.dart';
 import '../models/loyalty_stats.dart';
 import '../providers/loyalty_provider.dart';
@@ -30,19 +31,22 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
 
     return Column(
       children: [
-        // Header
+        // Action bar
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               Text(
                 'Loyalty',
-                style: theme.typography.lg.copyWith(fontWeight: FontWeight.w600),
+                style: theme.typography.base.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: () => ref.read(loyaltyProvider.notifier).loadAll(),
-                child: Icon(Icons.refresh, size: 20, color: theme.colors.mutedForeground),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 22),
+                onPressed: () => ref.read(loyaltyProvider.notifier).loadAll(),
+                tooltip: 'Refresh',
               ),
             ],
           ),
@@ -51,11 +55,11 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
         // Content
         Expanded(
           child: state.isLoading && state.accounts.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? const ShimmerLoadingList()
               : RefreshIndicator(
                   onRefresh: () => ref.read(loyaltyProvider.notifier).loadAll(),
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: kScreenPadding,
                     children: [
                       // Error
                       if (state.error != null) ...[
@@ -94,36 +98,32 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                       ],
 
                       // Accounts section
-                      Row(
-                        children: [
-                          Text(
-                            'Accounts',
-                            style: theme.typography.base.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: theme.colors.secondary,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${state.accounts.length}',
-                              style: theme.typography.xs.copyWith(fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                        ],
+                      SectionHeader(
+                        title: 'Accounts',
+                        count: state.accounts.length,
                       ),
                       const SizedBox(height: 8),
 
                       // Accounts list
                       if (state.accounts.isEmpty)
-                        _EmptyState()
+                        const EmptyState(
+                          icon: Icons.card_giftcard_outlined,
+                          title: 'No loyalty accounts yet',
+                        )
                       else
-                        ...state.accounts.map((account) => _AccountTile(
-                          account: account,
-                          onTap: () => _showAccountDetail(context, account),
-                        )),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: state.accounts.length,
+                          separatorBuilder: (_, __) => const FDivider(),
+                          itemBuilder: (context, index) {
+                            final account = state.accounts[index];
+                            return _AccountTile(
+                              account: account,
+                              onTap: () => _showAccountDetail(context, account),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -287,29 +287,6 @@ class _TierItem extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.card_giftcard_outlined, size: 48, color: theme.colors.mutedForeground),
-            const SizedBox(height: 12),
-            Text(
-              'No loyalty accounts yet',
-              style: theme.typography.base.copyWith(color: theme.colors.mutedForeground),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _AccountTile extends StatelessWidget {
   final LoyaltyAccount account;
   final VoidCallback onTap;
@@ -334,14 +311,10 @@ class _AccountTile extends StatelessWidget {
     final theme = context.theme;
     final numberFormat = NumberFormat('#,###');
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
+    return FTappable(
+      onPress: onTap,
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: theme.colors.border)),
-        ),
         child: Row(
           children: [
             // Tier icon

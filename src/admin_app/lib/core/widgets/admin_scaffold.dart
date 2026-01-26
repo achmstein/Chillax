@@ -79,7 +79,7 @@ class _MobileLayout extends ConsumerWidget {
     return 0;
   }
 
-  void _showProfileMenu(BuildContext context, WidgetRef ref) {
+  void _showMoreMenu(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
     final authState = ref.read(authServiceProvider);
 
@@ -90,107 +90,109 @@ class _MobileLayout extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colors.border,
-                borderRadius: BorderRadius.circular(2),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            // User info
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: theme.colors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Center(
-                      child: Text(
-                        (authState.name ?? 'A').substring(0, 1).toUpperCase(),
-                        style: theme.typography.lg.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colors.primary,
+              // User info
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: theme.colors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Center(
+                        child: Text(
+                          (authState.name ?? 'A').substring(0, 1).toUpperCase(),
+                          style: theme.typography.lg.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colors.primary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          authState.name ?? 'Admin',
-                          style: theme.typography.base.copyWith(
-                            fontWeight: FontWeight.w600,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            authState.name ?? 'Admin',
+                            style: theme.typography.base.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        Text(
-                          authState.email ?? '',
-                          style: theme.typography.sm.copyWith(
-                            color: theme.colors.mutedForeground,
+                          Text(
+                            authState.email ?? '',
+                            style: theme.typography.sm.copyWith(
+                              color: theme.colors.mutedForeground,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Divider(height: 1, color: theme.colors.border),
-            // Nav items
-            ...secondaryNavItems.map((item) {
-              final isSelected = currentRoute.startsWith(item.route);
-              return ListTile(
-                leading: Icon(
-                  item.icon,
-                  color: isSelected ? theme.colors.primary : theme.colors.foreground,
+                  ],
                 ),
-                title: Text(
-                  item.label,
-                  style: theme.typography.base.copyWith(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+              Divider(height: 1, color: theme.colors.border),
+              // Nav items
+              ...secondaryNavItems.map((item) {
+                final isSelected = currentRoute.startsWith(item.route);
+                return ListTile(
+                  leading: Icon(
+                    item.icon,
                     color: isSelected ? theme.colors.primary : theme.colors.foreground,
                   ),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  context.go(item.route);
-                },
-              );
-            }),
-            Divider(height: 1, color: theme.colors.border),
-            // Logout
-            ListTile(
-              leading: Icon(
-                Icons.logout,
-                color: theme.colors.destructive,
-              ),
-              title: Text(
-                'Logout',
-                style: theme.typography.base.copyWith(
+                  title: Text(
+                    item.label,
+                    style: theme.typography.base.copyWith(
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected ? theme.colors.primary : theme.colors.foreground,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    context.go(item.route);
+                  },
+                );
+              }),
+              Divider(height: 1, color: theme.colors.border),
+              // Logout
+              ListTile(
+                leading: Icon(
+                  Icons.logout,
                   color: theme.colors.destructive,
                 ),
+                title: Text(
+                  'Logout',
+                  style: theme.typography.base.copyWith(
+                    color: theme.colors.destructive,
+                  ),
+                ),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await ref.read(authServiceProvider.notifier).signOut();
+                  if (context.mounted) context.go('/login');
+                },
               ),
-              onTap: () async {
-                Navigator.pop(ctx);
-                await ref.read(authServiceProvider.notifier).signOut();
-                if (context.mounted) context.go('/login');
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
@@ -199,7 +201,6 @@ class _MobileLayout extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
-    final authState = ref.watch(authServiceProvider);
     final selectedIndex = _getSelectedIndex();
     final isProfileSelected = selectedIndex == mainNavItems.length;
 
@@ -225,11 +226,10 @@ class _MobileLayout extends ConsumerWidget {
                     isSelected: selectedIndex == i,
                     onTap: () => context.go(mainNavItems[i].route),
                   ),
-                // Profile button
-                _ProfileNavItem(
-                  initial: (authState.name ?? 'A').substring(0, 1).toUpperCase(),
+                // More button
+                _MoreNavItem(
                   isSelected: isProfileSelected,
-                  onTap: () => _showProfileMenu(context, ref),
+                  onTap: () => _showMoreMenu(context, ref),
                 ),
               ],
             ),
@@ -283,14 +283,12 @@ class _NavBarItem extends StatelessWidget {
   }
 }
 
-/// Profile nav item with avatar
-class _ProfileNavItem extends StatelessWidget {
-  final String initial;
+/// More nav item with menu icon
+class _MoreNavItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _ProfileNavItem({
-    required this.initial,
+  const _MoreNavItem({
     required this.isSelected,
     required this.onTap,
   });
@@ -308,33 +306,10 @@ class _ProfileNavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? theme.colors.primary
-                    : theme.colors.mutedForeground.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: color,
-                  width: 1.5,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  initial,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? theme.colors.primaryForeground : color,
-                  ),
-                ),
-              ),
-            ),
+            Icon(Icons.more_horiz, size: 22, color: color),
             const SizedBox(height: 2),
             Text(
-              'Profile',
+              'More',
               style: theme.typography.xs.copyWith(
                 color: color,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,

@@ -168,7 +168,7 @@ class ProfileScreen extends ConsumerWidget {
     showFDialog(
       context: context,
       builder: (context, style, animation) => FDialog(
-        style: style,
+        style: style.call,
         animation: animation,
         title: const Text('Sign Out'),
         body: const Text('Are you sure you want to sign out?'),
@@ -200,7 +200,7 @@ class ProfileScreen extends ConsumerWidget {
     showFDialog(
       context: context,
       builder: (context, style, animation) => FDialog(
-        style: style,
+        style: style.call,
         animation: animation,
         title: const Text('Help & Support'),
         body: Column(
@@ -240,7 +240,7 @@ class ProfileScreen extends ConsumerWidget {
     showFDialog(
       context: context,
       builder: (context, style, animation) => FDialog(
-        style: style,
+        style: style.call,
         animation: animation,
         title: Row(
           children: [

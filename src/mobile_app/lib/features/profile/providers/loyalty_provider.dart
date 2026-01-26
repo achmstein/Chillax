@@ -34,11 +34,16 @@ class LoyaltyState {
 }
 
 /// Loyalty notifier for mobile app
-class LoyaltyNotifier extends StateNotifier<LoyaltyState> {
-  final ApiClient _api;
-  final AuthState _authState;
+class LoyaltyNotifier extends Notifier<LoyaltyState> {
+  late final ApiClient _api;
+  late final AuthState _authState;
 
-  LoyaltyNotifier(this._api, this._authState) : super(const LoyaltyState());
+  @override
+  LoyaltyState build() {
+    _api = ref.read(loyaltyApiProvider);
+    _authState = ref.watch(authServiceProvider);
+    return const LoyaltyState();
+  }
 
   Future<void> loadLoyaltyInfo() async {
     if (!_authState.isAuthenticated || _authState.userId == null) {
@@ -101,8 +106,4 @@ class LoyaltyNotifier extends StateNotifier<LoyaltyState> {
 }
 
 /// Loyalty provider
-final loyaltyProvider = StateNotifierProvider<LoyaltyNotifier, LoyaltyState>((ref) {
-  final api = ref.read(loyaltyApiProvider);
-  final authState = ref.watch(authServiceProvider);
-  return LoyaltyNotifier(api, authState);
-});
+final loyaltyProvider = NotifierProvider<LoyaltyNotifier, LoyaltyState>(LoyaltyNotifier.new);

@@ -42,10 +42,14 @@ class MenuState {
 }
 
 /// Menu provider
-class MenuNotifier extends StateNotifier<MenuState> {
-  final ApiClient _api;
+class MenuNotifier extends Notifier<MenuState> {
+  late final ApiClient _api;
 
-  MenuNotifier(this._api) : super(const MenuState());
+  @override
+  MenuState build() {
+    _api = ref.read(catalogApiProvider);
+    return const MenuState();
+  }
 
   Future<void> loadMenu() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -183,7 +187,4 @@ class MenuNotifier extends StateNotifier<MenuState> {
 }
 
 /// Menu provider
-final menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
-  final api = ref.read(catalogApiProvider);
-  return MenuNotifier(api);
-});
+final menuProvider = NotifierProvider<MenuNotifier, MenuState>(MenuNotifier.new);

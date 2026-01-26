@@ -36,10 +36,14 @@ class ServiceRequestsState {
 }
 
 /// Service requests notifier
-class ServiceRequestsNotifier extends StateNotifier<ServiceRequestsState> {
-  final ApiClient _apiClient;
+class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
+  late final ApiClient _apiClient;
 
-  ServiceRequestsNotifier(this._apiClient) : super(const ServiceRequestsState());
+  @override
+  ServiceRequestsState build() {
+    _apiClient = ref.watch(notificationsApiProvider);
+    return const ServiceRequestsState();
+  }
 
   /// Load pending service requests
   Future<void> loadRequests() async {
@@ -88,7 +92,4 @@ class ServiceRequestsNotifier extends StateNotifier<ServiceRequestsState> {
 
 /// Provider for service requests
 final serviceRequestsProvider =
-    StateNotifierProvider<ServiceRequestsNotifier, ServiceRequestsState>((ref) {
-  final apiClient = ref.watch(notificationsApiProvider);
-  return ServiceRequestsNotifier(apiClient);
-});
+    NotifierProvider<ServiceRequestsNotifier, ServiceRequestsState>(ServiceRequestsNotifier.new);

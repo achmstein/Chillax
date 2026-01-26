@@ -44,10 +44,14 @@ class LoyaltyState {
 }
 
 /// Loyalty provider
-class LoyaltyNotifier extends StateNotifier<LoyaltyState> {
-  final ApiClient _api;
+class LoyaltyNotifier extends Notifier<LoyaltyState> {
+  late final ApiClient _api;
 
-  LoyaltyNotifier(this._api) : super(const LoyaltyState());
+  @override
+  LoyaltyState build() {
+    _api = ref.read(loyaltyApiProvider);
+    return const LoyaltyState();
+  }
 
   Future<void> loadAccounts({int first = 0, int max = 50}) async {
     state = state.copyWith(isLoading: true, clearError: true);
@@ -225,7 +229,4 @@ class LoyaltyNotifier extends StateNotifier<LoyaltyState> {
 
 /// Loyalty provider
 final loyaltyProvider =
-    StateNotifierProvider<LoyaltyNotifier, LoyaltyState>((ref) {
-  final api = ref.read(loyaltyApiProvider);
-  return LoyaltyNotifier(api);
-});
+    NotifierProvider<LoyaltyNotifier, LoyaltyState>(LoyaltyNotifier.new);

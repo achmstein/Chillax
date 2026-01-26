@@ -61,7 +61,7 @@ class AuthState {
 }
 
 /// Authentication service using native OIDC with Resource Owner Password Credentials
-class AuthService extends StateNotifier<AuthState> {
+class AuthService extends Notifier<AuthState> {
   final Dio _dio = Dio();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final FirebaseService _firebaseService = FirebaseService();
@@ -76,7 +76,8 @@ class AuthService extends StateNotifier<AuthState> {
   /// Logout endpoint URL
   String get _logoutEndpoint => '${AppConfig.identityUrl}/protocol/openid-connect/logout';
 
-  AuthService() : super(const AuthState());
+  @override
+  AuthState build() => const AuthState();
 
   /// Initialize auth state from stored tokens
   Future<void> initialize() async {
@@ -108,7 +109,7 @@ class AuthService extends StateNotifier<AuthState> {
         isAdmin: false,
       );
     } catch (e) {
-      print('Initialize error: $e');
+      debugPrint('Initialize error: $e');
       state = state.copyWith(
         isInitializing: false,
         isAuthenticated: false,
@@ -226,11 +227,11 @@ class AuthService extends StateNotifier<AuthState> {
       }
       return false;
     } on DioException catch (e) {
-      print('Token refresh error: ${e.response?.data ?? e.message}');
+      debugPrint('Token refresh error: ${e.response?.data ?? e.message}');
       await _clearTokens();
       return false;
     } catch (e) {
-      print('Token refresh error: $e');
+      debugPrint('Token refresh error: $e');
       await _clearTokens();
       return false;
     }
@@ -393,9 +394,7 @@ enum SignInResult {
 }
 
 /// Provider for auth service
-final authServiceProvider = StateNotifierProvider<AuthService, AuthState>((ref) {
-  return AuthService();
-});
+final authServiceProvider = NotifierProvider<AuthService, AuthState>(AuthService.new);
 
 /// Provider for auth state
 final isAuthenticatedProvider = Provider<bool>((ref) {

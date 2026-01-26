@@ -44,7 +44,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     // Refresh sessions when app comes to foreground
     if (state == AppLifecycleState.resumed) {
       ref.read(mySessionsProvider.notifier).refresh();
-      ref.refresh(roomsProvider);
+      ref.invalidate(roomsProvider);
     }
   }
 
@@ -68,7 +68,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         _codeController.clear();
         _codeFocusNode.unfocus();
         ref.read(mySessionsProvider.notifier).refresh();
-        ref.refresh(roomsProvider);
+        ref.invalidate(roomsProvider);
         showFToast(
           context: context,
           title: const Text('Joined session!'),
@@ -111,7 +111,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           Expanded(
             child: sessionsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => _buildRoomsList(context, roomsAsync, null, null),
+              error: (_, _) => _buildRoomsList(context, roomsAsync, null, null),
               data: (sessions) {
                 final activeSession = sessions
                     .where((s) => s.status == SessionStatus.active)
@@ -142,7 +142,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -155,10 +155,10 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppTheme.textMuted.withOpacity(0.08),
+                  color: AppTheme.textMuted.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                   border: _joinError != null
-                      ? Border.all(color: AppTheme.errorColor.withOpacity(0.5))
+                      ? Border.all(color: AppTheme.errorColor.withValues(alpha: 0.5))
                       : null,
                 ),
                 child: TextField(
@@ -260,8 +260,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
 
         return RefreshIndicator(
           onRefresh: () async {
-            ref.refresh(roomsProvider);
-            ref.read(mySessionsProvider.notifier).refresh();
+            ref.invalidate(roomsProvider);
+            await ref.read(mySessionsProvider.notifier).refresh();
           },
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -300,7 +300,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                       height: 1,
                       indent: 16,
                       endIndent: 16,
-                      color: AppTheme.textMuted.withOpacity(0.2),
+                      color: AppTheme.textMuted.withValues(alpha: 0.2),
                     ),
                 ],
               );
@@ -367,13 +367,13 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   end: Alignment.bottomRight,
                   colors: [
                     AppTheme.primaryColor,
-                    AppTheme.primaryColor.withOpacity(0.8),
+                    AppTheme.primaryColor.withValues(alpha: 0.8),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primaryColor.withOpacity(0.3),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -402,7 +402,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
@@ -421,7 +421,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                     Text(
                       'Share code with friends',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 12,
                       ),
                     ),
@@ -439,9 +439,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withOpacity(0.3)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -459,7 +459,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                             const SizedBox(width: 12),
                             Icon(
                               FIcons.copy,
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                               size: 18,
                             ),
                           ],
@@ -484,7 +484,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   Text(
                     '£${session.hourlyRate.toStringAsFixed(0)}/hour',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 14,
                     ),
                   ),
@@ -612,12 +612,12 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             color: _isPressed
-                ? AppTheme.primaryColor.withOpacity(0.15)
-                : AppTheme.textMuted.withOpacity(0.1),
+                ? AppTheme.primaryColor.withValues(alpha: 0.15)
+                : AppTheme.textMuted.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: _isPressed
-                  ? AppTheme.primaryColor.withOpacity(0.3)
+                  ? AppTheme.primaryColor.withValues(alpha: 0.3)
                   : Colors.transparent,
               width: 1.5,
             ),
@@ -642,43 +642,6 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppTheme.textMuted),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: AppTheme.textMuted,
-            fontSize: 13,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 13,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 /// Reserved session banner - matches active session card style
 class _ReservedSessionBanner extends ConsumerWidget {
   final RoomSession session;
@@ -696,13 +659,13 @@ class _ReservedSessionBanner extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             AppTheme.warningColor,
-            AppTheme.warningColor.withOpacity(0.85),
+            AppTheme.warningColor.withValues(alpha: 0.85),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.warningColor.withOpacity(0.3),
+            color: AppTheme.warningColor.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -732,7 +695,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
@@ -758,7 +721,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
           Text(
             DateFormat('h:mm a').format(session.reservationTime),
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 24,
               fontWeight: FontWeight.bold,
               fontFamily: 'monospace',
@@ -771,10 +734,10 @@ class _ReservedSessionBanner extends ConsumerWidget {
             child: Text(
               'Cancel Reservation',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 13,
                 decoration: TextDecoration.underline,
-                decorationColor: Colors.white.withOpacity(0.9),
+                decorationColor: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ),
@@ -810,7 +773,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
         final service = ref.read(roomServiceProvider);
         await service.cancelReservation(session.id);
         ref.read(mySessionsProvider.notifier).refresh();
-        ref.refresh(roomsProvider);
+        ref.invalidate(roomsProvider);
         if (context.mounted) {
           showFToast(
             context: context,
@@ -842,9 +805,9 @@ class NotifyMeBanner extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withOpacity(0.1),
+        color: AppTheme.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -881,7 +844,7 @@ class NotifyMeBanner extends ConsumerWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
-            error: (_, __) => FButton(
+            error: (_, _) => FButton(
               onPress: () => ref.refresh(roomAvailabilitySubscriptionProvider),
               child: const Text('Retry'),
             ),
@@ -987,8 +950,8 @@ class RoomListItem extends ConsumerWidget {
               height: 64,
               decoration: BoxDecoration(
                 color: isAvailable
-                    ? AppTheme.primaryColor.withOpacity(0.1)
-                    : AppTheme.textMuted.withOpacity(0.1),
+                    ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                    : AppTheme.textMuted.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -1066,7 +1029,7 @@ class RoomListItem extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.textMuted.withOpacity(0.1),
+                  color: AppTheme.textMuted.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1186,8 +1149,8 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppTheme.textMuted.withOpacity(0.05),
-                  border: Border.all(color: AppTheme.textMuted.withOpacity(0.2)),
+                  color: AppTheme.textMuted.withValues(alpha: 0.05),
+                  border: Border.all(color: AppTheme.textMuted.withValues(alpha: 0.2)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -1223,7 +1186,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppTheme.textMuted.withOpacity(0.3)),
+                    border: Border.all(color: AppTheme.textMuted.withValues(alpha: 0.3)),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -1297,7 +1260,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
 
     if (success && mounted) {
       Navigator.pop(context);
-      ref.refresh(roomsProvider);
+      ref.invalidate(roomsProvider);
       ref.read(mySessionsProvider.notifier).refresh();
       showFToast(
         context: context,

@@ -47,7 +47,7 @@ class OrdersScreen extends ConsumerWidget {
                     child: ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: orders.length,
-                      separatorBuilder: (_, __) => const FDivider(),
+                      separatorBuilder: (_, _) => const FDivider(),
                       itemBuilder: (context, index) {
                         return OrderTile(order: orders[index]);
                       },

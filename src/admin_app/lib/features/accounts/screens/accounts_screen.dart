@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/ui_components.dart';
 import '../../customers/models/customer.dart';
 import '../models/customer_account.dart';
 import '../providers/accounts_provider.dart';
@@ -39,45 +40,27 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
 
     return Column(
       children: [
-        // Header
+        // Action bar
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               Text(
                 'Accounts',
-                style: theme.typography.lg.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const Spacer(),
-              // Add charge button
-              GestureDetector(
-                onTap: () => _showAddChargeDialog(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: theme.colors.primary,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, size: 16, color: theme.colors.primaryForeground),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Add Charge',
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.primaryForeground,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                style: theme.typography.base.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () => notifier.loadAccounts(),
-                child: Icon(Icons.refresh, size: 20, color: theme.colors.mutedForeground),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.add, size: 22),
+                onPressed: () => _showAddChargeDialog(context),
+                tooltip: 'Add charge',
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 22),
+                onPressed: () => notifier.loadAccounts(),
+                tooltip: 'Refresh',
               ),
             ],
           ),
@@ -85,7 +68,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
 
         // Search
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
@@ -111,16 +94,15 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             onChanged: (value) => notifier.setSearchQuery(value),
           ),
         ),
-        const SizedBox(height: 12),
 
         // Content
         Expanded(
           child: state.isLoading && state.accounts.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? const ShimmerLoadingList()
               : RefreshIndicator(
                   onRefresh: () => notifier.loadAccounts(),
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: kScreenPadding,
                     children: [
                       // Error
                       if (state.error != null) ...[
@@ -151,36 +133,33 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                       const SizedBox(height: 24),
 
                       // Accounts section
-                      Row(
-                        children: [
-                          Text(
-                            'Outstanding Balances',
-                            style: theme.typography.base.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: theme.colors.secondary,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${filteredAccounts.length}',
-                              style: theme.typography.xs.copyWith(fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                        ],
+                      SectionHeader(
+                        title: 'Outstanding Balances',
+                        count: filteredAccounts.length,
                       ),
                       const SizedBox(height: 8),
 
                       // Accounts list
                       if (filteredAccounts.isEmpty)
-                        _EmptyState()
+                        const EmptyState(
+                          icon: Icons.account_balance_wallet_outlined,
+                          title: 'No accounts with balance',
+                          subtitle: 'Add a charge to create an account',
+                        )
                       else
-                        ...filteredAccounts.map((account) => _AccountTile(
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: filteredAccounts.length,
+                          separatorBuilder: (_, __) => const FDivider(),
+                          itemBuilder: (context, index) {
+                            final account = filteredAccounts[index];
+                            return _AccountTile(
                               account: account,
                               onTap: () => _showAccountDetail(context, account),
-                            )),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -312,35 +291,6 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.account_balance_wallet_outlined,
-                size: 48, color: theme.colors.mutedForeground),
-            const SizedBox(height: 12),
-            Text(
-              'No accounts with balance',
-              style: theme.typography.base.copyWith(color: theme.colors.mutedForeground),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Add a charge to create an account',
-              style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _AccountTile extends StatelessWidget {
   final CustomerAccount account;
   final VoidCallback onTap;
@@ -352,14 +302,10 @@ class _AccountTile extends StatelessWidget {
     final theme = context.theme;
     final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 2);
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
+    return FTappable(
+      onPress: onTap,
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: theme.colors.border)),
-        ),
         child: Row(
           children: [
             // Avatar
@@ -512,7 +458,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
         Expanded(
           child: ListView(
             controller: widget.scrollController,
-            padding: const EdgeInsets.all(16),
+            padding: kScreenPadding,
             children: [
               // Customer selection
               Text(
@@ -715,18 +661,10 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
               // Submit button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _selectedCustomer != null && !_isSubmitting
+                child: FButton(
+                  onPress: _selectedCustomer != null && !_isSubmitting
                       ? _submitCharge
                       : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colors.primary,
-                    foregroundColor: theme.colors.primaryForeground,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
                   child: _isSubmitting
                       ? SizedBox(
                           height: 20,
@@ -736,10 +674,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                             color: theme.colors.primaryForeground,
                           ),
                         )
-                      : Text(
-                          'Add Charge',
-                          style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
-                        ),
+                      : const Text('Add Charge'),
                 ),
               ),
             ],
@@ -868,35 +803,32 @@ class _AccountDetailSheetState extends ConsumerState<_AccountDetailSheet> {
           child: Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showAddChargeToExisting(context, account),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add Charge'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colors.destructive,
-                    side: BorderSide(color: theme.colors.destructive),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                child: FButton(
+                  style: FButtonStyle.outline(),
+                  onPress: () => _showAddChargeToExisting(context, account),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, size: 18),
+                      SizedBox(width: 4),
+                      Text('Add Charge'),
+                    ],
                   ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: account.hasBalance
+                child: FButton(
+                  onPress: account.hasBalance
                       ? () => _showRecordPayment(context, account)
                       : null,
-                  icon: const Icon(Icons.payment, size: 18),
-                  label: const Text('Record Payment'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF22C55E),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.payment, size: 18),
+                      SizedBox(width: 4),
+                      Text('Record Payment'),
+                    ],
                   ),
                 ),
               ),
@@ -909,27 +841,17 @@ class _AccountDetailSheetState extends ConsumerState<_AccountDetailSheet> {
         // Transactions
         Expanded(
           child: state.isLoadingTransactions
-              ? const Center(child: CircularProgressIndicator())
+              ? const ShimmerLoadingList(itemCount: 3)
               : transactions.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.receipt_long_outlined,
-                              size: 48, color: theme.colors.mutedForeground),
-                          const SizedBox(height: 12),
-                          Text(
-                            'No transactions yet',
-                            style: theme.typography.base
-                                .copyWith(color: theme.colors.mutedForeground),
-                          ),
-                        ],
-                      ),
+                  ? const EmptyState(
+                      icon: Icons.receipt_long_outlined,
+                      title: 'No transactions yet',
                     )
-                  : ListView.builder(
+                  : ListView.separated(
                       controller: widget.scrollController,
-                      padding: const EdgeInsets.all(16),
+                      padding: kScreenPadding,
                       itemCount: transactions.length,
+                      separatorBuilder: (_, __) => const FDivider(),
                       itemBuilder: (context, index) {
                         final tx = transactions[index];
                         return _TransactionTile(transaction: tx);
@@ -976,11 +898,8 @@ class _TransactionTile extends StatelessWidget {
 
     final isCharge = transaction.type == TransactionType.charge;
 
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: theme.colors.border)),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

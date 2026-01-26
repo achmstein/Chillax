@@ -287,7 +287,7 @@ class _ItemCustomizationSheetState
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(
-                top: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+                top: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
               ),
             ),
             child: SizedBox(

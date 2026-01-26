@@ -70,7 +70,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           child: ListView.separated(
                             padding: const EdgeInsets.all(16),
                             itemCount: cart.items.length,
-                            separatorBuilder: (_, __) => const FDivider(),
+                            separatorBuilder: (_, _) => const FDivider(),
                             itemBuilder: (context, index) {
                               return CartItemTile(
                                 item: cart.items[index],
@@ -85,7 +85,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             border: Border(
-                              top: BorderSide(color: AppTheme.textMuted.withOpacity(0.2)),
+                              top: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
                             ),
                           ),
                           child: SafeArea(
@@ -208,7 +208,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     showFDialog(
       context: context,
       builder: (context, style, animation) => FDialog(
-        style: style,
+        style: style.call,
         animation: animation,
         title: const Text('Clear Cart'),
         body: const Text('Remove all items from your cart?'),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/ui_components.dart';
 import '../providers/dashboard_provider.dart';
 import '../../orders/models/order.dart';
 import '../../rooms/models/room.dart';
@@ -41,17 +42,35 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Column(
       children: [
-        // Header
-        _Header(onRefresh: () => ref.read(dashboardProvider.notifier).loadDashboard()),
+        // Action bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Text(
+                'Dashboard',
+                style: theme.typography.base.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 22),
+                onPressed: () => ref.read(dashboardProvider.notifier).loadDashboard(),
+                tooltip: 'Refresh',
+              ),
+            ],
+          ),
+        ),
 
         // Content
         Expanded(
           child: state.isLoading && state.stats.pendingOrdersCount == 0
-              ? const Center(child: FProgress())
+              ? const ShimmerLoadingList()
               : RefreshIndicator(
                   onRefresh: () => ref.read(dashboardProvider.notifier).loadDashboard(),
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: kScreenPadding,
                     children: [
                       // Error
                       if (state.error != null) ...[
@@ -110,43 +129,59 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       const SizedBox(height: 24),
 
                       // Pending orders section
-                      _SectionHeader(
+                      SectionHeader(
                         title: 'Pending Orders',
                         count: state.stats.pendingOrders.length,
-                        onViewAll: () => context.go('/orders'),
+                        actionText: 'View all',
+                        onAction: () => context.go('/orders'),
                       ),
                       const SizedBox(height: 8),
                       if (state.stats.pendingOrders.isEmpty)
-                        _EmptyState(
+                        const EmptyState(
                           icon: Icons.check_circle_outline,
-                          message: 'No pending orders',
+                          title: 'No pending orders',
                         )
                       else
-                        ...state.stats.pendingOrders.take(5).map((order) =>
-                          _PendingOrderTile(
-                            order: order,
-                            onConfirm: () => _confirmOrder(order.id),
-                            onCancel: () => _cancelOrder(context, order.id),
-                          ),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: state.stats.pendingOrders.take(5).length,
+                          separatorBuilder: (_, __) => const FDivider(),
+                          itemBuilder: (context, index) {
+                            final order = state.stats.pendingOrders[index];
+                            return _PendingOrderTile(
+                              order: order,
+                              onConfirm: () => _confirmOrder(order.id),
+                              onCancel: () => _cancelOrder(context, order.id),
+                            );
+                          },
                         ),
 
                       const SizedBox(height: 24),
 
                       // Active sessions section
-                      _SectionHeader(
+                      SectionHeader(
                         title: 'Active Sessions',
                         count: state.stats.activeSessions.length,
-                        onViewAll: () => context.go('/rooms'),
+                        actionText: 'View all',
+                        onAction: () => context.go('/rooms'),
                       ),
                       const SizedBox(height: 8),
                       if (state.stats.activeSessions.isEmpty)
-                        _EmptyState(
+                        const EmptyState(
                           icon: Icons.videogame_asset_outlined,
-                          message: 'No active sessions',
+                          title: 'No active sessions',
                         )
                       else
-                        ...state.stats.activeSessions.take(5).map((session) =>
-                          _SessionTile(session: session),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: state.stats.activeSessions.take(5).length,
+                          separatorBuilder: (_, __) => const FDivider(),
+                          itemBuilder: (context, index) {
+                            final session = state.stats.activeSessions[index];
+                            return _SessionTile(session: session);
+                          },
                         ),
                     ],
                   ),
@@ -162,34 +197,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Future<void> _cancelOrder(BuildContext context, int orderId) async {
     // Call cancel via orders provider
-  }
-}
-
-class _Header extends StatelessWidget {
-  final VoidCallback onRefresh;
-
-  const _Header({required this.onRefresh});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Text(
-            'Dashboard',
-            style: theme.typography.lg.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: onRefresh,
-            child: Icon(Icons.refresh, size: 20, color: theme.colors.mutedForeground),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -230,82 +237,6 @@ class _QuickStat extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final int count;
-  final VoidCallback onViewAll;
-
-  const _SectionHeader({
-    required this.title,
-    required this.count,
-    required this.onViewAll,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return Row(
-      children: [
-        Text(
-          title,
-          style: theme.typography.base.copyWith(fontWeight: FontWeight.w600),
-        ),
-        if (count > 0) ...[
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: theme.colors.secondary,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              '$count',
-              style: theme.typography.xs.copyWith(fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
-        const Spacer(),
-        GestureDetector(
-          onTap: onViewAll,
-          child: Text(
-            'View all',
-            style: theme.typography.sm.copyWith(color: theme.colors.primary),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final IconData icon;
-  final String message;
-
-  const _EmptyState({required this.icon, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: theme.colors.mutedForeground),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _PendingOrderTile extends StatelessWidget {
   final Order order;
   final VoidCallback onConfirm;
@@ -323,11 +254,8 @@ class _PendingOrderTile extends StatelessWidget {
     final currencyFormat = NumberFormat.currency(symbol: '\$');
     final timeFormat = DateFormat.Hm();
 
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: theme.colors.border)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -367,23 +295,17 @@ class _PendingOrderTile extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: SizedBox(
-                  height: 32,
-                  child: FButton(
-                    style: FButtonStyle.outline(),
-                    onPress: onCancel,
-                    child: const Text('Cancel'),
-                  ),
+                child: FButton(
+                  style: FButtonStyle.outline(),
+                  onPress: onCancel,
+                  child: const Text('Cancel'),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: SizedBox(
-                  height: 32,
-                  child: FButton(
-                    onPress: onConfirm,
-                    child: const Text('Confirm'),
-                  ),
+                child: FButton(
+                  onPress: onConfirm,
+                  child: const Text('Confirm'),
                 ),
               ),
             ],
@@ -404,11 +326,8 @@ class _SessionTile extends StatelessWidget {
     final theme = context.theme;
     final currencyFormat = NumberFormat.currency(symbol: '\$');
 
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: theme.colors.border)),
-      ),
       child: Row(
         children: [
           Container(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/widgets/ui_components.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
 
@@ -24,64 +25,55 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(menuProvider);
-    final theme = context.theme;
     final notifier = ref.read(menuProvider.notifier);
+
+    final theme = context.theme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
+        // Action bar with back button
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back, size: 22),
                 onPressed: () => context.go('/menu'),
-                tooltip: 'Back to Menu',
+                tooltip: 'Back to menu',
               ),
-              const SizedBox(width: 8),
               Text(
-                'Menu Categories',
-                style: context.theme.typography.xl.copyWith(
-                  fontWeight: FontWeight.bold,
+                'Categories',
+                style: theme.typography.base.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const Spacer(),
-              FButton(
-                style: FButtonStyle.outline(),
-                onPress: () => _showCategoryForm(context),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.add, size: 18),
-                    SizedBox(width: 8),
-                    Text('Add Category'),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(Icons.add, size: 22),
+                onPressed: () => _showCategoryForm(context),
+                tooltip: 'Add category',
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 22),
                 onPressed: () => notifier.loadMenu(),
                 tooltip: 'Refresh',
               ),
             ],
           ),
         ),
-        const FDivider(),
 
         // Content
         Expanded(
           child: state.isLoading && state.categories.isEmpty
-              ? const Center(child: FProgress())
+              ? const ShimmerLoadingList(showLeadingCircle: false)
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Error
                     if (state.error != null)
                       Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: kScreenPadding,
                         child: FAlert(
                           style: FAlertStyle.destructive(),
                           icon: const Icon(Icons.warning),
@@ -93,34 +85,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                     // Categories list
                     Expanded(
                       child: state.categories.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.category,
-                                    size: 64,
-                                    color: theme.colors.mutedForeground,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No categories found',
-                                    style: theme.typography.lg.copyWith(
-                                      color: theme.colors.mutedForeground,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Click "Add Category" above to create one',
-                                    style: theme.typography.sm.copyWith(
-                                      color: theme.colors.mutedForeground,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          ? const EmptyState(
+                              icon: Icons.category,
+                              title: 'No categories found',
+                              subtitle: 'Click the + button above to create one',
                             )
                           : ListView.separated(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: kScreenPadding,
                               itemCount: state.categories.length,
                               separatorBuilder: (_, __) => const FDivider(),
                               itemBuilder: (context, index) {
@@ -176,6 +147,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               final name = controller.text.trim();
               if (name.isEmpty) return;
 
+              final messenger = ScaffoldMessenger.of(context);
               Navigator.of(context).pop();
 
               final notifier = ref.read(menuProvider.notifier);
@@ -187,7 +159,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               }
 
               if (mounted && success) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
                     content: Text(isEditing
                         ? 'Category updated successfully'
@@ -228,6 +200,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       return;
     }
 
+    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
@@ -252,7 +225,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     if (confirmed == true) {
       final success = await ref.read(menuProvider.notifier).deleteCategory(category.id);
       if (mounted && success) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(content: Text('Category deleted successfully')),
         );
       }

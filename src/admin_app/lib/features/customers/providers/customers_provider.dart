@@ -37,10 +37,14 @@ class CustomersState {
 }
 
 /// Customers provider
-class CustomersNotifier extends StateNotifier<CustomersState> {
-  final ApiClient _api;
+class CustomersNotifier extends Notifier<CustomersState> {
+  late final ApiClient _api;
 
-  CustomersNotifier(this._api) : super(const CustomersState());
+  @override
+  CustomersState build() {
+    _api = ref.read(identityApiProvider);
+    return const CustomersState();
+  }
 
   Future<void> loadCustomers({int first = 0, int max = 50}) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -101,7 +105,4 @@ class CustomersNotifier extends StateNotifier<CustomersState> {
 
 /// Customers provider
 final customersProvider =
-    StateNotifierProvider<CustomersNotifier, CustomersState>((ref) {
-  final api = ref.read(identityApiProvider);
-  return CustomersNotifier(api);
-});
+    NotifierProvider<CustomersNotifier, CustomersState>(CustomersNotifier.new);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/ui_components.dart';
 import '../models/service_request.dart';
 import '../providers/service_requests_provider.dart';
 
@@ -29,23 +30,30 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        FHeader(
-          title: const Text('Service Requests'),
-          suffixes: [
-            FHeaderAction(
-              icon: const Icon(Icons.refresh),
-              onPress: () {
-                ref.read(serviceRequestsProvider.notifier).loadRequests();
-              },
-            ),
-          ],
+        // Action bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Text(
+                'Requests',
+                style: theme.typography.base.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 22),
+                onPressed: () => ref.read(serviceRequestsProvider.notifier).loadRequests(),
+                tooltip: 'Refresh',
+              ),
+            ],
+          ),
         ),
-        const FDivider(),
 
         // Stats
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: kScreenPadding,
           child: Row(
             children: [
               _StatChip(
@@ -91,40 +99,19 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
     final dateFormat = DateFormat.yMd().add_Hm();
 
     if (state.isLoading && state.requests.isEmpty) {
-      return const Center(child: FProgress());
+      return const ShimmerLoadingList();
     }
 
     if (state.requests.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 64,
-              color: theme.colors.mutedForeground,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No pending requests',
-              style: theme.typography.lg.copyWith(
-                color: theme.colors.mutedForeground,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'All service requests have been handled',
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.mutedForeground,
-              ),
-            ),
-          ],
-        ),
+      return const EmptyState(
+        icon: Icons.check_circle_outline,
+        title: 'No pending requests',
+        subtitle: 'All service requests have been handled',
       );
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: kScreenPadding,
       itemCount: state.requests.length,
       separatorBuilder: (_, __) => const FDivider(),
       itemBuilder: (context, index) {

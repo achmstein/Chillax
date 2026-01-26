@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/ui_components.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
 import '../widgets/menu_item_form_sheet.dart';
@@ -26,46 +27,56 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(menuProvider);
-    final theme = context.theme;
     final currencyFormat = NumberFormat.currency(symbol: '\$');
+
+    final theme = context.theme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        FHeader(
-          title: const Text('Menu Management'),
-          suffixes: [
-            FHeaderAction(
-              icon: const Icon(Icons.category),
-              onPress: () => context.go('/categories'),
-            ),
-            FHeaderAction(
-              icon: const Icon(Icons.add),
-              onPress: () => _showItemForm(context),
-            ),
-            FHeaderAction(
-              icon: const Icon(Icons.refresh),
-              onPress: () {
-                ref.read(menuProvider.notifier).loadMenu();
-              },
-            ),
-          ],
+        // Action bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Text(
+                'Menu',
+                style: theme.typography.base.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.category, size: 22),
+                onPressed: () => context.go('/categories'),
+                tooltip: 'Categories',
+              ),
+              IconButton(
+                icon: const Icon(Icons.add, size: 22),
+                onPressed: () => _showItemForm(context),
+                tooltip: 'Add item',
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 22),
+                onPressed: () => ref.read(menuProvider.notifier).loadMenu(),
+                tooltip: 'Refresh',
+              ),
+            ],
+          ),
         ),
-        const FDivider(),
 
         // Content
         Expanded(
           child: state.isLoading && state.items.isEmpty
-              ? const Center(child: FProgress())
+              ? const ShimmerLoadingList(showLeadingCircle: false)
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Error
                     if (state.error != null)
                       Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: FAlert(style: FAlertStyle.destructive(), 
+                        padding: kScreenPadding,
+                        child: FAlert(style: FAlertStyle.destructive(),
                           icon: const Icon(Icons.warning),
                           title: const Text('Error'),
                           subtitle: Text(state.error!),
@@ -74,7 +85,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
 
                     // Category filter
                     Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: kScreenPadding,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -107,27 +118,12 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                     // Items grid
                     Expanded(
                       child: state.filteredItems.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.restaurant,
-                                    size: 64,
-                                    color: theme.colors.mutedForeground,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No items found',
-                                    style: theme.typography.lg.copyWith(
-                                      color: theme.colors.mutedForeground,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          ? const EmptyState(
+                              icon: Icons.restaurant,
+                              title: 'No items found',
                             )
                           : GridView.builder(
-                              padding: const EdgeInsets.all(16),
+                              padding: kScreenPadding,
                               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                                 maxCrossAxisExtent: 350,
                                 mainAxisSpacing: 16,
@@ -250,7 +246,7 @@ class _MenuItemCard extends StatelessWidget {
     final theme = context.theme;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: kScreenPadding,
       decoration: BoxDecoration(
         border: Border.all(color: theme.colors.border),
         borderRadius: BorderRadius.circular(8),
