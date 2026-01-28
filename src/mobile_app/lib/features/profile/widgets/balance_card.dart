@@ -6,33 +6,15 @@ import '../providers/account_provider.dart';
 
 /// Balance card widget for profile screen
 /// Only shown when customer has outstanding balance
-class BalanceCard extends ConsumerStatefulWidget {
+class BalanceCard extends ConsumerWidget {
   const BalanceCard({super.key});
 
   @override
-  ConsumerState<BalanceCard> createState() => _BalanceCardState();
-}
-
-class _BalanceCardState extends ConsumerState<BalanceCard> {
-  @override
-  void initState() {
-    super.initState();
-    // Load account on mount
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(accountProvider.notifier).loadAccount();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final accountState = ref.watch(accountProvider);
-
-    // Don't show if loading, no account, or zero balance
-    if (accountState.isLoading) {
-      return const SizedBox.shrink();
-    }
-
     final account = accountState.account;
+
+    // Safety check - parent should handle visibility
     if (account == null || !account.hasBalance) {
       return const SizedBox.shrink();
     }

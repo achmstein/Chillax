@@ -6,6 +6,7 @@ import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/loyalty_card.dart';
+import '../providers/account_provider.dart';
 import '../providers/loyalty_provider.dart';
 
 /// User profile screen - minimalistic design
@@ -21,14 +22,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadLoyaltyInfo();
+      _loadData();
     });
   }
 
-  void _loadLoyaltyInfo() {
+  void _loadData() {
     final authState = ref.read(authServiceProvider);
     if (authState.isAuthenticated) {
       ref.read(loyaltyProvider.notifier).loadLoyaltyInfo();
+      ref.read(accountProvider.notifier).loadAccount();
     }
   }
 
@@ -36,6 +38,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authServiceProvider);
     final loyaltyState = ref.watch(loyaltyProvider);
+    final accountState = ref.watch(accountProvider);
     final colors = context.theme.colors;
 
     return Column(
@@ -79,7 +82,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(height: 24),
 
                 // Balance card (only shown when customer has balance)
-                if (authState.isAuthenticated) const BalanceCard(),
+                if (authState.isAuthenticated &&
+                    !accountState.isLoading &&
+                    accountState.account != null &&
+                    accountState.account!.hasBalance)
+                  const BalanceCard(),
 
                 // Loyalty card
                 if (authState.isAuthenticated) ...[

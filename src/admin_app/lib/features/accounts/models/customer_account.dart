@@ -54,13 +54,15 @@ class AccountTransaction {
     }
 
     return AccountTransaction(
-      id: json['id'] as int,
+      id: json['id'] as int? ?? 0,
       customerAccountId: json['customerAccountId'] as int? ?? 0,
       type: type,
-      amount: (json['amount'] as num).toDouble(),
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       description: json['description'] as String?,
       recordedBy: json['recordedBy'] as String? ?? '',
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
     );
   }
 
@@ -120,11 +122,15 @@ class CustomerAccount {
 
     return CustomerAccount(
       id: json['id'] as int,
-      customerId: json['customerId'] as String,
+      customerId: json['customerId'] as String? ?? '',
       customerName: json['customerName'] as String?,
-      balance: (json['balance'] as num).toDouble(),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : DateTime.now(),
       transactions: transactionsData
           .map((e) => AccountTransaction.fromJson(e as Map<String, dynamic>))
           .toList(),

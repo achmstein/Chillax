@@ -112,9 +112,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final colors = theme.colors;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -138,6 +139,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   'Create Account',
                   style: theme.typography.xl2.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: colors.foreground,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -236,7 +238,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Text(
                       'Already have an account? ',
                       style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
+                        color: colors.mutedForeground,
                       ),
                     ),
                     GestureDetector(
@@ -244,7 +246,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       child: Text(
                         'Sign In',
                         style: theme.typography.sm.copyWith(
-                          color: theme.colors.primary,
+                          color: colors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

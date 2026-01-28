@@ -99,9 +99,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final colors = theme.colors;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -172,7 +173,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     Expanded(
                       child: Divider(
-                        color: theme.colors.border,
+                        color: colors.border,
                       ),
                     ),
                     Padding(
@@ -180,13 +181,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Text(
                         'or continue with',
                         style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
+                          color: colors.mutedForeground,
                         ),
                       ),
                     ),
                     Expanded(
                       child: Divider(
-                        color: theme.colors.border,
+                        color: colors.border,
                       ),
                     ),
                   ],
@@ -270,7 +271,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       "Don't have an account? ",
                       style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
+                        color: colors.mutedForeground,
                       ),
                     ),
                     GestureDetector(
@@ -278,7 +279,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Text(
                         'Register',
                         style: theme.typography.sm.copyWith(
-                          color: theme.colors.primary,
+                          color: colors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
