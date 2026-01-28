@@ -66,7 +66,7 @@ class Order {
   final DateTime date;
   final OrderStatus status;
   final String? description;
-  final int? tableNumber;
+  final String? roomName;
   final String? customerNote;
   final double total;
   final List<OrderItem> items;
@@ -76,7 +76,7 @@ class Order {
     required this.date,
     required this.status,
     this.description,
-    this.tableNumber,
+    this.roomName,
     this.customerNote,
     required this.total,
     this.items = const [],
@@ -95,7 +95,7 @@ class Order {
       date: DateTime.parse(json['date'] as String),
       status: status,
       description: json['description'] as String?,
-      tableNumber: json['tableNumber'] as int?,
+      roomName: json['roomName'] as String?,
       customerNote: json['customerNote'] as String?,
       total: (json['total'] as num).toDouble(),
       items: (json['orderItems'] as List<dynamic>?)
@@ -143,17 +143,17 @@ class PaginatedOrders {
 
 /// Create order request
 class CreateOrderRequest {
-  final int? tableNumber;
+  final String? roomName;
   final String? customerNote;
 
   CreateOrderRequest({
-    this.tableNumber,
+    this.roomName,
     this.customerNote,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      if (tableNumber != null) 'tableNumber': tableNumber,
+      if (roomName != null) 'roomName': roomName,
       if (customerNote != null) 'customerNote': customerNote,
     };
   }

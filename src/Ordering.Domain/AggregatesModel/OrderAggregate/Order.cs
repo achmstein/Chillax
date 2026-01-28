@@ -21,9 +21,9 @@ public class Order
     public string? Description { get; private set; }
 
     /// <summary>
-    /// Table number for cafe delivery (optional)
+    /// Room name for the session (e.g., "VIP", "Room 1")
     /// </summary>
-    public int? TableNumber { get; private set; }
+    public string? RoomName { get; private set; }
 
     /// <summary>
     /// Special instructions or notes from the customer
@@ -60,12 +60,12 @@ public class Order
         _isDraft = false;
     }
 
-    public Order(string userId, string userName, int? tableNumber = null, string? customerNote = null, int? buyerId = null, int pointsToRedeem = 0) : this()
+    public Order(string userId, string userName, string? roomName = null, string? customerNote = null, int? buyerId = null, int pointsToRedeem = 0) : this()
     {
         BuyerId = buyerId;
         OrderStatus = OrderStatus.AwaitingValidation;
         OrderDate = DateTime.UtcNow;
-        TableNumber = tableNumber;
+        RoomName = roomName;
         CustomerNote = customerNote;
         PointsToRedeem = pointsToRedeem;
         Description = "Order awaiting item availability validation.";

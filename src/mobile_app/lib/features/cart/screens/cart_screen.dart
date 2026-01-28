@@ -8,6 +8,8 @@ import '../models/cart_item.dart';
 import '../services/cart_service.dart';
 import '../../orders/services/order_service.dart';
 import '../../profile/providers/loyalty_provider.dart';
+import '../../rooms/models/room.dart';
+import '../../rooms/services/room_service.dart';
 
 /// Shopping cart screen - minimalistic
 class CartScreen extends ConsumerStatefulWidget {
@@ -415,8 +417,19 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   void _handleCheckout(Cart cart) async {
     final note = _noteController.text.isNotEmpty ? _noteController.text : null;
 
+    // Get active room session's room name (if any)
+    String? roomName;
+    final sessionsState = ref.read(mySessionsProvider);
+    sessionsState.whenData((sessions) {
+      final activeSession = sessions.where((s) => s.status == SessionStatus.active).firstOrNull;
+      if (activeSession != null) {
+        roomName = activeSession.roomName;
+      }
+    });
+
     final success = await ref.read(checkoutProvider.notifier).submitOrder(
           items: cart.items,
+          roomName: roomName,
           customerNote: note,
           pointsToRedeem: _pointsToRedeem,
         );

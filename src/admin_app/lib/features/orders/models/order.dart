@@ -67,7 +67,7 @@ class Order {
   final DateTime date;
   final OrderStatus status;
   final String? description;
-  final int? tableNumber;
+  final String? roomName;
   final String? customerNote;
   final double total;
   final List<OrderItem> items;
@@ -77,7 +77,7 @@ class Order {
     required this.date,
     required this.status,
     this.description,
-    this.tableNumber,
+    this.roomName,
     this.customerNote,
     required this.total,
     this.items = const [],
@@ -98,7 +98,7 @@ class Order {
       date: DateTime.parse((json['date'] ?? json['Date']) as String),
       status: status,
       description: json['description'] ?? json['Description'] as String?,
-      tableNumber: json['tableNumber'] ?? json['TableNumber'] as int?,
+      roomName: json['roomName'] ?? json['RoomName'] as String?,
       customerNote: json['customerNote'] ?? json['CustomerNote'] as String?,
       total: ((json['total'] ?? json['Total']) as num).toDouble(),
       items: (orderItems as List<dynamic>?)

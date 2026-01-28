@@ -25,7 +25,7 @@ export interface Order {
   date: string
   status: OrderStatus
   description?: string
-  tableNumber?: number
+  roomName?: string
   customerNote?: string
   orderitems: OrderItem[]
   total: number
@@ -33,7 +33,7 @@ export interface Order {
 
 export interface PendingOrder extends OrderSummary {
   customerName?: string
-  tableNumber?: number
+  roomName?: string
   customerNote?: string
   itemCount: number
 }

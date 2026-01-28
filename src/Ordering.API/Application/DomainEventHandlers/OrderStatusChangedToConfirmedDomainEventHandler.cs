@@ -50,7 +50,7 @@ public class OrderStatusChangedToConfirmedDomainEventHandler
             order.OrderStatus,
             buyer.Name,
             buyer.IdentityGuid,
-            order.TableNumber,
+            order.RoomName,
             order.GetTotal(),
             order.PointsToRedeem);
 

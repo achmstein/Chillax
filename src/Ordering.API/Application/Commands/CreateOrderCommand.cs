@@ -21,10 +21,10 @@ public class CreateOrderCommand : IRequest<bool>
     public string UserName { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Table number for cafe delivery (optional)
+    /// Room name for the session (e.g., "VIP")
     /// </summary>
     [DataMember]
-    public int? TableNumber { get; private set; }
+    public string? RoomName { get; private set; }
 
     /// <summary>
     /// Special instructions from customer (optional)
@@ -50,14 +50,14 @@ public class CreateOrderCommand : IRequest<bool>
         List<BasketItem> basketItems,
         string userId,
         string userName,
-        int? tableNumber = null,
+        string? roomName = null,
         string? customerNote = null,
         int pointsToRedeem = 0)
     {
         _orderItems = basketItems.ToOrderItemsDTO().ToList();
         UserId = userId;
         UserName = userName;
-        TableNumber = tableNumber;
+        RoomName = roomName;
         CustomerNote = customerNote;
         PointsToRedeem = pointsToRedeem;
     }

@@ -31,7 +31,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, boo
         var order = new Order(
             message.UserId,
             message.UserName,
-            message.TableNumber,
+            message.RoomName,
             message.CustomerNote,
             pointsToRedeem: message.PointsToRedeem);
 

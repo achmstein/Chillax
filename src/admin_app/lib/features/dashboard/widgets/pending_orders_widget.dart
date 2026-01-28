@@ -104,10 +104,10 @@ class PendingOrdersWidget extends ConsumerWidget {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                if (order.tableNumber != null) ...[
+                                if (order.roomName != null) ...[
                                   const SizedBox(width: 8),
-                                  FBadge(style: FBadgeStyle.secondary(), 
-                                    child: Text('Table ${order.tableNumber}'),
+                                  FBadge(style: FBadgeStyle.secondary(),
+                                    child: Text(order.roomName!),
                                   ),
                                 ],
                               ],

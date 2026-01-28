@@ -293,10 +293,10 @@ class _OrderTileState extends ConsumerState<OrderTile>
                               color: colors.mutedForeground,
                             ),
                           ),
-                          if (widget.order.tableNumber != null) ...[
+                          if (widget.order.roomName != null) ...[
                             const SizedBox(width: 8),
                             Text(
-                              '• Table ${widget.order.tableNumber}',
+                              '• ${widget.order.roomName}',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,

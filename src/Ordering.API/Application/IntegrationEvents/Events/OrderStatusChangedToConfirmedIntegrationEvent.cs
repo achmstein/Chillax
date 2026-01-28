@@ -1,3 +1,4 @@
+#nullable enable
 namespace Chillax.Ordering.API.Application.IntegrationEvents.Events;
 
 /// <summary>
@@ -10,18 +11,18 @@ public record OrderStatusChangedToConfirmedIntegrationEvent : IntegrationEvent
     public OrderStatus OrderStatus { get; }
     public string BuyerName { get; }
     public string BuyerIdentityGuid { get; }
-    public int? TableNumber { get; }
+    public string? RoomName { get; }
     public decimal OrderTotal { get; }
     public int PointsToRedeem { get; }
 
     public OrderStatusChangedToConfirmedIntegrationEvent(
-        int orderId, OrderStatus orderStatus, string buyerName, string buyerIdentityGuid, int? tableNumber, decimal orderTotal, int pointsToRedeem = 0)
+        int orderId, OrderStatus orderStatus, string buyerName, string buyerIdentityGuid, string? roomName, decimal orderTotal, int pointsToRedeem = 0)
     {
         OrderId = orderId;
         OrderStatus = orderStatus;
         BuyerName = buyerName;
         BuyerIdentityGuid = buyerIdentityGuid;
-        TableNumber = tableNumber;
+        RoomName = roomName;
         OrderTotal = orderTotal;
         PointsToRedeem = pointsToRedeem;
     }

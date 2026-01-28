@@ -21,7 +21,7 @@ public record Order
     public DateTime Date { get; init; }
     public string Status { get; init; } = string.Empty;
     public string? Description { get; init; }
-    public int? TableNumber { get; init; }
+    public string? RoomName { get; init; }
     public string? CustomerNote { get; init; }
     public List<Orderitem> OrderItems { get; set; } = new();
     public decimal Total { get; set; }
@@ -33,5 +33,5 @@ public record OrderSummary
     public DateTime Date { get; init; }
     public string Status { get; init; } = string.Empty;
     public double Total { get; init; }
-    public int? TableNumber { get; init; }
+    public string? RoomName { get; init; }
 }

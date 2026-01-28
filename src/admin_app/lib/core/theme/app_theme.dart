@@ -13,6 +13,11 @@ class AppTheme {
   static FThemeData getTheme(Brightness brightness) {
     return brightness == Brightness.dark ? dark : light;
   }
+
+  // Semantic colors - consistent across light/dark mode
+  static const Color successColor = Color(0xFF16A34A); // green-600
+  static const Color errorColor = Color(0xFFDC2626); // red-600
+  static const Color warningColor = Color(0xFFCA8A04); // yellow-600
 }
 
 /// Theme mode notifier for switching between light and dark

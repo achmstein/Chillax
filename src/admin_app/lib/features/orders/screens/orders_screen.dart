@@ -71,24 +71,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
         if (state.error != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.colors.destructive.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.warning, size: 18, color: theme.colors.destructive),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      state.error!,
-                      style: theme.typography.sm.copyWith(color: theme.colors.destructive),
-                    ),
-                  ),
-                ],
-              ),
+            child: FAlert(
+              style: FAlertStyle.destructive(),
+              icon: const Icon(Icons.warning),
+              title: const Text('Error'),
+              subtitle: Text(state.error!),
             ),
           ),
 
@@ -127,19 +114,22 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   }
 
   Future<void> _cancelOrder(BuildContext context, int orderId) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => FDialog(
+        direction: Axis.horizontal,
         title: const Text('Cancel Order?'),
-        content: const Text('Are you sure you want to cancel this order?'),
+        body: const Text('Are you sure you want to cancel this order?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
+          FButton(
+            style: FButtonStyle.outline(),
+            child: const Text('No, Keep'),
+            onPress: () => Navigator.of(context).pop(false),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+          FButton(
+            style: FButtonStyle.destructive(),
             child: const Text('Yes, Cancel'),
+            onPress: () => Navigator.of(context).pop(true),
           ),
         ],
       ),
@@ -202,7 +192,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                     ],
                   ),
                 ),
-                if (widget.order.tableNumber != null) ...[
+                if (widget.order.roomName != null) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -210,7 +200,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'T${widget.order.tableNumber}',
+                      widget.order.roomName!,
                       style: theme.typography.xs,
                     ),
                   ),

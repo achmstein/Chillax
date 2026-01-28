@@ -106,24 +106,11 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     children: [
                       // Error
                       if (state.error != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: theme.colors.destructive.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.warning, size: 18, color: theme.colors.destructive),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  state.error!,
-                                  style: theme.typography.sm.copyWith(color: theme.colors.destructive),
-                                ),
-                              ),
-                            ],
-                          ),
+                        FAlert(
+                          style: FAlertStyle.destructive(),
+                          icon: const Icon(Icons.warning),
+                          title: const Text('Error'),
+                          subtitle: Text(state.error!),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -863,7 +850,7 @@ class _AccountDetailSheetState extends ConsumerState<_AccountDetailSheet> {
   }
 
   void _showAddChargeToExisting(BuildContext context, CustomerAccount account) {
-    showDialog(
+    showAdaptiveDialog(
       context: context,
       builder: (ctx) => _AmountDialog(
         title: 'Add Charge',
@@ -874,7 +861,7 @@ class _AccountDetailSheetState extends ConsumerState<_AccountDetailSheet> {
   }
 
   void _showRecordPayment(BuildContext context, CustomerAccount account) {
-    showDialog(
+    showAdaptiveDialog(
       context: context,
       builder: (ctx) => _AmountDialog(
         title: 'Record Payment',
@@ -993,9 +980,10 @@ class _AmountDialogState extends ConsumerState<_AmountDialog> {
     final theme = context.theme;
     final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 2);
 
-    return AlertDialog(
+    return FDialog(
+      direction: Axis.horizontal,
       title: Text(widget.title),
-      content: Column(
+      body: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1015,8 +1003,18 @@ class _AmountDialogState extends ConsumerState<_AmountDialog> {
               prefixText: 'EGP ',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.colors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.colors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.colors.primary),
               ),
             ),
+            style: theme.typography.sm,
             autofocus: true,
           ),
           const SizedBox(height: 16),
@@ -1027,29 +1025,38 @@ class _AmountDialogState extends ConsumerState<_AmountDialog> {
               hintText: widget.isPayment ? 'e.g., Cash payment' : 'e.g., Remaining from session',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.colors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.colors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.colors.primary),
               ),
             ),
+            style: theme.typography.sm,
           ),
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
+        FButton(
+          style: FButtonStyle.outline(),
+          onPress: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _isSubmitting ? null : _submit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: widget.isPayment
-                ? const Color(0xFF22C55E)
-                : theme.colors.destructive,
-            foregroundColor: Colors.white,
-          ),
+        FButton(
+          style: widget.isPayment ? FButtonStyle.primary() : FButtonStyle.destructive(),
+          onPress: _isSubmitting ? null : _submit,
           child: _isSubmitting
-              ? const SizedBox(
+              ? SizedBox(
                   height: 20,
                   width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: theme.colors.primaryForeground,
+                  ),
                 )
               : Text(widget.isPayment ? 'Record Payment' : 'Add Charge'),
         ),

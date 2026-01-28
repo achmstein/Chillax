@@ -48,9 +48,9 @@ public static class OrdersApi
         [AsParameters] OrderServices services)
     {
         services.Logger.LogInformation(
-            "Creating order for user: {UserId}, Table: {TableNumber}",
+            "Creating order for user: {UserId}, Room: {RoomName}",
             request.UserId,
-            request.TableNumber);
+            request.RoomName);
 
         if (requestId == Guid.Empty)
         {
@@ -64,7 +64,7 @@ public static class OrdersApi
                 request.Items,
                 request.UserId,
                 request.UserName,
-                request.TableNumber,
+                request.RoomName,
                 request.CustomerNote,
                 request.PointsToRedeem);
 
@@ -185,7 +185,7 @@ public static class OrdersApi
 public record CreateOrderRequest(
     string UserId,
     string UserName,
-    int? TableNumber,
+    string? RoomName,
     string? CustomerNote,
     int PointsToRedeem,
     List<BasketItem> Items);

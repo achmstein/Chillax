@@ -22,7 +22,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
             OrderNumber = order.Id,
             Date = order.OrderDate,
             Description = order.Description,
-            TableNumber = order.TableNumber,
+            RoomName = order.RoomName,
             CustomerNote = order.CustomerNote,
             Status = order.OrderStatus.ToString(),
             Total = order.GetTotal(),
@@ -55,7 +55,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Date = o.OrderDate,
                 Status = o.OrderStatus.ToString(),
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
-                TableNumber = o.TableNumber
+                RoomName = o.RoomName
             })
             .ToListAsync();
 
@@ -79,7 +79,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Date = o.OrderDate,
                 Status = o.OrderStatus.ToString(),
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
-                TableNumber = o.TableNumber
+                RoomName = o.RoomName
             })
             .ToListAsync();
     }

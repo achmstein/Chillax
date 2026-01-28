@@ -74,24 +74,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     children: [
                       // Error
                       if (state.error != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: theme.colors.destructive.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.warning, size: 18, color: theme.colors.destructive),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  state.error!,
-                                  style: theme.typography.sm.copyWith(color: theme.colors.destructive),
-                                ),
-                              ),
-                            ],
-                          ),
+                        FAlert(
+                          style: FAlertStyle.destructive(),
+                          icon: const Icon(Icons.warning),
+                          title: const Text('Error'),
+                          subtitle: Text(state.error!),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -277,7 +264,7 @@ class _PendingOrderTile extends StatelessWidget {
                   ],
                 ),
               ),
-              if (order.tableNumber != null)
+              if (order.roomName != null)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -285,7 +272,7 @@ class _PendingOrderTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'Table ${order.tableNumber}',
+                    order.roomName!,
                     style: theme.typography.xs,
                   ),
                 ),

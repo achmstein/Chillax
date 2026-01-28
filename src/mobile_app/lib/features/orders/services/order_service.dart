@@ -50,7 +50,7 @@ class OrderService {
     required List<CartItem> items,
     required String userId,
     required String userName,
-    int? tableNumber,
+    String? roomName,
     String? customerNote,
     int pointsToRedeem = 0,
   }) async {
@@ -59,7 +59,7 @@ class OrderService {
       data: {
         'userId': userId,
         'userName': userName,
-        'tableNumber': tableNumber,
+        'roomName': roomName,
         'customerNote': customerNote,
         'pointsToRedeem': pointsToRedeem,
         'items': items.map((item) => item.toJson()).toList(),
@@ -235,7 +235,7 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
   /// Submit order
   Future<bool> submitOrder({
     required List<CartItem> items,
-    int? tableNumber,
+    String? roomName,
     String? customerNote,
     int pointsToRedeem = 0,
   }) async {
@@ -246,7 +246,7 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
         items: items,
         userId: _authState.userId ?? '',
         userName: _authState.name ?? 'Guest',
-        tableNumber: tableNumber,
+        roomName: roomName,
         customerNote: customerNote,
         pointsToRedeem: pointsToRedeem,
       );
