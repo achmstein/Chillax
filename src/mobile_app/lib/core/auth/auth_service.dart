@@ -2,9 +2,14 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../config/app_config.dart';
+
+/// Supported social login providers
+enum SocialProvider { google, facebook }
 
 /// Authentication state
 class AuthState {
@@ -52,12 +57,19 @@ class AuthState {
 }
 
 /// Authentication service using native OIDC with Resource Owner Password Credentials
+/// and native social login SDKs (Google Sign-In, Facebook Login)
 class AuthService extends Notifier<AuthState> {
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ));
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  // Native social login SDKs
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile', 'openid'],
+    serverClientId: AppConfig.googleServerClientId,
+  );
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
@@ -155,6 +167,96 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
+  /// Sign in with social provider using native SDKs (no browser)
+  Future<bool> signInWithProvider(SocialProvider provider) async {
+    debugPrint('Attempting native social sign in with: ${provider.name}');
+
+    try {
+      String? socialToken;
+      String providerAlias;
+
+      if (provider == SocialProvider.google) {
+        // Use native Google Sign-In
+        final googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          debugPrint('Google sign in cancelled by user');
+          return false;
+        }
+
+        final googleAuth = await googleUser.authentication;
+        socialToken = googleAuth.idToken;
+        providerAlias = 'google';
+        debugPrint('Google sign in successful, got ID token');
+      } else {
+        // Use native Facebook Login
+        final result = await FacebookAuth.instance.login(
+          permissions: ['email', 'public_profile'],
+        );
+
+        if (result.status != LoginStatus.success) {
+          debugPrint('Facebook sign in failed: ${result.status}');
+          return false;
+        }
+
+        socialToken = result.accessToken?.tokenString;
+        providerAlias = 'facebook';
+        debugPrint('Facebook sign in successful, got access token');
+      }
+
+      if (socialToken == null) {
+        debugPrint('No social token received');
+        return false;
+      }
+
+      // Exchange social token with Keycloak using token exchange grant
+      return await _exchangeSocialToken(socialToken, providerAlias);
+    } catch (e) {
+      debugPrint('Social sign in error: $e');
+      return false;
+    }
+  }
+
+  /// Exchange social provider token for Keycloak tokens
+  Future<bool> _exchangeSocialToken(String socialToken, String providerAlias) async {
+    debugPrint('Exchanging $providerAlias token with Keycloak');
+
+    try {
+      final response = await _dio.post(
+        _tokenEndpoint,
+        data: {
+          'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+          'client_id': AppConfig.clientId,
+          'subject_token': socialToken,
+          'subject_token_type': 'urn:ietf:params:oauth:token-type:access_token',
+          'subject_issuer': providerAlias,
+          'scope': AppConfig.scopes.join(' '),
+        },
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+        ),
+      );
+
+      debugPrint('Token exchange response status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = response.data;
+        await _saveTokens(
+          accessToken: data['access_token'],
+          refreshToken: data['refresh_token'],
+          idToken: data['id_token'],
+        );
+        return true;
+      }
+      return false;
+    } on DioException catch (e) {
+      debugPrint('Token exchange DioException: ${e.type} - ${e.message}');
+      debugPrint('Token exchange error response: ${e.response?.statusCode} - ${e.response?.data}');
+      return false;
+    } catch (e) {
+      debugPrint('Token exchange error: $e');
+      return false;
+    }
+  }
+
   /// Register a new user
   Future<bool> register(String name, String username, String email, String password) async {
     try {
@@ -185,6 +287,7 @@ class AuthService extends Notifier<AuthState> {
   /// Sign out
   Future<void> signOut() async {
     try {
+      // Sign out from Keycloak
       if (state.refreshToken != null) {
         await _dio.post(
           _logoutEndpoint,
@@ -197,6 +300,12 @@ class AuthService extends Notifier<AuthState> {
           ),
         );
       }
+
+      // Sign out from social providers
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.signOut();
+      }
+      await FacebookAuth.instance.logOut();
     } catch (e) {
       debugPrint('Sign out error: $e');
     } finally {

@@ -4,10 +4,24 @@ public interface IOrderQueries
 {
     Task<Order> GetOrderAsync(int id);
 
-    Task<IEnumerable<OrderSummary>> GetOrdersFromUserAsync(string userId);
+    Task<PaginatedResult<OrderSummary>> GetOrdersFromUserAsync(string userId, int pageIndex, int pageSize);
 
     /// <summary>
     /// Get all pending orders (Submitted status) for admin review
     /// </summary>
     Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync();
+}
+
+/// <summary>
+/// Paginated result wrapper
+/// </summary>
+public record PaginatedResult<T>
+{
+    public IEnumerable<T> Items { get; init; } = Enumerable.Empty<T>();
+    public int PageIndex { get; init; }
+    public int PageSize { get; init; }
+    public int TotalCount { get; init; }
+    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+    public bool HasNextPage => PageIndex < TotalPages - 1;
+    public bool HasPreviousPage => PageIndex > 0;
 }

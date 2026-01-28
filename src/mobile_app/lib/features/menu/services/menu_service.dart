@@ -89,6 +89,26 @@ class MenuService {
       data: request.toJson(),
     );
   }
+
+  /// Get user's favorite item IDs
+  Future<List<int>> getFavorites() async {
+    try {
+      final response = await _apiClient.get<List<dynamic>>('favorites');
+      return (response.data ?? []).map((e) => e as int).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Add an item to favorites
+  Future<void> addFavorite(int itemId) async {
+    await _apiClient.post('favorites/$itemId');
+  }
+
+  /// Remove an item from favorites
+  Future<void> removeFavorite(int itemId) async {
+    await _apiClient.delete('favorites/$itemId');
+  }
 }
 
 /// Provider for menu service

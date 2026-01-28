@@ -614,6 +614,69 @@
       }
     }
   ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "displayName": "Google",
+      "providerId": "google",
+      "enabled": true,
+      "updateProfileFirstLoginMode": "on",
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID:your-google-client-id}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET:your-google-client-secret}",
+        "useJwksUrl": "true",
+        "syncMode": "IMPORT",
+        "defaultScope": "openid profile email"
+      }
+    },
+    {
+      "alias": "facebook",
+      "displayName": "Facebook",
+      "providerId": "facebook",
+      "enabled": true,
+      "updateProfileFirstLoginMode": "on",
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${FACEBOOK_CLIENT_ID:your-facebook-app-id}",
+        "clientSecret": "${FACEBOOK_CLIENT_SECRET:your-facebook-app-secret}",
+        "syncMode": "IMPORT",
+        "defaultScope": "email public_profile"
+      }
+    }
+  ],
+  "identityProviderMappers": [
+    {
+      "name": "google-username-mapper",
+      "identityProviderAlias": "google",
+      "identityProviderMapper": "hardcoded-user-session-attribute-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "attribute.value": "google",
+        "attribute": "idp"
+      }
+    },
+    {
+      "name": "facebook-username-mapper",
+      "identityProviderAlias": "facebook",
+      "identityProviderMapper": "hardcoded-user-session-attribute-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "attribute.value": "facebook",
+        "attribute": "idp"
+      }
+    }
+  ],
   "browserSecurityHeaders": {
     "contentSecurityPolicyReportOnly": "",
     "xContentTypeOptions": "nosniff",

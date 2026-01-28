@@ -58,13 +58,6 @@ public static class LoyaltyApi
             .WithTags("Transactions")
             .RequireAuthorization();
 
-        api.MapPost("/transactions/redeem", RedeemPoints)
-            .WithName("RedeemPoints")
-            .WithSummary("Redeem points")
-            .WithDescription("Redeem points from a user's account")
-            .WithTags("Transactions")
-            .RequireAuthorization();
-
         api.MapPost("/transactions/adjust", AdjustPoints)
             .WithName("AdjustPoints")
             .WithSummary("Adjust points")
@@ -226,33 +219,6 @@ public static class LoyaltyApi
         }
     }
 
-    public static async Task<Results<Ok<TransactionDto>, NotFound, BadRequest<ProblemDetails>>> RedeemPoints(
-        LoyaltyContext context,
-        RedeemPointsRequest request)
-    {
-        var account = await context.Accounts
-            .Include(a => a.Transactions)
-            .FirstOrDefaultAsync(a => a.UserId == request.UserId);
-
-        if (account == null)
-        {
-            return TypedResults.NotFound();
-        }
-
-        try
-        {
-            account.RedeemPoints(request.Points, request.Description, request.ReferenceId);
-            await context.SaveChangesAsync();
-
-            var transaction = account.Transactions.OrderByDescending(t => t.CreatedAt).First();
-            return TypedResults.Ok(new TransactionDto(transaction));
-        }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
-        {
-            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
-        }
-    }
-
     public static async Task<Results<Ok<TransactionDto>, NotFound, BadRequest<ProblemDetails>>> AdjustPoints(
         LoyaltyContext context,
         AdjustPointsRequest request)
@@ -337,7 +303,6 @@ public static class LoyaltyApi
 // DTOs
 public record CreateAccountRequest(string UserId);
 public record EarnPointsRequest(string UserId, int Points, string Type, string Description, string? ReferenceId = null);
-public record RedeemPointsRequest(string UserId, int Points, string Description, string? ReferenceId = null);
 public record AdjustPointsRequest(string UserId, int Points, string Reason);
 
 public record AccountDto(

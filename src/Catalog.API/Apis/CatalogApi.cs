@@ -150,6 +150,28 @@ public static class CatalogApi
             .WithTags("Preferences")
             .RequireAuthorization();
 
+        // Favorites endpoints
+        api.MapGet("/favorites", GetUserFavorites)
+            .WithName("GetUserFavorites")
+            .WithSummary("Get user's favorite items")
+            .WithDescription("Get the list of catalog item IDs that the user has favorited")
+            .WithTags("Favorites")
+            .RequireAuthorization();
+
+        api.MapPost("/favorites/{catalogItemId:int}", AddFavorite)
+            .WithName("AddFavorite")
+            .WithSummary("Add item to favorites")
+            .WithDescription("Add a catalog item to the user's favorites")
+            .WithTags("Favorites")
+            .RequireAuthorization();
+
+        api.MapDelete("/favorites/{catalogItemId:int}", RemoveFavorite)
+            .WithName("RemoveFavorite")
+            .WithSummary("Remove item from favorites")
+            .WithDescription("Remove a catalog item from the user's favorites")
+            .WithTags("Favorites")
+            .RequireAuthorization();
+
         return app;
     }
 
@@ -683,6 +705,88 @@ public static class CatalogApi
         }
 
         await services.Context.SaveChangesAsync();
+        return TypedResults.Ok();
+    }
+
+    // Favorites handlers
+    public static async Task<Ok<List<int>>> GetUserFavorites(
+        [AsParameters] CatalogServices services,
+        ClaimsPrincipal user)
+    {
+        var userId = user.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return TypedResults.Ok(new List<int>());
+        }
+
+        var favoriteIds = await services.Context.UserItemFavorites
+            .Where(f => f.UserId == userId)
+            .OrderByDescending(f => f.AddedAt)
+            .Select(f => f.CatalogItemId)
+            .ToListAsync();
+
+        return TypedResults.Ok(favoriteIds);
+    }
+
+    public static async Task<Results<Ok, NotFound>> AddFavorite(
+        [AsParameters] CatalogServices services,
+        ClaimsPrincipal user,
+        [Description("The catalog item id to add to favorites")] int catalogItemId)
+    {
+        var userId = user.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return TypedResults.NotFound();
+        }
+
+        // Check if item exists
+        var itemExists = await services.Context.CatalogItems.AnyAsync(i => i.Id == catalogItemId);
+        if (!itemExists)
+        {
+            return TypedResults.NotFound();
+        }
+
+        // Check if already favorited
+        var existingFavorite = await services.Context.UserItemFavorites
+            .FirstOrDefaultAsync(f => f.UserId == userId && f.CatalogItemId == catalogItemId);
+
+        if (existingFavorite == null)
+        {
+            var favorite = new Model.UserItemFavorite
+            {
+                UserId = userId,
+                CatalogItemId = catalogItemId,
+                AddedAt = DateTime.UtcNow
+            };
+            services.Context.UserItemFavorites.Add(favorite);
+            await services.Context.SaveChangesAsync();
+        }
+
+        return TypedResults.Ok();
+    }
+
+    public static async Task<Results<Ok, NotFound>> RemoveFavorite(
+        [AsParameters] CatalogServices services,
+        ClaimsPrincipal user,
+        [Description("The catalog item id to remove from favorites")] int catalogItemId)
+    {
+        var userId = user.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return TypedResults.NotFound();
+        }
+
+        var favorite = await services.Context.UserItemFavorites
+            .FirstOrDefaultAsync(f => f.UserId == userId && f.CatalogItemId == catalogItemId);
+
+        if (favorite == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        services.Context.UserItemFavorites.Remove(favorite);
+        await services.Context.SaveChangesAsync();
+
         return TypedResults.Ok();
     }
 }

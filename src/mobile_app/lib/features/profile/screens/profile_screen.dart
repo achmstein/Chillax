@@ -3,17 +3,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/config/app_config.dart';
 import '../widgets/balance_card.dart';
+import '../widgets/loyalty_card.dart';
+import '../providers/loyalty_provider.dart';
 
 /// User profile screen - minimalistic design
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadLoyaltyInfo();
+    });
+  }
+
+  void _loadLoyaltyInfo() {
+    final authState = ref.read(authServiceProvider);
+    if (authState.isAuthenticated) {
+      ref.read(loyaltyProvider.notifier).loadLoyaltyInfo();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authServiceProvider);
+    final loyaltyState = ref.watch(loyaltyProvider);
+    final colors = context.theme.colors;
 
     return Column(
       children: [
@@ -50,7 +73,7 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     authState.email!,
-                    style: TextStyle(color: AppTheme.textSecondary),
+                    style: TextStyle(color: colors.mutedForeground),
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -58,7 +81,22 @@ class ProfileScreen extends ConsumerWidget {
                 // Balance card (only shown when customer has balance)
                 if (authState.isAuthenticated) const BalanceCard(),
 
-                const SizedBox(height: 8),
+                // Loyalty card
+                if (authState.isAuthenticated) ...[
+                  if (loyaltyState.isLoading && loyaltyState.loyaltyInfo == null)
+                    const LoyaltyLoadingCard()
+                  else if (loyaltyState.loyaltyInfo != null)
+                    LoyaltyCard(
+                      loyaltyInfo: loyaltyState.loyaltyInfo!,
+                      onTap: () => context.push('/loyalty'),
+                    )
+                  else
+                    LoyaltyEmptyCard(
+                      isLoading: loyaltyState.isLoading,
+                      onJoin: () => ref.read(loyaltyProvider.notifier).joinLoyaltyProgram(),
+                    ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Menu items using FTile
                 FTileGroup(
@@ -67,9 +105,7 @@ class ProfileScreen extends ConsumerWidget {
                       prefix: const Icon(FIcons.receipt),
                       title: const Text('Order History'),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () {
-                        // Navigate to orders
-                      },
+                      onPress: () => context.go('/orders'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.gamepad2),
@@ -81,9 +117,7 @@ class ProfileScreen extends ConsumerWidget {
                       prefix: const Icon(FIcons.heart),
                       title: const Text('Favorites'),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () {
-                        // TODO: Implement favorites
-                      },
+                      onPress: () => context.push('/favorites'),
                     ),
                   ],
                 ),
@@ -96,21 +130,19 @@ class ProfileScreen extends ConsumerWidget {
                       prefix: const Icon(FIcons.settings),
                       title: const Text('Settings'),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () {
-                        // TODO: Implement settings
-                      },
+                      onPress: () => context.push('/settings'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.lifeBuoy),
                       title: const Text('Help & Support'),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () => _showHelpDialog(context),
+                      onPress: () => _showHelpSheet(context),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.info),
                       title: const Text('About'),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () => _showAboutDialog(context),
+                      onPress: () => _showAboutSheet(context),
                     ),
                   ],
                 ),
@@ -123,7 +155,7 @@ class ProfileScreen extends ConsumerWidget {
                   child: authState.isAuthenticated
                       ? FButton(
                           style: FButtonStyle.destructive(),
-                          onPress: () => _handleSignOut(context, ref),
+                          onPress: () => _handleSignOut(context),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -134,7 +166,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         )
                       : FButton(
-                          onPress: () => _handleSignIn(context, ref),
+                          onPress: () => _handleSignIn(context),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -152,7 +184,7 @@ class ProfileScreen extends ConsumerWidget {
                 Text(
                   'Version ${AppConfig.appVersion}',
                   style: TextStyle(
-                    color: AppTheme.textMuted,
+                    color: colors.mutedForeground,
                     fontSize: 12,
                   ),
                 ),
@@ -164,7 +196,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _handleSignOut(BuildContext context, WidgetRef ref) {
+  void _handleSignOut(BuildContext context) {
     showFDialog(
       context: context,
       builder: (context, style, animation) => FDialog(
@@ -192,85 +224,271 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _handleSignIn(BuildContext context, WidgetRef ref) {
+  void _handleSignIn(BuildContext context) {
     context.go('/login');
   }
 
-  void _showHelpDialog(BuildContext context) {
-    showFDialog(
+  void _showHelpSheet(BuildContext context) {
+    showModalBottomSheet(
       context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style.call,
-        animation: animation,
-        title: const Text('Help & Support'),
-        body: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Need help? Contact us:'),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(FIcons.mail, size: 20, color: AppTheme.textSecondary),
-                const SizedBox(width: 8),
-                const Text('support@chillax.com'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(FIcons.phone, size: 20, color: AppTheme.textSecondary),
-                const SizedBox(width: 8),
-                const Text('+1 (555) 123-4567'),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          FButton(
-            onPress: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) => const _HelpSupportSheet(),
     );
   }
 
-  void _showAboutDialog(BuildContext context) {
-    showFDialog(
+  void _showAboutSheet(BuildContext context) {
+    showModalBottomSheet(
       context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style.call,
-        animation: animation,
-        title: Row(
-          children: [
-            Icon(FIcons.coffee, color: AppTheme.primaryColor),
-            const SizedBox(width: 8),
-            const Text('Chillax'),
-          ],
-        ),
-        body: Column(
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) => const _AboutSheet(),
+    );
+  }
+}
+
+/// Bottom sheet for Help & Support
+class _HelpSupportSheet extends StatelessWidget {
+  const _HelpSupportSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.colors;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Cafe & Gaming'),
-            const SizedBox(height: 16),
-            const Text(
-              'Order delicious food & drinks, or reserve a PlayStation room for an amazing gaming experience.',
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colors.mutedForeground,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Version ${AppConfig.appVersion}',
-              style: TextStyle(color: AppTheme.textMuted),
+
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Help & Support',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: colors.foreground,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
+                  ),
+                ],
+              ),
             ),
+
+            Divider(height: 1, color: colors.border),
+
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Need help? Contact us:',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: colors.foreground,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _ContactRow(
+                    icon: FIcons.mail,
+                    text: 'support@chillax.com',
+                    colors: colors,
+                  ),
+                  const SizedBox(height: 12),
+                  _ContactRow(
+                    icon: FIcons.phone,
+                    text: '0100 469 8 469',
+                    colors: colors,
+                  ),
+                  const SizedBox(height: 12),
+                  _ContactRow(
+                    icon: FIcons.clock,
+                    text: 'Mon-Sun: 10:00 AM - 11:00 PM',
+                    colors: colors,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
           ],
         ),
-        actions: [
-          FButton(
-            onPress: () => Navigator.pop(context),
-            child: const Text('Close'),
+      ),
+    );
+  }
+}
+
+class _ContactRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final dynamic colors;
+
+  const _ContactRow({
+    required this.icon,
+    required this.text,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: colors.muted,
+            borderRadius: BorderRadius.circular(10),
           ),
-        ],
+          child: Icon(icon, size: 20, color: colors.mutedForeground),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 15,
+            color: colors.foreground,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Bottom sheet for About
+class _AboutSheet extends StatelessWidget {
+  const _AboutSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.colors;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colors.mutedForeground,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'About',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: colors.foreground,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
+                  ),
+                ],
+              ),
+            ),
+
+            Divider(height: 1, color: colors.border),
+
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Logo
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 180,
+                    color: colors.foreground,
+                    filterQuality: FilterQuality.high,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Cafe & Gaming',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colors.mutedForeground,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Order delicious food & drinks, or reserve a PlayStation room for an amazing gaming experience.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colors.mutedForeground,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colors.muted,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Version ${AppConfig.appVersion}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colors.mutedForeground,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../auth/auth_service.dart';
-import '../theme/app_theme.dart';
 import '../../features/menu/screens/menu_screen.dart';
 import '../../features/cart/screens/cart_screen.dart';
 import '../../features/orders/screens/orders_screen.dart';
@@ -10,6 +10,11 @@ import '../../features/rooms/screens/rooms_screen.dart';
 import '../../features/rooms/screens/sessions_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/transactions_screen.dart';
+import '../../features/profile/screens/favorites_screen.dart';
+import '../../features/profile/screens/loyalty_screen.dart';
+import '../../features/settings/screens/settings_screen.dart';
+import '../../features/settings/screens/change_password_screen.dart';
+import '../../features/settings/screens/update_email_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../widgets/main_scaffold.dart';
@@ -20,20 +25,47 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colors.background,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Cup icon
+            Image.asset(
+              'assets/images/cup.png',
+              width: 120,
+              height: 120,
+              color: colors.foreground,
+              filterQuality: FilterQuality.high,
+            ),
+            const SizedBox(height: 24),
+            // Text logo
             Image.asset(
               'assets/images/logo.png',
-              width: 150,
-              height: 150,
+              width: 200,
+              filterQuality: FilterQuality.high,
+              color: colors.foreground,
             ),
-            const SizedBox(height: 32),
-            CircularProgressIndicator(
-              color: AppTheme.primaryColor,
+            const SizedBox(height: 8),
+            Text(
+              'Cafe & Gaming',
+              style: TextStyle(
+                fontSize: 16,
+                color: colors.mutedForeground,
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 48),
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: colors.primary,
+                strokeWidth: 2.5,
+              ),
             ),
           ],
         ),
@@ -101,19 +133,161 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Cart route (separate from shell for push navigation)
       GoRoute(
         path: '/cart',
-        builder: (context, state) => const CartScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const CartScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
       ),
 
       // Sessions route (separate from shell for push navigation)
       GoRoute(
         path: '/sessions',
-        builder: (context, state) => const SessionsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const SessionsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
       ),
 
       // Transactions route (separate from shell for push navigation)
       GoRoute(
         path: '/transactions',
-        builder: (context, state) => const TransactionsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const TransactionsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      // Favorites route (separate from shell for push navigation)
+      GoRoute(
+        path: '/favorites',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const FavoritesScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      // Loyalty route (separate from shell for push navigation)
+      GoRoute(
+        path: '/loyalty',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const LoyaltyScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      // Settings route (separate from shell for push navigation)
+      GoRoute(
+        path: '/settings',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const SettingsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      // Change password route
+      GoRoute(
+        path: '/settings/change-password',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const ChangePasswordScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      // Update email route
+      GoRoute(
+        path: '/settings/update-email',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const UpdateEmailScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
       ),
 
       // Main shell with bottom navigation

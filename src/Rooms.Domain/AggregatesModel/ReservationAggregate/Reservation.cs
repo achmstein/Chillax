@@ -295,11 +295,15 @@ public class Reservation : Entity, IAggregateRoot
     }
 
     /// <summary>
-    /// Generate a new 6-digit access code for the session
+    /// Generate a new 6-digit access code for the session (format: AABBCC like 668899)
     /// </summary>
     public void GenerateAccessCode()
     {
-        AccessCode = Random.Shared.Next(100000, 999999).ToString();
+        // Generate 3 random digits for the pairs
+        var d1 = Random.Shared.Next(1, 10); // 1-9 to avoid leading zero
+        var d2 = Random.Shared.Next(0, 10); // 0-9
+        var d3 = Random.Shared.Next(0, 10); // 0-9
+        AccessCode = $"{d1}{d1}{d2}{d2}{d3}{d3}";
         AccessCodeGeneratedAt = DateTime.UtcNow;
     }
 

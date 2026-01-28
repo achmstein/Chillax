@@ -16,15 +16,20 @@ class OrderService {
 
   OrderService(this._apiClient);
 
-  /// Get user's orders
-  Future<List<Order>> getOrders() async {
-    final response = await _apiClient.get<List<dynamic>>(
+  /// Get user's orders with pagination
+  Future<PaginatedOrders> getOrders({int pageIndex = 0, int pageSize = 10}) async {
+    final response = await _apiClient.get<Map<String, dynamic>>(
       '',
+      queryParameters: {
+        'pageIndex': pageIndex,
+        'pageSize': pageSize,
+      },
     );
 
-    return (response.data ?? [])
-        .map((e) => Order.fromJson(e as Map<String, dynamic>))
-        .toList();
+    if (response.data == null) {
+      throw Exception('Failed to load orders');
+    }
+    return PaginatedOrders.fromJson(response.data!);
   }
 
   /// Get order by ID
@@ -33,30 +38,35 @@ class OrderService {
       '$id',
     );
 
+    if (response.data == null) {
+      throw Exception('Order not found');
+    }
     return Order.fromJson(response.data!);
   }
 
   /// Create new order from cart
-  Future<Order> createOrder({
+  /// Returns void - the backend returns 200 OK with no body on success
+  Future<void> createOrder({
     required List<CartItem> items,
     required String userId,
     required String userName,
     int? tableNumber,
     String? customerNote,
+    int pointsToRedeem = 0,
   }) async {
-    final response = await _apiClient.post<Map<String, dynamic>>(
+    await _apiClient.post<void>(
       '',
       data: {
         'userId': userId,
         'userName': userName,
         'tableNumber': tableNumber,
         'customerNote': customerNote,
+        'pointsToRedeem': pointsToRedeem,
         'items': items.map((item) => item.toJson()).toList(),
       },
       headers: {'x-requestid': _uuid.v4()},
     );
-
-    return Order.fromJson(response.data!);
+    // Success if no exception thrown - API returns 200 OK with empty body
   }
 
   /// Cancel order
@@ -71,11 +81,109 @@ final orderServiceProvider = Provider<OrderService>((ref) {
   return OrderService(apiClient);
 });
 
-/// Provider for user's orders
-final ordersProvider = FutureProvider<List<Order>>((ref) async {
-  final service = ref.watch(orderServiceProvider);
-  return service.getOrders();
-});
+/// Orders list state
+class OrdersState {
+  final List<Order> orders;
+  final bool isLoading;
+  final bool isLoadingMore;
+  final bool hasMore;
+  final int currentPage;
+  final String? error;
+
+  const OrdersState({
+    this.orders = const [],
+    this.isLoading = false,
+    this.isLoadingMore = false,
+    this.hasMore = true,
+    this.currentPage = 0,
+    this.error,
+  });
+
+  OrdersState copyWith({
+    List<Order>? orders,
+    bool? isLoading,
+    bool? isLoadingMore,
+    bool? hasMore,
+    int? currentPage,
+    String? error,
+  }) {
+    return OrdersState(
+      orders: orders ?? this.orders,
+      isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasMore: hasMore ?? this.hasMore,
+      currentPage: currentPage ?? this.currentPage,
+      error: error,
+    );
+  }
+}
+
+/// Orders notifier with pagination support
+class OrdersNotifier extends Notifier<OrdersState> {
+  static const _pageSize = 10;
+
+  @override
+  OrdersState build() {
+    // Load initial data
+    Future.microtask(() => loadOrders());
+    return const OrdersState(isLoading: true);
+  }
+
+  /// Load orders (initial load or refresh)
+  Future<void> loadOrders() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final service = ref.read(orderServiceProvider);
+      final result = await service.getOrders(pageIndex: 0, pageSize: _pageSize);
+
+      state = state.copyWith(
+        orders: result.items,
+        isLoading: false,
+        hasMore: result.hasNextPage,
+        currentPage: 0,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Load more orders (pagination)
+  Future<void> loadMore() async {
+    if (state.isLoadingMore || !state.hasMore) return;
+
+    state = state.copyWith(isLoadingMore: true);
+
+    try {
+      final service = ref.read(orderServiceProvider);
+      final nextPage = state.currentPage + 1;
+      final result = await service.getOrders(pageIndex: nextPage, pageSize: _pageSize);
+
+      state = state.copyWith(
+        orders: [...state.orders, ...result.items],
+        isLoadingMore: false,
+        hasMore: result.hasNextPage,
+        currentPage: nextPage,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingMore: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Refresh orders
+  Future<void> refresh() async {
+    await loadOrders();
+  }
+}
+
+/// Provider for user's orders with pagination
+final ordersProvider = NotifierProvider<OrdersNotifier, OrdersState>(OrdersNotifier.new);
 
 /// Provider for single order
 final orderProvider = FutureProvider.family<Order, int>((ref, id) async {
@@ -129,16 +237,18 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
     required List<CartItem> items,
     int? tableNumber,
     String? customerNote,
+    int pointsToRedeem = 0,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final order = await _orderService.createOrder(
+      await _orderService.createOrder(
         items: items,
         userId: _authState.userId ?? '',
         userName: _authState.name ?? 'Guest',
         tableNumber: tableNumber,
         customerNote: customerNote,
+        pointsToRedeem: pointsToRedeem,
       );
 
       // Save user preferences for items with customizations
@@ -147,7 +257,10 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
       // Clear cart on success
       _cartNotifier.clear();
 
-      state = state.copyWith(isLoading: false, order: order);
+      // Refresh orders so the new order appears when navigating to orders page
+      ref.read(ordersProvider.notifier).refresh();
+
+      state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
       state = state.copyWith(

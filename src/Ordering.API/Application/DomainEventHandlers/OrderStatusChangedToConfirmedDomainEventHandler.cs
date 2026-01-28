@@ -51,7 +51,8 @@ public class OrderStatusChangedToConfirmedDomainEventHandler
             buyer.Name,
             buyer.IdentityGuid,
             order.TableNumber,
-            order.GetTotal());
+            order.GetTotal(),
+            order.PointsToRedeem);
 
         await _orderingIntegrationEventService.AddAndSaveEventAsync(integrationEvent);
     }

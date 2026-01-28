@@ -84,6 +84,19 @@ public static class NotificationApi
             .WithDescription("Mark request as completed")
             .WithTags("Service Requests");
 
+        // Notification preferences endpoints
+        api.MapGet("/preferences", GetNotificationPreferences)
+            .WithName("GetNotificationPreferences")
+            .WithSummary("Get notification preferences")
+            .WithDescription("Get the current user's notification preferences")
+            .WithTags("Preferences");
+
+        api.MapPut("/preferences", UpdateNotificationPreferences)
+            .WithName("UpdateNotificationPreferences")
+            .WithSummary("Update notification preferences")
+            .WithDescription("Update the current user's notification preferences")
+            .WithTags("Preferences");
+
         return app;
     }
 
@@ -408,6 +421,69 @@ public static class NotificationApi
             request.Status,
             request.CreatedAt));
     }
+
+    // Notification preferences handlers
+    public static async Task<Ok<NotificationPreferencesResponse>> GetNotificationPreferences(
+        NotificationContext context,
+        ClaimsPrincipal user)
+    {
+        var userId = user.GetUserId()!;
+
+        var preferences = await context.Preferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (preferences == null)
+        {
+            // Return default preferences if none exist
+            return TypedResults.Ok(new NotificationPreferencesResponse(
+                OrderStatusUpdates: true,
+                PromotionsAndOffers: true,
+                SessionReminders: true));
+        }
+
+        return TypedResults.Ok(new NotificationPreferencesResponse(
+            preferences.OrderStatusUpdates,
+            preferences.PromotionsAndOffers,
+            preferences.SessionReminders));
+    }
+
+    public static async Task<Ok> UpdateNotificationPreferences(
+        NotificationContext context,
+        ClaimsPrincipal user,
+        UpdateNotificationPreferencesRequest request)
+    {
+        var userId = user.GetUserId()!;
+
+        var preferences = await context.Preferences
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (preferences == null)
+        {
+            // Create new preferences
+            preferences = new NotificationPreferences
+            {
+                UserId = userId,
+                OrderStatusUpdates = request.OrderStatusUpdates,
+                PromotionsAndOffers = request.PromotionsAndOffers,
+                SessionReminders = request.SessionReminders,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            context.Preferences.Add(preferences);
+        }
+        else
+        {
+            // Update existing preferences
+            preferences.OrderStatusUpdates = request.OrderStatusUpdates;
+            preferences.PromotionsAndOffers = request.PromotionsAndOffers;
+            preferences.SessionReminders = request.SessionReminders;
+            preferences.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await context.SaveChangesAsync();
+
+        return TypedResults.Ok();
+    }
 }
 
 public record SubscribeRequest(
@@ -435,4 +511,16 @@ public record ServiceRequestResponse(
     ServiceRequestType RequestType,
     ServiceRequestStatus Status,
     DateTime CreatedAt
+);
+
+public record NotificationPreferencesResponse(
+    bool OrderStatusUpdates,
+    bool PromotionsAndOffers,
+    bool SessionReminders
+);
+
+public record UpdateNotificationPreferencesRequest(
+    [property: Description("Receive notifications when order status changes")] bool OrderStatusUpdates,
+    [property: Description("Receive promotional offers and discounts")] bool PromotionsAndOffers,
+    [property: Description("Receive reminders before gaming sessions")] bool SessionReminders
 );

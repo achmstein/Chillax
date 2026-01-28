@@ -32,6 +32,12 @@ public class CreateOrderCommand : IRequest<bool>
     [DataMember]
     public string? CustomerNote { get; private set; }
 
+    /// <summary>
+    /// Loyalty points to redeem for this order
+    /// </summary>
+    [DataMember]
+    public int PointsToRedeem { get; private set; }
+
     [DataMember]
     public IEnumerable<OrderItemDTO> OrderItems => _orderItems;
 
@@ -45,12 +51,14 @@ public class CreateOrderCommand : IRequest<bool>
         string userId,
         string userName,
         int? tableNumber = null,
-        string? customerNote = null)
+        string? customerNote = null,
+        int pointsToRedeem = 0)
     {
         _orderItems = basketItems.ToOrderItemsDTO().ToList();
         UserId = userId;
         UserName = userName;
         TableNumber = tableNumber;
         CustomerNote = customerNote;
+        PointsToRedeem = pointsToRedeem;
     }
 }

@@ -1,10 +1,12 @@
 import { ordersApi } from '@/lib/api-client'
-import type { Order, OrderSummary } from '../types'
+import type { Order, OrderSummary, PaginatedResult } from '../types'
 
 export const ordersService = {
-  // Get all orders for the current user (admin sees all)
-  async getOrders(): Promise<OrderSummary[]> {
-    const response = await ordersApi.get<OrderSummary[]>('/api/orders')
+  // Get all orders with pagination
+  async getOrders(pageIndex = 0, pageSize = 20): Promise<PaginatedResult<OrderSummary>> {
+    const response = await ordersApi.get<PaginatedResult<OrderSummary>>('/api/orders', {
+      params: { pageIndex, pageSize }
+    })
     return response.data
   },
 

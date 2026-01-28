@@ -47,6 +47,7 @@
 		<true/>
 		<key>CFBundleURLTypes</key>
 		<array>
+			<!-- Deep link URL scheme -->
 			<dict>
 				<key>CFBundleTypeRole</key>
 				<string>Editor</string>
@@ -57,6 +58,45 @@
 					<string>com.chillax.app</string>
 				</array>
 			</dict>
+			<!-- Google Sign-In URL scheme -->
+			<!-- Replace YOUR_IOS_CLIENT_ID with your Google iOS Client ID (reversed) -->
+			<!-- Example: If client ID is 123456789-abc.apps.googleusercontent.com -->
+			<!-- Then use: com.googleusercontent.apps.123456789-abc -->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+				</array>
+			</dict>
+			<!-- Facebook Login URL scheme -->
+			<!-- Replace YOUR_FACEBOOK_APP_ID with your Facebook App ID -->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>fbYOUR_FACEBOOK_APP_ID</string>
+				</array>
+			</dict>
+		</array>
+		<!-- Facebook Login Configuration -->
+		<!-- Replace YOUR_FACEBOOK_APP_ID with your Facebook App ID -->
+		<key>FacebookAppID</key>
+		<string>YOUR_FACEBOOK_APP_ID</string>
+		<!-- Replace YOUR_FACEBOOK_CLIENT_TOKEN with your Facebook Client Token -->
+		<key>FacebookClientToken</key>
+		<string>YOUR_FACEBOOK_CLIENT_TOKEN</string>
+		<key>FacebookDisplayName</key>
+		<string>Chillax</string>
+		<!-- Required for Facebook Login to check if Facebook app is installed -->
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>fbapi</string>
+			<string>fb-messenger-share-api</string>
+			<string>fbauth2</string>
+			<string>fbshareextension</string>
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>

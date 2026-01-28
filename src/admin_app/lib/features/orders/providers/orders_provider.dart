@@ -45,21 +45,19 @@ class OrdersNotifier extends Notifier<OrdersState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _api.get('');
-      final data = response.data as List<dynamic>;
-      final orders = data
+      // Use /pending endpoint to get all pending orders for admin management
+      final response = await _api.get('pending');
+      // Backend returns a list of pending orders
+      final itemsList = response.data as List<dynamic>;
+      final orders = itemsList
           .map((e) => Order.fromJson(e as Map<String, dynamic>))
-          .toList()
-        ..sort((a, b) => b.date.compareTo(a.date));
-
-      final pending = orders
-          .where((o) => o.status == OrderStatus.submitted)
           .toList();
+      orders.sort((a, b) => b.date.compareTo(a.date));
 
       state = state.copyWith(
         isLoading: false,
         orders: orders,
-        pendingOrders: pending,
+        pendingOrders: orders, // All returned orders are pending
       );
     } catch (e) {
       state = state.copyWith(
@@ -71,7 +69,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   Future<bool> confirmOrder(int orderId) async {
     try {
-      await _api.put('$orderId/confirm');
+      await _api.put('confirm', data: {'orderNumber': orderId});
       await loadOrders();
       return true;
     } catch (e) {
@@ -82,7 +80,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   Future<bool> cancelOrder(int orderId) async {
     try {
-      await _api.put('$orderId/cancel');
+      await _api.put('cancel', data: {'orderNumber': orderId});
       await loadOrders();
       return true;
     } catch (e) {
@@ -94,3 +92,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
 /// Orders provider
 final ordersProvider = NotifierProvider<OrdersNotifier, OrdersState>(OrdersNotifier.new);
+
+/// Provider for fetching single order details
+final orderDetailsProvider = FutureProvider.family<Order, int>((ref, orderId) async {
+  final api = ref.read(ordersApiProvider);
+  final response = await api.get('$orderId');
+  return Order.fromJson(response.data as Map<String, dynamic>);
+});

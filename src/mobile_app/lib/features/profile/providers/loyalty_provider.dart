@@ -103,6 +103,53 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
       loadRecentTransactions(),
     ]);
   }
+
+  Future<bool> joinLoyaltyProgram() async {
+    if (!_authState.isAuthenticated || _authState.userId == null) {
+      return false;
+    }
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      await _api.post(
+        '/accounts',
+        data: {'userId': _authState.userId},
+      );
+
+      // Reload the loyalty info after joining
+      await loadLoyaltyInfo();
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to join loyalty program',
+      );
+      return false;
+    }
+  }
+
+  /// Calculate discount from points (100 points = £1)
+  static const int pointsPerPound = 100;
+
+  /// Get maximum points that can be redeemed for a given order total
+  int getMaxRedeemablePoints(double orderTotal) {
+    final loyaltyInfo = state.loyaltyInfo;
+    if (loyaltyInfo == null) return 0;
+
+    // Max points based on order total (can't discount more than order value)
+    final maxPointsForOrder = (orderTotal * pointsPerPound).floor();
+
+    // Return the lesser of available points or max for order
+    return loyaltyInfo.pointsBalance < maxPointsForOrder
+        ? loyaltyInfo.pointsBalance
+        : maxPointsForOrder;
+  }
+
+  /// Convert points to discount amount
+  static double pointsToDiscount(int points) {
+    return points / pointsPerPound;
+  }
 }
 
 /// Loyalty provider

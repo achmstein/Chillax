@@ -102,3 +102,8 @@ final accountsApiProvider = Provider<ApiClient>((ref) {
   final authService = ref.read(authServiceProvider.notifier);
   return ApiClient(authService, baseUrl: AppConfig.accountsApiUrl);
 });
+
+final identityApiProvider = Provider<ApiClient>((ref) {
+  final authService = ref.read(authServiceProvider.notifier);
+  return ApiClient(authService, baseUrl: AppConfig.identityApiUrl);
+});

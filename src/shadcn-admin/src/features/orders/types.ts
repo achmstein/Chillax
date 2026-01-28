@@ -37,3 +37,13 @@ export interface PendingOrder extends OrderSummary {
   customerNote?: string
   itemCount: number
 }
+
+export interface PaginatedResult<T> {
+  items: T[]
+  pageIndex: number
+  pageSize: number
+  totalCount: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}

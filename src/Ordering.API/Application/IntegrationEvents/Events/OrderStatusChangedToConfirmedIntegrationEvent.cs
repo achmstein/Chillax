@@ -12,9 +12,10 @@ public record OrderStatusChangedToConfirmedIntegrationEvent : IntegrationEvent
     public string BuyerIdentityGuid { get; }
     public int? TableNumber { get; }
     public decimal OrderTotal { get; }
+    public int PointsToRedeem { get; }
 
     public OrderStatusChangedToConfirmedIntegrationEvent(
-        int orderId, OrderStatus orderStatus, string buyerName, string buyerIdentityGuid, int? tableNumber, decimal orderTotal)
+        int orderId, OrderStatus orderStatus, string buyerName, string buyerIdentityGuid, int? tableNumber, decimal orderTotal, int pointsToRedeem = 0)
     {
         OrderId = orderId;
         OrderStatus = orderStatus;
@@ -22,5 +23,6 @@ public record OrderStatusChangedToConfirmedIntegrationEvent : IntegrationEvent
         BuyerIdentityGuid = buyerIdentityGuid;
         TableNumber = tableNumber;
         OrderTotal = orderTotal;
+        PointsToRedeem = pointsToRedeem;
     }
 }

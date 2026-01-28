@@ -115,6 +115,9 @@ namespace Ordering.Infrastructure.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
+                    b.Property<int>("PointsToRedeem")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("TableNumber")
                         .HasColumnType("integer");
 
@@ -137,6 +140,9 @@ namespace Ordering.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "orderitemseq");
 
+                    b.Property<string>("CustomizationsDescription")
+                        .HasColumnType("text");
+
                     b.Property<decimal>("Discount")
                         .HasColumnType("numeric");
 
@@ -144,6 +150,7 @@ namespace Ordering.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("PictureUrl")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ProductId")
@@ -151,6 +158,9 @@ namespace Ordering.Infrastructure.Migrations
 
                     b.Property<string>("ProductName")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SpecialInstructions")
                         .HasColumnType("text");
 
                     b.Property<decimal>("UnitPrice")

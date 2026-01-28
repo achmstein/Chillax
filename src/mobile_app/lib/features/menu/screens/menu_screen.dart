@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/menu_item.dart';
 import '../services/menu_service.dart';
+import '../providers/favorites_provider.dart';
 import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
 import '../widgets/item_customization_sheet.dart';
@@ -131,6 +133,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     final groupedItemsAsync = ref.watch(groupedMenuItemsProvider);
     final cart = ref.watch(cartProvider);
     final hasItems = !cart.isEmpty;
+    final colors = context.theme.colors;
 
     return Column(
       children: [
@@ -142,14 +145,14 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         // Content
         Expanded(
           child: groupedItemsAsync.when(
-            loading: () => Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+            loading: () => Center(child: CircularProgressIndicator(color: colors.primary)),
             error: (error, _) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(FIcons.circleAlert, size: 48, color: AppTheme.textMuted),
+                  Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
                   const SizedBox(height: 16),
-                  Text('Failed to load menu: $error'),
+                  Text('Failed to load menu: $error', style: TextStyle(color: colors.foreground)),
                   const SizedBox(height: 16),
                   FButton(
                     onPress: () => ref.refresh(groupedMenuItemsProvider),
@@ -191,10 +194,10 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                             controller: _searchController,
                             decoration: InputDecoration(
                               hintText: 'Search menu...',
-                              prefixIcon: const Icon(FIcons.search, size: 20),
+                              prefixIcon: Icon(FIcons.search, size: 20, color: colors.mutedForeground),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
-                                      icon: const Icon(FIcons.x, size: 20),
+                                      icon: Icon(FIcons.x, size: 20, color: colors.mutedForeground),
                                       onPressed: () {
                                         _searchController.clear();
                                         setState(() => _searchQuery = '');
@@ -203,15 +206,15 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                                   : null,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.3)),
+                                borderSide: BorderSide(color: colors.border),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.3)),
+                                borderSide: BorderSide(color: colors.border),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: AppTheme.primaryColor),
+                                borderSide: BorderSide(color: colors.primary),
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               isDense: true,
@@ -233,7 +236,8 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                   // Menu items
                   Expanded(
                     child: RefreshIndicator(
-                      color: AppTheme.primaryColor,
+                      color: colors.primary,
+                      backgroundColor: colors.background,
                       onRefresh: () async => ref.refresh(groupedMenuItemsProvider),
                       child: ListView.builder(
                         controller: _scrollController,
@@ -260,12 +264,15 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
         // View Cart button (fixed at bottom)
         if (hasItems)
-          Container(
+          Builder(
+            builder: (context) {
+            final btnColors = context.theme.colors;
+            return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: btnColors.background,
               border: Border(
-                top: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
+                top: BorderSide(color: btnColors.border),
               ),
             ),
             child: SizedBox(
@@ -273,8 +280,8 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
               child: ElevatedButton(
                 onPressed: () => context.push('/cart'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
+                  backgroundColor: btnColors.primary,
+                  foregroundColor: btnColors.primaryForeground,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: const StadiumBorder(),
                 ),
@@ -299,7 +306,9 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 ),
               ),
             ),
-          ),
+          );
+        },
+        ),
       ],
     );
   }
@@ -374,12 +383,13 @@ class _CategoryMenuState extends State<_CategoryMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.background,
         border: Border(
-          bottom: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
+          bottom: BorderSide(color: colors.border),
         ),
       ),
       child: ListView.builder(
@@ -398,7 +408,7 @@ class _CategoryMenuState extends State<_CategoryMenu> {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                    color: isSelected ? colors.primary : Colors.transparent,
                     width: 2,
                   ),
                 ),
@@ -407,7 +417,7 @@ class _CategoryMenuState extends State<_CategoryMenu> {
               child: Text(
                 category,
                 style: TextStyle(
-                  color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+                  color: isSelected ? colors.primary : colors.mutedForeground,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 14,
                 ),
@@ -433,6 +443,7 @@ class _CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -441,9 +452,10 @@ class _CategorySection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(
             categoryName,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
+              color: colors.foreground,
             ),
           ),
         ),
@@ -466,8 +478,11 @@ class MenuItemTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.theme.colors;
     final cart = ref.watch(cartProvider);
     final cartQuantity = _getCartQuantity(cart, item.id);
+    final favoritesState = ref.watch(favoritesProvider);
+    final isFavorite = favoritesState.favoriteIds.contains(item.id);
 
     return GestureDetector(
       onTap: () => _showCustomizationSheet(context, ref),
@@ -477,31 +492,64 @@ class MenuItemTile extends ConsumerWidget {
             ? null
             : BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
+                  bottom: BorderSide(color: colors.border),
                 ),
               ),
         child: Row(
           children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 64,
-                height: 64,
-                child: item.pictureUri != null
-                    ? Image.network(
-                        item.pictureUri!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stack) => Container(
-                          color: AppTheme.backgroundColor,
-                          child: const Icon(FIcons.utensils, size: 24),
-                        ),
-                      )
-                    : Container(
-                        color: AppTheme.backgroundColor,
-                        child: const Icon(FIcons.utensils, size: 24),
-                      ),
-              ),
+            // Image with heart overlay
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: item.pictureUri != null
+                        ? CachedNetworkImage(
+                            imageUrl: item.pictureUri!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: colors.muted,
+                              child: Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colors.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: colors.muted,
+                              child: Icon(FIcons.utensils, size: 24, color: colors.mutedForeground),
+                            ),
+                          )
+                        : Container(
+                            color: colors.muted,
+                            child: Icon(FIcons.utensils, size: 24, color: colors.mutedForeground),
+                          ),
+                  ),
+                ),
+                // Heart icon overlay
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () => ref.read(favoritesProvider.notifier).toggleFavorite(item.id),
+                    child: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      size: 18,
+                      color: isFavorite ? Colors.red : Colors.white,
+                      shadows: const [
+                        Shadow(color: Colors.black54, blurRadius: 4),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 12),
 
@@ -512,9 +560,10 @@ class MenuItemTile extends ConsumerWidget {
                 children: [
                   Text(
                     item.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
+                      color: colors.foreground,
                     ),
                   ),
                   if (item.description.isNotEmpty) ...[
@@ -522,7 +571,7 @@ class MenuItemTile extends ConsumerWidget {
                     Text(
                       item.description,
                       style: TextStyle(
-                        color: AppTheme.textSecondary,
+                        color: colors.mutedForeground,
                         fontSize: 13,
                       ),
                       maxLines: 2,
@@ -532,9 +581,10 @@ class MenuItemTile extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     '£${item.price.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
+                      color: colors.foreground,
                     ),
                   ),
                 ],
@@ -553,12 +603,12 @@ class MenuItemTile extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
+                        color: colors.primary,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         FIcons.plus,
-                        color: Colors.white,
+                        color: colors.primaryForeground,
                         size: 18,
                       ),
                     ),
@@ -635,10 +685,11 @@ class _QuantityStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
     return Container(
       height: 34,
       decoration: BoxDecoration(
-        border: Border.all(color: AppTheme.primaryColor),
+        border: Border.all(color: colors.primary),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -650,7 +701,7 @@ class _QuantityStepper extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               child: Icon(
                 quantity == 1 ? FIcons.trash2 : FIcons.minus,
-                color: quantity == 1 ? AppTheme.errorColor : AppTheme.primaryColor,
+                color: quantity == 1 ? AppTheme.errorColor : colors.primary,
                 size: 18,
               ),
             ),
@@ -660,9 +711,10 @@ class _QuantityStepper extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               '$quantity',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
+                color: colors.foreground,
               ),
             ),
           ),
@@ -672,7 +724,7 @@ class _QuantityStepper extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               child: Icon(
                 FIcons.plus,
-                color: AppTheme.primaryColor,
+                color: colors.primary,
                 size: 18,
               ),
             ),

@@ -15,6 +15,7 @@ class AppConfig {
   static String get loyaltyApiUrl => '$bffBaseUrl/api/loyalty/';
   static String get notificationsApiUrl => '$bffBaseUrl/api/notifications/';
   static String get accountsApiUrl => '$bffBaseUrl/api/accounts/';
+  static String get identityApiUrl => '$bffBaseUrl/api/identity/';
 
   // Keycloak configuration (through BFF)
   static String get keycloakUrl => '$bffBaseUrl/auth';
@@ -25,6 +26,15 @@ class AppConfig {
   static const String clientId = 'mobile-app';
   static const String redirectUri = 'com.chillax.app://callback';
   static const String postLogoutRedirectUri = 'com.chillax.app://';
+
+  // Social login configuration
+  // Google: This should match the Web Client ID configured in Keycloak
+  // Set via environment or replace with actual value from Google Cloud Console
+  static const String googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue: 'your-google-web-client-id.apps.googleusercontent.com',
+  );
+
   static const List<String> scopes = [
     'openid',
     'profile',

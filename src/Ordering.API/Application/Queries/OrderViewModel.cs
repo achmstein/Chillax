@@ -7,6 +7,8 @@ public record Orderitem
     public int Units { get; init; }
     public double UnitPrice { get; init; }
     public string PictureUrl { get; init; } = string.Empty;
+    public string? CustomizationsDescription { get; init; }
+    public string? SpecialInstructions { get; init; }
 }
 
 /// <summary>

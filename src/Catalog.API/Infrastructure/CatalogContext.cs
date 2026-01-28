@@ -17,6 +17,7 @@ public class CatalogContext : DbContext
     public required DbSet<CustomizationOption> CustomizationOptions { get; set; }
     public required DbSet<UserItemPreference> UserItemPreferences { get; set; }
     public required DbSet<UserPreferenceOption> UserPreferenceOptions { get; set; }
+    public required DbSet<UserItemFavorite> UserItemFavorites { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -26,6 +27,7 @@ public class CatalogContext : DbContext
         builder.ApplyConfiguration(new CustomizationOptionEntityTypeConfiguration());
         builder.ApplyConfiguration(new UserItemPreferenceEntityTypeConfiguration());
         builder.ApplyConfiguration(new UserPreferenceOptionEntityTypeConfiguration());
+        builder.ApplyConfiguration(new UserItemFavoriteEntityTypeConfiguration());
 
         // Add the outbox table to this context
         builder.UseIntegrationEventLogs();

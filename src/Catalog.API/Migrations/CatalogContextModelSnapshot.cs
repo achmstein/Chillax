@@ -149,6 +149,35 @@ namespace Catalog.API.Migrations
                     b.ToTable("ItemCustomizations", (string)null);
                 });
 
+            modelBuilder.Entity("Chillax.Catalog.API.Model.UserItemFavorite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CatalogItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogItemId");
+
+                    b.HasIndex("UserId", "CatalogItemId")
+                        .IsUnique();
+
+                    b.ToTable("UserItemFavorites", (string)null);
+                });
+
             modelBuilder.Entity("Chillax.Catalog.API.Model.UserItemPreference", b =>
                 {
                     b.Property<int>("Id")
@@ -260,6 +289,17 @@ namespace Catalog.API.Migrations
                 {
                     b.HasOne("Chillax.Catalog.API.Model.CatalogItem", "CatalogItem")
                         .WithMany("Customizations")
+                        .HasForeignKey("CatalogItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogItem");
+                });
+
+            modelBuilder.Entity("Chillax.Catalog.API.Model.UserItemFavorite", b =>
+                {
+                    b.HasOne("Chillax.Catalog.API.Model.CatalogItem", "CatalogItem")
+                        .WithMany()
                         .HasForeignKey("CatalogItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

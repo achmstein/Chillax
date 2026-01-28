@@ -67,7 +67,11 @@ public static class AuthenticationExtensions
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            // Admin policy requires the "Admin" role
+            options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+        });
 
         return services;
     }

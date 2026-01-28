@@ -30,6 +30,11 @@ public class Order
     /// </summary>
     public string? CustomerNote { get; private set; }
 
+    /// <summary>
+    /// Loyalty points to redeem for this order (redeemed when order is confirmed)
+    /// </summary>
+    public int PointsToRedeem { get; private set; }
+
     // Draft orders have this set to true
 #pragma warning disable CS0414
     private bool _isDraft;
@@ -55,13 +60,14 @@ public class Order
         _isDraft = false;
     }
 
-    public Order(string userId, string userName, int? tableNumber = null, string? customerNote = null, int? buyerId = null) : this()
+    public Order(string userId, string userName, int? tableNumber = null, string? customerNote = null, int? buyerId = null, int pointsToRedeem = 0) : this()
     {
         BuyerId = buyerId;
         OrderStatus = OrderStatus.AwaitingValidation;
         OrderDate = DateTime.UtcNow;
         TableNumber = tableNumber;
         CustomerNote = customerNote;
+        PointsToRedeem = pointsToRedeem;
         Description = "Order awaiting item availability validation.";
 
         // Add the OrderStartedDomainEvent to the domain events collection
@@ -71,9 +77,12 @@ public class Order
     /// <summary>
     /// Add item to the order
     /// </summary>
-    public void AddOrderItem(int productId, string productName, decimal unitPrice, decimal discount, string pictureUrl, int units = 1)
+    public void AddOrderItem(int productId, string productName, decimal unitPrice, decimal discount, string pictureUrl, int units = 1, string? customizationsDescription = null, string? specialInstructions = null)
     {
-        var existingOrderForProduct = _orderItems.SingleOrDefault(o => o.ProductId == productId);
+        // When items have customizations, treat them as unique items (don't combine)
+        var existingOrderForProduct = customizationsDescription == null
+            ? _orderItems.SingleOrDefault(o => o.ProductId == productId && o.CustomizationsDescription == null)
+            : null;
 
         if (existingOrderForProduct != null)
         {
@@ -88,7 +97,7 @@ public class Order
         else
         {
             // Add validated new order item
-            var orderItem = new OrderItem(productId, productName, unitPrice, discount, pictureUrl, units);
+            var orderItem = new OrderItem(productId, productName, unitPrice, discount, pictureUrl, units, customizationsDescription, specialInstructions);
             _orderItems.Add(orderItem);
         }
     }

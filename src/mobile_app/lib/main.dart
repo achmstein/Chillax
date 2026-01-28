@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import 'core/router/app_router.dart';
 import 'core/auth/auth_service.dart';
 import 'core/services/firebase_service.dart';
+import 'core/theme/theme_provider.dart';
 
 void main() {
   // Preserve the native splash screen
@@ -47,6 +48,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    final themeState = ref.watch(themeProvider);
 
     return MaterialApp.router(
       title: 'Chillax',
@@ -54,7 +56,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
       routerConfig: router,
       builder: (context, child) {
         return FTheme(
-          data: FThemes.zinc.light,
+          data: themeState.getForuiTheme(context),
           child: FToaster(
             child: child ?? const SizedBox.shrink(),
           ),

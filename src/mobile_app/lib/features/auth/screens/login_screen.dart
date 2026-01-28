@@ -16,6 +16,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isSocialLoading = false;
   String? _error;
 
   @override
@@ -60,6 +61,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleSocialSignIn(SocialProvider provider) async {
+    setState(() {
+      _isSocialLoading = true;
+      _error = null;
+    });
+
+    try {
+      final authService = ref.read(authServiceProvider.notifier);
+      final success = await authService.signInWithProvider(provider);
+
+      if (!success && mounted) {
+        setState(() {
+          _error = 'Social sign in failed. Please try again.';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'An error occurred: $e';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSocialLoading = false;
         });
       }
     }
@@ -122,7 +153,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 // Sign in button
                 FButton(
-                  onPress: _isLoading ? null : _handleSignIn,
+                  onPress: _isLoading || _isSocialLoading ? null : _handleSignIn,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
@@ -134,7 +165,103 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         )
                       : const Text('Sign In'),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
+
+                // Divider with "or"
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: theme.colors.border,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'or continue with',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.mutedForeground,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: theme.colors.border,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Social login buttons
+                Row(
+                  children: [
+                    // Google button
+                    Expanded(
+                      child: FButton(
+                        style: FButtonStyle.outline(),
+                        onPress: _isLoading || _isSocialLoading
+                            ? null
+                            : () => _handleSocialSignIn(SocialProvider.google),
+                        child: _isSocialLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.network(
+                                    'https://www.google.com/favicon.ico',
+                                    width: 20,
+                                    height: 20,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(Icons.g_mobiledata, size: 20),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Google'),
+                                ],
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Facebook button
+                    Expanded(
+                      child: FButton(
+                        style: FButtonStyle.outline(),
+                        onPress: _isLoading || _isSocialLoading
+                            ? null
+                            : () => _handleSocialSignIn(SocialProvider.facebook),
+                        child: _isSocialLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.network(
+                                    'https://www.facebook.com/favicon.ico',
+                                    width: 20,
+                                    height: 20,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(Icons.facebook, size: 20),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Facebook'),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
                 // Register link
                 Row(

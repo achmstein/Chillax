@@ -75,7 +75,7 @@ class CartItem {
       'productId': productId,
       'productName': productName,
       'unitPrice': unitPrice,
-      'pictureUri': pictureUri,
+      'pictureUrl': pictureUri,
       'quantity': quantity,
       'specialInstructions': specialInstructions,
       'selectedCustomizations':

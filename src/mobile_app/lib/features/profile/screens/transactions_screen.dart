@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/account_balance.dart';
 import '../services/account_service.dart';
@@ -30,161 +31,227 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   @override
   Widget build(BuildContext context) {
     final accountState = ref.watch(accountProvider);
+    final colors = context.theme.colors;
 
-    return Scaffold(
-      body: Column(
-        children: [
-          // Custom header with back button
-          Container(
-            padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(FIcons.arrowLeft, size: 22),
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Transactions',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Balance summary
-          if (accountState.account != null) ...[
+    return FScaffold(
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Header with back button
             Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: accountState.account!.owesAmount
-                    ? const Color(0xFFFEE2E2)
-                    : accountState.account!.hasCredit
-                        ? const Color(0xFFD1FAE5)
-                        : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
+              padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
+              child: Row(
                 children: [
-                  Text(
-                    'Current Balance',
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 14,
-                    ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(FIcons.arrowLeft, size: 22),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${accountState.account!.balance.toStringAsFixed(2)} EGP',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: accountState.account!.owesAmount
-                          ? const Color(0xFFDC2626)
-                          : accountState.account!.hasCredit
-                              ? const Color(0xFF059669)
-                              : AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    accountState.account!.owesAmount
-                        ? 'Amount owed'
-                        : accountState.account!.hasCredit
-                            ? 'Credit balance'
-                            : 'No balance',
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 12,
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Transactions',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
 
-          // Transaction list
-          Expanded(
-            child: FutureBuilder<List<AccountTransaction>>(
-              future: _transactionsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            // Content
+            Expanded(
+              child: FutureBuilder<List<AccountTransaction>>(
+                future: _transactionsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(color: colors.primary),
+                    );
+                  }
 
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          FIcons.circleAlert,
-                          size: 48,
-                          color: AppTheme.textMuted,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Failed to load transactions',
-                          style: TextStyle(color: AppTheme.textMuted),
-                        ),
-                        const SizedBox(height: 16),
-                        FButton(
-                          onPress: () {
-                            setState(() {
-                              _loadTransactions();
-                            });
-                          },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                  if (snapshot.hasError) {
+                    return _buildErrorState(colors);
+                  }
 
-                final transactions = snapshot.data ?? [];
+                  final transactions = snapshot.data ?? [];
 
-                if (transactions.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          FIcons.receipt,
-                          size: 48,
-                          color: AppTheme.textMuted,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No transactions yet',
-                          style: TextStyle(color: AppTheme.textMuted),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    setState(() {
-                      _loadTransactions();
-                    });
-                    await _transactionsFuture;
-                  },
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: transactions.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final transaction = transactions[index];
-                      return _TransactionItem(transaction: transaction);
+                  return RefreshIndicator(
+                    color: colors.primary,
+                    backgroundColor: colors.background,
+                    onRefresh: () async {
+                      setState(() {
+                        _loadTransactions();
+                      });
+                      await _transactionsFuture;
                     },
-                  ),
-                );
-              },
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        // Balance summary card
+                        if (accountState.account != null)
+                          _buildBalanceSummaryCard(accountState.account!, colors),
+                        const SizedBox(height: 24),
+
+                        // Recent Activity header
+                        Text(
+                          'Recent Activity',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: colors.foreground,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Transactions list
+                        if (transactions.isEmpty)
+                          _buildNoTransactions(colors)
+                        else
+                          ...transactions.map(
+                            (transaction) => _TransactionTile(
+                              transaction: transaction,
+                              isLast: transaction == transactions.last,
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceSummaryCard(AccountBalance account, dynamic colors) {
+    final isOwed = account.owesAmount;
+    final hasCredit = account.hasCredit;
+
+    // Use gradient colors matching the profile's BalanceCard
+    final gradientColors = isOwed
+        ? [const Color(0xFFEF4444), const Color(0xFFDC2626)]
+        : hasCredit
+            ? [const Color(0xFF10B981), const Color(0xFF059669)]
+            : [colors.muted as Color, colors.muted as Color];
+
+    final shadowColor = isOwed
+        ? const Color(0xFFEF4444)
+        : hasCredit
+            ? const Color(0xFF10B981)
+            : colors.muted as Color;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isOwed ? FIcons.circleAlert : hasCredit ? FIcons.check : FIcons.wallet,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isOwed
+                    ? 'Amount Due'
+                    : hasCredit
+                        ? 'Credit Balance'
+                        : 'Account Balance',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${account.balance.abs().toStringAsFixed(2)} EGP',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isOwed
+                ? 'Please pay at the counter'
+                : hasCredit
+                    ? 'Will be applied to your next purchase'
+                    : 'No outstanding balance',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(dynamic colors) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            FIcons.circleAlert,
+            size: 48,
+            color: colors.mutedForeground,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Failed to load transactions',
+            style: TextStyle(color: colors.mutedForeground),
+          ),
+          const SizedBox(height: 16),
+          FButton(
+            onPress: () {
+              setState(() {
+                _loadTransactions();
+              });
+            },
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoTransactions(dynamic colors) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          Icon(
+            FIcons.receipt,
+            size: 40,
+            color: colors.mutedForeground,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No transactions yet',
+            style: TextStyle(color: colors.mutedForeground),
           ),
         ],
       ),
@@ -192,37 +259,52 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 }
 
-class _TransactionItem extends StatelessWidget {
+/// Transaction tile widget
+class _TransactionTile extends StatelessWidget {
   final AccountTransaction transaction;
+  final bool isLast;
 
-  const _TransactionItem({required this.transaction});
+  const _TransactionTile({
+    required this.transaction,
+    this.isLast = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
+    final isCharge = transaction.isCharge;
+    final numberFormat = NumberFormat('#,##0.00');
+
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: isLast
+            ? null
+            : Border(bottom: BorderSide(color: colors.border)),
       ),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: transaction.isCharge
-                  ? const Color(0xFFFEE2E2)
-                  : const Color(0xFFD1FAE5),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              transaction.isCharge ? FIcons.arrowUp : FIcons.arrowDown,
-              color: transaction.isCharge
-                  ? const Color(0xFFDC2626)
-                  : const Color(0xFF059669),
-              size: 20,
+          // Amount indicator - fixed width for alignment
+          SizedBox(
+            width: 100,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isCharge
+                    ? AppTheme.errorColor.withValues(alpha: 0.1)
+                    : AppTheme.successColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '${isCharge ? '+' : '-'}${numberFormat.format(transaction.amount)}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isCharge ? AppTheme.errorColor : AppTheme.successColor,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -233,72 +315,45 @@ class _TransactionItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: transaction.isCharge
-                            ? const Color(0xFFFEE2E2)
-                            : const Color(0xFFD1FAE5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        transaction.typeDisplay,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: transaction.isCharge
-                              ? const Color(0xFFDC2626)
-                              : const Color(0xFF059669),
-                        ),
+                    Text(
+                      transaction.typeDisplay,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: colors.foreground,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'by ${transaction.recordedBy}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textMuted,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                    Text(
+                      _formatDate(transaction.createdAt),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colors.mutedForeground,
                       ),
                     ),
                   ],
                 ),
-                if (transaction.description != null) ...[
-                  const SizedBox(height: 4),
+                const SizedBox(height: 2),
+                if (transaction.description != null)
                   Text(
                     transaction.description!,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                      color: colors.mutedForeground,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                  )
+                else
+                  Text(
+                    'by ${transaction.recordedBy}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colors.mutedForeground,
+                    ),
                   ),
-                ],
-                const SizedBox(height: 4),
-                Text(
-                  _formatDate(transaction.createdAt),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textMuted,
-                  ),
-                ),
               ],
-            ),
-          ),
-
-          // Amount
-          Text(
-            '${transaction.isCharge ? '+' : '-'}${transaction.amount.toStringAsFixed(2)} EGP',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: transaction.isCharge
-                  ? const Color(0xFFDC2626)
-                  : const Color(0xFF059669),
             ),
           ),
         ],
@@ -311,19 +366,13 @@ class _TransactionItem extends StatelessWidget {
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'Today, ${_formatTime(date)}';
+      return 'Today';
     } else if (difference.inDays == 1) {
-      return 'Yesterday, ${_formatTime(date)}';
+      return 'Yesterday';
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return '${difference.inDays}d ago';
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return DateFormat('MMM d').format(date);
     }
-  }
-
-  String _formatTime(DateTime date) {
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
   }
 }

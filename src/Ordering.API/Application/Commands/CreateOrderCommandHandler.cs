@@ -32,11 +32,12 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, boo
             message.UserId,
             message.UserName,
             message.TableNumber,
-            message.CustomerNote);
+            message.CustomerNote,
+            pointsToRedeem: message.PointsToRedeem);
 
         foreach (var item in message.OrderItems)
         {
-            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units, item.CustomizationsDescription, item.SpecialInstructions);
         }
 
         _logger.LogInformation("Creating Cafe Order - Order: {@Order}", order);

@@ -35,6 +35,9 @@ public class ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
 
         await _buyerRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
 
+        // Link the buyer to the order
+        domainEvent.Order.SetBuyerId(buyer!.Id);
+
         var integrationEvent = new OrderStatusChangedToSubmittedIntegrationEvent(
             domainEvent.Order.Id,
             domainEvent.Order.OrderStatus,

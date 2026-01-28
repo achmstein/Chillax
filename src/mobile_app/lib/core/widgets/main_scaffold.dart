@@ -22,19 +22,39 @@ class MainScaffold extends ConsumerWidget {
           children: [
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.utensils),
-              label: const Text('Menu'),
+              label: Text(
+                'Menu',
+                style: TextStyle(
+                  fontWeight: currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
             ),
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.receipt),
-              label: const Text('Orders'),
+              label: Text(
+                'Orders',
+                style: TextStyle(
+                  fontWeight: currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
             ),
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.gamepad2),
-              label: const Text('Rooms'),
+              label: Text(
+                'Rooms',
+                style: TextStyle(
+                  fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
             ),
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.user),
-              label: const Text('Profile'),
+              label: Text(
+                'Profile',
+                style: TextStyle(
+                  fontWeight: currentIndex == 3 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
             ),
           ],
         ),

@@ -14,8 +14,6 @@ class OrdersScreen extends ConsumerStatefulWidget {
 }
 
 class _OrdersScreenState extends ConsumerState<OrdersScreen> {
-  int _selectedTab = 0;
-
   @override
   void initState() {
     super.initState();
@@ -29,8 +27,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     final state = ref.watch(ordersProvider);
     final theme = context.theme;
 
-    final orders = _selectedTab == 0 ? state.orders : state.pendingOrders;
-
     return Column(
       children: [
         // Action bar
@@ -39,39 +35,33 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
           child: Row(
             children: [
               Text(
-                'Orders',
+                'Pending Orders',
                 style: theme.typography.base.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              if (state.orders.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.colors.destructive,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${state.orders.length}',
+                    style: theme.typography.xs.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.refresh, size: 22),
                 onPressed: () => ref.read(ordersProvider.notifier).loadOrders(),
                 tooltip: 'Refresh',
-              ),
-            ],
-          ),
-        ),
-
-        // Tabs
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              _Tab(
-                label: 'All',
-                count: state.orders.length,
-                isSelected: _selectedTab == 0,
-                onTap: () => setState(() => _selectedTab = 0),
-              ),
-              const SizedBox(width: 16),
-              _Tab(
-                label: 'Pending',
-                count: state.pendingOrders.length,
-                isSelected: _selectedTab == 1,
-                onTap: () => setState(() => _selectedTab = 1),
-                isDestructive: state.pendingOrders.isNotEmpty,
               ),
             ],
           ),
@@ -104,29 +94,25 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
 
         // Content
         Expanded(
-          child: state.isLoading && orders.isEmpty
+          child: state.isLoading && state.orders.isEmpty
               ? const ShimmerLoadingList()
-              : orders.isEmpty
+              : state.orders.isEmpty
                   ? EmptyState(
-                      icon: _selectedTab == 1 ? Icons.check_circle_outline : Icons.inbox,
-                      title: _selectedTab == 1 ? 'No pending orders' : 'No orders yet',
+                      icon: Icons.check_circle_outline,
+                      title: 'No pending orders',
                     )
                   : RefreshIndicator(
                       onRefresh: () => ref.read(ordersProvider.notifier).loadOrders(),
                       child: ListView.separated(
                         padding: kScreenPadding,
-                        itemCount: orders.length,
+                        itemCount: state.orders.length,
                         separatorBuilder: (_, __) => const FDivider(),
                         itemBuilder: (context, index) {
-                          final order = orders[index];
+                          final order = state.orders[index];
                           return _OrderTile(
                             order: order,
-                            onConfirm: order.status == OrderStatus.submitted
-                                ? () => _confirmOrder(order.id)
-                                : null,
-                            onCancel: order.status == OrderStatus.submitted
-                                ? () => _cancelOrder(context, order.id)
-                                : null,
+                            onConfirm: () => _confirmOrder(order.id),
+                            onCancel: () => _cancelOrder(context, order.id),
                           );
                         },
                       ),
@@ -165,82 +151,22 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   }
 }
 
-class _Tab extends StatelessWidget {
-  final String label;
-  final int count;
-  final bool isSelected;
-  final bool isDestructive;
-  final VoidCallback onTap;
-
-  const _Tab({
-    required this.label,
-    required this.count,
-    required this.isSelected,
-    required this.onTap,
-    this.isDestructive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? theme.colors.primary.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Text(
-              label,
-              style: theme.typography.sm.copyWith(
-                color: isSelected ? theme.colors.primary : theme.colors.mutedForeground,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-            if (count > 0) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isDestructive ? theme.colors.destructive : theme.colors.secondary,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$count',
-                  style: theme.typography.xs.copyWith(
-                    color: isDestructive ? Colors.white : theme.colors.foreground,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OrderTile extends StatefulWidget {
+class _OrderTile extends ConsumerStatefulWidget {
   final Order order;
-  final VoidCallback? onConfirm;
-  final VoidCallback? onCancel;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
 
   const _OrderTile({
     required this.order,
-    this.onConfirm,
-    this.onCancel,
+    required this.onConfirm,
+    required this.onCancel,
   });
 
   @override
-  State<_OrderTile> createState() => _OrderTileState();
+  ConsumerState<_OrderTile> createState() => _OrderTileState();
 }
 
-class _OrderTileState extends State<_OrderTile> {
+class _OrderTileState extends ConsumerState<_OrderTile> {
   bool _expanded = false;
 
   @override
@@ -264,19 +190,13 @@ class _OrderTileState extends State<_OrderTile> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Order #${widget.order.id}',
-                            style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(width: 8),
-                          _StatusBadge(status: widget.order.status),
-                        ],
+                      Text(
+                        'Order #${widget.order.id}',
+                        style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${widget.order.items.length} items • ${currencyFormat.format(widget.order.total)} • ${dateFormat.format(widget.order.date)}',
+                        '${currencyFormat.format(widget.order.total)} • ${dateFormat.format(widget.order.date)}',
                         style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                       ),
                     ],
@@ -306,103 +226,121 @@ class _OrderTileState extends State<_OrderTile> {
           ),
         ),
 
-        // Expanded content
-        if (_expanded) ...[
-          // Items
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...widget.order.items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    children: [
-                      Text(
-                        '${item.units}x ',
-                        style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
-                      ),
-                      Expanded(
-                        child: Text(item.productName, style: theme.typography.sm),
-                      ),
-                      Text(
-                        currencyFormat.format(item.totalPrice),
-                        style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
-                      ),
-                    ],
-                  ),
-                )),
-
-                // Actions for pending orders
-                if (widget.onConfirm != null || widget.onCancel != null) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      if (widget.onCancel != null)
-                        Expanded(
-                          child: FButton(
-                            style: FButtonStyle.outline(),
-                            onPress: widget.onCancel,
-                            child: const Text('Cancel'),
-                          ),
-                        ),
-                      if (widget.onConfirm != null && widget.onCancel != null)
-                        const SizedBox(width: 8),
-                      if (widget.onConfirm != null)
-                        Expanded(
-                          child: FButton(
-                            onPress: widget.onConfirm,
-                            child: const Text('Confirm'),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
+        // Expanded content - fetch details when expanded
+        if (_expanded) _buildExpandedContent(theme, currencyFormat),
       ],
     );
   }
-}
 
-class _StatusBadge extends StatelessWidget {
-  final OrderStatus status;
+  Widget _buildExpandedContent(FThemeData theme, NumberFormat currencyFormat) {
+    final orderDetailsAsync = ref.watch(orderDetailsProvider(widget.order.id));
 
-  const _StatusBadge({required this.status});
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: orderDetailsAsync.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        error: (error, _) => Text(
+          'Failed to load details',
+          style: theme.typography.sm.copyWith(color: theme.colors.destructive),
+        ),
+        data: (orderDetails) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Items
+            if (orderDetails.items.isNotEmpty) ...[
+              ...orderDetails.items.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '${item.units}x ',
+                          style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                        ),
+                        Expanded(
+                          child: Text(item.productName, style: theme.typography.sm),
+                        ),
+                        Text(
+                          currencyFormat.format(item.totalPrice),
+                          style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                        ),
+                      ],
+                    ),
+                    // Customizations
+                    if (item.customizationsDescription != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 24, top: 2),
+                        child: Text(
+                          item.customizationsDescription!,
+                          style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                        ),
+                      ),
+                    // Special instructions
+                    if (item.specialInstructions != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 24, top: 2),
+                        child: Text(
+                          '"${item.specialInstructions}"',
+                          style: theme.typography.xs.copyWith(
+                            color: theme.colors.mutedForeground,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              )),
+            ] else
+              Text(
+                'No items',
+                style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
+              ),
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
+            // Customer note
+            if (orderDetails.customerNote != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Note: ${orderDetails.customerNote}',
+                style: theme.typography.sm.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: theme.colors.mutedForeground,
+                ),
+              ),
+            ],
 
-    Color bgColor;
-    Color textColor;
-
-    switch (status) {
-      case OrderStatus.submitted:
-        bgColor = theme.colors.destructive.withValues(alpha: 0.1);
-        textColor = theme.colors.destructive;
-        break;
-      case OrderStatus.confirmed:
-        bgColor = theme.colors.primary.withValues(alpha: 0.1);
-        textColor = theme.colors.primary;
-        break;
-      case OrderStatus.cancelled:
-        bgColor = theme.colors.secondary;
-        textColor = theme.colors.mutedForeground;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        status.name,
-        style: theme.typography.xs.copyWith(color: textColor),
+            // Actions
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: FButton(
+                    style: FButtonStyle.outline(),
+                    onPress: widget.onCancel,
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FButton(
+                    onPress: widget.onConfirm,
+                    child: const Text('Confirm'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

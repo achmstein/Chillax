@@ -31,15 +31,24 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 ProductName = oi.ProductName,
                 Units = oi.Units,
                 UnitPrice = (double)oi.UnitPrice,
-                PictureUrl = oi.PictureUrl
+                PictureUrl = oi.PictureUrl,
+                CustomizationsDescription = oi.CustomizationsDescription,
+                SpecialInstructions = oi.SpecialInstructions
             }).ToList()
         };
     }
 
-    public async Task<IEnumerable<OrderSummary>> GetOrdersFromUserAsync(string userId)
+    public async Task<PaginatedResult<OrderSummary>> GetOrdersFromUserAsync(string userId, int pageIndex, int pageSize)
     {
-        return await context.Orders
-            .Where(o => o.Buyer != null && o.Buyer.IdentityGuid == userId)
+        var query = context.Orders
+            .Where(o => o.Buyer != null && o.Buyer.IdentityGuid == userId);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(o => o.OrderDate)
+            .Skip(pageIndex * pageSize)
+            .Take(pageSize)
             .Select(o => new OrderSummary
             {
                 OrderNumber = o.Id,
@@ -49,6 +58,14 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 TableNumber = o.TableNumber
             })
             .ToListAsync();
+
+        return new PaginatedResult<OrderSummary>
+        {
+            Items = items,
+            PageIndex = pageIndex,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync()

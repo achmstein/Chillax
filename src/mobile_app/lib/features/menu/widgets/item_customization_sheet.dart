@@ -155,20 +155,16 @@ class _ItemCustomizationSheetState
 
     ref.read(cartProvider.notifier).addItem(cartItem);
     Navigator.pop(context);
-
-    showFToast(
-      context: context,
-      title: Text('${widget.item.name} added to cart'),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
     return Container(
       height: MediaQuery.of(context).size.height,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
         bottom: false,
@@ -180,7 +176,7 @@ class _ItemCustomizationSheetState
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.textMuted,
+                color: colors.mutedForeground,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -199,15 +195,16 @@ class _ItemCustomizationSheetState
                       Expanded(
                         child: Text(
                           widget.item.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 24,
+                            color: colors.foreground,
                           ),
                         ),
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: Icon(FIcons.x, size: 24, color: AppTheme.textSecondary),
+                        child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
                       ),
                     ],
                   ),
@@ -215,26 +212,27 @@ class _ItemCustomizationSheetState
                     const SizedBox(height: 8),
                     Text(
                       widget.item.description,
-                      style: TextStyle(color: AppTheme.textSecondary),
+                      style: TextStyle(color: colors.mutedForeground),
                     ),
                   ],
                   const SizedBox(height: 8),
                   Text(
                     'Base price: £${widget.item.price.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: colors.foreground),
                   ),
                   const SizedBox(height: 24),
 
                   // Customizations
                   ...widget.item.customizations.map((customization) =>
-                    _buildCustomizationSection(customization)),
+                    _buildCustomizationSection(context, customization)),
 
                   // Special instructions
-                  const Text(
+                  Text(
                     'Special Instructions',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                      color: colors.foreground,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -258,9 +256,10 @@ class _ItemCustomizationSheetState
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Text(
                           '$_quantity',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: colors.foreground,
                           ),
                         ),
                       ),
@@ -285,7 +284,7 @@ class _ItemCustomizationSheetState
               bottom: 12 + MediaQuery.of(context).padding.bottom,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colors.background,
               border: Border(
                 top: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
               ),
@@ -328,7 +327,8 @@ class _ItemCustomizationSheetState
     );
   }
 
-  Widget _buildCustomizationSection(ItemCustomization customization) {
+  Widget _buildCustomizationSection(BuildContext context, ItemCustomization customization) {
+    final colors = context.theme.colors;
     final selectedIds = _selectedOptions[customization.id] ?? [];
 
     return Column(
@@ -338,9 +338,10 @@ class _ItemCustomizationSheetState
           children: [
             Text(
               customization.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
+                color: colors.foreground,
               ),
             ),
             if (customization.isRequired) ...[
@@ -381,10 +382,10 @@ class _ItemCustomizationSheetState
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                  color: isSelected ? colors.primary : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppTheme.primaryColor : AppTheme.textMuted,
+                    color: isSelected ? colors.primary : colors.border,
                   ),
                 ),
                 child: Text(
@@ -392,7 +393,7 @@ class _ItemCustomizationSheetState
                       ? '${option.name} (+£${option.priceAdjustment.toStringAsFixed(2)})'
                       : option.name,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textPrimary,
+                    color: isSelected ? colors.primaryForeground : colors.foreground,
                   ),
                 ),
               ),

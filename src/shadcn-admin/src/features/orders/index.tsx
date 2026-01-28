@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, X, Eye, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Check, X, Eye, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,7 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ordersService } from './services/orders-service'
 import { OrderDetailsDialog } from './components/order-details-dialog'
-import type { Order, OrderStatus, OrderSummary } from './types'
+import type { Order, OrderStatus, OrderSummary, PaginatedResult } from './types'
 
 const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 'secondary' | 'destructive'; icon: React.ReactNode }> = {
   submitted: { label: 'Pending', variant: 'default', icon: <Clock className='h-3 w-3' /> },
@@ -28,16 +28,19 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
   cancelled: { label: 'Cancelled', variant: 'destructive', icon: <XCircle className='h-3 w-3' /> },
 }
 
+const PAGE_SIZE = 20
+
 export function OrdersManagement() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<string>('pending')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [pageIndex, setPageIndex] = useState(0)
 
-  // Fetch all orders
-  const { data: allOrders = [], isLoading: loadingAll } = useQuery({
-    queryKey: ['orders', 'all'],
-    queryFn: () => ordersService.getOrders(),
+  // Fetch all orders with pagination
+  const { data: allOrdersData, isLoading: loadingAll } = useQuery({
+    queryKey: ['orders', 'all', pageIndex],
+    queryFn: () => ordersService.getOrders(pageIndex, PAGE_SIZE),
   })
 
   // Fetch pending orders
@@ -46,6 +49,11 @@ export function OrdersManagement() {
     queryFn: () => ordersService.getPendingOrders(),
     refetchInterval: 30000, // Refresh every 30 seconds
   })
+
+  const allOrders = allOrdersData?.items ?? []
+  const totalPages = allOrdersData?.totalPages ?? 0
+  const hasNextPage = allOrdersData?.hasNextPage ?? false
+  const hasPreviousPage = allOrdersData?.hasPreviousPage ?? false
 
   // Confirm order mutation
   const confirmMutation = useMutation({
@@ -220,7 +228,42 @@ export function OrdersManagement() {
                     ))}
                   </div>
                 ) : (
-                  renderOrdersTable(allOrders)
+                  <>
+                    {renderOrdersTable(allOrders)}
+                    {/* Pagination controls */}
+                    {totalPages > 1 && (
+                      <div className='flex items-center justify-between border-t pt-4 mt-4'>
+                        <div className='text-sm text-muted-foreground'>
+                          Page {pageIndex + 1} of {totalPages}
+                          {allOrdersData?.totalCount && (
+                            <span className='ml-2'>
+                              ({allOrdersData.totalCount} total orders)
+                            </span>
+                          )}
+                        </div>
+                        <div className='flex gap-2'>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => setPageIndex(p => p - 1)}
+                            disabled={!hasPreviousPage}
+                          >
+                            <ChevronLeft className='h-4 w-4 mr-1' />
+                            Previous
+                          </Button>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => setPageIndex(p => p + 1)}
+                            disabled={!hasNextPage}
+                          >
+                            Next
+                            <ChevronRight className='h-4 w-4 ml-1' />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </TabsContent>
             </Tabs>

@@ -14,11 +14,13 @@ public static class OrdersApi
 
         api.MapPut("/confirm", ConfirmOrderAsync)
             .WithName("ConfirmOrder")
-            .WithSummary("Confirm order (admin) - sends to POS");
+            .WithSummary("Confirm order (admin) - sends to POS")
+            .RequireAuthorization("Admin");
 
         api.MapPut("/cancel", CancelOrderAsync)
             .WithName("CancelOrder")
-            .WithSummary("Cancel a submitted order");
+            .WithSummary("Cancel a submitted order")
+            .RequireAuthorization("Admin");
 
         api.MapGet("/{orderId:int}", GetOrderAsync)
             .WithName("GetOrder")
@@ -30,7 +32,8 @@ public static class OrdersApi
 
         api.MapGet("/pending", GetPendingOrdersAsync)
             .WithName("GetPendingOrders")
-            .WithSummary("Get all pending orders (admin)");
+            .WithSummary("Get all pending orders (admin)")
+            .RequireAuthorization("Admin");
 
         api.MapPost("/draft", CreateOrderDraftAsync)
             .WithName("CreateOrderDraft")
@@ -62,7 +65,8 @@ public static class OrdersApi
                 request.UserId,
                 request.UserName,
                 request.TableNumber,
-                request.CustomerNote);
+                request.CustomerNote,
+                request.PointsToRedeem);
 
             var requestCreateOrder = new IdentifiedCommand<CreateOrderCommand, bool>(createOrderCommand, requestId);
 
@@ -148,10 +152,13 @@ public static class OrdersApi
         }
     }
 
-    public static async Task<Ok<IEnumerable<OrderSummary>>> GetOrdersByUserAsync([AsParameters] OrderServices services)
+    public static async Task<Ok<PaginatedResult<OrderSummary>>> GetOrdersByUserAsync(
+        int pageIndex = 0,
+        int pageSize = 10,
+        [AsParameters] OrderServices services = default!)
     {
         var userId = services.IdentityService.GetUserIdentity();
-        var orders = await services.Queries.GetOrdersFromUserAsync(userId);
+        var orders = await services.Queries.GetOrdersFromUserAsync(userId, pageIndex, pageSize);
         return TypedResults.Ok(orders);
     }
 
@@ -180,4 +187,5 @@ public record CreateOrderRequest(
     string UserName,
     int? TableNumber,
     string? CustomerNote,
+    int PointsToRedeem,
     List<BasketItem> Items);

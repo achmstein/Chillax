@@ -211,7 +211,10 @@ public static class RoomsApi
         }
 
         var customerName = httpContext.User.GetUserName() ?? request?.CustomerName;
-        var scheduledTime = request?.ScheduledStartTime ?? DateTime.UtcNow;
+        // Ensure DateTime is UTC for PostgreSQL compatibility
+        var scheduledTime = request?.ScheduledStartTime != null
+            ? DateTime.SpecifyKind(request.ScheduledStartTime.Value, DateTimeKind.Utc)
+            : DateTime.UtcNow;
 
         try
         {

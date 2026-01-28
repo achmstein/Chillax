@@ -266,9 +266,199 @@ app.MapGet("/api/identity/users/count", async (IHttpClientFactory httpClientFact
     return Results.Ok(new { count });
 }).RequireAuthorization();
 
+// Change password endpoint (authenticated user)
+app.MapPost("/api/identity/change-password", async (ChangePasswordRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var userId = httpContext.User.GetUserId();
+    if (string.IsNullOrEmpty(userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    // Reset password via Admin API
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var passwordEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}/reset-password";
+
+    var passwordPayload = new
+    {
+        type = "password",
+        value = request.NewPassword,
+        temporary = false
+    };
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    var resetResponse = await client.PutAsJsonAsync(passwordEndpoint, passwordPayload);
+
+    if (resetResponse.IsSuccessStatusCode || resetResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        return Results.Ok(new { message = "Password changed successfully" });
+    }
+
+    if (resetResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+
+    var errorContent = await resetResponse.Content.ReadAsStringAsync();
+    return Results.Problem($"Failed to change password: {errorContent}", statusCode: (int)resetResponse.StatusCode);
+}).RequireAuthorization();
+
+// Update email endpoint (authenticated user)
+app.MapPost("/api/identity/update-email", async (UpdateEmailRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var userId = httpContext.User.GetUserId();
+    if (string.IsNullOrEmpty(userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    // Update user email via Admin API
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var userEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}";
+
+    var emailPayload = new
+    {
+        email = request.NewEmail,
+        emailVerified = false
+    };
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    var updateResponse = await client.PutAsJsonAsync(userEndpoint, emailPayload);
+
+    if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        return Results.Ok(new { message = "Email updated successfully" });
+    }
+
+    if (updateResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+
+    if (updateResponse.StatusCode == System.Net.HttpStatusCode.Conflict)
+    {
+        return Results.Conflict(new { message = "Email already in use" });
+    }
+
+    var errorContent = await updateResponse.Content.ReadAsStringAsync();
+    return Results.Problem($"Failed to update email: {errorContent}", statusCode: (int)updateResponse.StatusCode);
+}).RequireAuthorization();
+
+// Delete account endpoint (authenticated user - soft delete by disabling)
+app.MapDelete("/api/identity/delete-account", async (HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var userId = httpContext.User.GetUserId();
+    if (string.IsNullOrEmpty(userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    // Disable user via Admin API (soft delete)
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var userEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}";
+
+    var disablePayload = new
+    {
+        enabled = false
+    };
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    var updateResponse = await client.PutAsJsonAsync(userEndpoint, disablePayload);
+
+    if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        return Results.Ok(new { message = "Account deleted successfully" });
+    }
+
+    if (updateResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+
+    var errorContent = await updateResponse.Content.ReadAsStringAsync();
+    return Results.Problem($"Failed to delete account: {errorContent}", statusCode: (int)updateResponse.StatusCode);
+}).RequireAuthorization();
+
 app.Run();
 
 record RegisterRequest(string? Name, string Username, string Email, string Password);
+record ChangePasswordRequest(string NewPassword);
+record UpdateEmailRequest(string NewEmail);
 
 record UserDto(
     string Id,

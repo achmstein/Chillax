@@ -6,6 +6,7 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
 {
     public DbSet<NotificationSubscription> Subscriptions => Set<NotificationSubscription>();
     public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+    public DbSet<NotificationPreferences> Preferences => Set<NotificationPreferences>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,6 +50,20 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
 
             // Index for pending requests
             entity.HasIndex(e => e.Status);
+        });
+
+        modelBuilder.Entity<NotificationPreferences>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.OrderStatusUpdates).IsRequired();
+            entity.Property(e => e.PromotionsAndOffers).IsRequired();
+            entity.Property(e => e.SessionReminders).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+
+            // Unique constraint: one preferences record per user
+            entity.HasIndex(e => e.UserId).IsUnique();
         });
     }
 }

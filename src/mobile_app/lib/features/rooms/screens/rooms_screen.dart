@@ -136,10 +136,11 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   }
 
   Widget _buildJoinSessionBar() {
+    final colors = context.theme.colors;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.background,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -243,7 +244,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(FIcons.circleAlert, size: 48, color: AppTheme.textMuted),
+            Icon(FIcons.circleAlert, size: 48, color: context.theme.colors.mutedForeground),
             const SizedBox(height: 16),
             const Text('Failed to load rooms'),
             const SizedBox(height: 16),
@@ -259,6 +260,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
             rooms.every((r) => !r.canBookNow);
 
         return RefreshIndicator(
+          color: AppTheme.primaryColor,
+          backgroundColor: context.theme.colors.background,
           onRefresh: () async {
             ref.invalidate(roomsProvider);
             await ref.read(mySessionsProvider.notifier).refresh();
@@ -300,7 +303,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                       height: 1,
                       indent: 16,
                       endIndent: 16,
-                      color: AppTheme.textMuted.withValues(alpha: 0.2),
+                      color: context.theme.colors.border,
                     ),
                 ],
               );
@@ -331,6 +334,10 @@ class _ActiveSessionView extends ConsumerStatefulWidget {
 
 class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
   Timer? _timer;
+  static const _cooldownDuration = 30; // seconds
+
+  // Track cooldown end times for each request type
+  final Map<ServiceRequestType, DateTime> _cooldownEndTimes = {};
 
   @override
   void initState() {
@@ -346,11 +353,27 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
     super.dispose();
   }
 
+  /// Get remaining cooldown seconds for a request type
+  int _getCooldownRemaining(ServiceRequestType type) {
+    final endTime = _cooldownEndTimes[type];
+    if (endTime == null) return 0;
+
+    final remaining = endTime.difference(DateTime.now()).inSeconds;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  /// Start cooldown for a request type
+  void _startCooldown(ServiceRequestType type) {
+    _cooldownEndTimes[type] = DateTime.now().add(const Duration(seconds: _cooldownDuration));
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
 
     return RefreshIndicator(
+      color: AppTheme.primaryColor,
+      backgroundColor: context.theme.colors.background,
       onRefresh: () => ref.read(mySessionsProvider.notifier).refresh(),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -511,6 +534,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   child: _QuickActionButton(
                     icon: FIcons.user,
                     label: 'Call Waiter',
+                    cooldownSeconds: _getCooldownRemaining(ServiceRequestType.callWaiter),
                     onTap: () => _submitRequest(ServiceRequestType.callWaiter),
                   ),
                 ),
@@ -519,6 +543,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   child: _QuickActionButton(
                     icon: FIcons.gamepad2,
                     label: 'Controller',
+                    cooldownSeconds: _getCooldownRemaining(ServiceRequestType.controllerChange),
                     onTap: () => _submitRequest(ServiceRequestType.controllerChange),
                   ),
                 ),
@@ -527,6 +552,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   child: _QuickActionButton(
                     icon: FIcons.receipt,
                     label: 'Get Bill',
+                    cooldownSeconds: _getCooldownRemaining(ServiceRequestType.receiptToPay),
                     onTap: () => _submitRequest(ServiceRequestType.receiptToPay),
                   ),
                 ),
@@ -539,6 +565,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
   }
 
   Future<void> _submitRequest(ServiceRequestType type) async {
+    // Check if still in cooldown
+    if (_getCooldownRemaining(type) > 0) return;
+
     final session = widget.session;
     final request = CreateServiceRequest(
       sessionId: session.id,
@@ -551,6 +580,8 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
 
     if (mounted) {
       if (success) {
+        // Start cooldown on success
+        _startCooldown(type);
         showFToast(
           context: context,
           title: Text(_getSuccessMessage(type)),
@@ -583,11 +614,13 @@ class _QuickActionButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final int cooldownSeconds;
 
   const _QuickActionButton({
     required this.icon,
     required this.label,
     required this.onTap,
+    this.cooldownSeconds = 0,
   });
 
   @override
@@ -597,13 +630,15 @@ class _QuickActionButton extends StatefulWidget {
 class _QuickActionButtonState extends State<_QuickActionButton> {
   bool _isPressed = false;
 
+  bool get _isInCooldown => widget.cooldownSeconds > 0;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onTap,
+      onTapDown: _isInCooldown ? null : (_) => setState(() => _isPressed = true),
+      onTapUp: _isInCooldown ? null : (_) => setState(() => _isPressed = false),
+      onTapCancel: _isInCooldown ? null : () => setState(() => _isPressed = false),
+      onTap: _isInCooldown ? null : widget.onTap,
       child: AnimatedScale(
         scale: _isPressed ? 0.92 : 1.0,
         duration: const Duration(milliseconds: 100),
@@ -611,12 +646,14 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
           duration: const Duration(milliseconds: 100),
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: _isPressed
-                ? AppTheme.primaryColor.withValues(alpha: 0.15)
-                : AppTheme.textMuted.withValues(alpha: 0.1),
+            color: _isInCooldown
+                ? AppTheme.textMuted.withValues(alpha: 0.15)
+                : _isPressed
+                    ? AppTheme.primaryColor.withValues(alpha: 0.15)
+                    : AppTheme.textMuted.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _isPressed
+              color: _isPressed && !_isInCooldown
                   ? AppTheme.primaryColor.withValues(alpha: 0.3)
                   : Colors.transparent,
               width: 1.5,
@@ -624,16 +661,36 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
           ),
           child: Column(
             children: [
-              Icon(widget.icon, size: 24, color: AppTheme.primaryColor),
-              const SizedBox(height: 8),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textSecondary,
-                  fontWeight: FontWeight.w500,
+              if (_isInCooldown) ...[
+                // Show countdown
+                Text(
+                  '${widget.cooldownSeconds}s',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textMuted,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+              ] else ...[
+                Icon(widget.icon, size: 24, color: AppTheme.primaryColor),
+                const SizedBox(height: 8),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -933,8 +990,9 @@ class RoomListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.theme.colors;
     final isAvailable = room.canBookNow && canReserve;
-    final statusColor = _getStatusColor();
+    final statusColor = _getStatusColor(colors);
 
     return GestureDetector(
       onTap: isAvailable ? () => _showReservationDialog(context, ref) : null,
@@ -950,14 +1008,14 @@ class RoomListItem extends ConsumerWidget {
               height: 64,
               decoration: BoxDecoration(
                 color: isAvailable
-                    ? AppTheme.primaryColor.withValues(alpha: 0.1)
-                    : AppTheme.textMuted.withValues(alpha: 0.1),
+                    ? colors.primary.withValues(alpha: 0.1)
+                    : colors.mutedForeground.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 FIcons.gamepad2,
                 size: 28,
-                color: isAvailable ? AppTheme.primaryColor : AppTheme.textMuted,
+                color: isAvailable ? colors.primary : colors.mutedForeground,
               ),
             ),
             const SizedBox(width: 12),
@@ -969,9 +1027,10 @@ class RoomListItem extends ConsumerWidget {
                 children: [
                   Text(
                     room.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
+                      color: colors.foreground,
                     ),
                   ),
                   if (room.description != null) ...[
@@ -979,7 +1038,7 @@ class RoomListItem extends ConsumerWidget {
                     Text(
                       room.description!,
                       style: TextStyle(
-                        color: AppTheme.textSecondary,
+                        color: colors.mutedForeground,
                         fontSize: 13,
                       ),
                       maxLines: 2,
@@ -991,9 +1050,10 @@ class RoomListItem extends ConsumerWidget {
                     children: [
                       Text(
                         '£${room.hourlyRate.toStringAsFixed(0)}/hr',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          color: colors.foreground,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1015,12 +1075,12 @@ class RoomListItem extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor,
+                  color: colors.primary,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
+                child: Icon(
                   FIcons.calendarPlus,
-                  color: Colors.white,
+                  color: colors.primaryForeground,
                   size: 18,
                 ),
               )
@@ -1029,13 +1089,13 @@ class RoomListItem extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.textMuted.withValues(alpha: 0.1),
+                  color: colors.mutedForeground.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'Available',
                   style: TextStyle(
-                    color: AppTheme.textMuted,
+                    color: colors.mutedForeground,
                     fontSize: 12,
                   ),
                 ),
@@ -1046,16 +1106,16 @@ class RoomListItem extends ConsumerWidget {
     );
   }
 
-  Color _getStatusColor() {
+  Color _getStatusColor(dynamic colors) {
     switch (room.displayStatus) {
       case RoomDisplayStatus.available:
-        return canReserve ? AppTheme.successColor : AppTheme.textMuted;
+        return canReserve ? AppTheme.successColor : colors.mutedForeground;
       case RoomDisplayStatus.occupied:
         return AppTheme.errorColor;
       case RoomDisplayStatus.reservedSoon:
         return AppTheme.warningColor;
       case RoomDisplayStatus.maintenance:
-        return AppTheme.textMuted;
+        return colors.mutedForeground;
     }
   }
 
@@ -1086,10 +1146,11 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
         child: Padding(
@@ -1104,7 +1165,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppTheme.textMuted,
+                    color: colors.mutedForeground,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1117,15 +1178,16 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                   Expanded(
                     child: Text(
                       'Reserve ${widget.room.name}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
+                        color: colors.foreground,
                       ),
                     ),
                   ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: Icon(FIcons.x, size: 24, color: AppTheme.textSecondary),
+                    child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
                   ),
                 ],
               ),
@@ -1133,33 +1195,33 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
               Text(
                 '£${widget.room.hourlyRate.toStringAsFixed(0)}/hour',
                 style: TextStyle(
-                  color: AppTheme.textSecondary,
+                  color: colors.mutedForeground,
                   fontSize: 15,
                 ),
               ),
               const SizedBox(height: 24),
 
               // Date (same-day only)
-              const Text(
+              Text(
                 'Date',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: colors.foreground),
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppTheme.textMuted.withValues(alpha: 0.05),
-                  border: Border.all(color: AppTheme.textMuted.withValues(alpha: 0.2)),
+                  color: colors.muted.withValues(alpha: 0.3),
+                  border: Border.all(color: colors.border),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    Icon(FIcons.calendar, size: 18, color: AppTheme.textSecondary),
+                    Icon(FIcons.calendar, size: 18, color: colors.mutedForeground),
                     const SizedBox(width: 12),
                     Text(
                       'Today - ${DateFormat('EEEE, MMM d').format(DateTime.now())}',
-                      style: const TextStyle(fontSize: 15),
+                      style: TextStyle(fontSize: 15, color: colors.foreground),
                     ),
                   ],
                 ),
@@ -1167,9 +1229,9 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
               const SizedBox(height: 16),
 
               // Time picker
-              const Text(
+              Text(
                 'Select Time',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: colors.foreground),
               ),
               const SizedBox(height: 8),
               GestureDetector(
@@ -1186,16 +1248,16 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppTheme.textMuted.withValues(alpha: 0.3)),
+                    border: Border.all(color: colors.border),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      Icon(FIcons.clock, size: 18, color: AppTheme.textSecondary),
+                      Icon(FIcons.clock, size: 18, color: colors.mutedForeground),
                       const SizedBox(width: 12),
                       Text(
                         _selectedTime.format(context),
-                        style: const TextStyle(fontSize: 15),
+                        style: TextStyle(fontSize: 15, color: colors.foreground),
                       ),
                     ],
                   ),
@@ -1209,17 +1271,17 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleReserve,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.primaryForeground,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: const StadiumBorder(),
                   ),
                   child: _isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: colors.primaryForeground,
                             strokeWidth: 2,
                           ),
                         )
