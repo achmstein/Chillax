@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/customer.dart';
@@ -77,10 +78,8 @@ class CustomersNotifier extends Notifier<CustomersState> {
         totalCount: countData['count'] as int? ?? customers.length,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load customers: $e',
-      );
+      debugPrint('Failed to load customers: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 

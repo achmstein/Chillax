@@ -26,6 +26,10 @@ public class OrderRepository
         {
             await _context.Entry(order)
                 .Collection(i => i.OrderItems).LoadAsync();
+            await _context.Entry(order)
+                .Reference(i => i.Buyer).LoadAsync();
+            await _context.Entry(order)
+                .Reference(i => i.Rating).LoadAsync();
         }
 
         return order;
@@ -34,5 +38,10 @@ public class OrderRepository
     public void Update(Order order)
     {
         _context.Entry(order).State = EntityState.Modified;
+    }
+
+    public void AddRating(OrderRating rating)
+    {
+        _context.OrderRatings.Add(rating);
     }
 }

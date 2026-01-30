@@ -12,7 +12,17 @@ public class CatalogItem
     [Required]
     public string Name { get; set; }
 
+    /// <summary>
+    /// Arabic name for the menu item
+    /// </summary>
+    public string? NameAr { get; set; }
+
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Arabic description for the menu item
+    /// </summary>
+    public string? DescriptionAr { get; set; }
 
     public decimal Price { get; set; }
 

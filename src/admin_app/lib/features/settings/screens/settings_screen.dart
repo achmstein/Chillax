@@ -18,9 +18,8 @@ class SettingsScreen extends ConsumerWidget {
       children: [
         // Header
         const FHeader(
-          title: Text('Settings'),
+          title: Text('Settings', style: TextStyle(fontSize: 18)),
         ),
-        const FDivider(),
 
         // Content
         Expanded(

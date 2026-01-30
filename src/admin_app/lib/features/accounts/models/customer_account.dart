@@ -120,9 +120,13 @@ class CustomerAccount {
   factory CustomerAccount.fromJson(Map<String, dynamic> json) {
     final transactionsData = json['transactions'] as List<dynamic>? ?? [];
 
+    // Safely extract customerId - handle both null and non-string types
+    final customerIdRaw = json['customerId'];
+    final customerId = customerIdRaw?.toString() ?? '';
+
     return CustomerAccount(
       id: json['id'] as int,
-      customerId: json['customerId'] as String? ?? '',
+      customerId: customerId,
       customerName: json['customerName'] as String?,
       balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
       createdAt: json['createdAt'] != null

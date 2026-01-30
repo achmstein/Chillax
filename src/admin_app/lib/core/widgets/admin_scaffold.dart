@@ -2,10 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import '../auth/auth_service.dart';
+import '../../features/orders/providers/orders_provider.dart';
+import '../../features/rooms/providers/rooms_provider.dart';
+import '../../features/rooms/models/room.dart';
+import '../../features/service_requests/providers/service_requests_provider.dart';
 
-/// Breakpoint for tablet layout
-const double kTabletBreakpoint = 768;
+/// Notifier to track current route for triggering refreshes when navigating
+class CurrentRouteNotifier extends Notifier<String> {
+  @override
+  String build() => '/orders';
+
+  void setRoute(String route) {
+    state = route;
+  }
+}
+
+final currentRouteProvider = NotifierProvider<CurrentRouteNotifier, String>(
+  CurrentRouteNotifier.new,
+);
 
 /// Navigation item model
 class NavItem {
@@ -22,23 +36,22 @@ class NavItem {
 
 /// Main navigation items (shown in bottom nav on mobile)
 const List<NavItem> mainNavItems = [
-  NavItem(route: '/dashboard', label: 'Home', icon: Icons.home_outlined),
   NavItem(route: '/orders', label: 'Orders', icon: Icons.receipt_long_outlined),
   NavItem(route: '/rooms', label: 'Rooms', icon: Icons.videogame_asset_outlined),
   NavItem(route: '/service-requests', label: 'Requests', icon: Icons.notifications_outlined),
+  NavItem(route: '/accounts', label: 'Accounts', icon: Icons.account_balance_wallet_outlined),
 ];
 
 /// Secondary nav items (shown in More menu on mobile, sidebar on tablet)
 const List<NavItem> secondaryNavItems = [
   NavItem(route: '/menu', label: 'Menu', icon: Icons.restaurant_menu_outlined),
   NavItem(route: '/loyalty', label: 'Loyalty', icon: Icons.card_giftcard_outlined),
-  NavItem(route: '/accounts', label: 'Accounts', icon: Icons.account_balance_wallet_outlined),
   NavItem(route: '/customers', label: 'Customers', icon: Icons.people_outline),
-  NavItem(route: '/settings', label: 'Settings', icon: Icons.settings_outlined),
+  NavItem(route: '/profile', label: 'Profile', icon: Icons.person_outline),
 ];
 
-/// Admin scaffold - mobile-first with bottom nav, sidebar on tablet
-class AdminScaffold extends ConsumerWidget {
+/// Admin scaffold with bottom navigation
+class AdminScaffold extends ConsumerStatefulWidget {
   final Widget child;
   final String currentRoute;
 
@@ -49,15 +62,35 @@ class AdminScaffold extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth >= kTabletBreakpoint;
+  ConsumerState<AdminScaffold> createState() => _AdminScaffoldState();
+}
 
-    if (isTablet) {
-      return _TabletLayout(currentRoute: currentRoute, child: child);
-    } else {
-      return _MobileLayout(currentRoute: currentRoute, child: child);
+class _AdminScaffoldState extends ConsumerState<AdminScaffold> {
+  @override
+  void initState() {
+    super.initState();
+    // Update route provider on initial load (delayed to avoid build-phase modification)
+    Future.microtask(() {
+      ref.read(currentRouteProvider.notifier).setRoute(widget.currentRoute);
+    });
+  }
+
+  @override
+  void didUpdateWidget(AdminScaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update route provider when route changes (delayed to avoid build-phase modification)
+    if (oldWidget.currentRoute != widget.currentRoute) {
+      Future.microtask(() {
+        if (mounted) {
+          ref.read(currentRouteProvider.notifier).setRoute(widget.currentRoute);
+        }
+      });
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _MobileLayout(currentRoute: widget.currentRoute, child: widget.child);
   }
 }
 
@@ -81,7 +114,6 @@ class _MobileLayout extends ConsumerWidget {
 
   void _showMoreMenu(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
-    final authState = ref.read(authServiceProvider);
 
     showModalBottomSheet(
       context: context,
@@ -104,63 +136,22 @@ class _MobileLayout extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              // User info
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: theme.colors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Center(
-                        child: Text(
-                          (authState.name ?? 'A').substring(0, 1).toUpperCase(),
-                          style: theme.typography.lg.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            authState.name ?? 'Admin',
-                            style: theme.typography.base.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            authState.email ?? '',
-                            style: theme.typography.sm.copyWith(
-                              color: theme.colors.mutedForeground,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(height: 1, color: theme.colors.border),
+              const SizedBox(height: 8),
               // Nav items
               ...secondaryNavItems.map((item) {
                 final isSelected = currentRoute.startsWith(item.route);
                 return ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   leading: Icon(
                     item.icon,
+                    size: 20,
                     color: isSelected ? theme.colors.primary : theme.colors.foreground,
                   ),
                   title: Text(
                     item.label,
-                    style: theme.typography.base.copyWith(
+                    style: theme.typography.sm.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                       color: isSelected ? theme.colors.primary : theme.colors.foreground,
                     ),
@@ -171,25 +162,6 @@ class _MobileLayout extends ConsumerWidget {
                   },
                 );
               }),
-              Divider(height: 1, color: theme.colors.border),
-              // Logout
-              ListTile(
-                leading: Icon(
-                  Icons.logout,
-                  color: theme.colors.destructive,
-                ),
-                title: Text(
-                  'Logout',
-                  style: theme.typography.base.copyWith(
-                    color: theme.colors.destructive,
-                  ),
-                ),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await ref.read(authServiceProvider.notifier).signOut();
-                  if (context.mounted) context.go('/login');
-                },
-              ),
               const SizedBox(height: 8),
             ],
           ),
@@ -203,6 +175,14 @@ class _MobileLayout extends ConsumerWidget {
     final theme = context.theme;
     final selectedIndex = _getSelectedIndex();
     final isProfileSelected = selectedIndex == mainNavItems.length;
+    final ordersState = ref.watch(ordersProvider);
+    final pendingOrdersCount = ordersState.orders.length;
+    final roomsState = ref.watch(roomsProvider);
+    final reservationsCount = roomsState.activeSessions
+        .where((s) => s.status == SessionStatus.reserved)
+        .length;
+    final serviceRequestsState = ref.watch(serviceRequestsProvider);
+    final pendingRequestsCount = serviceRequestsState.pendingRequests.length;
 
     return Scaffold(
       backgroundColor: theme.colors.background,
@@ -225,6 +205,14 @@ class _MobileLayout extends ConsumerWidget {
                     label: mainNavItems[i].label,
                     isSelected: selectedIndex == i,
                     onTap: () => context.go(mainNavItems[i].route),
+                    badgeCount: mainNavItems[i].route == '/orders'
+                        ? pendingOrdersCount
+                        : mainNavItems[i].route == '/rooms'
+                            ? reservationsCount
+                            : mainNavItems[i].route == '/service-requests'
+                                ? pendingRequestsCount
+                                : 0,
+                    badgeColor: mainNavItems[i].route == '/rooms' ? Colors.orange : null,
                   ),
                 // More button
                 _MoreNavItem(
@@ -246,12 +234,16 @@ class _NavBarItem extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
+  final int badgeCount;
+  final Color? badgeColor;
 
   const _NavBarItem({
     required this.icon,
     required this.label,
     required this.isSelected,
     required this.onTap,
+    this.badgeCount = 0,
+    this.badgeColor,
   });
 
   @override
@@ -267,7 +259,34 @@ class _NavBarItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 22, color: color),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, size: 22, color: color),
+                if (badgeCount > 0)
+                  Positioned(
+                    right: -8,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: badgeColor ?? theme.colors.destructive,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16),
+                      child: Text(
+                        badgeCount > 99 ? '99+' : '$badgeCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 2),
             Text(
               label,
@@ -317,182 +336,6 @@ class _MoreNavItem extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Tablet layout with sidebar
-class _TabletLayout extends ConsumerWidget {
-  final Widget child;
-  final String currentRoute;
-
-  const _TabletLayout({required this.child, required this.currentRoute});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authServiceProvider);
-    final theme = context.theme;
-    final allNavItems = [...mainNavItems, ...secondaryNavItems];
-
-    return Row(
-      children: [
-        // Sidebar
-        Container(
-          width: 220,
-          color: theme.colors.background,
-          child: Column(
-            children: [
-              // Logo
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Image.asset('assets/images/logo.png', height: 28),
-              ),
-              const FDivider(),
-              // Nav items
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  children: allNavItems.map((item) {
-                    final isSelected = currentRoute.startsWith(item.route);
-                    return _SidebarItem(
-                      icon: item.icon,
-                      label: item.label,
-                      isSelected: isSelected,
-                      onTap: () {
-                        if (!isSelected) context.go(item.route);
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
-              // User footer
-              const FDivider(),
-              _UserFooter(authState: authState, ref: ref),
-            ],
-          ),
-        ),
-        VerticalDivider(width: 1, color: theme.colors.border),
-        // Content
-        Expanded(child: child),
-      ],
-    );
-  }
-}
-
-/// Sidebar nav item
-class _SidebarItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _SidebarItem({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Material(
-        color: isSelected
-            ? theme.colors.primary.withValues(alpha: 0.1)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(6),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(6),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: isSelected
-                      ? theme.colors.primary
-                      : theme.colors.mutedForeground,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  label,
-                  style: theme.typography.sm.copyWith(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    color: isSelected
-                        ? theme.colors.primary
-                        : theme.colors.foreground,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// User footer
-class _UserFooter extends StatelessWidget {
-  final AuthState authState;
-  final WidgetRef ref;
-
-  const _UserFooter({required this.authState, required this.ref});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: theme.colors.secondary,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Center(
-              child: Text(
-                (authState.name ?? 'A').substring(0, 1).toUpperCase(),
-                style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  authState.name ?? 'Admin',
-                  style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  authState.email ?? '',
-                  style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.logout, size: 18, color: theme.colors.mutedForeground),
-            onPressed: () async {
-              await ref.read(authServiceProvider.notifier).signOut();
-              if (context.mounted) context.go('/login');
-            },
-          ),
-        ],
       ),
     );
   }

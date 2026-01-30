@@ -156,8 +156,9 @@ class AuthService extends Notifier<AuthState> {
           return SignInResult.notAdmin;
         }
 
-        // Auto-register for admin order notifications
+        // Auto-register for admin notifications
         await _registerForAdminNotifications();
+        await _registerForServiceRequestNotifications();
 
         return SignInResult.success;
       }
@@ -177,8 +178,9 @@ class AuthService extends Notifier<AuthState> {
   /// Sign out
   Future<void> signOut() async {
     try {
-      // Unregister from admin order notifications first
+      // Unregister from notifications first
       await _unregisterFromAdminNotifications();
+      await _unregisterFromServiceRequestNotifications();
 
       if (state.refreshToken != null) {
         await _dio.post(
@@ -320,6 +322,58 @@ class AuthService extends Notifier<AuthState> {
       debugPrint('Unregistered from admin order notifications');
     } catch (e) {
       debugPrint('Error unregistering from admin notifications: $e');
+      // Don't fail logout if notification unregistration fails
+    }
+  }
+
+  /// Register for service request notifications
+  Future<void> _registerForServiceRequestNotifications() async {
+    try {
+      // Request notification permission
+      final hasPermission = await _firebaseService.requestPermission();
+      if (!hasPermission) {
+        debugPrint('Notification permission not granted');
+        return;
+      }
+
+      // Get FCM token
+      final fcmToken = await _firebaseService.getToken();
+      if (fcmToken == null) {
+        debugPrint('Failed to get FCM token');
+        return;
+      }
+
+      // Register with backend
+      final response = await _dio.post(
+        '${AppConfig.notificationsApiUrl}subscriptions/service-requests',
+        data: {'fcmToken': fcmToken},
+        options: Options(
+          headers: {'Authorization': 'Bearer ${state.accessToken}'},
+          contentType: Headers.jsonContentType,
+        ),
+      );
+
+      debugPrint('Service request notification registration: ${response.statusCode == 200 || response.statusCode == 201 ? 'success' : 'failed'}');
+    } catch (e) {
+      debugPrint('Error registering for service request notifications: $e');
+      // Don't fail login if notification registration fails
+    }
+  }
+
+  /// Unregister from service request notifications
+  Future<void> _unregisterFromServiceRequestNotifications() async {
+    if (state.accessToken == null) return;
+
+    try {
+      await _dio.delete(
+        '${AppConfig.notificationsApiUrl}subscriptions/service-requests',
+        options: Options(
+          headers: {'Authorization': 'Bearer ${state.accessToken}'},
+        ),
+      );
+      debugPrint('Unregistered from service request notifications');
+    } catch (e) {
+      debugPrint('Error unregistering from service request notifications: $e');
       // Don't fail logout if notification unregistration fails
     }
   }

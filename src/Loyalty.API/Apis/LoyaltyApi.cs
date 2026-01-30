@@ -132,7 +132,8 @@ public static class LoyaltyApi
 
         var account = new LoyaltyAccount
         {
-            UserId = request.UserId
+            UserId = request.UserId,
+            UserDisplayName = request.UserDisplayName
         };
 
         context.Accounts.Add(account);
@@ -200,9 +201,14 @@ public static class LoyaltyApi
         if (account == null)
         {
             // Auto-create account if it doesn't exist
-            account = new LoyaltyAccount { UserId = request.UserId };
+            account = new LoyaltyAccount { UserId = request.UserId, UserDisplayName = request.UserDisplayName };
             context.Accounts.Add(account);
             await context.SaveChangesAsync();
+        }
+        else if (request.UserDisplayName != null && account.UserDisplayName != request.UserDisplayName)
+        {
+            // Update display name if provided and different
+            account.UserDisplayName = request.UserDisplayName;
         }
 
         try
@@ -301,13 +307,14 @@ public static class LoyaltyApi
 }
 
 // DTOs
-public record CreateAccountRequest(string UserId);
-public record EarnPointsRequest(string UserId, int Points, string Type, string Description, string? ReferenceId = null);
+public record CreateAccountRequest(string UserId, string? UserDisplayName = null);
+public record EarnPointsRequest(string UserId, int Points, string Type, string Description, string? ReferenceId = null, string? UserDisplayName = null);
 public record AdjustPointsRequest(string UserId, int Points, string Reason);
 
 public record AccountDto(
     int Id,
     string UserId,
+    string? UserDisplayName,
     int PointsBalance,
     int LifetimePoints,
     string CurrentTier,
@@ -317,6 +324,7 @@ public record AccountDto(
     public AccountDto(LoyaltyAccount account) : this(
         account.Id,
         account.UserId,
+        account.UserDisplayName,
         account.PointsBalance,
         account.LifetimePoints,
         account.CurrentTier.ToString(),

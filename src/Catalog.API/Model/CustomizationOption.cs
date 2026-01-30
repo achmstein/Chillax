@@ -20,6 +20,11 @@ public class CustomizationOption
     public string Name { get; set; }
 
     /// <summary>
+    /// Arabic name for the option
+    /// </summary>
+    public string? NameAr { get; set; }
+
+    /// <summary>
     /// Price adjustment for this option (can be 0, positive, or negative)
     /// </summary>
     public decimal PriceAdjustment { get; set; }

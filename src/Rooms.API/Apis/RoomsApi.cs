@@ -1,8 +1,10 @@
 using System.ComponentModel;
 using Chillax.Rooms.API.Application.Commands;
 using Chillax.Rooms.API.Application.Queries;
+using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
 using Chillax.Rooms.Domain.Exceptions;
+using Room = Chillax.Rooms.Domain.AggregatesModel.RoomAggregate.Room;
 using Chillax.ServiceDefaults;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -38,6 +40,27 @@ public static class RoomsApi
             .WithTags("Rooms");
 
         // Admin room management
+        api.MapPost("/", CreateRoom)
+            .WithName("CreateRoom")
+            .WithSummary("Create a new room")
+            .WithDescription("Create a new PlayStation room (Admin only)")
+            .WithTags("Rooms")
+            .RequireAuthorization();
+
+        api.MapPut("/{id:int}", UpdateRoom)
+            .WithName("UpdateRoom")
+            .WithSummary("Update room details")
+            .WithDescription("Update room name, description, and hourly rate (Admin only)")
+            .WithTags("Rooms")
+            .RequireAuthorization();
+
+        api.MapDelete("/{id:int}", DeleteRoom)
+            .WithName("DeleteRoom")
+            .WithSummary("Delete a room")
+            .WithDescription("Delete a room (Admin only)")
+            .WithTags("Rooms")
+            .RequireAuthorization();
+
         api.MapPut("/{id:int}/status", UpdateRoomStatus)
             .WithName("UpdateRoomStatus")
             .WithSummary("Update room physical status")
@@ -49,7 +72,7 @@ public static class RoomsApi
         api.MapPost("/{roomId:int}/reserve", CreateReservation)
             .WithName("ReserveRoom")
             .WithSummary("Reserve a room")
-            .WithDescription("Create a reservation for a room (same day only)")
+            .WithDescription("Create an immediate reservation for a room. Customer has 15 minutes to arrive before auto-cancellation.")
             .WithTags("Reservations")
             .RequireAuthorization();
 
@@ -127,6 +150,13 @@ public static class RoomsApi
             .WithTags("Sessions")
             .RequireAuthorization();
 
+        api.MapGet("/{roomId:int}/sessions/history", GetRoomSessionHistory)
+            .WithName("GetRoomSessionHistory")
+            .WithSummary("Get room session history")
+            .WithDescription("Get completed sessions history for a specific room")
+            .WithTags("Sessions")
+            .RequireAuthorization();
+
         return app;
     }
 
@@ -157,6 +187,56 @@ public static class RoomsApi
     {
         var rooms = await queries.GetAvailableRoomsAsync();
         return TypedResults.Ok(rooms);
+    }
+
+    public static async Task<Created<int>> CreateRoom(
+        RoomsContext context,
+        CreateRoomRequest request)
+    {
+        var room = new Room(request.Name, request.HourlyRate, request.Description);
+        context.Rooms.Add(room);
+        await context.SaveChangesAsync();
+        return TypedResults.Created($"/api/rooms/{room.Id}", room.Id);
+    }
+
+    public static async Task<Results<Ok, NotFound>> UpdateRoom(
+        RoomsContext context,
+        [Description("The room ID")] int id,
+        UpdateRoomRequest request)
+    {
+        var room = await context.Rooms.FindAsync(id);
+        if (room == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        room.UpdateDetails(request.Name, request.Description, request.HourlyRate);
+        await context.SaveChangesAsync();
+        return TypedResults.Ok();
+    }
+
+    public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> DeleteRoom(
+        RoomsContext context,
+        [Description("The room ID")] int id)
+    {
+        var room = await context.Rooms.FindAsync(id);
+        if (room == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        // Check if room has active sessions
+        var hasActiveSessions = await context.Reservations
+            .AnyAsync(r => r.RoomId == id && (r.Status == ReservationStatus.Active || r.Status == ReservationStatus.Reserved));
+
+        if (hasActiveSessions)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = "Cannot delete room with active sessions" });
+        }
+
+        context.Rooms.Remove(room);
+        await context.SaveChangesAsync();
+        return TypedResults.Ok();
     }
 
     public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> UpdateRoomStatus(
@@ -197,10 +277,13 @@ public static class RoomsApi
     // Command endpoints
     public static async Task<Results<Created<int>, BadRequest<ProblemDetails>>> CreateReservation(
         [FromServices] IMediator mediator,
+        [FromServices] ILoggerFactory loggerFactory,
         HttpContext httpContext,
         [Description("The room ID to reserve")] int roomId,
         ReserveRoomRequest? request = null)
     {
+        var logger = loggerFactory.CreateLogger("RoomsApi");
+
         var customerId = httpContext.User.GetUserId();
         if (string.IsNullOrEmpty(customerId))
         {
@@ -211,10 +294,11 @@ public static class RoomsApi
         }
 
         var customerName = httpContext.User.GetUserName() ?? request?.CustomerName;
-        // Ensure DateTime is UTC for PostgreSQL compatibility
-        var scheduledTime = request?.ScheduledStartTime != null
-            ? DateTime.SpecifyKind(request.ScheduledStartTime.Value, DateTimeKind.Utc)
-            : DateTime.UtcNow;
+        var roles = httpContext.User.GetRoles().ToList();
+        var isAdmin = httpContext.User.IsInRole("admin");
+
+        logger.LogInformation("CreateReservation API: CustomerId={CustomerId}, Roles=[{Roles}], IsAdmin={IsAdmin}",
+            customerId, string.Join(", ", roles), isAdmin);
 
         try
         {
@@ -222,8 +306,8 @@ public static class RoomsApi
                 roomId,
                 customerId,
                 customerName,
-                scheduledTime,
-                request?.Notes);
+                request?.Notes,
+                isAdmin);
 
             var reservationId = await mediator.Send(command);
             return TypedResults.Created($"/api/rooms/sessions/{reservationId}", reservationId);
@@ -394,10 +478,18 @@ public static class RoomsApi
         }
         return TypedResults.Ok(preview);
     }
+
+    public static async Task<Ok<IEnumerable<ReservationViewModel>>> GetRoomSessionHistory(
+        [FromServices] IRoomQueries queries,
+        [Description("The room ID")] int roomId,
+        [Description("Maximum number of sessions to return")] int limit = 20)
+    {
+        var sessions = await queries.GetRoomSessionHistoryAsync(roomId, limit);
+        return TypedResults.Ok(sessions);
+    }
 }
 
 public record ReserveRoomRequest(
-    DateTime? ScheduledStartTime = null,
     string? CustomerName = null,
     string? Notes = null
 );
@@ -405,3 +497,7 @@ public record ReserveRoomRequest(
 public record WalkInSessionRequest(string? Notes = null);
 
 public record JoinSessionRequest(string AccessCode);
+
+public record CreateRoomRequest(string Name, string? Description, decimal HourlyRate);
+
+public record UpdateRoomRequest(string Name, string? Description, decimal HourlyRate);

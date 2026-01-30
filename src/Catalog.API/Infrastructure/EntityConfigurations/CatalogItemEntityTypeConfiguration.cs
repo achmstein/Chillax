@@ -10,7 +10,13 @@ class CatalogItemEntityTypeConfiguration
         builder.Property(ci => ci.Name)
             .HasMaxLength(100);
 
+        builder.Property(ci => ci.NameAr)
+            .HasMaxLength(100);
+
         builder.Property(ci => ci.Description)
+            .HasMaxLength(500);
+
+        builder.Property(ci => ci.DescriptionAr)
             .HasMaxLength(500);
 
         builder.Property(ci => ci.Price)

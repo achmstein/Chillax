@@ -1346,7 +1346,19 @@
           "name": {
             "type": "string"
           },
+          "nameAr": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "descriptionAr": {
             "type": [
               "null",
               "string"
@@ -1485,6 +1497,12 @@
           },
           "type": {
             "type": "string"
+          },
+          "typeAr": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1538,6 +1556,12 @@
           },
           "name": {
             "type": "string"
+          },
+          "nameAr": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "priceAdjustment": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
@@ -1621,6 +1645,12 @@
           },
           "name": {
             "type": "string"
+          },
+          "nameAr": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "isRequired": {
             "type": "boolean"

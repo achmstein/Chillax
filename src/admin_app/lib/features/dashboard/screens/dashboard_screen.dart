@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../providers/dashboard_provider.dart';
 import '../../orders/models/order.dart';
@@ -26,6 +29,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _notifier?.loadDashboard();
       _notifier?.startAutoRefresh();
     });
+
+    // Listen to route changes and refresh when navigating to this screen
+    ref.listenManual(currentRouteProvider, (previous, next) {
+      if (next == '/dashboard' && previous != '/dashboard' && previous != null) {
+        ref.read(dashboardProvider.notifier).loadDashboard();
+      }
+    });
   }
 
   @override
@@ -38,51 +48,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(dashboardProvider);
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
 
     return Column(
       children: [
-        // Action bar
+        // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text(
-                'Dashboard',
-                style: theme.typography.base.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.refresh, size: 22),
-                onPressed: () => ref.read(dashboardProvider.notifier).loadDashboard(),
-                tooltip: 'Refresh',
-              ),
+              Text('Dashboard', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
 
         // Content
         Expanded(
-          child: state.isLoading && state.stats.pendingOrdersCount == 0
-              ? const ShimmerLoadingList()
-              : RefreshIndicator(
+          child: DelayedShimmer(
+            isLoading: state.isLoading && state.stats.pendingOrdersCount == 0,
+            shimmer: const ShimmerLoadingList(),
+            child: RefreshIndicator(
                   onRefresh: () => ref.read(dashboardProvider.notifier).loadDashboard(),
                   child: ListView(
                     padding: kScreenPadding,
                     children: [
-                      // Error
-                      if (state.error != null) ...[
-                        FAlert(
-                          style: FAlertStyle.destructive(),
-                          icon: const Icon(Icons.warning),
-                          title: const Text('Error'),
-                          subtitle: Text(state.error!),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
                       // Quick stats row
                       Row(
                         children: [
@@ -104,11 +92,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             label: 'Available',
                             value: '${state.stats.availableRoomsCount}',
                             color: theme.colors.mutedForeground,
-                          ),
-                          _QuickStat(
-                            label: 'Revenue',
-                            value: currencyFormat.format(state.stats.todayRevenue),
-                            color: Colors.green,
                           ),
                         ],
                       ),
@@ -173,17 +156,53 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ],
                   ),
                 ),
+          ),
         ),
       ],
     );
   }
 
   Future<void> _confirmOrder(int orderId) async {
-    // Call confirm via orders provider
+    final api = ref.read(ordersApiProvider);
+    try {
+      await api.put('confirm', data: {'orderNumber': orderId});
+      ref.read(dashboardProvider.notifier).loadDashboard();
+    } catch (e) {
+      debugPrint('Failed to confirm order: $e');
+    }
   }
 
   Future<void> _cancelOrder(BuildContext context, int orderId) async {
-    // Call cancel via orders provider
+    final confirmed = await showAdaptiveDialog<bool>(
+      context: context,
+      builder: (context) => FDialog(
+        direction: Axis.horizontal,
+        title: const Text('Cancel Order?'),
+        body: const Text('Are you sure you want to cancel this order?'),
+        actions: [
+          FButton(
+            style: FButtonStyle.outline(),
+            child: const Text('Keep'),
+            onPress: () => Navigator.of(context).pop(false),
+          ),
+          FButton(
+            style: FButtonStyle.destructive(),
+            child: const Text('Cancel'),
+            onPress: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final api = ref.read(ordersApiProvider);
+      try {
+        await api.put('cancel', data: {'orderNumber': orderId});
+        ref.read(dashboardProvider.notifier).loadDashboard();
+      } catch (e) {
+        debugPrint('Failed to cancel order: $e');
+      }
+    }
   }
 }
 
@@ -235,64 +254,113 @@ class _PendingOrderTile extends StatelessWidget {
     required this.onCancel,
   });
 
+  String _getTimeAgo(DateTime date) {
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 1) return 'now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    return '${diff.inDays}d';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
-    final timeFormat = DateFormat.Hm();
+    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Order #${order.id}',
+          // Left: Room/Order indicator
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: theme.colors.secondary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: order.roomName != null
+                  ? Text(
+                      order.roomName!.replaceAll('Room ', '').replaceAll('Table ', ''),
                       style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
+                    )
+                  : Text(
+                      '#${order.id}',
+                      style: theme.typography.xs.copyWith(fontWeight: FontWeight.w500),
                     ),
-                    const SizedBox(height: 2),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Middle: Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        order.userName ?? 'Order #${order.id}',
+                        style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     Text(
-                      '${order.items.length} items • ${currencyFormat.format(order.total)} • ${timeFormat.format(order.date)}',
-                      style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                      _getTimeAgo(order.date),
+                      style: theme.typography.xs.copyWith(
+                        color: theme.colors.mutedForeground,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              if (order.roomName != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                const SizedBox(height: 4),
+                Text(
+                  currencyFormat.format(order.total),
+                  style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Right: Actions
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: onCancel,
+                child: Container(
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: theme.colors.secondary,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
-                    order.roomName!,
-                    style: theme.typography.xs,
+                  child: Icon(
+                    Icons.close,
+                    size: 18,
+                    color: theme.colors.mutedForeground,
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: FButton(
-                  style: FButtonStyle.outline(),
-                  onPress: onCancel,
-                  child: const Text('Cancel'),
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: FButton(
-                  onPress: onConfirm,
-                  child: const Text('Confirm'),
+              GestureDetector(
+                onTap: onConfirm,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colors.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    size: 18,
+                    color: theme.colors.primaryForeground,
+                  ),
                 ),
               ),
             ],
@@ -311,7 +379,7 @@ class _SessionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
+    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),

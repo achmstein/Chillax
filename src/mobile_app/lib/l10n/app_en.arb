@@ -1,0 +1,212 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Chillax",
+  "cafeAndGaming": "Cafe & Gaming",
+
+  "signIn": "Sign In",
+  "signUp": "Sign Up",
+  "register": "Register",
+  "signOut": "Sign Out",
+
+  "username": "Username",
+  "usernameOrEmail": "Username or Email",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "name": "Name",
+
+  "enterUsername": "Enter your username",
+  "enterUsernameOrEmail": "Enter your username or email",
+  "enterEmail": "Enter your email",
+  "enterPassword": "Enter your password",
+  "createPassword": "Create a password",
+  "confirmYourPassword": "Confirm your password",
+  "chooseUsername": "Choose a username",
+  "yourDisplayName": "Your display name",
+
+  "orContinueWith": "or continue with",
+  "google": "Google",
+  "facebook": "Facebook",
+
+  "dontHaveAccount": "Don't have an account? ",
+  "alreadyHaveAccount": "Already have an account? ",
+
+  "createAccount": "Create Account",
+  "guestUser": "Guest User",
+
+  "enterBothUsernamePassword": "Please enter both username and password.",
+  "invalidCredentials": "Invalid username or password. Please try again.",
+  "anErrorOccurred": "An error occurred: {error}",
+  "@anErrorOccurred": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "socialSignInFailed": "Social sign in failed. Please try again.",
+  "fillAllFields": "Please fill in all fields.",
+  "passwordsDontMatch": "Passwords do not match.",
+  "passwordTooShort": "Password must be at least 6 characters.",
+  "registrationSuccessful": "Registration successful! Please sign in.",
+  "registrationFailed": "Registration failed. Username or email may already exist.",
+
+  "success": "Success",
+  "error": "Error",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "clear": "Clear",
+  "retry": "Retry",
+  "join": "Join",
+  "close": "Close",
+
+  "menu": "Menu",
+  "orders": "Orders",
+  "rooms": "Rooms",
+  "profile": "Profile",
+  "cart": "Cart",
+  "settings": "Settings",
+
+  "searchMenu": "Search menu...",
+  "noItemsAvailable": "No items available",
+  "failedToLoadMenu": "Failed to load menu: {error}",
+  "@failedToLoadMenu": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "viewCart": "View Cart",
+  "addToCart": "Add to Cart",
+
+  "yourCartIsEmpty": "Your cart is empty",
+  "addItemsFromMenu": "Add items from the menu",
+  "orderNoteOptional": "Order Note (optional)",
+  "anySpecialRequests": "Any special requests",
+  "useLoyaltyPoints": "Use Loyalty Points",
+  "pts": "pts",
+  "subtotal": "Subtotal",
+  "pointsDiscount": "Points discount",
+  "total": "Total",
+  "placeOrder": "Place Order",
+  "clearCart": "Clear Cart",
+  "removeAllItemsFromCart": "Remove all items from your cart?",
+  "orderPlacedSuccessfully": "Order placed successfully!",
+  "failedToPlaceOrder": "Failed to place order",
+  "noteWithText": "Note: {notes}",
+  "@noteWithText": {
+    "placeholders": {
+      "notes": {"type": "String"}
+    }
+  },
+
+  "failedToLoadOrders": "Failed to load orders",
+  "pullDownToRetry": "Pull down to retry",
+  "noOrdersYet": "No orders yet",
+  "orderHistoryWillAppearHere": "Your order history will appear here",
+  "orderNumber": "Order #{id}",
+  "@orderNumber": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "noItems": "No items",
+  "yourRating": "Your rating: ",
+  "rateThisOrder": "Rate This Order",
+  "failedToLoadDetails": "Failed to load details",
+
+  "enterSixDigitCode": "Enter 6-digit code",
+  "enterCode": "Enter code",
+  "invalidCode": "Invalid code",
+  "joinedSession": "Joined session!",
+  "failedToLoadRooms": "Failed to load rooms",
+  "sessionActive": "Session Active",
+  "shareCodeWithFriends": "Share code with friends",
+  "codeCopied": "Code copied!",
+  "needSomething": "Need something?",
+  "callWaiter": "Call Waiter",
+  "controller": "Controller",
+  "getBill": "Get Bill",
+  "waiterNotified": "Waiter has been notified",
+  "controllerRequestSent": "Controller request sent",
+  "billRequestSent": "Bill request sent",
+  "reserved": "Reserved",
+  "cancelReservation": "Cancel Reservation",
+  "cancelReservationQuestion": "Cancel Reservation?",
+  "confirmCancelReservation": "Are you sure you want to cancel your reservation?",
+  "noKeep": "No, Keep",
+  "yesCancel": "Yes, Cancel",
+  "reservationCancelled": "Reservation cancelled",
+  "failedToCancelReservation": "Failed to cancel reservation",
+  "allRoomsBusy": "All rooms are currently busy",
+  "getNotifiedWhenAvailable": "Get notified when a room becomes available",
+  "willBeNotifiedWhenAvailable": "You will be notified when a room is available",
+  "unsubscribedFromNotifications": "Unsubscribed from notifications",
+  "youWillBeNotified": "You will be notified!",
+  "failedToSubscribe": "Failed to subscribe",
+  "notifyMe": "Notify Me",
+  "fifteenMinutesToArrive": "15 minutes to arrive",
+  "reservationCancelledIfNoCheckIn": "Your reservation will be automatically cancelled if you don't check in within 15 minutes.",
+  "reserveRoomName": "Reserve {roomName}",
+  "@reserveRoomName": {
+    "placeholders": {
+      "roomName": {"type": "String"}
+    }
+  },
+  "perHour": "/hr",
+  "reserveNow": "Reserve Now",
+  "roomReservedSuccess": "Room reserved! You have 15 minutes to arrive.",
+  "failedToReserveRoom": "Failed to reserve room",
+  "available": "Available",
+
+  "orderHistory": "Order History",
+  "sessionHistory": "Session History",
+  "favorites": "Favorites",
+  "helpAndSupport": "Help & Support",
+  "about": "About",
+  "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "signOutConfirmation": "Are you sure you want to sign out?",
+  "needHelpContactUs": "Need help? Contact us:",
+  "supportHours": "Mon-Sun: 10:00 AM - 11:00 PM",
+  "aboutDescription": "Order delicious food & drinks, or reserve a PlayStation room for an amazing gaming experience.",
+
+  "notifications": "Notifications",
+  "orderStatusUpdates": "Order Status Updates",
+  "orderStatusUpdatesDescription": "Get notified when your order status changes",
+  "promotionsAndOffers": "Promotions & Offers",
+  "promotionsDescription": "Receive special deals and discounts",
+  "sessionReminders": "Session Reminders",
+  "sessionRemindersDescription": "Get reminded before your gaming session",
+  "appearance": "Appearance",
+  "theme": "Theme",
+  "account": "Account",
+  "changePassword": "Change Password",
+  "updateEmail": "Update Email",
+  "deleteAccount": "Delete Account",
+  "deleteAccountConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
+  "accountDeletedSuccessfully": "Account deleted successfully",
+  "failedToDeleteAccount": "Failed to delete account",
+  "selectTheme": "Select Theme",
+  "light": "Light",
+  "lightThemeDescription": "Always use light theme",
+  "dark": "Dark",
+  "darkThemeDescription": "Always use dark theme",
+  "systemDefault": "System Default",
+  "systemDefaultDescription": "Follow your device settings",
+
+  "language": "Language",
+  "selectLanguage": "Select Language",
+  "english": "English",
+  "arabic": "Arabic",
+
+  "currency": "EGP",
+  "priceFormat": "{price} EGP",
+  "@priceFormat": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  }
+}

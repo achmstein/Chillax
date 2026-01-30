@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
@@ -22,6 +23,13 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
     Future.microtask(() {
       ref.read(menuProvider.notifier).loadMenu();
     });
+
+    // Listen to route changes and refresh when navigating to this screen
+    ref.listenManual(currentRouteProvider, (previous, next) {
+      if (next == '/menu' && previous != '/menu' && previous != null) {
+        ref.read(menuProvider.notifier).loadMenu();
+      }
+    });
   }
 
   @override
@@ -34,17 +42,12 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Action bar
+        // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text(
-                'Menu',
-                style: theme.typography.base.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text('Menu', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.category, size: 22),
@@ -56,82 +59,73 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                 onPressed: () => _showItemForm(context),
                 tooltip: 'Add item',
               ),
-              IconButton(
-                icon: const Icon(Icons.refresh, size: 22),
-                onPressed: () => ref.read(menuProvider.notifier).loadMenu(),
-                tooltip: 'Refresh',
-              ),
             ],
           ),
         ),
 
         // Content
         Expanded(
-          child: state.isLoading && state.items.isEmpty
-              ? const ShimmerLoadingList(showLeadingCircle: false)
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Error
-                    if (state.error != null)
-                      Padding(
-                        padding: kScreenPadding,
-                        child: FAlert(style: FAlertStyle.destructive(),
-                          icon: const Icon(Icons.warning),
-                          title: const Text('Error'),
-                          subtitle: Text(state.error!),
-                        ),
-                      ),
-
-                    // Category filter
-                    Padding(
-                      padding: kScreenPadding,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _CategoryChip(
-                              label: 'All',
-                              isSelected: state.selectedCategoryId == null,
-                              onTap: () {
-                                ref.read(menuProvider.notifier).selectCategory(null);
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            ...state.categories.map((category) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: _CategoryChip(
-                                  label: category.name,
-                                  isSelected: state.selectedCategoryId == category.id,
+          child: DelayedShimmer(
+            isLoading: state.isLoading && state.items.isEmpty,
+            shimmer: const ShimmerLoadingList(showLeadingCircle: false),
+            child: RefreshIndicator(
+                  onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
+                  child: CustomScrollView(
+                    slivers: [
+                      // Category filter
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: kScreenPadding,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _CategoryChip(
+                                  label: 'All',
+                                  isSelected: state.selectedCategoryId == null,
                                   onTap: () {
-                                    ref.read(menuProvider.notifier).selectCategory(category.id);
+                                    ref.read(menuProvider.notifier).selectCategory(null);
                                   },
                                 ),
-                              );
-                            }),
-                          ],
+                                const SizedBox(width: 8),
+                                ...state.categories.map((category) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: _CategoryChip(
+                                      label: category.name,
+                                      isSelected: state.selectedCategoryId == category.id,
+                                      onTap: () {
+                                        ref.read(menuProvider.notifier).selectCategory(category.id);
+                                      },
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
 
-                    // Items grid
-                    Expanded(
-                      child: state.filteredItems.isEmpty
-                          ? const EmptyState(
-                              icon: Icons.restaurant,
-                              title: 'No items found',
-                            )
-                          : GridView.builder(
-                              padding: kScreenPadding,
-                              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: 350,
-                                mainAxisSpacing: 16,
-                                crossAxisSpacing: 16,
-                                mainAxisExtent: 200,
-                              ),
-                              itemCount: state.filteredItems.length,
-                              itemBuilder: (context, index) {
+                      // Items grid
+                      if (state.filteredItems.isEmpty)
+                        const SliverFillRemaining(
+                          child: EmptyState(
+                            icon: Icons.restaurant,
+                            title: 'No items found',
+                          ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: kScreenPadding,
+                          sliver: SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 350,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              mainAxisExtent: 200,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
                                 final item = state.filteredItems[index];
                                 return _MenuItemCard(
                                   item: item,
@@ -144,10 +138,14 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                                   onDelete: () => _deleteItem(context, item),
                                 );
                               },
+                              childCount: state.filteredItems.length,
                             ),
-                    ),
-                  ],
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
+          ),
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/loyalty_account.dart';
@@ -74,10 +75,8 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
         accounts: accounts,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load loyalty accounts: $e',
-      );
+      debugPrint('Failed to load loyalty accounts: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -148,7 +147,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
       await loadAccounts();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to create loyalty account: $e');
+      debugPrint('Failed to create loyalty account: $e');
       return false;
     }
   }
@@ -174,7 +173,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
       await loadAccounts();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to add points: $e');
+      debugPrint('Failed to add points: $e');
       return false;
     }
   }
@@ -198,7 +197,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
       await loadAccounts();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to redeem points: $e');
+      debugPrint('Failed to redeem points: $e');
       return false;
     }
   }
@@ -221,7 +220,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
       await loadStats();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to adjust points: $e');
+      debugPrint('Failed to adjust points: $e');
       return false;
     }
   }

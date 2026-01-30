@@ -12,9 +12,9 @@ namespace Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 public class Reservation : Entity, IAggregateRoot
 {
     /// <summary>
-    /// Default buffer in minutes for determining if a reservation is imminent
+    /// Time in minutes before a reservation expires if not started
     /// </summary>
-    public const int DefaultImminentBufferMinutes = 30;
+    public const int ReservationExpirationMinutes = 15;
 
     public int RoomId { get; private set; }
 
@@ -43,14 +43,9 @@ public class Reservation : Entity, IAggregateRoot
     public IReadOnlyCollection<SessionMember> SessionMembers => _sessionMembers.AsReadOnly();
 
     /// <summary>
-    /// When the reservation was created
+    /// When the reservation was created (customer has 15 min to arrive from this time)
     /// </summary>
     public DateTime CreatedAt { get; private set; }
-
-    /// <summary>
-    /// Scheduled start time (when customer wants to start)
-    /// </summary>
-    public DateTime ScheduledStartTime { get; private set; }
 
     /// <summary>
     /// Actual session start time (when admin clicks start)
@@ -81,26 +76,17 @@ public class Reservation : Entity, IAggregateRoot
     }
 
     /// <summary>
-    /// Create a new reservation for a future time slot (same day only)
+    /// Create a new immediate reservation (customer has 15 minutes to arrive)
     /// </summary>
     public Reservation(
         int roomId,
         string customerId,
         string? customerName,
-        DateTime scheduledStartTime,
         decimal hourlyRate,
         string? notes = null) : this()
     {
         if (string.IsNullOrWhiteSpace(customerId))
             throw new RoomsDomainException("Customer ID is required");
-
-        // Validate same-day only booking
-        if (scheduledStartTime.Date != DateTime.UtcNow.Date)
-            throw new RoomsDomainException("Reservations can only be made for today");
-
-        // Validate not in the past (allow 5 minute grace period)
-        if (scheduledStartTime < DateTime.UtcNow.AddMinutes(-5))
-            throw new RoomsDomainException("Cannot reserve for a time in the past");
 
         if (hourlyRate <= 0)
             throw new RoomsDomainException("Hourly rate must be greater than zero");
@@ -108,7 +94,6 @@ public class Reservation : Entity, IAggregateRoot
         RoomId = roomId;
         CustomerId = customerId;
         CustomerName = customerName;
-        ScheduledStartTime = scheduledStartTime;
         HourlyRate = hourlyRate;
         Notes = notes;
         CreatedAt = DateTime.UtcNow;
@@ -138,7 +123,6 @@ public class Reservation : Entity, IAggregateRoot
             RoomId = roomId,
             CustomerId = customerId,
             CustomerName = customerName,
-            ScheduledStartTime = DateTime.UtcNow,
             ActualStartTime = DateTime.UtcNow,
             HourlyRate = hourlyRate,
             Notes = notes,
@@ -168,7 +152,6 @@ public class Reservation : Entity, IAggregateRoot
             RoomId = roomId,
             CustomerId = null,
             CustomerName = null,
-            ScheduledStartTime = DateTime.UtcNow,
             ActualStartTime = DateTime.UtcNow,
             HourlyRate = hourlyRate,
             Notes = notes,
@@ -274,24 +257,59 @@ public class Reservation : Entity, IAggregateRoot
     }
 
     /// <summary>
-    /// Check if this reservation is imminent (within buffer window)
-    /// </summary>
-    public bool IsImminent(int bufferMinutes = 15)
-    {
-        if (Status != ReservationStatus.Reserved)
-            return false;
-
-        var now = DateTime.UtcNow;
-        return ScheduledStartTime <= now.AddMinutes(bufferMinutes) &&
-               ScheduledStartTime >= now.AddMinutes(-bufferMinutes);
-    }
-
-    /// <summary>
     /// Check if reservation is for active/reserved status (not completed/cancelled)
     /// </summary>
     public bool IsActiveOrReserved()
     {
         return Status == ReservationStatus.Active || Status == ReservationStatus.Reserved;
+    }
+
+    /// <summary>
+    /// Check if this reservation has expired (reserved but not started within timeout)
+    /// </summary>
+    public bool IsExpired()
+    {
+        if (Status != ReservationStatus.Reserved)
+            return false;
+
+        return DateTime.UtcNow > CreatedAt.AddMinutes(ReservationExpirationMinutes);
+    }
+
+    /// <summary>
+    /// Get the expiration time for this reservation
+    /// </summary>
+    public DateTime? GetExpirationTime()
+    {
+        if (Status != ReservationStatus.Reserved)
+            return null;
+
+        return CreatedAt.AddMinutes(ReservationExpirationMinutes);
+    }
+
+    /// <summary>
+    /// Get remaining time before expiration (null if not reserved or already expired)
+    /// </summary>
+    public TimeSpan? GetTimeUntilExpiration()
+    {
+        if (Status != ReservationStatus.Reserved)
+            return null;
+
+        var expiresAt = CreatedAt.AddMinutes(ReservationExpirationMinutes);
+        var remaining = expiresAt - DateTime.UtcNow;
+
+        return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+    }
+
+    /// <summary>
+    /// Cancel reservation due to expiration (no-show)
+    /// </summary>
+    public void CancelDueToExpiration()
+    {
+        if (Status != ReservationStatus.Reserved)
+            throw new RoomsDomainException("Only reserved sessions can be cancelled due to expiration");
+
+        Status = ReservationStatus.Cancelled;
+        EndTime = DateTime.UtcNow;
     }
 
     /// <summary>

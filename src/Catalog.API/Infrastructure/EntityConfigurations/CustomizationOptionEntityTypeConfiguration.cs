@@ -11,6 +11,9 @@ class CustomizationOptionEntityTypeConfiguration
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(co => co.NameAr)
+            .HasMaxLength(100);
+
         builder.Property(co => co.PriceAdjustment)
             .HasPrecision(18, 2);
 

@@ -2,7 +2,7 @@
 enum RoomDisplayStatus {
   available(1, 'Available'),
   occupied(2, 'Occupied'),
-  reservedSoon(3, 'Reserved Soon'),
+  reserved(3, 'Reserved'),  // Customer has 15 min to arrive
   maintenance(4, 'Maintenance');
 
   final int value;
@@ -38,14 +38,13 @@ enum SessionStatus {
   }
 }
 
-/// Room model - updated for time-aware availability
+/// Room model
 class Room {
   final int id;
   final String name;
   final String? description;
   final RoomDisplayStatus displayStatus;
   final double hourlyRate;
-  final DateTime? nextReservationTime;
 
   Room({
     required this.id,
@@ -53,7 +52,6 @@ class Room {
     this.description,
     required this.displayStatus,
     required this.hourlyRate,
-    this.nextReservationTime,
   });
 
   /// Can the user book this room now?
@@ -66,9 +64,6 @@ class Room {
       description: json['description'] as String?,
       displayStatus: RoomDisplayStatus.fromValue(json['displayStatus'] as int),
       hourlyRate: (json['hourlyRate'] as num).toDouble(),
-      nextReservationTime: json['nextReservationTime'] != null
-          ? DateTime.parse(json['nextReservationTime'] as String)
-          : null,
     );
   }
 }
@@ -80,7 +75,6 @@ class RoomSession {
   final String roomName;
   final double hourlyRate;
   final DateTime createdAt;
-  final DateTime scheduledStartTime;
   final DateTime? actualStartTime;
   final DateTime? endTime;
   final double? totalCost;
@@ -94,7 +88,6 @@ class RoomSession {
     required this.roomName,
     required this.hourlyRate,
     required this.createdAt,
-    required this.scheduledStartTime,
     this.actualStartTime,
     this.endTime,
     this.totalCost,
@@ -103,8 +96,8 @@ class RoomSession {
     this.accessCode,
   });
 
-  /// For backward compatibility with existing code
-  DateTime get reservationTime => scheduledStartTime;
+  /// When the reservation was created
+  DateTime get reservationTime => createdAt;
 
   /// Calculate duration if session is active or completed
   Duration? get duration {
@@ -130,7 +123,6 @@ class RoomSession {
       roomName: json['roomName'] as String? ?? 'Room ${json['roomId']}',
       hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      scheduledStartTime: DateTime.parse(json['scheduledStartTime'] as String),
       actualStartTime: json['actualStartTime'] != null
           ? DateTime.parse(json['actualStartTime'] as String)
           : null,
@@ -142,21 +134,6 @@ class RoomSession {
       notes: json['notes'] as String?,
       accessCode: json['accessCode'] as String?,
     );
-  }
-}
-
-/// Reserve room request
-class ReserveRoomRequest {
-  final DateTime scheduledStartTime;
-  final String? notes;
-
-  ReserveRoomRequest({required this.scheduledStartTime, this.notes});
-
-  Map<String, dynamic> toJson() {
-    return {
-      'scheduledStartTime': scheduledStartTime.toIso8601String(),
-      if (notes != null) 'notes': notes,
-    };
   }
 }
 

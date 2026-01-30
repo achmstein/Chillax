@@ -16,6 +16,11 @@ public class LoyaltyAccount
     public string UserId { get; set; } = "";
 
     /// <summary>
+    /// User's display name (cached from identity)
+    /// </summary>
+    public string? UserDisplayName { get; set; }
+
+    /// <summary>
     /// Current points balance
     /// </summary>
     public int PointsBalance { get; set; }

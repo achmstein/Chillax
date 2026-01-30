@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/room.dart';
@@ -10,6 +11,8 @@ class RoomsState {
   final List<RoomSession> activeSessions;
   final List<RoomSession>? sessionHistory;
   final bool isLoadingHistory;
+  final bool hasMoreHistory;
+  final int historyPage;
 
   const RoomsState({
     this.isLoading = false,
@@ -18,6 +21,8 @@ class RoomsState {
     this.activeSessions = const [],
     this.sessionHistory,
     this.isLoadingHistory = false,
+    this.hasMoreHistory = false,
+    this.historyPage = 0,
   });
 
   RoomsState copyWith({
@@ -27,6 +32,8 @@ class RoomsState {
     List<RoomSession>? activeSessions,
     List<RoomSession>? sessionHistory,
     bool? isLoadingHistory,
+    bool? hasMoreHistory,
+    int? historyPage,
   }) {
     return RoomsState(
       isLoading: isLoading ?? this.isLoading,
@@ -35,6 +42,8 @@ class RoomsState {
       activeSessions: activeSessions ?? this.activeSessions,
       sessionHistory: sessionHistory ?? this.sessionHistory,
       isLoadingHistory: isLoadingHistory ?? this.isLoadingHistory,
+      hasMoreHistory: hasMoreHistory ?? this.hasMoreHistory,
+      historyPage: historyPage ?? this.historyPage,
     );
   }
 }
@@ -75,22 +84,18 @@ class RoomsNotifier extends Notifier<RoomsState> {
         activeSessions: sessions,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load rooms: $e',
-      );
+      debugPrint('Failed to load rooms: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 
   Future<bool> reserveRoom(int roomId) async {
     try {
-      await _api.post('$roomId/reserve', data: {
-        'reservationTime': DateTime.now().toIso8601String(),
-      });
+      await _api.post('$roomId/reserve');
       await loadRooms();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to reserve room: $e');
+      debugPrint('Failed to reserve room: $e');
       return false;
     }
   }
@@ -101,7 +106,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
       await loadRooms();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to start session: $e');
+      debugPrint('Failed to start session: $e');
       return false;
     }
   }
@@ -112,7 +117,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
       await loadRooms();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to end session: $e');
+      debugPrint('Failed to end session: $e');
       return false;
     }
   }
@@ -123,7 +128,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
       await loadRooms();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to cancel session: $e');
+      debugPrint('Failed to cancel session: $e');
       return false;
     }
   }
@@ -134,7 +139,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
       await loadRooms();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to create room: $e');
+      debugPrint('Failed to create room: $e');
       return false;
     }
   }
@@ -145,7 +150,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
       await loadRooms();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to update room: $e');
+      debugPrint('Failed to update room: $e');
       return false;
     }
   }
@@ -156,7 +161,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
       await loadRooms();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to delete room: $e');
+      debugPrint('Failed to delete room: $e');
       return false;
     }
   }
@@ -164,34 +169,48 @@ class RoomsNotifier extends Notifier<RoomsState> {
   /// Start a walk-in session directly (without reservation)
   Future<bool> startWalkInSession(int roomId) async {
     try {
-      await _api.post('$roomId/walk-in');
+      await _api.post('sessions/walk-in/$roomId');
       await loadRooms();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to start walk-in session: $e');
+      debugPrint('Failed to start walk-in session: $e');
       return false;
     }
   }
 
+  static const int _historyPageSize = 20;
+
   /// Load session history for a specific room
-  Future<void> loadSessionHistory(int roomId) async {
-    state = state.copyWith(isLoadingHistory: true, sessionHistory: null);
+  Future<void> loadSessionHistory(int roomId, {bool loadMore = false}) async {
+    final currentPage = loadMore ? state.historyPage + 1 : 0;
+    final currentHistory = loadMore ? (state.sessionHistory ?? []) : <RoomSession>[];
+
+    state = state.copyWith(
+      isLoadingHistory: true,
+      sessionHistory: loadMore ? currentHistory : null,
+      historyPage: currentPage,
+    );
 
     try {
-      final response = await _api.get('$roomId/sessions/history');
+      final response = await _api.get(
+        '$roomId/sessions/history',
+        queryParameters: {'limit': _historyPageSize},
+      );
       final historyData = response.data as List<dynamic>;
-      final history = historyData
+      final newHistory = historyData
           .map((e) => RoomSession.fromJson(e as Map<String, dynamic>))
           .toList();
 
       state = state.copyWith(
         isLoadingHistory: false,
-        sessionHistory: history,
+        sessionHistory: [...currentHistory, ...newHistory],
+        hasMoreHistory: newHistory.length >= _historyPageSize,
       );
     } catch (e) {
       state = state.copyWith(
         isLoadingHistory: false,
-        sessionHistory: [],
+        sessionHistory: currentHistory.isEmpty ? [] : currentHistory,
+        hasMoreHistory: false,
       );
     }
   }

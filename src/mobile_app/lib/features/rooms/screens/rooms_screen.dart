@@ -1112,7 +1112,7 @@ class RoomListItem extends ConsumerWidget {
         return canReserve ? AppTheme.successColor : colors.mutedForeground;
       case RoomDisplayStatus.occupied:
         return AppTheme.errorColor;
-      case RoomDisplayStatus.reservedSoon:
+      case RoomDisplayStatus.reserved:
         return AppTheme.warningColor;
       case RoomDisplayStatus.maintenance:
         return colors.mutedForeground;
@@ -1130,7 +1130,7 @@ class RoomListItem extends ConsumerWidget {
   }
 }
 
-/// Reservation bottom sheet
+/// Reservation bottom sheet - immediate reservation with 15 min arrival window
 class ReservationSheet extends ConsumerStatefulWidget {
   final Room room;
 
@@ -1141,7 +1141,6 @@ class ReservationSheet extends ConsumerStatefulWidget {
 }
 
 class _ReservationSheetState extends ConsumerState<ReservationSheet> {
-  TimeOfDay _selectedTime = TimeOfDay.now();
   bool _isLoading = false;
 
   @override
@@ -1201,66 +1200,43 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
               ),
               const SizedBox(height: 24),
 
-              // Date (same-day only)
-              Text(
-                'Date',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: colors.foreground),
-              ),
-              const SizedBox(height: 8),
+              // Info box
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: colors.muted.withValues(alpha: 0.3),
-                  border: Border.all(color: colors.border),
+                  color: colors.primary.withValues(alpha: 0.1),
+                  border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    Icon(FIcons.calendar, size: 18, color: colors.mutedForeground),
+                    Icon(FIcons.clock, size: 24, color: colors.primary),
                     const SizedBox(width: 12),
-                    Text(
-                      'Today - ${DateFormat('EEEE, MMM d').format(DateTime.now())}',
-                      style: TextStyle(fontSize: 15, color: colors.foreground),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '15 minutes to arrive',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: colors.foreground,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Your reservation will be automatically cancelled if you don\'t check in within 15 minutes.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colors.mutedForeground,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Time picker
-              Text(
-                'Select Time',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: colors.foreground),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () async {
-                  final time = await showTimePicker(
-                    context: context,
-                    initialTime: _selectedTime,
-                  );
-                  if (time != null) {
-                    setState(() => _selectedTime = time);
-                  }
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: colors.border),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(FIcons.clock, size: 18, color: colors.mutedForeground),
-                      const SizedBox(width: 12),
-                      Text(
-                        _selectedTime.format(context),
-                        style: TextStyle(fontSize: 15, color: colors.foreground),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -1286,7 +1262,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                           ),
                         )
                       : const Text(
-                          'Confirm Reservation',
+                          'Reserve Now',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -1304,19 +1280,9 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
   Future<void> _handleReserve() async {
     setState(() => _isLoading = true);
 
-    // Same-day only - use today's date with selected time
-    final today = DateTime.now();
-    final scheduledStartTime = DateTime(
-      today.year,
-      today.month,
-      today.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
-    );
-
     final success = await ref
         .read(reservationProvider.notifier)
-        .reserveRoom(widget.room.id, scheduledStartTime);
+        .reserveRoom(widget.room.id);
 
     setState(() => _isLoading = false);
 
@@ -1326,7 +1292,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
       ref.read(mySessionsProvider.notifier).refresh();
       showFToast(
         context: context,
-        title: const Text('Room reserved successfully!'),
+        title: const Text('Room reserved! You have 15 minutes to arrive.'),
         icon: Icon(FIcons.check, color: AppTheme.successColor),
       );
     } else if (mounted) {

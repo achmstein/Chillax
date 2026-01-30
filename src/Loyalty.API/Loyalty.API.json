@@ -558,6 +558,12 @@
           "userId": {
             "type": "string"
           },
+          "userDisplayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "pointsBalance": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
@@ -648,6 +654,12 @@
         "properties": {
           "userId": {
             "type": "string"
+          },
+          "userDisplayName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -678,6 +690,12 @@
             "type": "string"
           },
           "referenceId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "userDisplayName": {
             "type": [
               "null",
               "string"

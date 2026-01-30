@@ -45,6 +45,11 @@ public class Order
 
     public IReadOnlyCollection<OrderItem> OrderItems => _orderItems.AsReadOnly();
 
+    /// <summary>
+    /// Order rating (null if not rated yet)
+    /// </summary>
+    public OrderRating? Rating { get; private set; }
+
     public static Order NewDraft()
     {
         var order = new Order
@@ -176,4 +181,14 @@ public class Order
     }
 
     public decimal GetTotal() => _orderItems.Sum(o => o.Units * o.UnitPrice);
+
+    /// <summary>
+    /// Check if the order can be rated (must be confirmed)
+    /// </summary>
+    public bool CanBeRated() => OrderStatus == OrderStatus.Confirmed;
+
+    /// <summary>
+    /// Check if the order has already been rated
+    /// </summary>
+    public bool HasRating() => Rating != null;
 }

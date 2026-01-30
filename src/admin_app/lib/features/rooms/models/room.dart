@@ -1,8 +1,8 @@
-/// Room status
+/// Room display status from API
 enum RoomStatus {
   available(1, 'Available'),
   occupied(2, 'Occupied'),
-  reserved(3, 'Reserved'),
+  reserved(3, 'Reserved'),  // Customer has 15 min to arrive
   maintenance(4, 'Maintenance');
 
   final int value;
@@ -104,6 +104,8 @@ class RoomSession {
   final int id;
   final int roomId;
   final String roomName;
+  final String? customerId;
+  final String? userName;
   final DateTime reservationTime;
   final DateTime? startTime;
   final DateTime? endTime;
@@ -111,11 +113,14 @@ class RoomSession {
   final SessionStatus status;
   final double hourlyRate;
   final String? accessCode;
+  final DateTime? expiresAt;
 
   RoomSession({
     required this.id,
     required this.roomId,
     required this.roomName,
+    this.customerId,
+    this.userName,
     required this.reservationTime,
     this.startTime,
     this.endTime,
@@ -123,6 +128,7 @@ class RoomSession {
     required this.status,
     this.hourlyRate = 0,
     this.accessCode,
+    this.expiresAt,
   });
 
   /// Calculate duration if session has started
@@ -149,6 +155,28 @@ class RoomSession {
     return (d.inSeconds / 3600) * hourlyRate;
   }
 
+  /// Check if this reservation is about to expire
+  bool get isExpiring {
+    if (status != SessionStatus.reserved || expiresAt == null) return false;
+    return DateTime.now().isAfter(expiresAt!);
+  }
+
+  /// Get remaining time until expiration
+  Duration? get timeUntilExpiration {
+    if (status != SessionStatus.reserved || expiresAt == null) return null;
+    final remaining = expiresAt!.difference(DateTime.now());
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
+  /// Format remaining time as MM:SS countdown
+  String get formattedCountdown {
+    final remaining = timeUntilExpiration;
+    if (remaining == null) return '--:--';
+    final minutes = remaining.inMinutes.toString().padLeft(2, '0');
+    final seconds = (remaining.inSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   factory RoomSession.fromJson(Map<String, dynamic> json) {
     // Handle status - API may return 'status' as int or enum value
     final statusValue = json['status'];
@@ -166,14 +194,16 @@ class RoomSession {
     }
 
     // Handle date fields - API uses different field names
-    final reservationTime = json['reservationTime'] ?? json['scheduledStartTime'];
+    final createdAt = json['createdAt'];
     final startTime = json['startTime'] ?? json['actualStartTime'];
 
     return RoomSession(
       id: json['id'] as int,
       roomId: json['roomId'] as int,
       roomName: json['roomName'] as String? ?? 'Room ${json['roomId']}',
-      reservationTime: DateTime.parse(reservationTime as String),
+      customerId: json['customerId'] as String?,
+      userName: json['customerName'] as String?,
+      reservationTime: DateTime.parse(createdAt as String),
       startTime: startTime != null
           ? DateTime.parse(startTime as String)
           : null,
@@ -184,6 +214,9 @@ class RoomSession {
       status: status,
       hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
       accessCode: json['accessCode'] as String?,
+      expiresAt: json['expiresAt'] != null
+          ? DateTime.parse(json['expiresAt'] as String)
+          : null,
     );
   }
 }

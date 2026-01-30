@@ -11,6 +11,9 @@ class ItemCustomizationEntityTypeConfiguration
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(ic => ic.NameAr)
+            .HasMaxLength(100);
+
         builder.HasMany(ic => ic.Options)
             .WithOne(o => o.ItemCustomization)
             .HasForeignKey(o => o.ItemCustomizationId)

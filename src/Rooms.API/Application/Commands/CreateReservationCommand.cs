@@ -16,22 +16,22 @@ public class CreateReservationCommand : IRequest<int>
     public string? CustomerName { get; private set; }
 
     [DataMember]
-    public DateTime ScheduledStartTime { get; private set; }
+    public string? Notes { get; private set; }
 
     [DataMember]
-    public string? Notes { get; private set; }
+    public bool IsAdmin { get; private set; }
 
     public CreateReservationCommand(
         int roomId,
         string customerId,
         string? customerName,
-        DateTime scheduledStartTime,
-        string? notes = null)
+        string? notes = null,
+        bool isAdmin = false)
     {
         RoomId = roomId;
         CustomerId = customerId;
         CustomerName = customerName;
-        ScheduledStartTime = scheduledStartTime;
         Notes = notes;
+        IsAdmin = isAdmin;
     }
 }

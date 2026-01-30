@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/order.dart';
@@ -60,10 +61,8 @@ class OrdersNotifier extends Notifier<OrdersState> {
         pendingOrders: orders, // All returned orders are pending
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load orders: $e',
-      );
+      debugPrint('Failed to load orders: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -73,7 +72,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
       await loadOrders();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to confirm order: $e');
+      debugPrint('Failed to confirm order: $e');
       return false;
     }
   }
@@ -84,8 +83,22 @@ class OrdersNotifier extends Notifier<OrdersState> {
       await loadOrders();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to cancel order: $e');
+      debugPrint('Failed to cancel order: $e');
       return false;
+    }
+  }
+
+  Future<List<Order>> getOrdersByUserId(String userId) async {
+    try {
+      final response = await _api.get('user/$userId');
+      final data = response.data as Map<String, dynamic>;
+      final itemsList = data['items'] as List<dynamic>;
+      return itemsList
+          .map((e) => Order.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('Failed to load user orders: $e');
+      return [];
     }
   }
 }

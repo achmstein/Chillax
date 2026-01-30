@@ -20,6 +20,11 @@ public class ItemCustomization
     public string Name { get; set; }
 
     /// <summary>
+    /// Arabic name for the customization group
+    /// </summary>
+    public string? NameAr { get; set; }
+
+    /// <summary>
     /// If true, customer must select at least one option
     /// </summary>
     public bool IsRequired { get; set; }

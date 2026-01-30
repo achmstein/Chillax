@@ -1,8 +1,12 @@
-/// Order status
+import 'rating.dart';
+
+/// Order status - values must match backend OrderStatus enum
+/// Note: Backend returns status as string, not int
 enum OrderStatus {
-  submitted(1, 'Submitted'),
-  confirmed(2, 'Confirmed'),
-  cancelled(3, 'Cancelled');
+  awaitingValidation(1, 'AwaitingValidation'),
+  submitted(2, 'Submitted'),
+  confirmed(3, 'Confirmed'),
+  cancelled(4, 'Cancelled');
 
   final int value;
   final String label;
@@ -70,6 +74,7 @@ class Order {
   final String? customerNote;
   final double total;
   final List<OrderItem> items;
+  final OrderRating? rating;
 
   Order({
     required this.id,
@@ -80,7 +85,14 @@ class Order {
     this.customerNote,
     required this.total,
     this.items = const [],
+    this.rating,
   });
+
+  /// Check if order can be rated (must be confirmed and not already rated)
+  bool get canBeRated => status == OrderStatus.confirmed && rating == null;
+
+  /// Check if order has a rating
+  bool get hasRating => rating != null;
 
   factory Order.fromJson(Map<String, dynamic> json) {
     // Handle status as either int or string (backend returns string)
@@ -102,6 +114,9 @@ class Order {
               ?.map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      rating: json['rating'] != null
+          ? OrderRating.fromJson(json['rating'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

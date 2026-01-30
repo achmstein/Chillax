@@ -9,5 +9,8 @@ class CatalogTypeEntityTypeConfiguration
 
         builder.Property(cb => cb.Type)
             .HasMaxLength(100);
+
+        builder.Property(cb => cb.TypeAr)
+            .HasMaxLength(100);
     }
 }

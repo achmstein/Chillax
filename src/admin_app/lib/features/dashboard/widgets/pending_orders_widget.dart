@@ -113,6 +113,15 @@ class PendingOrdersWidget extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: 4),
+                            if (order.userName != null) ...[
+                              Text(
+                                order.userName!,
+                                style: theme.typography.sm.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                            ],
                             Text(
                               '${order.items.length} items - ${currencyFormat.format(order.total)}',
                               style: theme.typography.sm.copyWith(

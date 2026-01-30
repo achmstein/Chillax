@@ -50,9 +50,9 @@ public class ReservationRepository : IReservationRepository
         return await _context.Reservations
             .Include(r => r.Room)
             .Where(r => r.RoomId == roomId)
-            .Where(r => r.ScheduledStartTime >= today && r.ScheduledStartTime < tomorrow)
+            .Where(r => r.CreatedAt >= today && r.CreatedAt < tomorrow)
             .Where(r => r.Status == ReservationStatus.Active || r.Status == ReservationStatus.Reserved)
-            .OrderBy(r => r.ScheduledStartTime)
+            .OrderBy(r => r.CreatedAt)
             .ToListAsync();
     }
 
@@ -80,15 +80,11 @@ public class ReservationRepository : IReservationRepository
         return await query.ToListAsync();
     }
 
-    public async Task<bool> HasConflictingReservationAsync(int roomId, DateTime scheduledTime, int bufferMinutes = 15)
+    public async Task<bool> HasActiveReservationAsync(int roomId)
     {
-        var minTime = scheduledTime.AddMinutes(-bufferMinutes);
-        var maxTime = scheduledTime.AddMinutes(bufferMinutes);
-
         return await _context.Reservations
             .Where(r => r.RoomId == roomId)
             .Where(r => r.Status == ReservationStatus.Active || r.Status == ReservationStatus.Reserved)
-            .Where(r => r.ScheduledStartTime >= minTime && r.ScheduledStartTime <= maxTime)
             .AnyAsync();
     }
 

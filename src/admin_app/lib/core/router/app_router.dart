@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../auth/auth_service.dart';
 import '../widgets/admin_scaffold.dart';
-import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/orders/screens/orders_screen.dart';
 import '../../features/service_requests/screens/service_requests_screen.dart';
 import '../../features/rooms/screens/rooms_screen.dart';
@@ -13,8 +12,11 @@ import '../../features/menu/screens/categories_screen.dart';
 import '../../features/customers/screens/customers_screen.dart';
 import '../../features/customers/screens/customer_detail_screen.dart';
 import '../../features/loyalty/screens/loyalty_screen.dart';
+import '../../features/loyalty/screens/loyalty_account_detail_screen.dart';
 import '../../features/accounts/screens/accounts_screen.dart';
+import '../../features/accounts/screens/account_detail_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../features/profile/screens/profile_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 
 /// Splash screen shown while checking authentication
@@ -70,7 +72,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // After initialization, redirect from splash based on auth status
       if (isOnSplash) {
-        return (isAuthenticated && isAdmin) ? '/dashboard' : '/login';
+        return (isAuthenticated && isAdmin) ? '/orders' : '/login';
       }
 
       // Not authenticated -> login
@@ -83,9 +85,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login?error=not_admin';
       }
 
-      // Authenticated and on login -> dashboard
+      // Authenticated and on login -> orders
       if (isAuthenticated && isAdmin && isLoginRoute) {
-        return '/dashboard';
+        return '/orders';
       }
 
       return null;
@@ -116,12 +118,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
         routes: [
-          GoRoute(
-            path: '/dashboard',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: DashboardScreen(),
-            ),
-          ),
           GoRoute(
             path: '/orders',
             pageBuilder: (context, state) => const NoTransitionPage(
@@ -181,17 +177,45 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: LoyaltyScreen(),
             ),
+            routes: [
+              GoRoute(
+                path: 'account/:userId',
+                builder: (context, state) {
+                  final userId = state.pathParameters['userId']!;
+                  final accountJson = state.extra as Map<String, dynamic>?;
+                  return LoyaltyAccountDetailPageWrapper(
+                    userId: userId,
+                    accountJson: accountJson,
+                  );
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/accounts',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: AccountsScreen(),
             ),
+            routes: [
+              GoRoute(
+                path: ':customerId',
+                builder: (context, state) {
+                  final customerId = state.pathParameters['customerId']!;
+                  return AccountDetailScreen(customerId: customerId);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/settings',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: SettingsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/profile',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ProfileScreen(),
             ),
           ),
         ],

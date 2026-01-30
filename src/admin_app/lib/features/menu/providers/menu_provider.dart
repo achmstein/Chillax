@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/menu_item.dart';
@@ -57,7 +58,7 @@ class MenuNotifier extends Notifier<MenuState> {
     try {
       final results = await Future.wait([
         _api.get('items'),
-        _api.get('catalogtypes'),
+        _api.get('categories'),
       ]);
 
       final itemsData = results[0].data as List<dynamic>;
@@ -77,10 +78,8 @@ class MenuNotifier extends Notifier<MenuState> {
         categories: categories,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load menu: $e',
-      );
+      debugPrint('Failed to load menu: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -109,7 +108,7 @@ class MenuNotifier extends Notifier<MenuState> {
       state = state.copyWith(items: items);
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to update item: $e');
+      debugPrint('Failed to update item: $e');
       return false;
     }
   }
@@ -120,7 +119,7 @@ class MenuNotifier extends Notifier<MenuState> {
       await loadMenu();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to create item: $e');
+      debugPrint('Failed to create item: $e');
       return false;
     }
   }
@@ -131,7 +130,7 @@ class MenuNotifier extends Notifier<MenuState> {
       await loadMenu();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to update item: $e');
+      debugPrint('Failed to update item: $e');
       return false;
     }
   }
@@ -142,7 +141,7 @@ class MenuNotifier extends Notifier<MenuState> {
       await loadMenu();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to delete item: $e');
+      debugPrint('Failed to delete item: $e');
       return false;
     }
   }
@@ -154,7 +153,7 @@ class MenuNotifier extends Notifier<MenuState> {
       await loadMenu();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to create category: $e');
+      debugPrint('Failed to create category: $e');
       return false;
     }
   }
@@ -165,7 +164,7 @@ class MenuNotifier extends Notifier<MenuState> {
       await loadMenu();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to update category: $e');
+      debugPrint('Failed to update category: $e');
       return false;
     }
   }
@@ -176,7 +175,7 @@ class MenuNotifier extends Notifier<MenuState> {
       await loadMenu();
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to delete category: $e');
+      debugPrint('Failed to delete category: $e');
       return false;
     }
   }

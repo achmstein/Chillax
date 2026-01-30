@@ -15,10 +15,14 @@ public partial class CatalogContextSeed(
             // Seed catalog types (menu categories)
             var types = new List<CatalogType>
             {
-                new("Drinks") { Id = 1 },
-                new("Food") { Id = 2 },
-                new("Snacks") { Id = 3 },
-                new("Desserts") { Id = 4 }
+                new("Coffee") { Id = 1, TypeAr = "قهوة" },
+                new("Espresso") { Id = 2, TypeAr = "اسبرسو" },
+                new("Hot Drinks") { Id = 3, TypeAr = "مشروبات ساخنة" },
+                new("Iced Drinks") { Id = 4, TypeAr = "مشروبات مثلجة" },
+                new("Juices") { Id = 5, TypeAr = "عصائر" },
+                new("Soft Drinks") { Id = 6, TypeAr = "مشروبات غازية" },
+                new("Snacks") { Id = 7, TypeAr = "مقرمشات" },
+                new("Desserts") { Id = 8, TypeAr = "حلويات" }
             };
 
             context.CatalogTypes.RemoveRange(context.CatalogTypes);
@@ -26,23 +30,60 @@ public partial class CatalogContextSeed(
             logger.LogInformation("Seeded catalog with {NumTypes} types", types.Count);
             await context.SaveChangesAsync();
 
-            // Seed menu items
+            // Seed menu items based on actual Chillax menu
             var menuItems = new List<CatalogItem>
             {
-                // Drinks - Hot Coffee
-                new("Espresso")
+                // ============== COFFEE (Category 1) ==============
+                new("Turkish Coffee")
                 {
-                    Description = "Strong Italian coffee shot",
+                    NameAr = "قهوة تركي",
+                    Description = "Traditional Turkish coffee brewed to perfection",
+                    DescriptionAr = "قهوة تركية تقليدية محضرة بإتقان",
                     Price = 25.00m,
                     CatalogTypeId = 1,
                     IsAvailable = true,
-                    PreparationTimeMinutes = 3,
-                    PictureFileName = "espresso.webp"
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "turkish-coffee.webp"
+                },
+                new("Hazelnut Coffee")
+                {
+                    NameAr = "قهوة بالبندق",
+                    Description = "Rich coffee with hazelnut flavor",
+                    DescriptionAr = "قهوة غنية بنكهة البندق",
+                    Price = 35.00m,
+                    CatalogTypeId = 1,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "hazelnut-coffee.webp"
+                },
+                new("French Coffee")
+                {
+                    NameAr = "قهوة فرنسية",
+                    Description = "Smooth French-style coffee",
+                    DescriptionAr = "قهوة فرنسية ناعمة",
+                    Price = 35.00m,
+                    CatalogTypeId = 1,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "french-coffee.webp"
+                },
+                new("Caramel Coffee")
+                {
+                    NameAr = "قهوة بالكراميل",
+                    Description = "Sweet caramel flavored coffee",
+                    DescriptionAr = "قهوة حلوة بنكهة الكراميل",
+                    Price = 30.00m,
+                    CatalogTypeId = 1,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "caramel-coffee.webp"
                 },
                 new("Cappuccino")
                 {
-                    Description = "Espresso with steamed milk foam",
-                    Price = 35.00m,
+                    NameAr = "كابتشينو",
+                    Description = "Classic Italian cappuccino with steamed milk foam",
+                    DescriptionAr = "كابتشينو إيطالي كلاسيكي مع رغوة الحليب",
+                    Price = 50.00m,
                     CatalogTypeId = 1,
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
@@ -50,272 +91,721 @@ public partial class CatalogContextSeed(
                 },
                 new("Latte")
                 {
-                    Description = "Espresso with steamed milk",
-                    Price = 35.00m,
+                    NameAr = "لاتيه",
+                    Description = "Espresso with smooth steamed milk",
+                    DescriptionAr = "اسبرسو مع حليب مبخر ناعم",
+                    Price = 50.00m,
                     CatalogTypeId = 1,
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     PictureFileName = "latte.webp"
                 },
-                new("Mocha")
+                new("Macchiato")
                 {
-                    Description = "Espresso with chocolate and steamed milk",
+                    NameAr = "ماكياتو",
+                    Description = "Espresso marked with a dash of milk foam",
+                    DescriptionAr = "اسبرسو مع لمسة من رغوة الحليب",
                     Price = 40.00m,
                     CatalogTypeId = 1,
                     IsAvailable = true,
-                    PreparationTimeMinutes = 5,
-                    PictureFileName = "mocha.webp"
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "macchiato.webp"
                 },
-                new("Americano")
+                new("Nescafe")
                 {
-                    Description = "Espresso diluted with hot water",
-                    Price = 30.00m,
+                    NameAr = "نسكافيه",
+                    Description = "Instant coffee, available black or with milk",
+                    DescriptionAr = "قهوة سريعة التحضير، سادة أو بالحليب",
+                    Price = 35.00m,
+                    CatalogTypeId = 1,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 3,
+                    PictureFileName = "nescafe.webp"
+                },
+                new("American Coffee")
+                {
+                    NameAr = "قهوة أمريكية",
+                    Description = "Classic American-style brewed coffee",
+                    DescriptionAr = "قهوة أمريكية كلاسيكية",
+                    Price = 60.00m,
                     CatalogTypeId = 1,
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
                     PictureFileName = "americano.webp"
                 },
-                new("Flat White")
+
+                // ============== ESPRESSO (Category 2) ==============
+                new("Espresso")
                 {
-                    Description = "Double espresso with velvety steamed milk",
-                    Price = 38.00m,
-                    CatalogTypeId = 1,
+                    NameAr = "اسبرسو",
+                    Description = "Strong Italian espresso shot",
+                    DescriptionAr = "شوت اسبرسو إيطالي قوي",
+                    Price = 35.00m,
+                    CatalogTypeId = 2,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 3,
+                    PictureFileName = "espresso.webp"
+                },
+                new("Mocha")
+                {
+                    NameAr = "موكا",
+                    Description = "Espresso with chocolate and steamed milk",
+                    DescriptionAr = "اسبرسو مع الشوكولاتة والحليب المبخر",
+                    Price = 60.00m,
+                    CatalogTypeId = 2,
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
-                    PictureFileName = "flat-white.webp"
+                    PictureFileName = "mocha.webp"
+                },
+                new("Iced Mocha")
+                {
+                    NameAr = "موكا مثلجة",
+                    Description = "Chilled mocha with ice",
+                    DescriptionAr = "موكا باردة مع الثلج",
+                    Price = 60.00m,
+                    CatalogTypeId = 2,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "iced-mocha.webp"
                 },
 
-                // Drinks - Cold
-                new("Iced Latte")
+                // ============== HOT DRINKS (Category 3) ==============
+                new("Tea")
                 {
-                    Description = "Chilled espresso with cold milk over ice",
+                    NameAr = "شاي",
+                    Description = "Traditional tea, available in various styles",
+                    DescriptionAr = "شاي تقليدي متاح بأنواع مختلفة",
+                    Price = 15.00m,
+                    CatalogTypeId = 3,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 3,
+                    PictureFileName = "tea.webp"
+                },
+                new("Green Tea")
+                {
+                    NameAr = "شاي أخضر",
+                    Description = "Healthy green tea",
+                    DescriptionAr = "شاي أخضر صحي",
+                    Price = 20.00m,
+                    CatalogTypeId = 3,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 3,
+                    PictureFileName = "green-tea.webp"
+                },
+                new("Herbal Tea")
+                {
+                    NameAr = "شاي أعشاب",
+                    Description = "Soothing herbal infusion - mint, anise, hibiscus, cinnamon",
+                    DescriptionAr = "منقوع أعشاب مهدئ - نعناع، يانسون، كركديه، قرفة",
+                    Price = 20.00m,
+                    CatalogTypeId = 3,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "herbal-tea.webp"
+                },
+                new("Hot Lemon")
+                {
+                    NameAr = "ليمون ساخن",
+                    Description = "Warm lemon drink, optional honey",
+                    DescriptionAr = "مشروب ليمون دافئ، بالعسل اختياري",
+                    Price = 25.00m,
+                    CatalogTypeId = 3,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 3,
+                    PictureFileName = "hot-lemon.webp"
+                },
+                new("Hot Chocolate")
+                {
+                    NameAr = "شوكولاتة ساخنة",
+                    Description = "Rich and creamy hot chocolate",
+                    DescriptionAr = "شوكولاتة ساخنة غنية وكريمية",
+                    Price = 50.00m,
+                    CatalogTypeId = 3,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "hot-chocolate.webp"
+                },
+                new("Hot Cider")
+                {
+                    NameAr = "سيدر ساخن",
+                    Description = "Warm apple cider",
+                    DescriptionAr = "سيدر تفاح دافئ",
+                    Price = 45.00m,
+                    CatalogTypeId = 3,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "hot-cider.webp"
+                },
+                new("Sahlab")
+                {
+                    NameAr = "سحلب",
+                    Description = "Traditional creamy orchid root drink with toppings",
+                    DescriptionAr = "سحلب تقليدي كريمي مع الإضافات",
                     Price = 40.00m,
-                    CatalogTypeId = 1,
+                    CatalogTypeId = 3,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 7,
+                    PictureFileName = "sahlab.webp"
+                },
+                new("Hummus Al-Sham")
+                {
+                    NameAr = "حمص الشام",
+                    Description = "Traditional Egyptian warm chickpea drink",
+                    DescriptionAr = "حمص الشام المصري التقليدي الدافئ",
+                    Price = 40.00m,
+                    CatalogTypeId = 3,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "hummus-sham.webp"
+                },
+
+                // ============== ICED DRINKS (Category 4) ==============
+                new("Iced Coffee")
+                {
+                    NameAr = "قهوة مثلجة",
+                    Description = "Chilled coffee over ice",
+                    DescriptionAr = "قهوة باردة مع الثلج",
+                    Price = 60.00m,
+                    CatalogTypeId = 4,
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     PictureFileName = "iced-latte.webp"
                 },
-                new("Fresh Orange Juice")
+                new("Frappuccino")
                 {
-                    Description = "Freshly squeezed orange juice",
-                    Price = 30.00m,
-                    CatalogTypeId = 1,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 5,
-                    PictureFileName = "orange-juice.webp"
-                },
-                new("Mango Smoothie")
-                {
-                    Description = "Fresh mango blended with yogurt and honey",
-                    Price = 45.00m,
-                    CatalogTypeId = 1,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 7,
-                    PictureFileName = "mango-smoothie.webp"
-                },
-                new("Strawberry Smoothie")
-                {
-                    Description = "Fresh strawberries blended with yogurt",
-                    Price = 45.00m,
-                    CatalogTypeId = 1,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 7,
-                    PictureFileName = "strawberry-smoothie.webp"
-                },
-                new("Milkshake")
-                {
-                    Description = "Classic creamy milkshake",
-                    Price = 40.00m,
-                    CatalogTypeId = 1,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 5,
-                    PictureFileName = "milkshake.webp"
-                },
-                new("Soft Drink")
-                {
-                    Description = "Chilled carbonated beverage",
-                    Price = 15.00m,
-                    CatalogTypeId = 1,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 1,
-                    PictureFileName = "soft-drink.webp"
-                },
-
-                // Food - Main Dishes
-                new("Club Sandwich")
-                {
-                    Description = "Triple-decker sandwich with chicken, bacon, lettuce, tomato and mayo",
-                    Price = 65.00m,
-                    CatalogTypeId = 2,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 15,
-                    PictureFileName = "club-sandwich.webp"
-                },
-                new("Chicken Burger")
-                {
-                    Description = "Grilled chicken breast burger with special sauce and fresh vegetables",
-                    Price = 75.00m,
-                    CatalogTypeId = 2,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 15,
-                    PictureFileName = "chicken-burger.webp"
-                },
-                new("Beef Burger")
-                {
-                    Description = "Juicy beef patty with cheese, lettuce, tomato and pickles",
-                    Price = 85.00m,
-                    CatalogTypeId = 2,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 15,
-                    PictureFileName = "beef-burger.webp"
-                },
-                new("Pasta Alfredo")
-                {
-                    Description = "Creamy fettuccine pasta with parmesan cheese",
-                    Price = 70.00m,
-                    CatalogTypeId = 2,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 20,
-                    PictureFileName = "pasta-alfredo.webp"
-                },
-                new("Margherita Pizza")
-                {
-                    Description = "Classic pizza with tomato sauce, mozzarella and fresh basil",
+                    NameAr = "فرابتشينو",
+                    Description = "Blended iced coffee drink",
+                    DescriptionAr = "مشروب قهوة مثلجة مخفوقة",
                     Price = 80.00m,
-                    CatalogTypeId = 2,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 20,
-                    PictureFileName = "margherita-pizza.webp"
-                },
-                new("Pepperoni Pizza")
-                {
-                    Description = "Pizza topped with pepperoni and mozzarella cheese",
-                    Price = 90.00m,
-                    CatalogTypeId = 2,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 20,
-                    PictureFileName = "pepperoni-pizza.webp"
-                },
-                new("Caesar Salad")
-                {
-                    Description = "Crisp romaine lettuce with caesar dressing, croutons and parmesan",
-                    Price = 55.00m,
-                    CatalogTypeId = 2,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 10,
-                    PictureFileName = "caesar-salad.webp"
-                },
-
-                // Snacks
-                new("French Fries")
-                {
-                    Description = "Crispy golden french fries",
-                    Price = 25.00m,
-                    CatalogTypeId = 3,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 10,
-                    PictureFileName = "french-fries.webp"
-                },
-                new("Chicken Wings")
-                {
-                    Description = "Crispy chicken wings (6 pcs)",
-                    Price = 55.00m,
-                    CatalogTypeId = 3,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 15,
-                    PictureFileName = "chicken-wings.webp"
-                },
-                new("Nachos")
-                {
-                    Description = "Tortilla chips with melted cheese, salsa and sour cream",
-                    Price = 45.00m,
-                    CatalogTypeId = 3,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 10,
-                    PictureFileName = "nachos.webp"
-                },
-                new("Mozzarella Sticks")
-                {
-                    Description = "Breaded mozzarella sticks with marinara sauce (6 pcs)",
-                    Price = 40.00m,
-                    CatalogTypeId = 3,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 10,
-                    PictureFileName = "mozzarella-sticks.webp"
-                },
-                new("Onion Rings")
-                {
-                    Description = "Crispy battered onion rings",
-                    Price = 30.00m,
-                    CatalogTypeId = 3,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 10,
-                    PictureFileName = "onion-rings.webp"
-                },
-                new("Chicken Nuggets")
-                {
-                    Description = "Crispy chicken nuggets (8 pcs)",
-                    Price = 45.00m,
-                    CatalogTypeId = 3,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 10,
-                    PictureFileName = "chicken-nuggets.webp"
-                },
-
-                // Desserts
-                new("Chocolate Cake")
-                {
-                    Description = "Rich chocolate layer cake with chocolate ganache",
-                    Price = 45.00m,
                     CatalogTypeId = 4,
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
-                    PictureFileName = "chocolate-cake.webp"
+                    PictureFileName = "frappuccino.webp"
                 },
-                new("Cheesecake")
+                new("Flat White")
                 {
-                    Description = "Creamy New York style cheesecake",
+                    NameAr = "فلات وايت",
+                    Description = "Iced flat white with velvety milk",
+                    DescriptionAr = "فلات وايت مثلج مع حليب ناعم",
+                    Price = 80.00m,
+                    CatalogTypeId = 4,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "flat-white.webp"
+                },
+                new("Iced Chocolate")
+                {
+                    NameAr = "شوكولاتة مثلجة",
+                    Description = "Cold chocolate drink over ice",
+                    DescriptionAr = "مشروب شوكولاتة بارد مع الثلج",
+                    Price = 60.00m,
+                    CatalogTypeId = 4,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "iced-chocolate.webp"
+                },
+                new("Milkshake")
+                {
+                    NameAr = "ميلك شيك",
+                    Description = "Creamy milkshake - chocolate, vanilla, strawberry, or caramel",
+                    DescriptionAr = "ميلك شيك كريمي - شوكولاتة، فانيليا، فراولة، أو كراميل",
                     Price = 50.00m,
                     CatalogTypeId = 4,
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
-                    PictureFileName = "cheesecake.webp"
+                    PictureFileName = "milkshake.webp"
                 },
-                new("Ice Cream")
+                new("Oreo Milkshake")
                 {
-                    Description = "Premium ice cream scoops",
+                    NameAr = "ميلك شيك أوريو",
+                    Description = "Creamy milkshake with Oreo cookies",
+                    DescriptionAr = "ميلك شيك كريمي مع بسكويت أوريو",
+                    Price = 60.00m,
+                    CatalogTypeId = 4,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "oreo-milkshake.webp"
+                },
+                new("Galaxy Milkshake")
+                {
+                    NameAr = "ميلك شيك جالاكسي",
+                    Description = "Rich Galaxy chocolate milkshake",
+                    DescriptionAr = "ميلك شيك شوكولاتة جالاكسي غني",
+                    Price = 80.00m,
+                    CatalogTypeId = 4,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "galaxy-milkshake.webp"
+                },
+                new("Oreo Shake")
+                {
+                    NameAr = "شيك أوريو",
+                    Description = "Oreo cookie blended shake",
+                    DescriptionAr = "شيك أوريو مخفوق",
+                    Price = 60.00m,
+                    CatalogTypeId = 4,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "oreo-shake.webp"
+                },
+                new("Burio Shake")
+                {
+                    NameAr = "شيك بوريو",
+                    Description = "Burio chocolate blended shake",
+                    DescriptionAr = "شيك بوريو شوكولاتة مخفوق",
+                    Price = 50.00m,
+                    CatalogTypeId = 4,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "burio-shake.webp"
+                },
+                new("Yogurt")
+                {
+                    NameAr = "زبادي",
+                    Description = "Fresh yogurt drink - plain, honey, or fruit",
+                    DescriptionAr = "مشروب زبادي طازج - سادة، بالعسل، أو بالفواكه",
                     Price = 35.00m,
                     CatalogTypeId = 4,
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
-                    PictureFileName = "ice-cream.webp"
+                    PictureFileName = "yogurt.webp"
                 },
-                new("Brownie")
+                new("Brownies Shake")
                 {
-                    Description = "Warm chocolate brownie with vanilla ice cream",
+                    NameAr = "شيك براونيز",
+                    Description = "Chocolate brownies blended shake",
+                    DescriptionAr = "شيك براونيز شوكولاتة مخفوق",
                     Price = 45.00m,
                     CatalogTypeId = 4,
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     PictureFileName = "brownie.webp"
                 },
-                new("Waffles")
+                new("Ice Cream Scoop")
                 {
-                    Description = "Belgian waffles with your choice of toppings",
-                    Price = 50.00m,
+                    NameAr = "سكوب آيس كريم",
+                    Description = "Premium ice cream scoop",
+                    DescriptionAr = "سكوب آيس كريم فاخر",
+                    Price = 20.00m,
                     CatalogTypeId = 4,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 2,
+                    PictureFileName = "ice-cream.webp"
+                },
+
+                // ============== JUICES (Category 5) ==============
+                new("Orange Juice")
+                {
+                    NameAr = "عصير برتقال",
+                    Description = "Freshly squeezed orange juice",
+                    DescriptionAr = "عصير برتقال طازج معصور",
+                    Price = 20.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "orange-juice.webp"
+                },
+                new("Mango Juice")
+                {
+                    NameAr = "عصير مانجو",
+                    Description = "Fresh mango juice",
+                    DescriptionAr = "عصير مانجو طازج",
+                    Price = 50.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "mango-smoothie.webp"
+                },
+                new("Strawberry Juice")
+                {
+                    NameAr = "عصير فراولة",
+                    Description = "Fresh strawberry juice, plain or with milk",
+                    DescriptionAr = "عصير فراولة طازج، سادة أو بالحليب",
+                    Price = 50.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "strawberry-smoothie.webp"
+                },
+                new("Guava Juice")
+                {
+                    NameAr = "عصير جوافة",
+                    Description = "Fresh guava juice, plain or with milk",
+                    DescriptionAr = "عصير جوافة طازج، سادة أو بالحليب",
+                    Price = 50.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "guava-juice.webp"
+                },
+                new("Banana Juice")
+                {
+                    NameAr = "عصير موز",
+                    Description = "Creamy banana juice",
+                    DescriptionAr = "عصير موز كريمي",
+                    Price = 35.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "banana-juice.webp"
+                },
+                new("Kiwi Juice")
+                {
+                    NameAr = "عصير كيوي",
+                    Description = "Fresh kiwi juice",
+                    DescriptionAr = "عصير كيوي طازج",
+                    Price = 50.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "kiwi-juice.webp"
+                },
+                new("Lemonade")
+                {
+                    NameAr = "ليمونادة",
+                    Description = "Fresh lemonade, plain or with mint",
+                    DescriptionAr = "ليمونادة طازجة، سادة أو بالنعناع",
+                    Price = 30.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "lemonade.webp"
+                },
+                new("Watermelon Juice")
+                {
+                    NameAr = "عصير بطيخ",
+                    Description = "Refreshing watermelon juice",
+                    DescriptionAr = "عصير بطيخ منعش",
+                    Price = 45.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 4,
+                    PictureFileName = "watermelon-juice.webp"
+                },
+                new("Prickly Pear Juice")
+                {
+                    NameAr = "عصير تين شوكي",
+                    Description = "Fresh prickly pear cactus fruit juice",
+                    DescriptionAr = "عصير تين شوكي طازج",
+                    Price = 45.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "prickly-pear-juice.webp"
+                },
+                new("Date Shake")
+                {
+                    NameAr = "شيك تمر",
+                    Description = "Sweet date shake, plain or with milk",
+                    DescriptionAr = "شيك تمر حلو، سادة أو بالحليب",
+                    Price = 50.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "date-shake.webp"
+                },
+                new("Fruit Salad")
+                {
+                    NameAr = "سلطة فواكه",
+                    Description = "Mixed fresh fruit salad",
+                    DescriptionAr = "سلطة فواكه طازجة مشكلة",
+                    Price = 40.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "fruit-salad.webp"
+                },
+                new("Cocktail Juice")
+                {
+                    NameAr = "عصير كوكتيل",
+                    Description = "Mixed fruit cocktail juice",
+                    DescriptionAr = "عصير كوكتيل فواكه مشكل",
+                    Price = 60.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "cocktail-juice.webp"
+                },
+                new("Sunshine Juice")
+                {
+                    NameAr = "عصير صن شاين",
+                    Description = "Refreshing sunshine blend juice",
+                    DescriptionAr = "عصير صن شاين منعش",
+                    Price = 50.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "sunshine-juice.webp"
+                },
+                new("Florida Juice")
+                {
+                    NameAr = "عصير فلوريدا",
+                    Description = "Florida-style citrus blend juice",
+                    DescriptionAr = "عصير حمضيات على طريقة فلوريدا",
+                    Price = 60.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 5,
+                    PictureFileName = "florida-juice.webp"
+                },
+
+                // ============== SOFT DRINKS (Category 6) ==============
+                new("Pepsi")
+                {
+                    NameAr = "بيبسي",
+                    Description = "Chilled Pepsi cola",
+                    DescriptionAr = "بيبسي كولا مثلجة",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("7Up")
+                {
+                    NameAr = "سفن أب",
+                    Description = "Chilled lemon-lime soda",
+                    DescriptionAr = "مشروب غازي ليمون مثلج",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Mirinda")
+                {
+                    NameAr = "ميرندا",
+                    Description = "Chilled orange soda",
+                    DescriptionAr = "مشروب غازي برتقال مثلج",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Mountain Dew")
+                {
+                    NameAr = "ماونتن ديو",
+                    Description = "Chilled citrus soda",
+                    DescriptionAr = "مشروب غازي حمضيات مثلج",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Schweppes")
+                {
+                    NameAr = "شويبس",
+                    Description = "Sparkling tonic - lemon, pomegranate, gold, or tangerine",
+                    DescriptionAr = "مشروب فوار - ليمون، رمان، جولد، أو يوسفي",
+                    Price = 20.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Birell")
+                {
+                    NameAr = "بيريل",
+                    Description = "Non-alcoholic malt beverage",
+                    DescriptionAr = "مشروب شعير خالي من الكحول",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Mineral Water")
+                {
+                    NameAr = "مياه معدنية",
+                    Description = "Bottled mineral water",
+                    DescriptionAr = "مياه معدنية معبأة",
+                    Price = 8.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "mineral-water.webp"
+                },
+                new("Red Bull")
+                {
+                    NameAr = "ريد بول",
+                    Description = "Energy drink",
+                    DescriptionAr = "مشروب طاقة",
+                    Price = 65.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "red-bull.webp"
+                },
+                new("Power Horse")
+                {
+                    NameAr = "باور هورس",
+                    Description = "Energy drink",
+                    DescriptionAr = "مشروب طاقة",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Buzz Energy")
+                {
+                    NameAr = "بز إنرجي",
+                    Description = "Energy drink",
+                    DescriptionAr = "مشروب طاقة",
+                    Price = 20.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Amstel Zero")
+                {
+                    NameAr = "أمستل زيرو",
+                    Description = "Non-alcoholic beer",
+                    DescriptionAr = "بيرة خالية من الكحول",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Barbican")
+                {
+                    NameAr = "باربيكان",
+                    Description = "Non-alcoholic malt beverage",
+                    DescriptionAr = "مشروب شعير خالي من الكحول",
+                    Price = 40.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Moussy")
+                {
+                    NameAr = "موسي",
+                    Description = "Non-alcoholic malt beverage",
+                    DescriptionAr = "مشروب شعير خالي من الكحول",
+                    Price = 30.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("FreeGo")
+                {
+                    NameAr = "فري جو",
+                    Description = "Soft drink",
+                    DescriptionAr = "مشروب غازي",
+                    Price = 20.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Snaps")
+                {
+                    NameAr = "سنابس",
+                    Description = "Carbonated drink",
+                    DescriptionAr = "مشروب غازي",
+                    Price = 20.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Twist")
+                {
+                    NameAr = "تويست",
+                    Description = "Carbonated lemon drink",
+                    DescriptionAr = "مشروب غازي بالليمون",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("V7")
+                {
+                    NameAr = "في سفن",
+                    Description = "Vegetable juice blend",
+                    DescriptionAr = "عصير خضروات مشكل",
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Spiro Spathis")
+                {
+                    NameAr = "سبيرو سباتس",
+                    Description = "Classic Egyptian lemon soda",
+                    DescriptionAr = "مشروب ليمون غازي مصري كلاسيكي",
+                    Price = 20.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new("Double Deer")
+                {
+                    NameAr = "دبل دير",
+                    Description = "Carbonated drink",
+                    DescriptionAr = "مشروب غازي",
+                    Price = 20.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "soft-drink.webp"
+                },
+
+                // ============== SNACKS (Category 7) ==============
+                new("Chips")
+                {
+                    NameAr = "شيبسي",
+                    Description = "Assorted potato chips",
+                    DescriptionAr = "شيبسي بطاطس متنوع",
+                    Price = 15.00m,
+                    CatalogTypeId = 7,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "chips.webp"
+                },
+                new("Peanuts")
+                {
+                    NameAr = "فول سوداني",
+                    Description = "Roasted peanuts",
+                    DescriptionAr = "فول سوداني محمص",
+                    Price = 20.00m,
+                    CatalogTypeId = 7,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "peanuts.webp"
+                },
+
+                // ============== DESSERTS (Category 8) ==============
+                new("Waffle")
+                {
+                    NameAr = "وافل",
+                    Description = "Belgian waffle with toppings",
+                    DescriptionAr = "وافل بلجيكي مع الإضافات",
+                    Price = 70.00m,
+                    CatalogTypeId = 8,
                     IsAvailable = true,
                     PreparationTimeMinutes = 10,
                     PictureFileName = "waffles.webp"
                 },
-                new("Pancakes")
+                new("Oreo Piece")
                 {
-                    Description = "Fluffy pancakes stack with maple syrup",
-                    Price = 45.00m,
-                    CatalogTypeId = 4,
+                    NameAr = "قطعة أوريو",
+                    Description = "Oreo cookie dessert piece",
+                    DescriptionAr = "قطعة حلوى أوريو",
+                    Price = 15.00m,
+                    CatalogTypeId = 8,
                     IsAvailable = true,
-                    PreparationTimeMinutes = 10,
-                    PictureFileName = "pancakes.webp"
+                    PreparationTimeMinutes = 1,
+                    PictureFileName = "oreo-piece.webp"
                 }
             };
 
@@ -323,722 +813,389 @@ public partial class CatalogContextSeed(
             await context.SaveChangesAsync();
             logger.LogInformation("Seeded catalog with {NumItems} menu items", menuItems.Count);
 
-            // Add customizations for hot coffee drinks
-            var hotCoffeeItems = await context.CatalogItems
-                .Where(i => i.Name == "Espresso" || i.Name == "Cappuccino" || i.Name == "Latte" ||
-                           i.Name == "Mocha" || i.Name == "Americano" || i.Name == "Flat White")
-                .ToListAsync();
-
-            foreach (var coffee in hotCoffeeItems)
+            // Add customizations for Turkish Coffee
+            var turkishCoffee = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Turkish Coffee");
+            if (turkishCoffee != null)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new("Size")
-                    {
-                        CatalogItemId = coffee.Id,
+                    new("Size") { NameAr = "الحجم",
+                        CatalogItemId = turkishCoffee.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new("Small") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Medium") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Large") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 3 }
+                            new("Single") { NameAr = "سنجل", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("Double") { NameAr = "دبل", PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     },
-                    new("Sugar Level")
-                    {
-                        CatalogItemId = coffee.Id,
+                    new("Tahwiga") { NameAr = "التحويجة",
+                        CatalogItemId = turkishCoffee.Id,
                         IsRequired = false,
                         AllowMultiple = false,
                         DisplayOrder = 2,
                         Options = new List<CustomizationOption>
                         {
-                            new("No Sugar") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
-                            new("Light Sugar") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new("Regular Sugar") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 3 },
-                            new("Extra Sugar") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
+                            new("Plain") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("Light") { NameAr = "خفيفة", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new("Medium") { NameAr = "متوسطة", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
+                            new("Heavy") { NameAr = "تقيلة", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
                         }
                     },
-                    new("Milk Type")
-                    {
-                        CatalogItemId = coffee.Id,
+                    new("Roasting") { NameAr = "التحميص",
+                        CatalogItemId = turkishCoffee.Id,
                         IsRequired = false,
                         AllowMultiple = false,
                         DisplayOrder = 3,
                         Options = new List<CustomizationOption>
                         {
-                            new("Regular Milk") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Oat Milk") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Almond Milk") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Soy Milk") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 },
-                            new("Skim Milk") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 5 }
+                            new("Light Roast") { NameAr = "تحميص خفيف", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
+                            new("Medium Roast") { NameAr = "تحميص متوسط", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 2 },
+                            new("Dark Roast") { NameAr = "تحميص غامق", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 }
                         }
                     },
-                    new("Extras")
-                    {
-                        CatalogItemId = coffee.Id,
+                    new("Sugar Level") { NameAr = "مستوى السكر",
+                        CatalogItemId = turkishCoffee.Id,
                         IsRequired = false,
-                        AllowMultiple = true,
+                        AllowMultiple = false,
                         DisplayOrder = 4,
                         Options = new List<CustomizationOption>
                         {
-                            new("Extra Shot") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Vanilla Syrup") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Caramel Syrup") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Hazelnut Syrup") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 },
-                            new("Whipped Cream") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 }
+                            new("No Sugar (Sada)") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
+                            new("Light Sugar") { NameAr = "سكر خفيف", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new("Medium Sugar (Mazboot)") { NameAr = "مظبوط", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 3 },
+                            new("Sweet (Ziyada)") { NameAr = "زيادة", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
+                        }
+                    },
+                    new("Cup Size") { NameAr = "حجم الفنجان",
+                        CatalogItemId = turkishCoffee.Id,
+                        IsRequired = false,
+                        AllowMultiple = false,
+                        DisplayOrder = 5,
+                        Options = new List<CustomizationOption>
+                        {
+                            new("Regular Cup") { NameAr = "فنجان عادي", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("Large Cup") { NameAr = "فنجان كبير", PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
-
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 
-            // Add customizations for iced latte
-            var icedLatte = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Iced Latte");
-            if (icedLatte != null)
+            // Add customizations for other coffees with size options
+            var sizedCoffees = await context.CatalogItems
+                .Where(i => i.Name == "Hazelnut Coffee" || i.Name == "French Coffee" ||
+                           i.Name == "Caramel Coffee" || i.Name == "Macchiato" || i.Name == "Espresso")
+                .ToListAsync();
+
+            foreach (var coffee in sizedCoffees)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new("Size")
-                    {
-                        CatalogItemId = icedLatte.Id,
+                    new("Size") { NameAr = "الحجم",
+                        CatalogItemId = coffee.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new("Regular") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Large") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 2 }
+                            new("Single") { NameAr = "سنجل", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("Double") { NameAr = "دبل", PriceAdjustment = coffee.Name == "Espresso" ? 15.00m : 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     },
-                    new("Milk Type")
-                    {
-                        CatalogItemId = icedLatte.Id,
+                    new("Sugar Level") { NameAr = "مستوى السكر",
+                        CatalogItemId = coffee.Id,
                         IsRequired = false,
                         AllowMultiple = false,
                         DisplayOrder = 2,
                         Options = new List<CustomizationOption>
                         {
-                            new("Regular Milk") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Oat Milk") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Almond Milk") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 3 }
+                            new("No Sugar") { NameAr = "بدون سكر", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
+                            new("Light Sugar") { NameAr = "سكر خفيف", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new("Regular Sugar") { NameAr = "سكر عادي", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 3 },
+                            new("Extra Sugar") { NameAr = "سكر زيادة", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
+                        }
+                    }
+                };
+                await context.ItemCustomizations.AddRangeAsync(customizations);
+            }
+
+            // Add customizations for Nescafe
+            var nescafe = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Nescafe");
+            if (nescafe != null)
+            {
+                var customizations = new List<ItemCustomization>
+                {
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = nescafe.Id,
+                        IsRequired = true,
+                        AllowMultiple = false,
+                        DisplayOrder = 1,
+                        Options = new List<CustomizationOption>
+                        {
+                            new("Black") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("With Milk") { NameAr = "بالحليب", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
+                        }
+                    }
+                };
+                await context.ItemCustomizations.AddRangeAsync(customizations);
+            }
+
+            // Add customizations for Tea
+            var tea = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Tea");
+            if (tea != null)
+            {
+                var customizations = new List<ItemCustomization>
+                {
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = tea.Id,
+                        IsRequired = true,
+                        AllowMultiple = false,
+                        DisplayOrder = 1,
+                        Options = new List<CustomizationOption>
+                        {
+                            new("Tea Bag") { NameAr = "كيس شاي", PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 1 },
+                            new("Lipton") { NameAr = "ليبتون", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 2 },
+                            new("With Milk") { NameAr = "بالحليب", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 3 },
+                            new("With Mint") { NameAr = "بالنعناع", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
+                            new("With Lemon") { NameAr = "بالليمون", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 5 }
                         }
                     },
-                    new("Sweetness")
-                    {
-                        CatalogItemId = icedLatte.Id,
+                    new("Sugar Level") { NameAr = "مستوى السكر",
+                        CatalogItemId = tea.Id,
+                        IsRequired = false,
+                        AllowMultiple = false,
+                        DisplayOrder = 2,
+                        Options = new List<CustomizationOption>
+                        {
+                            new("No Sugar") { NameAr = "بدون سكر", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
+                            new("Light Sugar") { NameAr = "سكر خفيف", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new("Regular Sugar") { NameAr = "سكر عادي", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 3 },
+                            new("Extra Sugar") { NameAr = "سكر زيادة", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
+                        }
+                    },
+                    new("Cup Size") { NameAr = "حجم الفنجان",
+                        CatalogItemId = tea.Id,
                         IsRequired = false,
                         AllowMultiple = false,
                         DisplayOrder = 3,
                         Options = new List<CustomizationOption>
                         {
-                            new("Unsweetened") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
-                            new("Lightly Sweet") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 2 },
-                            new("Regular Sweet") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
-                            new("Extra Sweet") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
+                            new("Regular Cup") { NameAr = "فنجان عادي", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("Large Cup") { NameAr = "فنجان كبير", PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
-
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 
-            // Add customizations for smoothies
-            var smoothies = await context.CatalogItems
-                .Where(i => i.Name.Contains("Smoothie"))
-                .ToListAsync();
-
-            foreach (var smoothie in smoothies)
+            // Add customizations for Herbal Tea
+            var herbalTea = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Herbal Tea");
+            if (herbalTea != null)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new("Size")
-                    {
-                        CatalogItemId = smoothie.Id,
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = herbalTea.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new("Regular") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Large") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
-                        }
-                    },
-                    new("Add-ins")
-                    {
-                        CatalogItemId = smoothie.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Protein Powder") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Chia Seeds") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Honey") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Peanut Butter") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 4 }
+                            new("Mint") { NameAr = "نعناع", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("Anise") { NameAr = "يانسون", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new("Hibiscus") { NameAr = "كركديه", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
+                            new("Cinnamon") { NameAr = "قرفة", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
+                            new("Cinnamon with Milk") { NameAr = "قرفة بالحليب", PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 },
+                            new("Cinnamon Ginger") { NameAr = "قرفة بالزنجبيل", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 6 },
+                            new("Cocktail Mix") { NameAr = "كوكتيل مشكل", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 7 }
                         }
                     }
                 };
-
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 
-            // Add customizations for milkshake
+            // Add customizations for Sahlab
+            var sahlab = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Sahlab");
+            if (sahlab != null)
+            {
+                var customizations = new List<ItemCustomization>
+                {
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = sahlab.Id,
+                        IsRequired = true,
+                        AllowMultiple = false,
+                        DisplayOrder = 1,
+                        Options = new List<CustomizationOption>
+                        {
+                            new("Plain") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("With Chocolate") { NameAr = "بالشوكولاتة", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 },
+                            new("With Nuts") { NameAr = "بالمكسرات", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 3 },
+                            new("With Oreo") { NameAr = "بالأوريو", PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 4 },
+                            new("With Burio") { NameAr = "بالبوريو", PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 5 },
+                            new("With Fruits") { NameAr = "بالفواكه", PriceAdjustment = 25.00m, IsDefault = false, DisplayOrder = 6 }
+                        }
+                    }
+                };
+                await context.ItemCustomizations.AddRangeAsync(customizations);
+            }
+
+            // Add customizations for Hot Lemon
+            var hotLemon = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Hot Lemon");
+            if (hotLemon != null)
+            {
+                var customizations = new List<ItemCustomization>
+                {
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = hotLemon.Id,
+                        IsRequired = true,
+                        AllowMultiple = false,
+                        DisplayOrder = 1,
+                        Options = new List<CustomizationOption>
+                        {
+                            new("Plain") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("With Honey") { NameAr = "بالعسل", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
+                        }
+                    }
+                };
+                await context.ItemCustomizations.AddRangeAsync(customizations);
+            }
+
+            // Add customizations for Milkshake
             var milkshake = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Milkshake");
             if (milkshake != null)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new("Flavor")
-                    {
+                    new("Flavor") { NameAr = "النكهة",
                         CatalogItemId = milkshake.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new("Chocolate") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Vanilla") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new("Strawberry") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
-                            new("Oreo") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 },
-                            new("Caramel") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 }
-                        }
-                    },
-                    new("Size")
-                    {
-                        CatalogItemId = milkshake.Id,
-                        IsRequired = true,
-                        AllowMultiple = false,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Regular") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Large") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
-                        }
-                    },
-                    new("Toppings")
-                    {
-                        CatalogItemId = milkshake.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 3,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Whipped Cream") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Chocolate Chips") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Sprinkles") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 3 }
+                            new("Chocolate") { NameAr = "شوكولاتة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("Vanilla") { NameAr = "فانيليا", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new("Strawberry") { NameAr = "فراولة", PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 3 },
+                            new("Caramel") { NameAr = "كراميل", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
                         }
                     }
                 };
-
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 
-            // Add customizations for soft drink
-            var softDrink = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Soft Drink");
-            if (softDrink != null)
-            {
-                var customizations = new List<ItemCustomization>
-                {
-                    new("Type")
-                    {
-                        CatalogItemId = softDrink.Id,
-                        IsRequired = true,
-                        AllowMultiple = false,
-                        DisplayOrder = 1,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Coca-Cola") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Pepsi") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new("Sprite") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
-                            new("Fanta Orange") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
-                            new("7UP") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 5 }
-                        }
-                    },
-                    new("Size")
-                    {
-                        CatalogItemId = softDrink.Id,
-                        IsRequired = true,
-                        AllowMultiple = false,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Can") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Bottle") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 }
-                        }
-                    }
-                };
-
-                await context.ItemCustomizations.AddRangeAsync(customizations);
-            }
-
-            // Add customizations for burgers
-            var burgers = await context.CatalogItems
-                .Where(i => i.Name.Contains("Burger"))
+            // Add customizations for Oreo and Burio shakes
+            var shakes = await context.CatalogItems
+                .Where(i => i.Name == "Oreo Shake" || i.Name == "Burio Shake")
                 .ToListAsync();
 
-            foreach (var burger in burgers)
+            foreach (var shake in shakes)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new("Patty")
-                    {
-                        CatalogItemId = burger.Id,
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = shake.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new("Single Patty") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Double Patty") { PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 2 }
-                        }
-                    },
-                    new("Extras")
-                    {
-                        CatalogItemId = burger.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Extra Cheese") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Bacon") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Avocado") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Fried Egg") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 },
-                            new("Jalapenos") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 5 },
-                            new("Mushrooms") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 6 }
-                        }
-                    },
-                    new("Side")
-                    {
-                        CatalogItemId = burger.Id,
-                        IsRequired = false,
-                        AllowMultiple = false,
-                        DisplayOrder = 3,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("No Side") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("French Fries") { PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Onion Rings") { PriceAdjustment = 18.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Coleslaw") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 4 }
+                            new("Plain") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("With Chunks") { NameAr = "بالقطع", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
-
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 
-            // Add customizations for pizzas
-            var pizzas = await context.CatalogItems
-                .Where(i => i.Name.Contains("Pizza"))
+            // Add customizations for Yogurt
+            var yogurt = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Yogurt");
+            if (yogurt != null)
+            {
+                var customizations = new List<ItemCustomization>
+                {
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = yogurt.Id,
+                        IsRequired = true,
+                        AllowMultiple = false,
+                        DisplayOrder = 1,
+                        Options = new List<CustomizationOption>
+                        {
+                            new("Plain") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("With Honey") { NameAr = "بالعسل", PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
+                            new("With Fruits") { NameAr = "بالفواكه", PriceAdjustment = 30.00m, IsDefault = false, DisplayOrder = 3 }
+                        }
+                    }
+                };
+                await context.ItemCustomizations.AddRangeAsync(customizations);
+            }
+
+            // Add customizations for juices with milk option
+            var juicesWithMilk = await context.CatalogItems
+                .Where(i => i.Name == "Strawberry Juice" || i.Name == "Guava Juice" || i.Name == "Date Shake")
                 .ToListAsync();
 
-            foreach (var pizza in pizzas)
+            foreach (var juice in juicesWithMilk)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new("Size")
-                    {
-                        CatalogItemId = pizza.Id,
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = juice.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new("Medium (10\")") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Large (14\")") { PriceAdjustment = 25.00m, IsDefault = false, DisplayOrder = 2 }
-                        }
-                    },
-                    new("Crust")
-                    {
-                        CatalogItemId = pizza.Id,
-                        IsRequired = true,
-                        AllowMultiple = false,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Classic") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Thin Crust") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new("Stuffed Crust") { PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 3 }
-                        }
-                    },
-                    new("Extra Toppings")
-                    {
-                        CatalogItemId = pizza.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 3,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Extra Cheese") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Mushrooms") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Olives") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Onions") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 },
-                            new("Bell Peppers") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 }
+                            new("Plain") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("With Milk") { NameAr = "بالحليب", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
-
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 
-            // Add customizations for pasta
-            var pasta = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Pasta Alfredo");
-            if (pasta != null)
+            // Add customizations for Lemonade
+            var lemonade = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Lemonade");
+            if (lemonade != null)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new("Protein")
-                    {
-                        CatalogItemId = pasta.Id,
-                        IsRequired = false,
-                        AllowMultiple = false,
-                        DisplayOrder = 1,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("No Protein") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Grilled Chicken") { PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Shrimp") { PriceAdjustment = 25.00m, IsDefault = false, DisplayOrder = 3 }
-                        }
-                    },
-                    new("Extras")
-                    {
-                        CatalogItemId = pasta.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Garlic Bread") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Extra Parmesan") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Mushrooms") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 3 }
-                        }
-                    }
-                };
-
-                await context.ItemCustomizations.AddRangeAsync(customizations);
-            }
-
-            // Add customizations for Caesar Salad
-            var salad = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Caesar Salad");
-            if (salad != null)
-            {
-                var customizations = new List<ItemCustomization>
-                {
-                    new("Protein")
-                    {
-                        CatalogItemId = salad.Id,
-                        IsRequired = false,
-                        AllowMultiple = false,
-                        DisplayOrder = 1,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("No Protein") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Grilled Chicken") { PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Grilled Shrimp") { PriceAdjustment = 25.00m, IsDefault = false, DisplayOrder = 3 }
-                        }
-                    },
-                    new("Dressing")
-                    {
-                        CatalogItemId = salad.Id,
-                        IsRequired = false,
-                        AllowMultiple = false,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Caesar Dressing") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Dressing on the Side") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new("Light Dressing") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 }
-                        }
-                    }
-                };
-
-                await context.ItemCustomizations.AddRangeAsync(customizations);
-            }
-
-            // Add customizations for chicken wings
-            var wings = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Chicken Wings");
-            if (wings != null)
-            {
-                var customizations = new List<ItemCustomization>
-                {
-                    new("Quantity")
-                    {
-                        CatalogItemId = wings.Id,
+                    new("Type") { NameAr = "النوع",
+                        CatalogItemId = lemonade.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new("6 Pieces") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("12 Pieces") { PriceAdjustment = 45.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("18 Pieces") { PriceAdjustment = 85.00m, IsDefault = false, DisplayOrder = 3 }
-                        }
-                    },
-                    new("Flavor")
-                    {
-                        CatalogItemId = wings.Id,
-                        IsRequired = true,
-                        AllowMultiple = false,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Buffalo Hot") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("BBQ") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new("Honey Mustard") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
-                            new("Garlic Parmesan") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
-                            new("Plain") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 5 }
-                        }
-                    },
-                    new("Dipping Sauce")
-                    {
-                        CatalogItemId = wings.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 3,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Ranch") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Blue Cheese") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("BBQ Sauce") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 3 }
+                            new("Plain") { NameAr = "سادة", PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new("With Mint") { NameAr = "بالنعناع", PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
-
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 
-            // Add customizations for french fries
-            var fries = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "French Fries");
-            if (fries != null)
+            // Add customizations for Schweppes
+            var schweppes = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Schweppes");
+            if (schweppes != null)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new("Size")
-                    {
-                        CatalogItemId = fries.Id,
+                    new("Flavor") { NameAr = "النكهة",
+                        CatalogItemId = schweppes.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new("Regular") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Large") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
-                        }
-                    },
-                    new("Seasoning")
-                    {
-                        CatalogItemId = fries.Id,
-                        IsRequired = false,
-                        AllowMultiple = false,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Classic Salt") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Cajun Spice") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Cheese Sauce") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Truffle & Parmesan") { PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 4 }
+                            new("Lemon") { NameAr = "ليمون", PriceAdjustment = 5.00m, IsDefault = true, DisplayOrder = 1 },
+                            new("Pomegranate") { NameAr = "رمان", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new("Gold") { NameAr = "جولد", PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
+                            new("Tangerine") { NameAr = "يوسفي", PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 }
                         }
                     }
                 };
-
-                await context.ItemCustomizations.AddRangeAsync(customizations);
-            }
-
-            // Add customizations for nachos
-            var nachos = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Nachos");
-            if (nachos != null)
-            {
-                var customizations = new List<ItemCustomization>
-                {
-                    new("Protein")
-                    {
-                        CatalogItemId = nachos.Id,
-                        IsRequired = false,
-                        AllowMultiple = false,
-                        DisplayOrder = 1,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("No Protein") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Chicken") { PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Beef") { PriceAdjustment = 18.00m, IsDefault = false, DisplayOrder = 3 }
-                        }
-                    },
-                    new("Extras")
-                    {
-                        CatalogItemId = nachos.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Extra Cheese") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Guacamole") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Sour Cream") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Jalapenos") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 4 }
-                        }
-                    }
-                };
-
-                await context.ItemCustomizations.AddRangeAsync(customizations);
-            }
-
-            // Add customizations for ice cream
-            var iceCream = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Ice Cream");
-            if (iceCream != null)
-            {
-                var customizations = new List<ItemCustomization>
-                {
-                    new("Scoops")
-                    {
-                        CatalogItemId = iceCream.Id,
-                        IsRequired = true,
-                        AllowMultiple = false,
-                        DisplayOrder = 1,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("2 Scoops") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("3 Scoops") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
-                        }
-                    },
-                    new("Flavors")
-                    {
-                        CatalogItemId = iceCream.Id,
-                        IsRequired = true,
-                        AllowMultiple = true,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Vanilla") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Chocolate") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new("Strawberry") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
-                            new("Cookies & Cream") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
-                            new("Mango") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 5 },
-                            new("Pistachio") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 6 }
-                        }
-                    },
-                    new("Toppings")
-                    {
-                        CatalogItemId = iceCream.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 3,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Chocolate Sauce") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 1 },
-                            new("Caramel Sauce") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Sprinkles") { PriceAdjustment = 3.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Nuts") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 },
-                            new("Whipped Cream") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 }
-                        }
-                    },
-                    new("Serving")
-                    {
-                        CatalogItemId = iceCream.Id,
-                        IsRequired = true,
-                        AllowMultiple = false,
-                        DisplayOrder = 4,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Cup") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Cone") { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new("Waffle Cone") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 3 }
-                        }
-                    }
-                };
-
-                await context.ItemCustomizations.AddRangeAsync(customizations);
-            }
-
-            // Add customizations for waffles
-            var waffles = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Waffles");
-            if (waffles != null)
-            {
-                var customizations = new List<ItemCustomization>
-                {
-                    new("Toppings")
-                    {
-                        CatalogItemId = waffles.Id,
-                        IsRequired = true,
-                        AllowMultiple = true,
-                        DisplayOrder = 1,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Maple Syrup") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Nutella") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Fresh Strawberries") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Bananas") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 },
-                            new("Whipped Cream") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 },
-                            new("Ice Cream Scoop") { PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 6 }
-                        }
-                    }
-                };
-
-                await context.ItemCustomizations.AddRangeAsync(customizations);
-            }
-
-            // Add customizations for pancakes
-            var pancakes = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Pancakes");
-            if (pancakes != null)
-            {
-                var customizations = new List<ItemCustomization>
-                {
-                    new("Stack Size")
-                    {
-                        CatalogItemId = pancakes.Id,
-                        IsRequired = true,
-                        AllowMultiple = false,
-                        DisplayOrder = 1,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("3 Pancakes") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("5 Pancakes") { PriceAdjustment = 15.00m, IsDefault = false, DisplayOrder = 2 }
-                        }
-                    },
-                    new("Toppings")
-                    {
-                        CatalogItemId = pancakes.Id,
-                        IsRequired = false,
-                        AllowMultiple = true,
-                        DisplayOrder = 2,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Maple Syrup") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Blueberries") { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Chocolate Chips") { PriceAdjustment = 8.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Bananas") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 },
-                            new("Whipped Cream") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 }
-                        }
-                    }
-                };
-
-                await context.ItemCustomizations.AddRangeAsync(customizations);
-            }
-
-            // Add customizations for cheesecake
-            var cheesecake = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name == "Cheesecake");
-            if (cheesecake != null)
-            {
-                var customizations = new List<ItemCustomization>
-                {
-                    new("Topping")
-                    {
-                        CatalogItemId = cheesecake.Id,
-                        IsRequired = false,
-                        AllowMultiple = false,
-                        DisplayOrder = 1,
-                        Options = new List<CustomizationOption>
-                        {
-                            new("Plain") { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new("Strawberry Sauce") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new("Blueberry Sauce") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 3 },
-                            new("Chocolate Sauce") { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 }
-                        }
-                    }
-                };
-
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 

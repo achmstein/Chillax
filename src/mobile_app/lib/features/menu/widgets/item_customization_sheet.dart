@@ -354,54 +354,164 @@ class _ItemCustomizationSheetState
           ],
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: customization.options.map((option) {
-            final isSelected = selectedIds.contains(option.id);
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (customization.allowMultiple) {
-                    final current = List<int>.from(selectedIds);
-                    if (isSelected) {
-                      current.remove(option.id);
-                    } else {
-                      current.add(option.id);
-                    }
-                    _selectedOptions[customization.id] = current;
-                  } else {
-                    if (isSelected && !customization.isRequired) {
-                      _selectedOptions.remove(customization.id);
-                    } else {
-                      _selectedOptions[customization.id] = [option.id];
-                    }
-                  }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected ? colors.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? colors.primary : colors.border,
-                  ),
-                ),
-                child: Text(
-                  option.priceAdjustment > 0
-                      ? '${option.name} (+£${option.priceAdjustment.toStringAsFixed(2)})'
-                      : option.name,
-                  style: TextStyle(
-                    color: isSelected ? colors.primaryForeground : colors.foreground,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
+        // Use radio buttons for single selection, checkboxes for multiple
+        if (customization.allowMultiple)
+          _buildCheckboxOptions(context, customization, selectedIds)
+        else
+          _buildRadioOptions(context, customization, selectedIds),
         const SizedBox(height: 16),
       ],
+    );
+  }
+
+  Widget _buildRadioOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds) {
+    final colors = context.theme.colors;
+    final selectedId = selectedIds.isNotEmpty ? selectedIds.first : null;
+
+    return Column(
+      children: customization.options.map((option) {
+        final isSelected = selectedId == option.id;
+        final priceText = option.priceAdjustment > 0
+            ? ' (+£${option.priceAdjustment.toStringAsFixed(2)})'
+            : option.priceAdjustment < 0
+                ? ' (-£${option.priceAdjustment.abs().toStringAsFixed(2)})'
+                : '';
+
+        return InkWell(
+          onTap: () {
+            setState(() {
+              if (isSelected && !customization.isRequired) {
+                _selectedOptions.remove(customization.id);
+              } else {
+                _selectedOptions[customization.id] = [option.id];
+              }
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Radio<int>(
+                    value: option.id,
+                    groupValue: selectedId,
+                    onChanged: (value) {
+                      setState(() {
+                        if (value != null) {
+                          _selectedOptions[customization.id] = [value];
+                        } else if (!customization.isRequired) {
+                          _selectedOptions.remove(customization.id);
+                        }
+                      });
+                    },
+                    activeColor: colors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    option.name,
+                    style: TextStyle(
+                      color: colors.foreground,
+                      fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (priceText.isNotEmpty)
+                  Text(
+                    priceText,
+                    style: TextStyle(
+                      color: option.priceAdjustment > 0
+                          ? colors.mutedForeground
+                          : AppTheme.successColor,
+                      fontSize: 13,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildCheckboxOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds) {
+    final colors = context.theme.colors;
+
+    return Column(
+      children: customization.options.map((option) {
+        final isSelected = selectedIds.contains(option.id);
+        final priceText = option.priceAdjustment > 0
+            ? ' (+£${option.priceAdjustment.toStringAsFixed(2)})'
+            : option.priceAdjustment < 0
+                ? ' (-£${option.priceAdjustment.abs().toStringAsFixed(2)})'
+                : '';
+
+        return InkWell(
+          onTap: () {
+            setState(() {
+              final current = List<int>.from(selectedIds);
+              if (isSelected) {
+                current.remove(option.id);
+              } else {
+                current.add(option.id);
+              }
+              _selectedOptions[customization.id] = current;
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (value) {
+                      setState(() {
+                        final current = List<int>.from(selectedIds);
+                        if (value == true) {
+                          current.add(option.id);
+                        } else {
+                          current.remove(option.id);
+                        }
+                        _selectedOptions[customization.id] = current;
+                      });
+                    },
+                    activeColor: colors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    option.name,
+                    style: TextStyle(
+                      color: colors.foreground,
+                      fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (priceText.isNotEmpty)
+                  Text(
+                    priceText,
+                    style: TextStyle(
+                      color: option.priceAdjustment > 0
+                          ? colors.mutedForeground
+                          : AppTheme.successColor,
+                      fontSize: 13,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

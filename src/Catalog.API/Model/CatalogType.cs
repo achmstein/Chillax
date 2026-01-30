@@ -12,4 +12,9 @@ public class CatalogType
 
     [Required]
     public string Type { get; set; }
+
+    /// <summary>
+    /// Arabic name for the category
+    /// </summary>
+    public string? TypeAr { get; set; }
 }

@@ -36,4 +36,9 @@ public interface IRoomQueries
     /// Get session preview by access code (for joining)
     /// </summary>
     Task<SessionPreviewViewModel?> GetSessionPreviewByCodeAsync(string accessCode);
+
+    /// <summary>
+    /// Get completed session history for a room
+    /// </summary>
+    Task<IEnumerable<ReservationViewModel>> GetRoomSessionHistoryAsync(int roomId, int limit = 20);
 }

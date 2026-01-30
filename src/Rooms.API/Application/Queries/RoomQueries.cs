@@ -26,7 +26,7 @@ public class RoomQueries : IRoomQueries
 
         // Get all today's reservations for computing display status
         var todayReservations = await _context.Reservations
-            .Where(r => r.ScheduledStartTime >= today && r.ScheduledStartTime < tomorrow)
+            .Where(r => r.CreatedAt >= today && r.CreatedAt < tomorrow)
             .Where(r => r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Active)
             .ToListAsync();
 
@@ -53,7 +53,7 @@ public class RoomQueries : IRoomQueries
 
         var roomReservations = await _context.Reservations
             .Where(r => r.RoomId == roomId)
-            .Where(r => r.ScheduledStartTime >= today && r.ScheduledStartTime < tomorrow)
+            .Where(r => r.CreatedAt >= today && r.CreatedAt < tomorrow)
             .Where(r => r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Active)
             .ToListAsync();
 
@@ -79,7 +79,7 @@ public class RoomQueries : IRoomQueries
         var reservations = await _context.Reservations
             .Include(r => r.Room)
             .Where(r => r.Status == ReservationStatus.Active || r.Status == ReservationStatus.Reserved)
-            .OrderBy(r => r.ScheduledStartTime)
+            .OrderBy(r => r.CreatedAt)
             .ToListAsync();
 
         return reservations.Select(MapToViewModel);
@@ -97,10 +97,6 @@ public class RoomQueries : IRoomQueries
     private static RoomViewModel MapToViewModel(Room room, List<Reservation> reservations)
     {
         var displayStatus = ComputeDisplayStatus(room, reservations);
-        var nextReservation = reservations
-            .Where(r => r.Status == ReservationStatus.Reserved)
-            .OrderBy(r => r.ScheduledStartTime)
-            .FirstOrDefault();
 
         return new RoomViewModel
         {
@@ -108,8 +104,7 @@ public class RoomQueries : IRoomQueries
             Name = room.Name,
             Description = room.Description,
             HourlyRate = room.HourlyRate,
-            DisplayStatus = displayStatus,
-            NextReservationTime = nextReservation?.ScheduledStartTime
+            DisplayStatus = displayStatus
         };
     }
 
@@ -126,9 +121,9 @@ public class RoomQueries : IRoomQueries
         if (reservations.Any(r => r.Status == ReservationStatus.Active))
             return RoomDisplayStatus.Occupied;
 
-        // Check for imminent reservations using domain logic
-        if (reservations.Any(r => r.IsImminent()))
-            return RoomDisplayStatus.ReservedSoon;
+        // Check for pending reservations (customer has 15 min to arrive)
+        if (reservations.Any(r => r.Status == ReservationStatus.Reserved))
+            return RoomDisplayStatus.Reserved;
 
         return RoomDisplayStatus.Available;
     }
@@ -166,13 +161,26 @@ public class RoomQueries : IRoomQueries
             CustomerId = reservation.CustomerId,
             CustomerName = reservation.CustomerName,
             CreatedAt = reservation.CreatedAt,
-            ScheduledStartTime = reservation.ScheduledStartTime,
             ActualStartTime = reservation.ActualStartTime,
             EndTime = reservation.EndTime,
             TotalCost = reservation.TotalCost,
             Status = reservation.Status,
             Notes = reservation.Notes,
-            AccessCode = reservation.AccessCode
+            AccessCode = reservation.AccessCode,
+            ExpiresAt = reservation.GetExpirationTime()
         };
+    }
+
+    public async Task<IEnumerable<ReservationViewModel>> GetRoomSessionHistoryAsync(int roomId, int limit = 20)
+    {
+        var reservations = await _context.Reservations
+            .Include(r => r.Room)
+            .Where(r => r.RoomId == roomId)
+            .Where(r => r.Status == ReservationStatus.Completed || r.Status == ReservationStatus.Cancelled)
+            .OrderByDescending(r => r.EndTime ?? r.CreatedAt)
+            .Take(limit)
+            .ToListAsync();
+
+        return reservations.Select(MapToViewModel);
     }
 }

@@ -106,9 +106,6 @@ namespace Rooms.Infrastructure.Migrations
                     b.Property<int>("RoomId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("ScheduledStartTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -122,9 +119,9 @@ namespace Rooms.Infrastructure.Migrations
 
                     b.HasIndex("AccessCode");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("CreatedAt");
 
-                    b.HasIndex("ScheduledStartTime");
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("Status");
 

@@ -12,6 +12,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
     {
         var order = await context.Orders
             .Include(o => o.OrderItems)
+            .Include(o => o.Rating)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order is null)
@@ -34,7 +35,13 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 PictureUrl = oi.PictureUrl,
                 CustomizationsDescription = oi.CustomizationsDescription,
                 SpecialInstructions = oi.SpecialInstructions
-            }).ToList()
+            }).ToList(),
+            Rating = order.Rating != null ? new OrderRatingDto
+            {
+                RatingValue = order.Rating.RatingValue,
+                Comment = order.Rating.Comment,
+                CreatedAt = order.Rating.CreatedAt
+            } : null
         };
     }
 
@@ -71,6 +78,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
     public async Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync()
     {
         return await context.Orders
+            .Include(o => o.Buyer)
             .Where(o => o.OrderStatus == Ordering.Domain.AggregatesModel.OrderAggregate.OrderStatus.Submitted)
             .OrderByDescending(o => o.OrderDate)
             .Select(o => new OrderSummary
@@ -79,7 +87,8 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Date = o.OrderDate,
                 Status = o.OrderStatus.ToString(),
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
-                RoomName = o.RoomName
+                RoomName = o.RoomName,
+                UserName = o.Buyer != null ? o.Buyer.Name : null
             })
             .ToListAsync();
     }

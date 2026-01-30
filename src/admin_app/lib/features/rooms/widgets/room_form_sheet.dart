@@ -47,37 +47,56 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
     final theme = context.theme;
 
     return Container(
-      width: 400,
-      color: theme.colors.background,
+      decoration: BoxDecoration(
+        color: theme.colors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: SafeArea(
+        top: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colors.mutedForeground,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
             // Header
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.isEditing ? 'Edit Room' : 'Add Room',
-                    style: theme.typography.lg.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      widget.isEditing ? 'Edit Room' : 'Add Room',
+                      style: theme.typography.lg.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Icon(Icons.close, color: theme.colors.mutedForeground),
                   ),
                 ],
               ),
             ),
-            const FDivider(),
 
             // Form
-            Expanded(
+            Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -108,7 +127,8 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                       FTextField.multiline(
                         control: FTextFieldControl.managed(controller: _descriptionController),
                         hint: 'Optional description',
-                        maxLines: 3,
+                        minLines: 2,
+                        maxLines: 4,
                       ),
                       const SizedBox(height: 16),
 
@@ -129,6 +149,7 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                         ],
                       ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -136,9 +157,13 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
             ),
 
             // Actions
-            const FDivider(),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 12,
+                bottom: 12 + MediaQuery.of(context).padding.bottom,
+              ),
               child: Row(
                 children: [
                   Expanded(

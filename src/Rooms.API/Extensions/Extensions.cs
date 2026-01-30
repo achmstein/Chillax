@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Chillax.Rooms.API.Application.BackgroundServices;
 using Chillax.Rooms.API.Application.IntegrationEvents.Events;
 using Chillax.Rooms.API.Application.Queries;
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
@@ -50,6 +51,9 @@ public static class Extensions
 
         // Register queries
         builder.Services.AddScoped<IRoomQueries, RoomQueries>();
+
+        // Register background services
+        builder.Services.AddHostedService<ReservationExpirationService>();
 
         // Add RabbitMQ event bus for publishing room availability events
         builder.AddRabbitMqEventBus("eventbus")

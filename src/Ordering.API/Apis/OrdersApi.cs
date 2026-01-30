@@ -22,6 +22,10 @@ public static class OrdersApi
             .WithSummary("Cancel a submitted order")
             .RequireAuthorization("Admin");
 
+        api.MapPost("/{orderId:int}/rating", RateOrderAsync)
+            .WithName("RateOrder")
+            .WithSummary("Rate a confirmed order");
+
         api.MapGet("/{orderId:int}", GetOrderAsync)
             .WithName("GetOrder")
             .WithSummary("Get order by ID");
@@ -33,6 +37,11 @@ public static class OrdersApi
         api.MapGet("/pending", GetPendingOrdersAsync)
             .WithName("GetPendingOrders")
             .WithSummary("Get all pending orders (admin)")
+            .RequireAuthorization("Admin");
+
+        api.MapGet("/user/{userId}", GetOrdersByUserIdAsync)
+            .WithName("GetOrdersByUserId")
+            .WithSummary("Get orders for a specific user (admin)")
             .RequireAuthorization("Admin");
 
         api.MapPost("/draft", CreateOrderDraftAsync)
@@ -139,6 +148,44 @@ public static class OrdersApi
         return TypedResults.Ok();
     }
 
+    public static async Task<Results<Ok, BadRequest<string>, ProblemHttpResult>> RateOrderAsync(
+        int orderId,
+        [FromHeader(Name = "x-requestid")] Guid requestId,
+        RateOrderRequest request,
+        [AsParameters] OrderServices services)
+    {
+        if (requestId == Guid.Empty)
+        {
+            return TypedResults.BadRequest("Empty GUID is not valid for request ID");
+        }
+
+        var rateOrderCommand = new RateOrderCommand(orderId, request.RatingValue, request.Comment);
+        var requestRateOrder = new IdentifiedCommand<RateOrderCommand, bool>(rateOrderCommand, requestId);
+
+        services.Logger.LogInformation(
+            "Sending command: {CommandName} - OrderId: {OrderId}, Rating: {Rating}",
+            requestRateOrder.GetGenericTypeName(),
+            orderId,
+            request.RatingValue);
+
+        try
+        {
+            var commandResult = await services.Mediator.Send(requestRateOrder);
+
+            if (!commandResult)
+            {
+                return TypedResults.Problem(detail: "Rate order failed to process.", statusCode: 500);
+            }
+
+            return TypedResults.Ok();
+        }
+        catch (OrderingDomainException ex)
+        {
+            services.Logger.LogWarning(ex, "Rating order failed - OrderId: {OrderId}", orderId);
+            return TypedResults.BadRequest(ex.Message);
+        }
+    }
+
     public static async Task<Results<Ok<Order>, NotFound>> GetOrderAsync(int orderId, [AsParameters] OrderServices services)
     {
         try
@@ -169,6 +216,16 @@ public static class OrdersApi
         return TypedResults.Ok(orders);
     }
 
+    public static async Task<Ok<PaginatedResult<OrderSummary>>> GetOrdersByUserIdAsync(
+        string userId,
+        int pageIndex = 0,
+        int pageSize = 20,
+        [AsParameters] OrderServices services = default!)
+    {
+        var orders = await services.Queries.GetOrdersFromUserAsync(userId, pageIndex, pageSize);
+        return TypedResults.Ok(orders);
+    }
+
     public static async Task<OrderDraftDTO> CreateOrderDraftAsync(CreateOrderDraftCommand command, [AsParameters] OrderServices services)
     {
         services.Logger.LogInformation(
@@ -189,3 +246,10 @@ public record CreateOrderRequest(
     string? CustomerNote,
     int PointsToRedeem,
     List<BasketItem> Items);
+
+/// <summary>
+/// Request model for rating an order
+/// </summary>
+public record RateOrderRequest(
+    int RatingValue,
+    string? Comment);

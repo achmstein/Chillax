@@ -9,8 +9,10 @@ public static class ClaimsPrincipalExtensions
            ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
     public static string? GetUserName(this ClaimsPrincipal principal) =>
-        principal.FindFirst("preferred_username")?.Value
-        ?? principal.FindFirst(ClaimTypes.Name)?.Value;
+        principal.FindFirst("name")?.Value  // Firebase display name
+        ?? principal.FindFirst("preferred_username")?.Value
+        ?? principal.FindFirst(ClaimTypes.Name)?.Value
+        ?? principal.FindFirst(ClaimTypes.GivenName)?.Value;
 
     public static string? GetEmail(this ClaimsPrincipal principal) =>
         principal.FindFirst("email")?.Value
@@ -22,5 +24,5 @@ public static class ClaimsPrincipalExtensions
         .Distinct();
 
     public static bool IsInRole(this ClaimsPrincipal principal, string role) =>
-        principal.GetRoles().Contains(role);
+        principal.GetRoles().Contains(role, StringComparer.OrdinalIgnoreCase);
 }

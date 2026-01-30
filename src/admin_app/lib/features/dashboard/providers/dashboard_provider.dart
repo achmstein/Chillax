@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/network/api_client.dart';
@@ -11,7 +12,6 @@ class DashboardStats {
   final int activeSessionsCount;
   final int availableRoomsCount;
   final int totalMenuItems;
-  final double todayRevenue;
   final List<Order> pendingOrders;
   final List<RoomSession> activeSessions;
 
@@ -20,7 +20,6 @@ class DashboardStats {
     this.activeSessionsCount = 0,
     this.availableRoomsCount = 0,
     this.totalMenuItems = 0,
-    this.todayRevenue = 0,
     this.pendingOrders = const [],
     this.activeSessions = const [],
   });
@@ -86,9 +85,6 @@ class DashboardNotifier extends Notifier<DashboardState> {
       final roomStats = results[2] as Map<String, dynamic>;
       final menuStats = results[3] as Map<String, dynamic>;
 
-      // Calculate today's revenue from confirmed orders
-      final todayRevenue = await _fetchTodayRevenue();
-
       state = state.copyWith(
         isLoading: false,
         stats: DashboardStats(
@@ -96,16 +92,13 @@ class DashboardNotifier extends Notifier<DashboardState> {
           activeSessionsCount: activeSessions.length,
           availableRoomsCount: roomStats['available'] as int? ?? 0,
           totalMenuItems: menuStats['total'] as int? ?? 0,
-          todayRevenue: todayRevenue,
           pendingOrders: pendingOrders,
           activeSessions: activeSessions,
         ),
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load dashboard: $e',
-      );
+      debugPrint('Failed to load dashboard: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -124,13 +117,15 @@ class DashboardNotifier extends Notifier<DashboardState> {
 
   Future<List<Order>> _fetchPendingOrders() async {
     try {
-      final response = await _ordersApi.get('');
+      final response = await _ordersApi.get('pending');
       final data = response.data as List<dynamic>;
-      return data
+      final orders = data
           .map((e) => Order.fromJson(e as Map<String, dynamic>))
-          .where((o) => o.status == OrderStatus.submitted)
           .toList();
+      orders.sort((a, b) => b.date.compareTo(a.date));
+      return orders;
     } catch (e) {
+      debugPrint('Failed to fetch pending orders: $e');
       return [];
     }
   }
@@ -170,26 +165,6 @@ class DashboardNotifier extends Notifier<DashboardState> {
       return {'total': 0};
     }
   }
-
-  Future<double> _fetchTodayRevenue() async {
-    try {
-      final response = await _ordersApi.get('');
-      final data = response.data as List<dynamic>;
-      final today = DateTime.now();
-      final todayOrders = data
-          .map((e) => Order.fromJson(e as Map<String, dynamic>))
-          .where((o) =>
-              o.status == OrderStatus.confirmed &&
-              o.date.year == today.year &&
-              o.date.month == today.month &&
-              o.date.day == today.day)
-          .toList();
-      return todayOrders.fold<double>(0.0, (sum, o) => sum + o.total);
-    } catch (e) {
-      return 0;
-    }
-  }
-
 }
 
 /// Dashboard provider

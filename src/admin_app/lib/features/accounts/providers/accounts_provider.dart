@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../../customers/models/customer.dart';
@@ -85,10 +87,9 @@ class AccountsNotifier extends Notifier<AccountsState> {
 
       state = state.copyWith(isLoading: false, accounts: accounts);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load accounts: $e',
-      );
+      // Log error but don't show in UI for better UX
+      debugPrint('Failed to load accounts: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -102,15 +103,14 @@ class AccountsNotifier extends Notifier<AccountsState> {
   }
 
   Future<void> selectAccount(String customerId) async {
-    state = state.copyWith(isLoadingTransactions: true);
+    state = state.copyWith(isLoadingTransactions: true, clearError: true);
     try {
       final accountResponse = await _accountsApi.get(customerId);
-      final account =
-          CustomerAccount.fromJson(accountResponse.data as Map<String, dynamic>);
+      final accountData = accountResponse.data as Map<String, dynamic>;
+      final account = CustomerAccount.fromJson(accountData);
 
-      final transactionsResponse =
-          await _accountsApi.get('$customerId/transactions');
-      final transactionsData = transactionsResponse.data as List<dynamic>;
+      // Transactions are included in the account response
+      final transactionsData = accountData['transactions'] as List<dynamic>? ?? [];
       final transactions = transactionsData
           .map((e) => AccountTransaction.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -121,10 +121,18 @@ class AccountsNotifier extends Notifier<AccountsState> {
         isLoadingTransactions: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoadingTransactions: false,
-        error: 'Failed to load account details: $e',
-      );
+      // Silently handle 404 errors - account not found is expected
+      if (e is DioException && e.response?.statusCode == 404) {
+        debugPrint('Account not found: $customerId');
+        state = state.copyWith(
+          isLoadingTransactions: false,
+          clearSelectedAccount: true,
+        );
+        return;
+      }
+      // Log other errors but don't show in UI
+      debugPrint('Failed to load account details: $e');
+      state = state.copyWith(isLoadingTransactions: false);
     }
   }
 
@@ -181,7 +189,7 @@ class AccountsNotifier extends Notifier<AccountsState> {
       }
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to add charge: $e');
+      debugPrint('Failed to add charge: $e');
       return false;
     }
   }
@@ -206,7 +214,7 @@ class AccountsNotifier extends Notifier<AccountsState> {
       }
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to record payment: $e');
+      debugPrint('Failed to record payment: $e');
       return false;
     }
   }
@@ -226,8 +234,9 @@ class AccountsNotifier extends Notifier<AccountsState> {
     }
     final query = state.searchQuery!.toLowerCase();
     return state.accounts.where((account) {
-      return account.displayName.toLowerCase().contains(query) ||
-          account.customerId.toLowerCase().contains(query);
+      final displayName = account.displayName.toLowerCase();
+      final customerId = account.customerId.toLowerCase();
+      return displayName.contains(query) || customerId.contains(query);
     }).toList();
   }
 }

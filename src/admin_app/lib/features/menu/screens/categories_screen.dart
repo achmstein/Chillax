@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
@@ -20,6 +21,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     Future.microtask(() {
       ref.read(menuProvider.notifier).loadMenu();
     });
+
+    // Listen to route changes and refresh when navigating to this screen
+    ref.listenManual(currentRouteProvider, (previous, next) {
+      if (next == '/categories' && previous != '/categories' && previous != null) {
+        ref.read(menuProvider.notifier).loadMenu();
+      }
+    });
   }
 
   @override
@@ -32,7 +40,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Action bar with back button
+        // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -42,22 +50,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                 onPressed: () => context.go('/menu'),
                 tooltip: 'Back to menu',
               ),
-              Text(
-                'Categories',
-                style: theme.typography.base.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              const SizedBox(width: 8),
+              Text('Categories', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.add, size: 22),
                 onPressed: () => _showCategoryForm(context),
                 tooltip: 'Add category',
-              ),
-              IconButton(
-                icon: const Icon(Icons.refresh, size: 22),
-                onPressed: () => notifier.loadMenu(),
-                tooltip: 'Refresh',
               ),
             ],
           ),
@@ -65,49 +64,38 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
         // Content
         Expanded(
-          child: state.isLoading && state.categories.isEmpty
-              ? const ShimmerLoadingList(showLeadingCircle: false)
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Error
-                    if (state.error != null)
-                      Padding(
-                        padding: kScreenPadding,
-                        child: FAlert(
-                          style: FAlertStyle.destructive(),
-                          icon: const Icon(Icons.warning),
-                          title: const Text('Error'),
-                          subtitle: Text(state.error!),
+          child: DelayedShimmer(
+            isLoading: state.isLoading && state.categories.isEmpty,
+            shimmer: const ShimmerLoadingList(showLeadingCircle: false),
+            child: RefreshIndicator(
+              onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
+              child: state.categories.isEmpty
+                  ? ListView(
+                      children: const [
+                        EmptyState(
+                          icon: Icons.category,
+                          title: 'No categories found',
+                          subtitle: 'Click the + button above to create one',
                         ),
-                      ),
-
-                    // Categories list
-                    Expanded(
-                      child: state.categories.isEmpty
-                          ? const EmptyState(
-                              icon: Icons.category,
-                              title: 'No categories found',
-                              subtitle: 'Click the + button above to create one',
-                            )
-                          : ListView.separated(
-                              padding: kScreenPadding,
-                              itemCount: state.categories.length,
-                              separatorBuilder: (_, __) => const FDivider(),
-                              itemBuilder: (context, index) {
-                                final category = state.categories[index];
-                                final itemCount = notifier.getItemCountForCategory(category.id);
-                                return _CategoryListItem(
-                                  category: category,
-                                  itemCount: itemCount,
-                                  onEdit: () => _showCategoryForm(context, category: category),
-                                  onDelete: () => _deleteCategory(context, category, itemCount),
-                                );
-                              },
-                            ),
+                      ],
+                    )
+                  : ListView.separated(
+                      padding: kScreenPadding,
+                      itemCount: state.categories.length,
+                      separatorBuilder: (_, __) => const FDivider(),
+                      itemBuilder: (context, index) {
+                        final category = state.categories[index];
+                        final itemCount = notifier.getItemCountForCategory(category.id);
+                        return _CategoryListItem(
+                          category: category,
+                          itemCount: itemCount,
+                          onEdit: () => _showCategoryForm(context, category: category),
+                          onDelete: () => _deleteCategory(context, category, itemCount),
+                        );
+                      },
                     ),
-                  ],
-                ),
+            ),
+          ),
         ),
       ],
     );

@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/order.dart';
 import '../services/order_service.dart';
+import '../widgets/rating_dialog.dart';
+import '../widgets/rating_widget.dart';
 
 /// Orders history screen with infinite scroll
 class OrdersScreen extends ConsumerStatefulWidget {
@@ -428,6 +430,54 @@ class _OrderTileState extends ConsumerState<OrderTile>
                 ),
               ),
             ],
+
+            // Rating section
+            if (orderDetails.hasRating) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    'Your rating: ',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colors.mutedForeground,
+                    ),
+                  ),
+                  RatingDisplay(rating: orderDetails.rating!, color: colors.mutedForeground),
+                ],
+              ),
+              if (orderDetails.rating!.comment != null && orderDetails.rating!.comment!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '"${orderDetails.rating!.comment}"',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: colors.mutedForeground,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ] else if (orderDetails.canBeRated) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    showRatingDialog(
+                      context: context,
+                      ref: ref,
+                      orderId: orderDetails.id,
+                    );
+                  },
+                  icon: const Icon(Icons.star_border, size: 18),
+                  label: const Text('Rate This Order'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: colors.primary,
+                    side: BorderSide(color: colors.primary),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -436,6 +486,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
 
   Widget _buildStatusDot(OrderStatus status) {
     final color = switch (status) {
+      OrderStatus.awaitingValidation => Colors.blue,
       OrderStatus.submitted => Colors.orange,
       OrderStatus.confirmed => AppTheme.successColor,
       OrderStatus.cancelled => AppTheme.errorColor,

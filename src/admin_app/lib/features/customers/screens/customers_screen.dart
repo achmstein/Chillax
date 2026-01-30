@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../models/customer.dart';
 import '../providers/customers_provider.dart';
@@ -23,10 +23,23 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     Future.microtask(() {
       ref.read(customersProvider.notifier).loadCustomers();
     });
+    _searchController.addListener(_onSearchChanged);
+
+    // Listen to route changes and refresh when navigating to this screen
+    ref.listenManual(currentRouteProvider, (previous, next) {
+      if (next == '/customers' && previous != '/customers' && previous != null) {
+        ref.read(customersProvider.notifier).loadCustomers();
+      }
+    });
+  }
+
+  void _onSearchChanged() {
+    ref.read(customersProvider.notifier).setSearchQuery(_searchController.text);
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
@@ -34,199 +47,144 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(customersProvider);
+    final notifier = ref.read(customersProvider.notifier);
     final theme = context.theme;
-    final dateFormat = DateFormat.yMMMd();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Action bar
+        // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text(
-                'Customers',
-                style: theme.typography.base.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.refresh, size: 22),
-                onPressed: () => ref.read(customersProvider.notifier).loadCustomers(),
-                tooltip: 'Refresh',
-              ),
-            ],
-          ),
-        ),
-
-        // Search bar
-        Padding(
-          padding: kScreenPadding,
-          child: Row(
-            children: [
-              Expanded(
-                child: FTextField(
-                  control: FTextFieldControl.managed(controller: _searchController),
-                  hint: 'Search customers...',
-                  onSubmit: (_) {
-                    ref
-                        .read(customersProvider.notifier)
-                        .setSearchQuery(_searchController.text);
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              FButton(
-                onPress: () {
-                  ref
-                      .read(customersProvider.notifier)
-                      .setSearchQuery(_searchController.text);
-                },
-                child: const Text('Search'),
-              ),
-              if (state.searchQuery != null && state.searchQuery!.isNotEmpty) ...[
+              Text('Customers', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              if (state.totalCount > 0) ...[
                 const SizedBox(width: 8),
-                FButton(
-                  style: FButtonStyle.outline(),
-                  onPress: () {
-                    _searchController.clear();
-                    ref.read(customersProvider.notifier).setSearchQuery(null);
-                  },
-                  child: const Text('Clear'),
+                Text(
+                  '${state.totalCount}',
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
                 ),
               ],
             ],
           ),
         ),
 
-        // Stats
+        // Search
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            '${state.totalCount} total customers',
-            style: theme.typography.sm.copyWith(
-              color: theme.colors.mutedForeground,
-            ),
+          child: FTextField(
+            control: FTextFieldControl.managed(controller: _searchController),
+            hint: 'Search by name or email...',
           ),
         ),
-        const SizedBox(height: 8),
 
-        // Error
-        if (state.error != null)
-          Padding(
-            padding: kScreenPadding,
-            child: FAlert(
-              style: FAlertStyle.destructive(),
-              icon: const Icon(Icons.warning),
-              title: const Text('Error'),
-              subtitle: Text(state.error!),
-            ),
-          ),
+        const SizedBox(height: 8),
 
         // Content
         Expanded(
-          child: state.isLoading && state.customers.isEmpty
-              ? const ShimmerLoadingList()
-              : state.customers.isEmpty
-                  ? EmptyState(
-                      icon: Icons.people_outline,
-                      title: state.searchQuery != null
-                          ? 'No customers found'
-                          : 'No customers yet',
-                    )
-                  : ListView.separated(
-                      padding: kScreenPadding,
+          child: DelayedShimmer(
+            isLoading: state.isLoading && state.customers.isEmpty,
+            shimmer: const ShimmerLoadingList(),
+            child: state.customers.isEmpty
+                ? const EmptyState(
+                    icon: Icons.people_outline,
+                    title: 'No customers found',
+                  )
+                : RefreshIndicator(
+                    onRefresh: () => notifier.loadCustomers(),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: state.customers.length,
-                      separatorBuilder: (_, __) => const FDivider(),
                       itemBuilder: (context, index) {
                         final customer = state.customers[index];
-                        return _CustomerListItem(
+                        return _CustomerTile(
                           customer: customer,
-                          dateFormat: dateFormat,
-                          onTap: () => _showCustomerDetail(context, customer),
+                          onTap: () => context.go('/customers/${customer.id}'),
                         );
                       },
                     ),
+                  ),
+          ),
         ),
       ],
     );
   }
-
-  void _showCustomerDetail(BuildContext context, Customer customer) {
-    context.go('/customers/${customer.id}');
-  }
 }
 
-class _CustomerListItem extends StatelessWidget {
+class _CustomerTile extends StatelessWidget {
   final Customer customer;
-  final DateFormat dateFormat;
   final VoidCallback onTap;
 
-  const _CustomerListItem({
-    required this.customer,
-    required this.dateFormat,
-    required this.onTap,
-  });
+  const _CustomerTile({required this.customer, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
 
-    return FTappable(
-      onPress: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             // Avatar
-            FAvatar.raw(
-              size: 48,
-              child: Text(customer.initials),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.colors.secondary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Center(
+                child: Text(
+                  customer.initials,
+                  style: theme.typography.sm.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          customer.displayName,
-                          style: theme.typography.base.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      if (!customer.enabled)
-                        FBadge(
-                          style: FBadgeStyle.outline(),
-                          child: const Text('Disabled'),
-                        ),
-                    ],
+                  Text(
+                    customer.displayName,
+                    style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-                  if (customer.email != null)
+                  if (customer.email != null) ...[
+                    const SizedBox(height: 2),
                     Text(
                       customer.email!,
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                      ),
+                      style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  if (customer.createdAt != null)
-                    Text(
-                      'Joined ${dateFormat.format(customer.createdAt!)}',
-                      style: theme.typography.xs.copyWith(
-                        color: theme.colors.mutedForeground,
-                      ),
-                    ),
+                  ],
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: theme.colors.mutedForeground),
+            // Status indicator
+            if (!customer.enabled)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colors.secondary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Disabled',
+                  style: theme.typography.xs.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

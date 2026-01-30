@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../providers/settings_provider.dart';
@@ -20,6 +22,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final settingsState = ref.watch(settingsProvider);
     final themeState = ref.watch(themeProvider);
     final authState = ref.watch(authServiceProvider);
+    final locale = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
       child: SafeArea(
@@ -28,18 +32,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           children: [
             // Custom header with back button
             Container(
-              padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
+              padding: const EdgeInsetsDirectional.only(start: 8, end: 16, top: 8, bottom: 8),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Icon(FIcons.arrowLeft, size: 22),
+                    child: Icon(
+                      locale.languageCode == 'ar' ? FIcons.arrowRight : FIcons.arrowLeft,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Settings',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      l10n.settings,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -52,13 +59,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Notifications Section
-                    _buildSectionHeader('Notifications'),
+                    _buildSectionHeader(l10n.notifications),
                     const SizedBox(height: 8),
                     FTileGroup(
                       children: [
                         FTile(
-                          title: const Text('Order Status Updates'),
-                          subtitle: Text('Get notified when your order status changes', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: Text(l10n.orderStatusUpdates),
+                          subtitle: Text(l10n.orderStatusUpdatesDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.orderStatusUpdates,
                             onChange: (value) {
@@ -69,8 +76,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                         FTile(
-                          title: const Text('Promotions & Offers'),
-                          subtitle: Text('Receive special deals and discounts', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: Text(l10n.promotionsAndOffers),
+                          subtitle: Text(l10n.promotionsDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.promotionsAndOffers,
                             onChange: (value) {
@@ -81,8 +88,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                         FTile(
-                          title: const Text('Session Reminders'),
-                          subtitle: Text('Get reminded before your gaming session', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: Text(l10n.sessionReminders),
+                          subtitle: Text(l10n.sessionRemindersDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.sessionReminders,
                             onChange: (value) {
@@ -98,16 +105,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const SizedBox(height: 24),
 
                     // Appearance Section
-                    _buildSectionHeader('Appearance'),
+                    _buildSectionHeader(l10n.appearance),
                     const SizedBox(height: 8),
                     FTileGroup(
                       children: [
                         FTile(
                           prefix: const Icon(FIcons.palette),
-                          title: const Text('Theme'),
-                          subtitle: Text(themeState.displayName),
+                          title: Text(l10n.theme),
+                          subtitle: Text(_getLocalizedThemeName(themeState.themeMode, l10n)),
                           suffix: const Icon(FIcons.chevronRight),
                           onPress: () => _showThemeSelector(context, ref),
+                        ),
+                        FTile(
+                          prefix: const Icon(FIcons.globe),
+                          title: Text(l10n.language),
+                          subtitle: Text(locale.languageCode == 'ar' ? l10n.arabic : l10n.english),
+                          suffix: const Icon(FIcons.chevronRight),
+                          onPress: () => _showLanguageSelector(context, ref),
                         ),
                       ],
                     ),
@@ -116,25 +130,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const SizedBox(height: 24),
 
                       // Account Section
-                      _buildSectionHeader('Account'),
+                      _buildSectionHeader(l10n.account),
                       const SizedBox(height: 8),
                       FTileGroup(
                         children: [
                           FTile(
                             prefix: const Icon(FIcons.lock),
-                            title: const Text('Change Password'),
+                            title: Text(l10n.changePassword),
                             suffix: const Icon(FIcons.chevronRight),
                             onPress: () => context.push('/settings/change-password'),
                           ),
                           FTile(
                             prefix: const Icon(FIcons.mail),
-                            title: const Text('Update Email'),
+                            title: Text(l10n.updateEmail),
                             suffix: const Icon(FIcons.chevronRight),
                             onPress: () => context.push('/settings/update-email'),
                           ),
                           FTile(
                             prefix: Icon(FIcons.trash2, color: AppTheme.errorColor),
-                            title: Text('Delete Account', style: TextStyle(color: AppTheme.errorColor)),
+                            title: Text(l10n.deleteAccount, style: TextStyle(color: AppTheme.errorColor)),
                             suffix: Icon(FIcons.chevronRight, color: AppTheme.errorColor),
                             onPress: () => _showDeleteAccountDialog(context, ref),
                           ),
@@ -151,6 +165,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  String _getLocalizedThemeName(AppThemeMode mode, AppLocalizations l10n) {
+    switch (mode) {
+      case AppThemeMode.light:
+        return l10n.light;
+      case AppThemeMode.dark:
+        return l10n.dark;
+      case AppThemeMode.system:
+        return l10n.systemDefault;
+    }
+  }
+
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
@@ -163,6 +188,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showThemeSelector(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -175,25 +201,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Navigator.pop(sheetContext);
         },
         currentMode: ref.read(themeProvider).themeMode,
+        l10n: l10n,
+      ),
+    );
+  }
+
+  void _showLanguageSelector(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = ref.read(localeProvider);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (sheetContext) => _LanguageSelectorSheet(
+        onLanguageSelected: (locale) {
+          ref.read(localeProvider.notifier).setLocale(locale);
+          Navigator.pop(sheetContext);
+        },
+        currentLocale: currentLocale,
+        l10n: l10n,
       ),
     );
   }
 
   void _showDeleteAccountDialog(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     showFDialog(
       context: context,
       builder: (dialogContext, style, animation) => FDialog(
         style: style.call,
         animation: animation,
-        title: const Text('Delete Account'),
-        body: const Text(
-          'Are you sure you want to delete your account? This action cannot be undone.',
-        ),
+        title: Text(l10n.deleteAccount),
+        body: Text(l10n.deleteAccountConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
             onPress: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FButton(
             style: FButtonStyle.destructive(),
@@ -208,19 +255,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (context.mounted) {
                   showFToast(
                     context: context,
-                    title: const Text('Account deleted successfully'),
+                    title: Text(l10n.accountDeletedSuccessfully),
                     icon: Icon(FIcons.check, color: AppTheme.successColor),
                   );
                 }
               } else if (context.mounted) {
                 showFToast(
                   context: context,
-                  title: const Text('Failed to delete account'),
+                  title: Text(l10n.failedToDeleteAccount),
                   icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
                 );
               }
             },
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -232,10 +279,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 class _ThemeSelectorSheet extends StatelessWidget {
   final Function(AppThemeMode) onThemeSelected;
   final AppThemeMode currentMode;
+  final AppLocalizations l10n;
 
   const _ThemeSelectorSheet({
     required this.onThemeSelected,
     required this.currentMode,
+    required this.l10n,
   });
 
   @override
@@ -270,7 +319,7 @@ class _ThemeSelectorSheet extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Select Theme',
+                      l10n.selectTheme,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
@@ -367,22 +416,154 @@ class _ThemeSelectorSheet extends StatelessWidget {
   String _getThemeModeName(AppThemeMode mode) {
     switch (mode) {
       case AppThemeMode.light:
-        return 'Light';
+        return l10n.light;
       case AppThemeMode.dark:
-        return 'Dark';
+        return l10n.dark;
       case AppThemeMode.system:
-        return 'System Default';
+        return l10n.systemDefault;
     }
   }
 
   String _getThemeModeDescription(AppThemeMode mode) {
     switch (mode) {
       case AppThemeMode.light:
-        return 'Always use light theme';
+        return l10n.lightThemeDescription;
       case AppThemeMode.dark:
-        return 'Always use dark theme';
+        return l10n.darkThemeDescription;
       case AppThemeMode.system:
-        return 'Follow your device settings';
+        return l10n.systemDefaultDescription;
     }
+  }
+}
+
+/// Bottom sheet for selecting language
+class _LanguageSelectorSheet extends StatelessWidget {
+  final Function(Locale) onLanguageSelected;
+  final Locale currentLocale;
+  final AppLocalizations l10n;
+
+  const _LanguageSelectorSheet({
+    required this.onLanguageSelected,
+    required this.currentLocale,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final colors = theme.colors;
+
+    final languages = [
+      (locale: const Locale('ar'), name: 'العربية', nativeName: 'Arabic'),
+      (locale: const Locale('en'), name: 'English', nativeName: 'English'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colors.mutedForeground,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.selectLanguage,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: colors.foreground,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
+                  ),
+                ],
+              ),
+            ),
+
+            Divider(height: 1, color: colors.border),
+
+            // Language options
+            ...languages.map((lang) {
+              final isSelected = currentLocale.languageCode == lang.locale.languageCode;
+              return GestureDetector(
+                onTap: () => onLanguageSelected(lang.locale),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: isSelected ? colors.primary.withValues(alpha: 0.1) : Colors.transparent,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isSelected ? colors.primary.withValues(alpha: 0.15) : colors.muted,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            lang.locale.languageCode.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? colors.primary : colors.mutedForeground,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          lang.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            color: colors.foreground,
+                          ),
+                        ),
+                      ),
+                      if (isSelected)
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: colors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(FIcons.check, size: 14, color: colors.primaryForeground),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
   }
 }

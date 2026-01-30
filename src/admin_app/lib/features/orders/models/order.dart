@@ -1,8 +1,10 @@
-/// Order status
+/// Order status - values must match backend OrderStatus enum
+/// Note: Backend returns status as string, not int
 enum OrderStatus {
-  submitted(1, 'Submitted'),
-  confirmed(2, 'Confirmed'),
-  cancelled(3, 'Cancelled');
+  awaitingValidation(1, 'AwaitingValidation'),
+  submitted(2, 'Submitted'),
+  confirmed(3, 'Confirmed'),
+  cancelled(4, 'Cancelled');
 
   final int value;
   final String label;
@@ -64,6 +66,8 @@ class OrderItem {
 /// Order model
 class Order {
   final int id;
+  final String? userId;
+  final String? userName;
   final DateTime date;
   final OrderStatus status;
   final String? description;
@@ -74,6 +78,8 @@ class Order {
 
   Order({
     required this.id,
+    this.userId,
+    this.userName,
     required this.date,
     required this.status,
     this.description,
@@ -95,6 +101,8 @@ class Order {
 
     return Order(
       id: json['orderNumber'] ?? json['OrderNumber'] ?? json['orderId'] ?? json['id'] as int,
+      userId: json['userId'] ?? json['UserId'] as String?,
+      userName: json['userName'] ?? json['UserName'] ?? json['userDisplayName'] ?? json['UserDisplayName'] as String?,
       date: DateTime.parse((json['date'] ?? json['Date']) as String),
       status: status,
       description: json['description'] ?? json['Description'] as String?,

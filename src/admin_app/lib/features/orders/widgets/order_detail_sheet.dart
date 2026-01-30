@@ -172,16 +172,20 @@ class OrderDetailSheet extends ConsumerWidget {
 
   Widget _buildStatusBadge(OrderStatus status) {
     switch (status) {
+      case OrderStatus.awaitingValidation:
+        return FBadge(style: FBadgeStyle.secondary(),
+          child: const Text('Validating'),
+        );
       case OrderStatus.submitted:
-        return FBadge(style: FBadgeStyle.destructive(), 
-          child: Text('Pending'),
+        return FBadge(style: FBadgeStyle.destructive(),
+          child: const Text('Pending'),
         );
       case OrderStatus.confirmed:
         return FBadge(
-          child: Text('Confirmed'),
+          child: const Text('Confirmed'),
         );
       case OrderStatus.cancelled:
-        return FBadge(style: FBadgeStyle.outline(), 
+        return FBadge(style: FBadgeStyle.outline(),
           child: const Text('Cancelled'),
         );
     }

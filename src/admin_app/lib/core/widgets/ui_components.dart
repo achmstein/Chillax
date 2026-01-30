@@ -1,9 +1,115 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:shimmer/shimmer.dart';
 
 /// Standard screen padding for all screens
 const kScreenPadding = EdgeInsets.all(16);
+
+/// A wrapper that delays showing shimmer and ensures minimum display time.
+/// This prevents the "flash" effect when data loads quickly.
+///
+/// - [delayBeforeShow]: How long to wait before showing shimmer (default 150ms)
+/// - [minimumDisplayTime]: Once shown, keep shimmer visible for at least this long (default 300ms)
+class DelayedShimmer extends StatefulWidget {
+  final bool isLoading;
+  final Widget shimmer;
+  final Widget child;
+  final Duration delayBeforeShow;
+  final Duration minimumDisplayTime;
+
+  const DelayedShimmer({
+    super.key,
+    required this.isLoading,
+    required this.shimmer,
+    required this.child,
+    this.delayBeforeShow = const Duration(milliseconds: 150),
+    this.minimumDisplayTime = const Duration(milliseconds: 300),
+  });
+
+  @override
+  State<DelayedShimmer> createState() => _DelayedShimmerState();
+}
+
+class _DelayedShimmerState extends State<DelayedShimmer> {
+  bool _showShimmer = false;
+  Timer? _delayTimer;
+  Timer? _minimumTimer;
+  DateTime? _shimmerShownAt;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isLoading) {
+      _startDelayTimer();
+    }
+  }
+
+  @override
+  void didUpdateWidget(DelayedShimmer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.isLoading && !oldWidget.isLoading) {
+      // Started loading
+      _startDelayTimer();
+    } else if (!widget.isLoading && oldWidget.isLoading) {
+      // Finished loading
+      _handleLoadingComplete();
+    }
+  }
+
+  void _startDelayTimer() {
+    _delayTimer?.cancel();
+    _delayTimer = Timer(widget.delayBeforeShow, () {
+      if (mounted && widget.isLoading) {
+        setState(() {
+          _showShimmer = true;
+          _shimmerShownAt = DateTime.now();
+        });
+      }
+    });
+  }
+
+  void _handleLoadingComplete() {
+    _delayTimer?.cancel();
+
+    if (_showShimmer && _shimmerShownAt != null) {
+      // Shimmer is visible - ensure minimum display time
+      final elapsed = DateTime.now().difference(_shimmerShownAt!);
+      final remaining = widget.minimumDisplayTime - elapsed;
+
+      if (remaining > Duration.zero) {
+        _minimumTimer?.cancel();
+        _minimumTimer = Timer(remaining, () {
+          if (mounted) {
+            setState(() => _showShimmer = false);
+          }
+        });
+      } else {
+        setState(() => _showShimmer = false);
+      }
+    } else {
+      // Shimmer never shown - just hide immediately
+      setState(() => _showShimmer = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    _minimumTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      child: _showShimmer ? widget.shimmer : widget.child,
+    );
+  }
+}
 
 /// Shimmer loading list - replaces FProgress/CircularProgressIndicator for list loading states
 class ShimmerLoadingList extends StatelessWidget {

@@ -29,6 +29,9 @@ namespace Ordering.Infrastructure.Migrations
             modelBuilder.HasSequence("orderitemseq")
                 .IncrementsBy(10);
 
+            modelBuilder.HasSequence("orderratingseq")
+                .IncrementsBy(10);
+
             modelBuilder.HasSequence("orderseq")
                 .IncrementsBy(10);
 
@@ -176,6 +179,40 @@ namespace Ordering.Infrastructure.Migrations
                     b.ToTable("orderItems", "ordering");
                 });
 
+            modelBuilder.Entity("Chillax.Ordering.Domain.AggregatesModel.OrderAggregate.OrderRating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "orderratingseq");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RatingValue")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.ToTable("orderratings", "ordering");
+                });
+
             modelBuilder.Entity("Chillax.Ordering.Infrastructure.Idempotency.ClientRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -212,9 +249,22 @@ namespace Ordering.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Chillax.Ordering.Domain.AggregatesModel.OrderAggregate.OrderRating", b =>
+                {
+                    b.HasOne("Chillax.Ordering.Domain.AggregatesModel.OrderAggregate.Order", "Order")
+                        .WithOne("Rating")
+                        .HasForeignKey("Chillax.Ordering.Domain.AggregatesModel.OrderAggregate.OrderRating", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("Chillax.Ordering.Domain.AggregatesModel.OrderAggregate.Order", b =>
                 {
                     b.Navigation("OrderItems");
+
+                    b.Navigation("Rating");
                 });
 #pragma warning restore 612, 618
         }

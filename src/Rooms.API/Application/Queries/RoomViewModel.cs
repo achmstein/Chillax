@@ -9,7 +9,7 @@ public enum RoomDisplayStatus
 {
     Available = 1,      // Can book now
     Occupied = 2,       // Someone is playing
-    ReservedSoon = 3,   // Reservation within 15 mins
+    Reserved = 3,       // Waiting for customer to arrive (15 min window)
     Maintenance = 4     // Out of service
 }
 
@@ -20,7 +20,6 @@ public record RoomViewModel
     public string? Description { get; init; }
     public decimal HourlyRate { get; init; }
     public RoomDisplayStatus DisplayStatus { get; init; }
-    public DateTime? NextReservationTime { get; init; }
 }
 
 public record ReservationViewModel
@@ -35,7 +34,6 @@ public record ReservationViewModel
     public string? CustomerId { get; init; }
     public string? CustomerName { get; init; }
     public DateTime CreatedAt { get; init; }
-    public DateTime ScheduledStartTime { get; init; }
     public DateTime? ActualStartTime { get; init; }
     public DateTime? EndTime { get; init; }
     public decimal? TotalCost { get; init; }
@@ -45,6 +43,10 @@ public record ReservationViewModel
     /// 6-digit access code for joining the session
     /// </summary>
     public string? AccessCode { get; init; }
+    /// <summary>
+    /// When this reservation expires if not started (only for Reserved status)
+    /// </summary>
+    public DateTime? ExpiresAt { get; init; }
 }
 
 /// <summary>

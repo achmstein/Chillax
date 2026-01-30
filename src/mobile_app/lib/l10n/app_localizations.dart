@@ -1,0 +1,1070 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_ar.dart';
+import 'app_localizations_en.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
+    Locale('en'),
+  ];
+
+  /// No description provided for @appTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chillax'**
+  String get appTitle;
+
+  /// No description provided for @cafeAndGaming.
+  ///
+  /// In en, this message translates to:
+  /// **'Cafe & Gaming'**
+  String get cafeAndGaming;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOut;
+
+  /// No description provided for @username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get username;
+
+  /// No description provided for @usernameOrEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Username or Email'**
+  String get usernameOrEmail;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @enterUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your username'**
+  String get enterUsername;
+
+  /// No description provided for @enterUsernameOrEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your username or email'**
+  String get enterUsernameOrEmail;
+
+  /// No description provided for @enterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get enterEmail;
+
+  /// No description provided for @enterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get enterPassword;
+
+  /// No description provided for @createPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a password'**
+  String get createPassword;
+
+  /// No description provided for @confirmYourPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your password'**
+  String get confirmYourPassword;
+
+  /// No description provided for @chooseUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a username'**
+  String get chooseUsername;
+
+  /// No description provided for @yourDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your display name'**
+  String get yourDisplayName;
+
+  /// No description provided for @orContinueWith.
+  ///
+  /// In en, this message translates to:
+  /// **'or continue with'**
+  String get orContinueWith;
+
+  /// No description provided for @google.
+  ///
+  /// In en, this message translates to:
+  /// **'Google'**
+  String get google;
+
+  /// No description provided for @facebook.
+  ///
+  /// In en, this message translates to:
+  /// **'Facebook'**
+  String get facebook;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? '**
+  String get dontHaveAccount;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? '**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get createAccount;
+
+  /// No description provided for @guestUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest User'**
+  String get guestUser;
+
+  /// No description provided for @enterBothUsernamePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter both username and password.'**
+  String get enterBothUsernamePassword;
+
+  /// No description provided for @invalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid username or password. Please try again.'**
+  String get invalidCredentials;
+
+  /// No description provided for @anErrorOccurred.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred: {error}'**
+  String anErrorOccurred(String error);
+
+  /// No description provided for @socialSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Social sign in failed. Please try again.'**
+  String get socialSignInFailed;
+
+  /// No description provided for @fillAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in all fields.'**
+  String get fillAllFields;
+
+  /// No description provided for @passwordsDontMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get passwordsDontMatch;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters.'**
+  String get passwordTooShort;
+
+  /// No description provided for @registrationSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration successful! Please sign in.'**
+  String get registrationSuccessful;
+
+  /// No description provided for @registrationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration failed. Username or email may already exist.'**
+  String get registrationFailed;
+
+  /// No description provided for @success.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get success;
+
+  /// No description provided for @error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @join.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get join;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get menu;
+
+  /// No description provided for @orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get orders;
+
+  /// No description provided for @rooms.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms'**
+  String get rooms;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart'**
+  String get cart;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @searchMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Search menu...'**
+  String get searchMenu;
+
+  /// No description provided for @noItemsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No items available'**
+  String get noItemsAvailable;
+
+  /// No description provided for @failedToLoadMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load menu: {error}'**
+  String failedToLoadMenu(String error);
+
+  /// No description provided for @viewCart.
+  ///
+  /// In en, this message translates to:
+  /// **'View Cart'**
+  String get viewCart;
+
+  /// No description provided for @addToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Cart'**
+  String get addToCart;
+
+  /// No description provided for @yourCartIsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cart is empty'**
+  String get yourCartIsEmpty;
+
+  /// No description provided for @addItemsFromMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Add items from the menu'**
+  String get addItemsFromMenu;
+
+  /// No description provided for @orderNoteOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Note (optional)'**
+  String get orderNoteOptional;
+
+  /// No description provided for @anySpecialRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Any special requests'**
+  String get anySpecialRequests;
+
+  /// No description provided for @useLoyaltyPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Loyalty Points'**
+  String get useLoyaltyPoints;
+
+  /// No description provided for @pts.
+  ///
+  /// In en, this message translates to:
+  /// **'pts'**
+  String get pts;
+
+  /// No description provided for @subtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get subtotal;
+
+  /// No description provided for @pointsDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Points discount'**
+  String get pointsDiscount;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @placeOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Place Order'**
+  String get placeOrder;
+
+  /// No description provided for @clearCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Cart'**
+  String get clearCart;
+
+  /// No description provided for @removeAllItemsFromCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all items from your cart?'**
+  String get removeAllItemsFromCart;
+
+  /// No description provided for @orderPlacedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed successfully!'**
+  String get orderPlacedSuccessfully;
+
+  /// No description provided for @failedToPlaceOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to place order'**
+  String get failedToPlaceOrder;
+
+  /// No description provided for @noteWithText.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: {notes}'**
+  String noteWithText(String notes);
+
+  /// No description provided for @failedToLoadOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load orders'**
+  String get failedToLoadOrders;
+
+  /// No description provided for @pullDownToRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull down to retry'**
+  String get pullDownToRetry;
+
+  /// No description provided for @noOrdersYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders yet'**
+  String get noOrdersYet;
+
+  /// No description provided for @orderHistoryWillAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order history will appear here'**
+  String get orderHistoryWillAppearHere;
+
+  /// No description provided for @orderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{id}'**
+  String orderNumber(String id);
+
+  /// No description provided for @noItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items'**
+  String get noItems;
+
+  /// No description provided for @yourRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating: '**
+  String get yourRating;
+
+  /// No description provided for @rateThisOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate This Order'**
+  String get rateThisOrder;
+
+  /// No description provided for @failedToLoadDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load details'**
+  String get failedToLoadDetails;
+
+  /// No description provided for @enterSixDigitCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 6-digit code'**
+  String get enterSixDigitCode;
+
+  /// No description provided for @enterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code'**
+  String get enterCode;
+
+  /// No description provided for @invalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid code'**
+  String get invalidCode;
+
+  /// No description provided for @joinedSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined session!'**
+  String get joinedSession;
+
+  /// No description provided for @failedToLoadRooms.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load rooms'**
+  String get failedToLoadRooms;
+
+  /// No description provided for @sessionActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Active'**
+  String get sessionActive;
+
+  /// No description provided for @shareCodeWithFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Share code with friends'**
+  String get shareCodeWithFriends;
+
+  /// No description provided for @codeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied!'**
+  String get codeCopied;
+
+  /// No description provided for @needSomething.
+  ///
+  /// In en, this message translates to:
+  /// **'Need something?'**
+  String get needSomething;
+
+  /// No description provided for @callWaiter.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Waiter'**
+  String get callWaiter;
+
+  /// No description provided for @controller.
+  ///
+  /// In en, this message translates to:
+  /// **'Controller'**
+  String get controller;
+
+  /// No description provided for @getBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Bill'**
+  String get getBill;
+
+  /// No description provided for @waiterNotified.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiter has been notified'**
+  String get waiterNotified;
+
+  /// No description provided for @controllerRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Controller request sent'**
+  String get controllerRequestSent;
+
+  /// No description provided for @billRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill request sent'**
+  String get billRequestSent;
+
+  /// No description provided for @reserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserved'**
+  String get reserved;
+
+  /// No description provided for @cancelReservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Reservation'**
+  String get cancelReservation;
+
+  /// No description provided for @cancelReservationQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Reservation?'**
+  String get cancelReservationQuestion;
+
+  /// No description provided for @confirmCancelReservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel your reservation?'**
+  String get confirmCancelReservation;
+
+  /// No description provided for @noKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'No, Keep'**
+  String get noKeep;
+
+  /// No description provided for @yesCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Cancel'**
+  String get yesCancel;
+
+  /// No description provided for @reservationCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservation cancelled'**
+  String get reservationCancelled;
+
+  /// No description provided for @failedToCancelReservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to cancel reservation'**
+  String get failedToCancelReservation;
+
+  /// No description provided for @allRoomsBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'All rooms are currently busy'**
+  String get allRoomsBusy;
+
+  /// No description provided for @getNotifiedWhenAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when a room becomes available'**
+  String get getNotifiedWhenAvailable;
+
+  /// No description provided for @willBeNotifiedWhenAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be notified when a room is available'**
+  String get willBeNotifiedWhenAvailable;
+
+  /// No description provided for @unsubscribedFromNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsubscribed from notifications'**
+  String get unsubscribedFromNotifications;
+
+  /// No description provided for @youWillBeNotified.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be notified!'**
+  String get youWillBeNotified;
+
+  /// No description provided for @failedToSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to subscribe'**
+  String get failedToSubscribe;
+
+  /// No description provided for @notifyMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify Me'**
+  String get notifyMe;
+
+  /// No description provided for @fifteenMinutesToArrive.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes to arrive'**
+  String get fifteenMinutesToArrive;
+
+  /// No description provided for @reservationCancelledIfNoCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reservation will be automatically cancelled if you don\'t check in within 15 minutes.'**
+  String get reservationCancelledIfNoCheckIn;
+
+  /// No description provided for @reserveRoomName.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve {roomName}'**
+  String reserveRoomName(String roomName);
+
+  /// No description provided for @perHour.
+  ///
+  /// In en, this message translates to:
+  /// **'/hr'**
+  String get perHour;
+
+  /// No description provided for @reserveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve Now'**
+  String get reserveNow;
+
+  /// No description provided for @roomReservedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Room reserved! You have 15 minutes to arrive.'**
+  String get roomReservedSuccess;
+
+  /// No description provided for @failedToReserveRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reserve room'**
+  String get failedToReserveRoom;
+
+  /// No description provided for @available.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get available;
+
+  /// No description provided for @orderHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Order History'**
+  String get orderHistory;
+
+  /// No description provided for @sessionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Session History'**
+  String get sessionHistory;
+
+  /// No description provided for @favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favorites;
+
+  /// No description provided for @helpAndSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Support'**
+  String get helpAndSupport;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String version(String version);
+
+  /// No description provided for @signOutConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to sign out?'**
+  String get signOutConfirmation;
+
+  /// No description provided for @needHelpContactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Need help? Contact us:'**
+  String get needHelpContactUs;
+
+  /// No description provided for @supportHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon-Sun: 10:00 AM - 11:00 PM'**
+  String get supportHours;
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Order delicious food & drinks, or reserve a PlayStation room for an amazing gaming experience.'**
+  String get aboutDescription;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @orderStatusUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Status Updates'**
+  String get orderStatusUpdates;
+
+  /// No description provided for @orderStatusUpdatesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when your order status changes'**
+  String get orderStatusUpdatesDescription;
+
+  /// No description provided for @promotionsAndOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotions & Offers'**
+  String get promotionsAndOffers;
+
+  /// No description provided for @promotionsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive special deals and discounts'**
+  String get promotionsDescription;
+
+  /// No description provided for @sessionReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Reminders'**
+  String get sessionReminders;
+
+  /// No description provided for @sessionRemindersDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Get reminded before your gaming session'**
+  String get sessionRemindersDescription;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get changePassword;
+
+  /// No description provided for @updateEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Email'**
+  String get updateEmail;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete your account? This action cannot be undone.'**
+  String get deleteAccountConfirmation;
+
+  /// No description provided for @accountDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted successfully'**
+  String get accountDeletedSuccessfully;
+
+  /// No description provided for @failedToDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account'**
+  String get failedToDeleteAccount;
+
+  /// No description provided for @selectTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Theme'**
+  String get selectTheme;
+
+  /// No description provided for @light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get light;
+
+  /// No description provided for @lightThemeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Always use light theme'**
+  String get lightThemeDescription;
+
+  /// No description provided for @dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get dark;
+
+  /// No description provided for @darkThemeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Always use dark theme'**
+  String get darkThemeDescription;
+
+  /// No description provided for @systemDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'System Default'**
+  String get systemDefault;
+
+  /// No description provided for @systemDefaultDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow your device settings'**
+  String get systemDefaultDescription;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// No description provided for @english.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @arabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get arabic;
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'EGP'**
+  String get currency;
+
+  /// No description provided for @priceFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} EGP'**
+  String priceFormat(String price);
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['ar', 'en'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'en':
+      return AppLocalizationsEn();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}

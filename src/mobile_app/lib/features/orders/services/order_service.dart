@@ -73,6 +73,22 @@ class OrderService {
   Future<void> cancelOrder(int id) async {
     await _apiClient.put('$id/cancel');
   }
+
+  /// Rate an order
+  Future<void> rateOrder({
+    required int orderId,
+    required int ratingValue,
+    String? comment,
+  }) async {
+    await _apiClient.post<void>(
+      '$orderId/rating',
+      data: {
+        'ratingValue': ratingValue,
+        if (comment != null && comment.isNotEmpty) 'comment': comment,
+      },
+      headers: {'x-requestid': _uuid.v4()},
+    );
+  }
 }
 
 /// Provider for order service

@@ -32,8 +32,8 @@ public class StartWalkInSessionCommandHandler : IRequestHandler<StartWalkInSessi
             throw new RoomsDomainException("Room is not available");
 
         // Check for any active sessions on this room
-        var hasConflict = await _reservationRepository.HasConflictingReservationAsync(request.RoomId, DateTime.UtcNow);
-        if (hasConflict)
+        var hasActiveReservation = await _reservationRepository.HasActiveReservationAsync(request.RoomId);
+        if (hasActiveReservation)
             throw new RoomsDomainException("Room already has an active session");
 
         // Create walk-in session without owner

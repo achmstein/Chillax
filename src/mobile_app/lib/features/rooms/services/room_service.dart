@@ -40,22 +40,10 @@ class RoomService {
     return Room.fromJson(response.data!);
   }
 
-  /// Reserve a room (same-day only)
-  Future<int> reserveRoom(int roomId, DateTime scheduledStartTime) async {
-    // Enforce same-day only booking
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final bookingDay = DateTime(scheduledStartTime.year, scheduledStartTime.month, scheduledStartTime.day);
-
-    if (bookingDay.isAfter(today)) {
-      throw Exception('Reservations can only be made for today');
-    }
-
+  /// Reserve a room (immediate - customer has 15 min to arrive)
+  Future<int> reserveRoom(int roomId) async {
     final response = await _apiClient.post<int>(
       '$roomId/reserve',
-      data: {
-        'scheduledStartTime': scheduledStartTime.toIso8601String(),
-      },
     );
 
     return response.data!;
@@ -197,12 +185,12 @@ class ReservationNotifier extends Notifier<ReservationState> {
     return const ReservationState();
   }
 
-  /// Reserve a room (same-day only)
-  Future<bool> reserveRoom(int roomId, DateTime scheduledStartTime) async {
+  /// Reserve a room (immediate - customer has 15 min to arrive)
+  Future<bool> reserveRoom(int roomId) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final reservationId = await _roomService.reserveRoom(roomId, scheduledStartTime);
+      final reservationId = await _roomService.reserveRoom(roomId);
       state = state.copyWith(isLoading: false, reservationId: reservationId);
       return true;
     } catch (e) {

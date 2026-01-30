@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +13,7 @@ class MainScaffold extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = _calculateSelectedIndex(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
       footer: SafeArea(
@@ -23,7 +25,7 @@ class MainScaffold extends ConsumerWidget {
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.utensils),
               label: Text(
-                'Menu',
+                l10n.menu,
                 style: TextStyle(
                   fontWeight: currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -32,7 +34,7 @@ class MainScaffold extends ConsumerWidget {
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.receipt),
               label: Text(
-                'Orders',
+                l10n.orders,
                 style: TextStyle(
                   fontWeight: currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -41,7 +43,7 @@ class MainScaffold extends ConsumerWidget {
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.gamepad2),
               label: Text(
-                'Rooms',
+                l10n.rooms,
                 style: TextStyle(
                   fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -50,7 +52,7 @@ class MainScaffold extends ConsumerWidget {
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.user),
               label: Text(
-                'Profile',
+                l10n.profile,
                 style: TextStyle(
                   fontWeight: currentIndex == 3 ? FontWeight.bold : FontWeight.normal,
                 ),

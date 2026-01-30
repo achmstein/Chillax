@@ -24,12 +24,26 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
 
     public async Task<int> Handle(CreateReservationCommand request, CancellationToken cancellationToken)
     {
-        // Rule 1: One reservation per customer at a time
-        var existingReservation = await _reservationRepository
-            .GetActiveReservationForCustomerAsync(request.CustomerId);
+        _logger.LogInformation("CreateReservation: RoomId={RoomId}, CustomerId={CustomerId}, IsAdmin={IsAdmin}",
+            request.RoomId, request.CustomerId, request.IsAdmin);
 
-        if (existingReservation != null)
-            throw new RoomsDomainException("You already have an active reservation or session");
+        // Rule 1: One reservation per customer at a time (skip for admins)
+        if (!request.IsAdmin)
+        {
+            var existingReservation = await _reservationRepository
+                .GetActiveReservationForCustomerAsync(request.CustomerId);
+
+            if (existingReservation != null)
+            {
+                _logger.LogWarning("Blocked: Customer {CustomerId} already has active reservation {ReservationId}",
+                    request.CustomerId, existingReservation.Id);
+                throw new RoomsDomainException("You already have an active reservation or session");
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Skipping one-reservation-per-customer check for admin");
+        }
 
         // Rule 2: Room must exist
         var room = await _roomRepository.GetAsync(request.RoomId);
@@ -40,26 +54,23 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
         if (!room.IsPhysicallyAvailable())
             throw new RoomsDomainException("Room is not available");
 
-        // Rule 4: No conflicting reservations
-        var hasConflict = await _reservationRepository
-            .HasConflictingReservationAsync(request.RoomId, request.ScheduledStartTime);
-
-        if (hasConflict)
-            throw new RoomsDomainException("Room has a conflicting reservation at this time");
+        // Rule 4: Room must not have any active/reserved session
+        var hasActiveReservation = await _reservationRepository.HasActiveReservationAsync(request.RoomId);
+        if (hasActiveReservation)
+            throw new RoomsDomainException("Room is currently occupied or reserved");
 
         // Create reservation (locks hourly rate at reservation time)
         var reservation = new Reservation(
             request.RoomId,
             request.CustomerId,
             request.CustomerName,
-            request.ScheduledStartTime,
             room.HourlyRate,
             request.Notes);
 
         _reservationRepository.Add(reservation);
 
-        _logger.LogInformation("Creating reservation for room {RoomId} at {Time} for customer {CustomerId}",
-            request.RoomId, request.ScheduledStartTime, request.CustomerId);
+        _logger.LogInformation("Creating reservation for room {RoomId} for customer {CustomerId}",
+            request.RoomId, request.CustomerId);
 
         await _reservationRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
 

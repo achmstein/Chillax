@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../models/loyalty_account.dart';
 import '../models/loyalty_stats.dart';
 import '../providers/loyalty_provider.dart';
-import 'loyalty_account_detail_screen.dart';
 
 class LoyaltyScreen extends ConsumerStatefulWidget {
   const LoyaltyScreen({super.key});
@@ -22,6 +23,13 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
     Future.microtask(() {
       ref.read(loyaltyProvider.notifier).loadAll();
     });
+
+    // Listen to route changes and refresh when navigating to this screen
+    ref.listenManual(currentRouteProvider, (previous, next) {
+      if (next == '/loyalty' && previous != '/loyalty' && previous != null) {
+        ref.read(loyaltyProvider.notifier).loadAll();
+      }
+    });
   }
 
   @override
@@ -31,114 +39,78 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
 
     return Column(
       children: [
-        // Action bar
+        // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text(
-                'Loyalty',
-                style: theme.typography.base.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.refresh, size: 22),
-                onPressed: () => ref.read(loyaltyProvider.notifier).loadAll(),
-                tooltip: 'Refresh',
-              ),
+              Text('Loyalty', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
 
         // Content
         Expanded(
-          child: state.isLoading && state.accounts.isEmpty
-              ? const ShimmerLoadingList()
-              : RefreshIndicator(
-                  onRefresh: () => ref.read(loyaltyProvider.notifier).loadAll(),
-                  child: ListView(
-                    padding: kScreenPadding,
-                    children: [
-                      // Error
-                      if (state.error != null) ...[
-                        FAlert(
-                          style: FAlertStyle.destructive(),
-                          icon: const Icon(Icons.warning),
-                          title: const Text('Error'),
-                          subtitle: Text(state.error!),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
+          child: DelayedShimmer(
+            isLoading: state.isLoading && state.accounts.isEmpty,
+            shimmer: const ShimmerLoadingList(),
+            child: RefreshIndicator(
+              onRefresh: () => ref.read(loyaltyProvider.notifier).loadAll(),
+              child: ListView(
+                padding: kScreenPadding,
+                children: [
+                  // Stats
+                  if (state.stats != null) ...[
+                    _StatsSection(stats: state.stats!),
+                    const SizedBox(height: 24),
+                  ],
 
-                      // Stats
-                      if (state.stats != null) ...[
-                        _StatsSection(stats: state.stats!),
-                        const SizedBox(height: 24),
-                      ],
+                  // Tiers
+                  if (state.tiers.isNotEmpty) ...[
+                    _TierSection(tiers: state.tiers, stats: state.stats),
+                    const SizedBox(height: 24),
+                  ],
 
-                      // Tiers
-                      if (state.tiers.isNotEmpty) ...[
-                        _TierSection(tiers: state.tiers, stats: state.stats),
-                        const SizedBox(height: 24),
-                      ],
-
-                      // Accounts section
-                      SectionHeader(
-                        title: 'Accounts',
-                        count: state.accounts.length,
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Accounts list
-                      if (state.accounts.isEmpty)
-                        const EmptyState(
-                          icon: Icons.card_giftcard_outlined,
-                          title: 'No loyalty accounts yet',
-                        )
-                      else
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: state.accounts.length,
-                          separatorBuilder: (_, __) => const FDivider(),
-                          itemBuilder: (context, index) {
-                            final account = state.accounts[index];
-                            return _AccountTile(
-                              account: account,
-                              onTap: () => _showAccountDetail(context, account),
-                            );
-                          },
-                        ),
-                    ],
+                  // Accounts section
+                  SectionHeader(
+                    title: 'Accounts',
+                    count: state.accounts.length,
                   ),
-                ),
+                  const SizedBox(height: 8),
+
+                  // Accounts list
+                  if (state.accounts.isEmpty)
+                    const EmptyState(
+                      icon: Icons.card_giftcard_outlined,
+                      title: 'No loyalty accounts yet',
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: state.accounts.length,
+                      separatorBuilder: (_, __) => const FDivider(),
+                      itemBuilder: (context, index) {
+                        final account = state.accounts[index];
+                        return _AccountTile(
+                          account: account,
+                          onTap: () => _showAccountDetail(context, account),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
 
   void _showAccountDetail(BuildContext context, LoyaltyAccount account) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        maxChildSize: 0.95,
-        minChildSize: 0.5,
-        builder: (context, scrollController) => Container(
-          decoration: BoxDecoration(
-            color: context.theme.colors.background,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          child: LoyaltyAccountDetailScreen(
-            account: account,
-            scrollController: scrollController,
-          ),
-        ),
-      ),
+    context.go(
+      '/loyalty/account/${account.userId}',
+      extra: account.toJson(),
     );
   }
 }
@@ -324,7 +296,7 @@ class _AccountTile extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'User: ${account.userId}',
+                          account.displayName,
                           style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
                           overflow: TextOverflow.ellipsis,
                         ),

@@ -17,6 +17,7 @@ enum LoyaltyTier {
 class LoyaltyAccount {
   final int id;
   final String userId;
+  final String? userName;
   final int pointsBalance;
   final int lifetimePoints;
   final LoyaltyTier currentTier;
@@ -26,6 +27,7 @@ class LoyaltyAccount {
   const LoyaltyAccount({
     required this.id,
     required this.userId,
+    this.userName,
     required this.pointsBalance,
     required this.lifetimePoints,
     required this.currentTier,
@@ -33,10 +35,14 @@ class LoyaltyAccount {
     required this.updatedAt,
   });
 
+  /// Display name for UI (uses userName if available, otherwise userId)
+  String get displayName => userName ?? userId;
+
   factory LoyaltyAccount.fromJson(Map<String, dynamic> json) {
     return LoyaltyAccount(
       id: json['id'] as int,
       userId: json['userId'] as String,
+      userName: json['userName'] ?? json['userDisplayName'] as String?,
       pointsBalance: json['pointsBalance'] as int,
       lifetimePoints: json['lifetimePoints'] as int,
       currentTier: LoyaltyTier.fromString(json['currentTier'] as String),
@@ -48,6 +54,7 @@ class LoyaltyAccount {
   Map<String, dynamic> toJson() => {
         'id': id,
         'userId': userId,
+        if (userName != null) 'userName': userName,
         'pointsBalance': pointsBalance,
         'lifetimePoints': lifetimePoints,
         'currentTier': currentTier.name,

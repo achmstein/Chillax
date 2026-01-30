@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/service_request.dart';
@@ -58,10 +59,8 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
 
       state = state.copyWith(requests: requests, isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to load service requests: $e',
-      );
+      debugPrint('Failed to load service requests: $e');
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -72,7 +71,7 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
       await loadRequests(); // Refresh list
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to acknowledge request: $e');
+      debugPrint('Failed to acknowledge request: $e');
       return false;
     }
   }
@@ -84,7 +83,7 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
       await loadRequests(); // Refresh list
       return true;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to complete request: $e');
+      debugPrint('Failed to complete request: $e');
       return false;
     }
   }
