@@ -1,4 +1,4 @@
-name: Playwright Tests for eShop
+name: Playwright Tests for Chillax
 on:
   push:
     branches: [ main ]
@@ -30,7 +30,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
     - name: Install .NET HTTPS Development Certificate
-      # if: matrix.os == 'ubuntu-latest'
       run: |
         dotnet dev-certs https --clean
         dotnet dev-certs https --trust
@@ -39,7 +38,7 @@ jobs:
     - name: Run Playwright tests
       run: npx playwright test
       env:
-        ESHOP_USE_HTTP_ENDPOINTS: 1
+        CHILLAX_USE_HTTP_ENDPOINTS: 1
         USERNAME1: bob
         PASSWORD: Pass123$
     - uses: actions/upload-artifact@v4
