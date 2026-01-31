@@ -800,6 +800,48 @@ abstract class AppLocalizations {
   /// **'Available'**
   String get available;
 
+  /// No description provided for @occupied.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupied'**
+  String get occupied;
+
+  /// No description provided for @maintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get maintenance;
+
+  /// No description provided for @statusReserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserved'**
+  String get statusReserved;
+
+  /// No description provided for @statusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get statusActive;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @hourlyRateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'£{rate}/hour'**
+  String hourlyRateFormat(String rate);
+
   /// No description provided for @orderHistory.
   ///
   /// In en, this message translates to:
@@ -1033,6 +1075,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{price} EGP'**
   String priceFormat(String price);
+
+  /// No description provided for @basePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Base price: £{price}'**
+  String basePrice(String price);
+
+  /// No description provided for @specialInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Special Instructions'**
+  String get specialInstructions;
+
+  /// No description provided for @anySpecialRequestsOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Any special requests?'**
+  String get anySpecialRequestsOptional;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @loyaltyRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Loyalty Rewards'**
+  String get loyaltyRewards;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get recentActivity;
+
+  /// No description provided for @noLoyaltyAccountYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No loyalty account yet'**
+  String get noLoyaltyAccountYet;
+
+  /// No description provided for @makePurchaseToEarn.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a purchase to start earning points!'**
+  String get makePurchaseToEarn;
+
+  /// No description provided for @noTransactionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet'**
+  String get noTransactionsYet;
+
+  /// No description provided for @amountDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount Due'**
+  String get amountDue;
+
+  /// No description provided for @creditBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Balance'**
+  String get creditBalance;
+
+  /// No description provided for @pleasePayAtCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'Please pay at the counter'**
+  String get pleasePayAtCounter;
+
+  /// No description provided for @willBeAppliedToNextPurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be applied to your next purchase'**
+  String get willBeAppliedToNextPurchase;
+
+  /// No description provided for @noOutstandingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'No outstanding balance'**
+  String get noOutstandingBalance;
+
+  /// No description provided for @transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get transactions;
+
+  /// No description provided for @failedToLoadTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load transactions'**
+  String get failedToLoadTransactions;
+
+  /// No description provided for @failedToLoadFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load favorites: {error}'**
+  String failedToLoadFavorites(String error);
+
+  /// No description provided for @browseMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Menu'**
+  String get browseMenu;
+
+  /// No description provided for @joinOurLoyaltyProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Join our Loyalty Program'**
+  String get joinOurLoyaltyProgram;
+
+  /// No description provided for @earnPointsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn points on every purchase and unlock exclusive rewards!'**
+  String get earnPointsDescription;
+
+  /// No description provided for @joinNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Now'**
+  String get joinNow;
+
+  /// No description provided for @viewHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'View history'**
+  String get viewHistory;
+
+  /// No description provided for @lifetimePoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime: {points} pts'**
+  String lifetimePoints(String points);
+
+  /// No description provided for @pointsToNextTier.
+  ///
+  /// In en, this message translates to:
+  /// **'{points} pts to {tier}'**
+  String pointsToNextTier(String points, String tier);
+
+  /// No description provided for @rateYourOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Your Order'**
+  String get rateYourOrder;
+
+  /// No description provided for @yourReviewOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Review (optional)'**
+  String get yourReviewOptional;
+
+  /// No description provided for @shareYourExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your experience...'**
+  String get shareYourExperience;
+
+  /// No description provided for @submitRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Rating'**
+  String get submitRating;
+
+  /// No description provided for @ratingPoor.
+  ///
+  /// In en, this message translates to:
+  /// **'Poor'**
+  String get ratingPoor;
+
+  /// No description provided for @ratingFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get ratingFair;
+
+  /// No description provided for @ratingGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get ratingGood;
+
+  /// No description provided for @ratingVeryGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Very Good'**
+  String get ratingVeryGood;
+
+  /// No description provided for @ratingExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get ratingExcellent;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get newPassword;
+
+  /// No description provided for @enterNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a new password'**
+  String get enterNewPassword;
+
+  /// No description provided for @passwordMustBe8Chars.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get passwordMustBe8Chars;
+
+  /// No description provided for @pleaseConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your password'**
+  String get pleaseConfirmPassword;
+
+  /// No description provided for @passwordChangedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed successfully'**
+  String get passwordChangedSuccessfully;
+
+  /// No description provided for @failedToChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to change password. Please try again.'**
+  String get failedToChangePassword;
+
+  /// No description provided for @newEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'New Email'**
+  String get newEmail;
+
+  /// No description provided for @pleaseEnterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an email address'**
+  String get pleaseEnterEmail;
+
+  /// No description provided for @pleaseEnterValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address'**
+  String get pleaseEnterValidEmail;
+
+  /// No description provided for @emailUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Email updated successfully'**
+  String get emailUpdatedSuccessfully;
+
+  /// No description provided for @failedToUpdateEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update email. Please try again.'**
+  String get failedToUpdateEmail;
+
+  /// No description provided for @supportEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'support@chillax.com'**
+  String get supportEmail;
+
+  /// No description provided for @supportPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'0100 469 8 469'**
+  String get supportPhone;
+
+  /// No description provided for @joinedSessionSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined session successfully!'**
+  String get joinedSessionSuccessfully;
+
+  /// No description provided for @noFavoritesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorites yet'**
+  String get noFavoritesYet;
+
+  /// No description provided for @noFavoritesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Items you love will appear here'**
+  String get noFavoritesDescription;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../models/menu_item.dart';
 import '../models/user_preference.dart';
 import '../services/menu_service.dart';
@@ -160,6 +163,8 @@ class _ItemCustomizationSheetState
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
     return Container(
       height: MediaQuery.of(context).size.height,
       decoration: BoxDecoration(
@@ -194,8 +199,8 @@ class _ItemCustomizationSheetState
                     children: [
                       Expanded(
                         child: Text(
-                          widget.item.name,
-                          style: TextStyle(
+                          widget.item.localizedName(locale),
+                          style: context.textStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 24,
                             color: colors.foreground,
@@ -208,28 +213,28 @@ class _ItemCustomizationSheetState
                       ),
                     ],
                   ),
-                  if (widget.item.description.isNotEmpty) ...[
+                  if (widget.item.localizedDescription(locale).isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
-                      widget.item.description,
-                      style: TextStyle(color: colors.mutedForeground),
+                      widget.item.localizedDescription(locale),
+                      style: context.textStyle(color: colors.mutedForeground),
                     ),
                   ],
                   const SizedBox(height: 8),
                   Text(
-                    'Base price: £${widget.item.price.toStringAsFixed(2)}',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: colors.foreground),
+                    l10n.basePrice(widget.item.price.toStringAsFixed(2)),
+                    style: context.textStyle(fontWeight: FontWeight.bold, color: colors.foreground),
                   ),
                   const SizedBox(height: 24),
 
                   // Customizations
                   ...widget.item.customizations.map((customization) =>
-                    _buildCustomizationSection(context, customization)),
+                    _buildCustomizationSection(context, customization, locale)),
 
                   // Special instructions
                   Text(
-                    'Special Instructions',
-                    style: TextStyle(
+                    l10n.specialInstructions,
+                    style: context.textStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: colors.foreground,
@@ -238,7 +243,7 @@ class _ItemCustomizationSheetState
                   const SizedBox(height: 8),
                   FTextField.multiline(
                     control: FTextFieldControl.managed(controller: _instructionsController),
-                    hint: 'Any special requests?',
+                    hint: l10n.anySpecialRequestsOptional,
                   ),
                   const SizedBox(height: 24),
 
@@ -256,7 +261,7 @@ class _ItemCustomizationSheetState
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Text(
                           '$_quantity',
-                          style: TextStyle(
+                          style: context.textStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: colors.foreground,
@@ -302,16 +307,16 @@ class _ItemCustomizationSheetState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Add to Cart',
-                      style: TextStyle(
+                    Text(
+                      l10n.addToCart,
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
                     Text(
                       '£${_totalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -327,8 +332,9 @@ class _ItemCustomizationSheetState
     );
   }
 
-  Widget _buildCustomizationSection(BuildContext context, ItemCustomization customization) {
+  Widget _buildCustomizationSection(BuildContext context, ItemCustomization customization, Locale locale) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
     final selectedIds = _selectedOptions[customization.id] ?? [];
 
     return Column(
@@ -337,8 +343,8 @@ class _ItemCustomizationSheetState
         Row(
           children: [
             Text(
-              customization.name,
-              style: TextStyle(
+              customization.localizedName(locale),
+              style: context.textStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: colors.foreground,
@@ -348,7 +354,7 @@ class _ItemCustomizationSheetState
               const Spacer(),
               FBadge(
                 style: FBadgeStyle.destructive(),
-                child: const Text('Required'),
+                child: Text(l10n.required, style: context.textStyle(fontSize: 12)),
               ),
             ],
           ],
@@ -356,15 +362,15 @@ class _ItemCustomizationSheetState
         const SizedBox(height: 8),
         // Use radio buttons for single selection, checkboxes for multiple
         if (customization.allowMultiple)
-          _buildCheckboxOptions(context, customization, selectedIds)
+          _buildCheckboxOptions(context, customization, selectedIds, locale)
         else
-          _buildRadioOptions(context, customization, selectedIds),
+          _buildRadioOptions(context, customization, selectedIds, locale),
         const SizedBox(height: 16),
       ],
     );
   }
 
-  Widget _buildRadioOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds) {
+  Widget _buildRadioOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds, Locale locale) {
     final colors = context.theme.colors;
     final selectedId = selectedIds.isNotEmpty ? selectedIds.first : null;
 
@@ -412,8 +418,8 @@ class _ItemCustomizationSheetState
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    option.name,
-                    style: TextStyle(
+                    option.localizedName(locale),
+                    style: context.textStyle(
                       color: colors.foreground,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
@@ -422,7 +428,7 @@ class _ItemCustomizationSheetState
                 if (priceText.isNotEmpty)
                   Text(
                     priceText,
-                    style: TextStyle(
+                    style: context.textStyle(
                       color: option.priceAdjustment > 0
                           ? colors.mutedForeground
                           : AppTheme.successColor,
@@ -437,7 +443,7 @@ class _ItemCustomizationSheetState
     );
   }
 
-  Widget _buildCheckboxOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds) {
+  Widget _buildCheckboxOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds, Locale locale) {
     final colors = context.theme.colors;
 
     return Column(
@@ -490,8 +496,8 @@ class _ItemCustomizationSheetState
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    option.name,
-                    style: TextStyle(
+                    option.localizedName(locale),
+                    style: context.textStyle(
                       color: colors.foreground,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
@@ -500,7 +506,7 @@ class _ItemCustomizationSheetState
                 if (priceText.isNotEmpty)
                   Text(
                     priceText,
-                    style: TextStyle(
+                    style: context.textStyle(
                       color: option.priceAdjustment > 0
                           ? colors.mutedForeground
                           : AppTheme.successColor,

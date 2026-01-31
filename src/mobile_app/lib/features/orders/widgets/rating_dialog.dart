@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../services/order_service.dart';
 import 'rating_widget.dart';
 
@@ -87,6 +89,7 @@ class _RatingDialogState extends State<RatingDialog> {
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -120,8 +123,8 @@ class _RatingDialogState extends State<RatingDialog> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Rate Your Order',
-                      style: TextStyle(
+                      l10n.rateYourOrder,
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -151,8 +154,8 @@ class _RatingDialogState extends State<RatingDialog> {
               const SizedBox(height: 8),
               Center(
                 child: Text(
-                  _getRatingLabel(_rating),
-                  style: TextStyle(
+                  _getRatingLabel(_rating, l10n),
+                  style: context.textStyle(
                     fontSize: 15,
                     color: colors.mutedForeground,
                   ),
@@ -162,8 +165,8 @@ class _RatingDialogState extends State<RatingDialog> {
 
               // Comment field
               Text(
-                'Your Review (optional)',
-                style: TextStyle(
+                l10n.yourReviewOptional,
+                style: context.textStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                   color: colors.foreground,
@@ -180,13 +183,13 @@ class _RatingDialogState extends State<RatingDialog> {
                   maxLines: 3,
                   maxLength: 500,
                   decoration: InputDecoration(
-                    hintText: 'Share your experience...',
-                    hintStyle: TextStyle(color: colors.mutedForeground),
+                    hintText: l10n.shareYourExperience,
+                    hintStyle: context.textStyle(color: colors.mutedForeground),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.all(12),
                     counterText: '',
                   ),
-                  style: TextStyle(
+                  style: context.textStyle(
                     fontSize: 15,
                     color: colors.foreground,
                   ),
@@ -213,7 +216,7 @@ class _RatingDialogState extends State<RatingDialog> {
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: TextStyle(
+                          style: context.textStyle(
                             color: AppTheme.errorColor,
                             fontSize: 13,
                           ),
@@ -245,9 +248,9 @@ class _RatingDialogState extends State<RatingDialog> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Submit Rating',
-                          style: TextStyle(
+                      : Text(
+                          l10n.submitRating,
+                          style: context.textStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -262,18 +265,18 @@ class _RatingDialogState extends State<RatingDialog> {
     );
   }
 
-  String _getRatingLabel(int rating) {
+  String _getRatingLabel(int rating, AppLocalizations l10n) {
     switch (rating) {
       case 1:
-        return 'Poor';
+        return l10n.ratingPoor;
       case 2:
-        return 'Fair';
+        return l10n.ratingFair;
       case 3:
-        return 'Good';
+        return l10n.ratingGood;
       case 4:
-        return 'Very Good';
+        return l10n.ratingVeryGood;
       case 5:
-        return 'Excellent';
+        return l10n.ratingExcellent;
       default:
         return '';
     }

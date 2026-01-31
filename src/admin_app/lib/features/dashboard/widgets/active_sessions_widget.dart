@@ -121,7 +121,7 @@ class _ActiveSessionsWidgetState extends ConsumerState<ActiveSessionsWidget> {
                             Row(
                               children: [
                                 Text(
-                                  session.roomName,
+                                  session.roomName.en,
                                   style: theme.typography.base.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),

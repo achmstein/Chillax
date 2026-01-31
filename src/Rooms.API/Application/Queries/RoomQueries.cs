@@ -1,5 +1,6 @@
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
+using Chillax.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
 using Room = Chillax.Rooms.Domain.AggregatesModel.RoomAggregate.Room;
 using RoomsContext = Chillax.Rooms.Infrastructure.RoomsContext;
@@ -101,8 +102,8 @@ public class RoomQueries : IRoomQueries
         return new RoomViewModel
         {
             Id = room.Id,
-            Name = room.Name,
-            Description = room.Description,
+            Name = new LocalizedText(room.Name, room.NameAr),
+            Description = room.Description != null ? new LocalizedText(room.Description, room.DescriptionAr) : null,
             HourlyRate = room.HourlyRate,
             DisplayStatus = displayStatus
         };
@@ -144,7 +145,10 @@ public class RoomQueries : IRoomQueries
         {
             SessionId = reservation.Id,
             RoomId = reservation.RoomId,
-            RoomName = reservation.Room?.Name ?? $"Room {reservation.RoomId}",
+            RoomName = new LocalizedText(
+                reservation.Room?.Name ?? $"Room {reservation.RoomId}",
+                reservation.Room?.NameAr
+            ),
             StartTime = reservation.ActualStartTime ?? reservation.CreatedAt,
             MemberCount = reservation.SessionMembers.Count
         };
@@ -156,7 +160,10 @@ public class RoomQueries : IRoomQueries
         {
             Id = reservation.Id,
             RoomId = reservation.RoomId,
-            RoomName = reservation.Room?.Name ?? $"Room {reservation.RoomId}",
+            RoomName = new LocalizedText(
+                reservation.Room?.Name ?? $"Room {reservation.RoomId}",
+                reservation.Room?.NameAr
+            ),
             HourlyRate = reservation.HourlyRate,
             CustomerId = reservation.CustomerId,
             CustomerName = reservation.CustomerName,

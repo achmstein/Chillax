@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/account_provider.dart';
 
 /// Balance card widget for profile screen
@@ -13,6 +15,7 @@ class BalanceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final accountState = ref.watch(accountProvider);
     final account = accountState.account;
+    final l10n = AppLocalizations.of(context)!;
 
     // Safety check - parent should handle visibility
     if (account == null || !account.hasBalance) {
@@ -54,8 +57,8 @@ class BalanceCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  account.owesAmount ? 'Amount Due' : 'Credit Balance',
-                  style: const TextStyle(
+                  account.owesAmount ? l10n.amountDue : l10n.creditBalance,
+                  style: context.textStyle(
                     color: Colors.white70,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -72,7 +75,7 @@ class BalanceCard extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               '${account.balance.abs().toStringAsFixed(2)} EGP',
-              style: const TextStyle(
+              style: context.textStyle(
                 color: Colors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -81,9 +84,9 @@ class BalanceCard extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               account.owesAmount
-                  ? 'Please pay at the counter'
-                  : 'Will be applied to your next purchase',
-              style: const TextStyle(
+                  ? l10n.pleasePayAtCounter
+                  : l10n.willBeAppliedToNextPurchase,
+              style: context.textStyle(
                 color: Colors.white70,
                 fontSize: 12,
               ),

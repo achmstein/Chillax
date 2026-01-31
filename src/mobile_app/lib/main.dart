@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'l10n/app_localizations.dart';
 import 'package:forui/forui.dart';
+import 'l10n/app_localizations.dart';
 import 'core/router/app_router.dart';
 import 'core/auth/auth_service.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/services/firebase_service.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/theme/app_theme.dart';
 
-void main() {
+void main() async {
   // Preserve the native splash screen
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  // Load saved locale before app starts
+  await initializeLocale();
 
   runApp(
     const ProviderScope(
@@ -54,25 +57,48 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     final themeState = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 
+    final fontFamily = getFontFamily(locale);
+
     return MaterialApp.router(
       title: 'Chillax',
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       locale: locale,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: LocaleNotifier.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: ThemeData(
+        fontFamily: fontFamily,
+        textTheme: getLocalizedTextTheme(locale, isDark: false),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppTheme.primaryColor,
+          brightness: Brightness.light,
+        ),
+      ),
+      darkTheme: ThemeData(
+        fontFamily: fontFamily,
+        textTheme: getLocalizedTextTheme(locale, isDark: true),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppTheme.primaryColor,
+          brightness: Brightness.dark,
+        ),
+      ),
+      themeMode: themeState.themeMode == AppThemeMode.light
+          ? ThemeMode.light
+          : themeState.themeMode == AppThemeMode.dark
+              ? ThemeMode.dark
+              : ThemeMode.system,
       builder: (context, child) {
-        return Directionality(
-          textDirection: locale.languageCode == 'ar'
-              ? TextDirection.rtl
-              : TextDirection.ltr,
-          child: FTheme(
-            data: themeState.getForuiTheme(context),
+        final brightness = Theme.of(context).brightness;
+        final textColor = brightness == Brightness.dark ? Colors.white : Colors.black;
+
+        return FTheme(
+          data: themeState.getForuiTheme(context, locale: locale),
+          child: DefaultTextStyle(
+            style: TextStyle(
+              fontFamily: fontFamily,
+              color: textColor,
+              fontSize: 14,
+            ),
             child: FToaster(
               child: child ?? const SizedBox.shrink(),
             ),

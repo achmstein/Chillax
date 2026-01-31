@@ -46,7 +46,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Expanded(
                     child: Text(
                       l10n.settings,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -64,8 +64,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     FTileGroup(
                       children: [
                         FTile(
-                          title: Text(l10n.orderStatusUpdates),
-                          subtitle: Text(l10n.orderStatusUpdatesDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: Text(l10n.orderStatusUpdates, style: context.textStyle()),
+                          subtitle: Text(l10n.orderStatusUpdatesDescription, style: context.textStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.orderStatusUpdates,
                             onChange: (value) {
@@ -76,8 +76,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                         FTile(
-                          title: Text(l10n.promotionsAndOffers),
-                          subtitle: Text(l10n.promotionsDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: Text(l10n.promotionsAndOffers, style: context.textStyle()),
+                          subtitle: Text(l10n.promotionsDescription, style: context.textStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.promotionsAndOffers,
                             onChange: (value) {
@@ -88,8 +88,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                         FTile(
-                          title: Text(l10n.sessionReminders),
-                          subtitle: Text(l10n.sessionRemindersDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: Text(l10n.sessionReminders, style: context.textStyle()),
+                          subtitle: Text(l10n.sessionRemindersDescription, style: context.textStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.sessionReminders,
                             onChange: (value) {
@@ -111,15 +111,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       children: [
                         FTile(
                           prefix: const Icon(FIcons.palette),
-                          title: Text(l10n.theme),
-                          subtitle: Text(_getLocalizedThemeName(themeState.themeMode, l10n)),
+                          title: Text(l10n.theme, style: context.textStyle()),
+                          subtitle: Text(_getLocalizedThemeName(themeState.themeMode, l10n), style: context.textStyle()),
                           suffix: const Icon(FIcons.chevronRight),
                           onPress: () => _showThemeSelector(context, ref),
                         ),
                         FTile(
                           prefix: const Icon(FIcons.globe),
-                          title: Text(l10n.language),
-                          subtitle: Text(locale.languageCode == 'ar' ? l10n.arabic : l10n.english),
+                          title: Text(l10n.language, style: context.textStyle()),
+                          subtitle: Text(locale.languageCode == 'ar' ? l10n.arabic : l10n.english, style: context.textStyle()),
                           suffix: const Icon(FIcons.chevronRight),
                           onPress: () => _showLanguageSelector(context, ref),
                         ),
@@ -136,19 +136,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         children: [
                           FTile(
                             prefix: const Icon(FIcons.lock),
-                            title: Text(l10n.changePassword),
+                            title: Text(l10n.changePassword, style: context.textStyle()),
                             suffix: const Icon(FIcons.chevronRight),
                             onPress: () => context.push('/settings/change-password'),
                           ),
                           FTile(
                             prefix: const Icon(FIcons.mail),
-                            title: Text(l10n.updateEmail),
+                            title: Text(l10n.updateEmail, style: context.textStyle()),
                             suffix: const Icon(FIcons.chevronRight),
                             onPress: () => context.push('/settings/update-email'),
                           ),
                           FTile(
                             prefix: Icon(FIcons.trash2, color: AppTheme.errorColor),
-                            title: Text(l10n.deleteAccount, style: TextStyle(color: AppTheme.errorColor)),
+                            title: Text(l10n.deleteAccount, style: context.textStyle(color: AppTheme.errorColor)),
                             suffix: Icon(FIcons.chevronRight, color: AppTheme.errorColor),
                             onPress: () => _showDeleteAccountDialog(context, ref),
                           ),
@@ -179,7 +179,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: TextStyle(
+      style: context.textStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppTheme.textSecondary,
@@ -234,13 +234,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (dialogContext, style, animation) => FDialog(
         style: style.call,
         animation: animation,
-        title: Text(l10n.deleteAccount),
-        body: Text(l10n.deleteAccountConfirmation),
+        title: Text(l10n.deleteAccount, style: context.textStyle(fontWeight: FontWeight.bold)),
+        body: Text(l10n.deleteAccountConfirmation, style: context.textStyle()),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
             onPress: () => Navigator.pop(dialogContext),
-            child: Text(l10n.cancel),
+            child: Text(l10n.cancel, style: context.textStyle()),
           ),
           FButton(
             style: FButtonStyle.destructive(),
@@ -255,19 +255,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (context.mounted) {
                   showFToast(
                     context: context,
-                    title: Text(l10n.accountDeletedSuccessfully),
+                    title: Text(l10n.accountDeletedSuccessfully, style: context.textStyle()),
                     icon: Icon(FIcons.check, color: AppTheme.successColor),
                   );
                 }
               } else if (context.mounted) {
                 showFToast(
                   context: context,
-                  title: Text(l10n.failedToDeleteAccount),
+                  title: Text(l10n.failedToDeleteAccount, style: context.textStyle()),
                   icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
                 );
               }
             },
-            child: Text(l10n.delete),
+            child: Text(l10n.delete, style: context.textStyle()),
           ),
         ],
       ),
@@ -320,7 +320,7 @@ class _ThemeSelectorSheet extends StatelessWidget {
                   Expanded(
                     child: Text(
                       l10n.selectTheme,
-                      style: TextStyle(
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -373,7 +373,7 @@ class _ThemeSelectorSheet extends StatelessWidget {
                           children: [
                             Text(
                               _getThemeModeName(mode),
-                              style: TextStyle(
+                              style: context.textStyle(
                                 fontSize: 16,
                                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                                 color: colors.foreground,
@@ -382,7 +382,7 @@ class _ThemeSelectorSheet extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               _getThemeModeDescription(mode),
-                              style: TextStyle(
+                              style: context.textStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,
                               ),
@@ -486,7 +486,7 @@ class _LanguageSelectorSheet extends StatelessWidget {
                   Expanded(
                     child: Text(
                       l10n.selectLanguage,
-                      style: TextStyle(
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -525,7 +525,7 @@ class _LanguageSelectorSheet extends StatelessWidget {
                         child: Center(
                           child: Text(
                             lang.locale.languageCode.toUpperCase(),
-                            style: TextStyle(
+                            style: context.textStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: isSelected ? colors.primary : colors.mutedForeground,
@@ -537,7 +537,7 @@ class _LanguageSelectorSheet extends StatelessWidget {
                       Expanded(
                         child: Text(
                           lang.name,
-                          style: TextStyle(
+                          style: context.textStyle(
                             fontSize: 16,
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                             color: colors.foreground,

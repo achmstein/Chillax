@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/account_balance.dart';
 import '../services/account_service.dart';
 import '../providers/account_provider.dart';
@@ -47,10 +49,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     child: const Icon(FIcons.arrowLeft, size: 22),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Transactions',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      AppLocalizations.of(context)!.transactions,
+                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -93,8 +95,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
                         // Recent Activity header
                         Text(
-                          'Recent Activity',
-                          style: TextStyle(
+                          AppLocalizations.of(context)!.recentActivity,
+                          style: context.textStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: colors.foreground,
@@ -171,11 +173,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               const SizedBox(width: 8),
               Text(
                 isOwed
-                    ? 'Amount Due'
+                    ? AppLocalizations.of(context)!.amountDue
                     : hasCredit
-                        ? 'Credit Balance'
-                        : 'Account Balance',
-                style: const TextStyle(
+                        ? AppLocalizations.of(context)!.creditBalance
+                        : AppLocalizations.of(context)!.account,
+                style: context.textStyle(
                   color: Colors.white70,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -186,7 +188,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           const SizedBox(height: 8),
           Text(
             '${account.balance.abs().toStringAsFixed(2)} EGP',
-            style: const TextStyle(
+            style: context.textStyle(
               color: Colors.white,
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -195,11 +197,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           const SizedBox(height: 4),
           Text(
             isOwed
-                ? 'Please pay at the counter'
+                ? AppLocalizations.of(context)!.pleasePayAtCounter
                 : hasCredit
-                    ? 'Will be applied to your next purchase'
-                    : 'No outstanding balance',
-            style: const TextStyle(
+                    ? AppLocalizations.of(context)!.willBeAppliedToNextPurchase
+                    : AppLocalizations.of(context)!.noOutstandingBalance,
+            style: context.textStyle(
               color: Colors.white70,
               fontSize: 12,
             ),
@@ -221,8 +223,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Failed to load transactions',
-            style: TextStyle(color: colors.mutedForeground),
+            AppLocalizations.of(context)!.failedToLoadTransactions,
+            style: context.textStyle(color: colors.mutedForeground),
           ),
           const SizedBox(height: 16),
           FButton(
@@ -231,7 +233,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 _loadTransactions();
               });
             },
-            child: const Text('Retry'),
+            child: Text(AppLocalizations.of(context)!.retry, style: context.textStyle()),
           ),
         ],
       ),
@@ -250,8 +252,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'No transactions yet',
-            style: TextStyle(color: colors.mutedForeground),
+            AppLocalizations.of(context)!.noTransactionsYet,
+            style: context.textStyle(color: colors.mutedForeground),
           ),
         ],
       ),
@@ -299,7 +301,7 @@ class _TransactionTile extends StatelessWidget {
               child: Text(
                 '${isCharge ? '+' : '-'}${numberFormat.format(transaction.amount)}',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: context.textStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: isCharge ? AppTheme.errorColor : AppTheme.successColor,
@@ -319,7 +321,7 @@ class _TransactionTile extends StatelessWidget {
                   children: [
                     Text(
                       transaction.typeDisplay,
-                      style: TextStyle(
+                      style: context.textStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                         color: colors.foreground,
@@ -327,7 +329,7 @@ class _TransactionTile extends StatelessWidget {
                     ),
                     Text(
                       _formatDate(transaction.createdAt),
-                      style: TextStyle(
+                      style: context.textStyle(
                         fontSize: 12,
                         color: colors.mutedForeground,
                       ),
@@ -338,7 +340,7 @@ class _TransactionTile extends StatelessWidget {
                 if (transaction.description != null)
                   Text(
                     transaction.description!,
-                    style: TextStyle(
+                    style: context.textStyle(
                       fontSize: 13,
                       color: colors.mutedForeground,
                     ),
@@ -348,7 +350,7 @@ class _TransactionTile extends StatelessWidget {
                 else
                   Text(
                     'by ${transaction.recordedBy}',
-                    style: TextStyle(
+                    style: context.textStyle(
                       fontSize: 13,
                       color: colors.mutedForeground,
                     ),

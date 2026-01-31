@@ -1,4 +1,5 @@
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
+using Chillax.ServiceDefaults;
 
 namespace Chillax.Rooms.API.Application.Queries;
 
@@ -16,8 +17,8 @@ public enum RoomDisplayStatus
 public record RoomViewModel
 {
     public int Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public string? Description { get; init; }
+    public LocalizedText Name { get; init; } = new();
+    public LocalizedText? Description { get; init; }
     public decimal HourlyRate { get; init; }
     public RoomDisplayStatus DisplayStatus { get; init; }
 }
@@ -26,7 +27,7 @@ public record ReservationViewModel
 {
     public int Id { get; init; }
     public int RoomId { get; init; }
-    public string RoomName { get; init; } = string.Empty;
+    public LocalizedText RoomName { get; init; } = new();
     public decimal HourlyRate { get; init; }
     /// <summary>
     /// Customer ID - null for walk-in sessions without assigned customer
@@ -56,7 +57,7 @@ public record SessionPreviewViewModel
 {
     public int SessionId { get; init; }
     public int RoomId { get; init; }
-    public string RoomName { get; init; } = string.Empty;
+    public LocalizedText RoomName { get; init; } = new();
     public DateTime StartTime { get; init; }
     public int MemberCount { get; init; }
 }

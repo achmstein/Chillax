@@ -4,6 +4,8 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/loyalty_card.dart';
 import '../providers/account_provider.dart';
@@ -40,12 +42,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final loyaltyState = ref.watch(loyaltyProvider);
     final accountState = ref.watch(accountProvider);
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
         // Header
         FHeader(
-          title: const Text('Profile', style: TextStyle(fontSize: 18)),
+          title: Text(l10n.profile, style: context.textStyle(fontSize: 18)),
         ),
 
         // Body
@@ -61,13 +64,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     authState.name?.isNotEmpty == true
                         ? authState.name![0].toUpperCase()
                         : 'G',
-                    style: const TextStyle(fontSize: 32),
+                    style: context.textStyle(fontSize: 32),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  authState.name ?? 'Guest User',
-                  style: const TextStyle(
+                  authState.name ?? l10n.guestUser,
+                  style: context.textStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                   ),
@@ -76,7 +79,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 4),
                   Text(
                     authState.email!,
-                    style: TextStyle(color: colors.mutedForeground),
+                    style: context.textStyle(color: colors.mutedForeground),
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -110,19 +113,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     FTile(
                       prefix: const Icon(FIcons.receipt),
-                      title: const Text('Order History'),
+                      title: Text(l10n.orderHistory, style: context.textStyle()),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.go('/orders'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.gamepad2),
-                      title: const Text('Session History'),
+                      title: Text(l10n.sessionHistory, style: context.textStyle()),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.push('/sessions'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.heart),
-                      title: const Text('Favorites'),
+                      title: Text(l10n.favorites, style: context.textStyle()),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.push('/favorites'),
                     ),
@@ -135,19 +138,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     FTile(
                       prefix: const Icon(FIcons.settings),
-                      title: const Text('Settings'),
+                      title: Text(l10n.settings, style: context.textStyle()),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.push('/settings'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.lifeBuoy),
-                      title: const Text('Help & Support'),
+                      title: Text(l10n.helpAndSupport, style: context.textStyle()),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => _showHelpSheet(context),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.info),
-                      title: const Text('About'),
+                      title: Text(l10n.about, style: context.textStyle()),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => _showAboutSheet(context),
                     ),
@@ -163,23 +166,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ? FButton(
                           style: FButtonStyle.destructive(),
                           onPress: () => _handleSignOut(context),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(FIcons.logOut),
-                              SizedBox(width: 8),
-                              Text('Sign Out'),
+                              const Icon(FIcons.logOut),
+                              const SizedBox(width: 8),
+                              Text(l10n.signOut, style: context.textStyle()),
                             ],
                           ),
                         )
                       : FButton(
                           onPress: () => _handleSignIn(context),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(FIcons.logIn),
-                              SizedBox(width: 8),
-                              Text('Sign In'),
+                              const Icon(FIcons.logIn),
+                              const SizedBox(width: 8),
+                              Text(l10n.signIn, style: context.textStyle()),
                             ],
                           ),
                         ),
@@ -189,8 +192,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                 // App version
                 Text(
-                  'Version ${AppConfig.appVersion}',
-                  style: TextStyle(
+                  l10n.version(AppConfig.appVersion),
+                  style: context.textStyle(
                     color: colors.mutedForeground,
                     fontSize: 12,
                   ),
@@ -204,19 +207,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _handleSignOut(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showFDialog(
       context: context,
       builder: (context, style, animation) => FDialog(
         style: style.call,
         animation: animation,
-        title: const Text('Sign Out'),
-        body: const Text('Are you sure you want to sign out?'),
+        title: Text(l10n.signOut, style: context.textStyle(fontWeight: FontWeight.bold)),
+        body: Text(l10n.signOutConfirmation, style: context.textStyle()),
         direction: Axis.horizontal,
         actions: [
           FButton(
             style: FButtonStyle.outline(),
             onPress: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel, style: context.textStyle()),
           ),
           FButton(
             style: FButtonStyle.destructive(),
@@ -224,7 +228,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Navigator.pop(context);
               await ref.read(authServiceProvider.notifier).signOut();
             },
-            child: const Text('Sign Out'),
+            child: Text(l10n.signOut, style: context.textStyle()),
           ),
         ],
       ),
@@ -265,6 +269,7 @@ class _HelpSupportSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -293,8 +298,8 @@ class _HelpSupportSheet extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Help & Support',
-                      style: TextStyle(
+                      l10n.helpAndSupport,
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -318,8 +323,8 @@ class _HelpSupportSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Need help? Contact us:',
-                    style: TextStyle(
+                    l10n.needHelpContactUs,
+                    style: context.textStyle(
                       fontSize: 15,
                       color: colors.foreground,
                     ),
@@ -327,19 +332,19 @@ class _HelpSupportSheet extends StatelessWidget {
                   const SizedBox(height: 16),
                   _ContactRow(
                     icon: FIcons.mail,
-                    text: 'support@chillax.com',
+                    text: l10n.supportEmail,
                     colors: colors,
                   ),
                   const SizedBox(height: 12),
                   _ContactRow(
                     icon: FIcons.phone,
-                    text: '0100 469 8 469',
+                    text: l10n.supportPhone,
                     colors: colors,
                   ),
                   const SizedBox(height: 12),
                   _ContactRow(
                     icon: FIcons.clock,
-                    text: 'Mon-Sun: 10:00 AM - 11:00 PM',
+                    text: l10n.supportHours,
                     colors: colors,
                   ),
                 ],
@@ -381,7 +386,7 @@ class _ContactRow extends StatelessWidget {
         const SizedBox(width: 12),
         Text(
           text,
-          style: TextStyle(
+          style: context.textStyle(
             fontSize: 15,
             color: colors.foreground,
           ),
@@ -398,6 +403,7 @@ class _AboutSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -426,8 +432,8 @@ class _AboutSheet extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'About',
-                      style: TextStyle(
+                      l10n.about,
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -458,8 +464,8 @@ class _AboutSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Cafe & Gaming',
-                    style: TextStyle(
+                    l10n.cafeAndGaming,
+                    style: context.textStyle(
                       fontSize: 14,
                       color: colors.mutedForeground,
                       letterSpacing: 2,
@@ -467,9 +473,9 @@ class _AboutSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Order delicious food & drinks, or reserve a PlayStation room for an amazing gaming experience.',
+                    l10n.aboutDescription,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: context.textStyle(
                       fontSize: 14,
                       color: colors.mutedForeground,
                     ),
@@ -482,8 +488,8 @@ class _AboutSheet extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Version ${AppConfig.appVersion}',
-                      style: TextStyle(
+                      l10n.version(AppConfig.appVersion),
+                      style: context.textStyle(
                         fontSize: 13,
                         color: colors.mutedForeground,
                       ),

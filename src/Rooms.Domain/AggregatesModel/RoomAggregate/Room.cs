@@ -10,7 +10,9 @@ namespace Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
 public class Room : Entity, IAggregateRoot
 {
     public string Name { get; private set; }
+    public string? NameAr { get; private set; }
     public string? Description { get; private set; }
+    public string? DescriptionAr { get; private set; }
     public decimal HourlyRate { get; private set; }
 
     /// <summary>
@@ -23,7 +25,7 @@ public class Room : Entity, IAggregateRoot
         Name = string.Empty;
     }
 
-    public Room(string name, decimal hourlyRate, string? description = null) : this()
+    public Room(string name, decimal hourlyRate, string? description = null, string? nameAr = null, string? descriptionAr = null) : this()
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new RoomsDomainException("Room name is required");
@@ -32,15 +34,17 @@ public class Room : Entity, IAggregateRoot
             throw new RoomsDomainException("Hourly rate must be greater than zero");
 
         Name = name;
+        NameAr = nameAr;
         HourlyRate = hourlyRate;
         Description = description;
+        DescriptionAr = descriptionAr;
         PhysicalStatus = RoomPhysicalStatus.Available;
     }
 
     /// <summary>
     /// Update room details
     /// </summary>
-    public void UpdateDetails(string name, string? description, decimal hourlyRate)
+    public void UpdateDetails(string name, string? description, decimal hourlyRate, string? nameAr = null, string? descriptionAr = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new RoomsDomainException("Room name is required");
@@ -49,7 +53,9 @@ public class Room : Entity, IAggregateRoot
             throw new RoomsDomainException("Hourly rate must be greater than zero");
 
         Name = name;
+        NameAr = nameAr;
         Description = description;
+        DescriptionAr = descriptionAr;
         HourlyRate = hourlyRate;
     }
 

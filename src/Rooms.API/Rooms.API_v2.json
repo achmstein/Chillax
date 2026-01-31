@@ -988,6 +988,20 @@
           }
         }
       },
+      "LocalizedText": {
+        "type": "object",
+        "properties": {
+          "en": {
+            "type": "string"
+          },
+          "ar": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -1049,7 +1063,7 @@
             "format": "int32"
           },
           "roomName": {
-            "type": "string"
+            "$ref": "#/components/schemas/LocalizedText"
           },
           "hourlyRate": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
@@ -1157,12 +1171,16 @@
             "format": "int32"
           },
           "name": {
-            "type": "string"
+            "$ref": "#/components/schemas/LocalizedText"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LocalizedText"
+              }
             ]
           },
           "hourlyRate": {
@@ -1198,7 +1216,7 @@
             "format": "int32"
           },
           "roomName": {
-            "type": "string"
+            "$ref": "#/components/schemas/LocalizedText"
           },
           "startTime": {
             "type": "string",

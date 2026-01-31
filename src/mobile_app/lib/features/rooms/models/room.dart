@@ -1,3 +1,5 @@
+import '../../../core/models/localized_text.dart';
+
 /// Room display status (computed at query time)
 enum RoomDisplayStatus {
   available(1, 'Available'),
@@ -41,8 +43,8 @@ enum SessionStatus {
 /// Room model
 class Room {
   final int id;
-  final String name;
-  final String? description;
+  final LocalizedText name;
+  final LocalizedText? description;
   final RoomDisplayStatus displayStatus;
   final double hourlyRate;
 
@@ -60,11 +62,21 @@ class Room {
   factory Room.fromJson(Map<String, dynamic> json) {
     return Room(
       id: json['id'] as int,
-      name: json['name'] as String,
-      description: json['description'] as String?,
+      name: _parseLocalizedText(json['name']),
+      description: json['description'] != null ? _parseLocalizedText(json['description']) : null,
       displayStatus: RoomDisplayStatus.fromValue(json['displayStatus'] as int),
       hourlyRate: (json['hourlyRate'] as num).toDouble(),
     );
+  }
+
+  /// Parse LocalizedText from JSON - handles both object and string formats
+  static LocalizedText _parseLocalizedText(dynamic value) {
+    if (value is String) {
+      return LocalizedText.fromString(value);
+    } else if (value is Map<String, dynamic>) {
+      return LocalizedText.fromJson(value);
+    }
+    return LocalizedText(en: value?.toString() ?? '');
   }
 }
 
@@ -72,7 +84,7 @@ class Room {
 class RoomSession {
   final int id;
   final int roomId;
-  final String roomName;
+  final LocalizedText roomName;
   final double hourlyRate;
   final DateTime createdAt;
   final DateTime? actualStartTime;
@@ -120,7 +132,7 @@ class RoomSession {
     return RoomSession(
       id: json['id'] as int,
       roomId: json['roomId'] as int,
-      roomName: json['roomName'] as String? ?? 'Room ${json['roomId']}',
+      roomName: Room._parseLocalizedText(json['roomName'] ?? 'Room ${json['roomId']}'),
       hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
       createdAt: DateTime.parse(json['createdAt'] as String),
       actualStartTime: json['actualStartTime'] != null
@@ -141,7 +153,7 @@ class RoomSession {
 class SessionPreview {
   final int sessionId;
   final int roomId;
-  final String roomName;
+  final LocalizedText roomName;
   final DateTime startTime;
   final int memberCount;
 
@@ -157,7 +169,7 @@ class SessionPreview {
     return SessionPreview(
       sessionId: json['sessionId'] as int,
       roomId: json['roomId'] as int,
-      roomName: json['roomName'] as String,
+      roomName: Room._parseLocalizedText(json['roomName']),
       startTime: DateTime.parse(json['startTime'] as String),
       memberCount: json['memberCount'] as int,
     );

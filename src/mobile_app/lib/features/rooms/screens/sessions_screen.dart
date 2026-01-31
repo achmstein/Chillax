@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
 
@@ -29,10 +32,10 @@ class SessionsScreen extends ConsumerWidget {
                     child: const Icon(FIcons.arrowLeft, size: 22),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Session History',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -49,7 +52,7 @@ class SessionsScreen extends ConsumerWidget {
                     children: [
                       Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
                       const SizedBox(height: 16),
-                      Text('Failed to load sessions', style: TextStyle(color: colors.foreground)),
+                      Text('Failed to load sessions', style: context.textStyle(color: colors.foreground)),
                       const SizedBox(height: 16),
                       FButton(
                         onPress: () => ref.read(mySessionsProvider.notifier).refresh(),
@@ -59,7 +62,7 @@ class SessionsScreen extends ConsumerWidget {
                   ),
                 ),
                 data: (sessions) => sessions.isEmpty
-                    ? _buildEmptyState(colors)
+                    ? _buildEmptyState(context, colors)
                     : RefreshIndicator(
                         color: colors.primary,
                         backgroundColor: colors.background,
@@ -81,7 +84,7 @@ class SessionsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(dynamic colors) {
+  Widget _buildEmptyState(BuildContext context, dynamic colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +97,7 @@ class SessionsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             'No sessions yet',
-            style: TextStyle(
+            style: context.textStyle(
               fontSize: 18,
               color: colors.foreground,
             ),
@@ -102,7 +105,7 @@ class SessionsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Reserve a room to get started',
-            style: TextStyle(
+            style: context.textStyle(
               color: colors.mutedForeground,
             ),
           ),
@@ -161,8 +164,8 @@ class _SessionTileState extends State<SessionTile> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  session.roomName,
-                  style: TextStyle(
+                  session.roomName.localized(context),
+                  style: context.textStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: colors.foreground,
@@ -181,7 +184,7 @@ class _SessionTileState extends State<SessionTile> {
               const SizedBox(width: 4),
               Text(
                 dateFormat.format(session.reservationTime),
-                style: TextStyle(color: colors.mutedForeground, fontSize: 13),
+                style: context.textStyle(color: colors.mutedForeground, fontSize: 13),
               ),
             ],
           ),
@@ -194,7 +197,7 @@ class _SessionTileState extends State<SessionTile> {
                 const SizedBox(width: 4),
                 Text(
                   'Duration: ${session.formattedDuration}',
-                  style: TextStyle(color: colors.mutedForeground, fontSize: 13),
+                  style: context.textStyle(color: colors.mutedForeground, fontSize: 13),
                 ),
               ],
             ),
@@ -208,7 +211,7 @@ class _SessionTileState extends State<SessionTile> {
                 const SizedBox(width: 4),
                 Text(
                   session.totalCost!.toStringAsFixed(2),
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: colors.foreground),
+                  style: context.textStyle(fontWeight: FontWeight.w500, fontSize: 13, color: colors.foreground),
                 ),
               ],
             ),
@@ -219,15 +222,21 @@ class _SessionTileState extends State<SessionTile> {
   }
 
   Widget _buildStatusBadge(SessionStatus status) {
+    final l10n = AppLocalizations.of(context)!;
+    String label;
     switch (status) {
       case SessionStatus.reserved:
-        return FBadge(style: FBadgeStyle.secondary(), child: Text(status.label));
+        label = l10n.statusReserved;
+        return FBadge(style: FBadgeStyle.secondary(), child: Text(label));
       case SessionStatus.active:
-        return FBadge(style: FBadgeStyle.primary(), child: Text(status.label));
+        label = l10n.statusActive;
+        return FBadge(style: FBadgeStyle.primary(), child: Text(label));
       case SessionStatus.completed:
-        return FBadge(style: FBadgeStyle.outline(), child: Text(status.label));
+        label = l10n.statusCompleted;
+        return FBadge(style: FBadgeStyle.outline(), child: Text(label));
       case SessionStatus.cancelled:
-        return FBadge(style: FBadgeStyle.destructive(), child: Text(status.label));
+        label = l10n.statusCancelled;
+        return FBadge(style: FBadgeStyle.destructive(), child: Text(label));
     }
   }
 }

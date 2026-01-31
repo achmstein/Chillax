@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/order.dart';
 import '../services/order_service.dart';
 import '../widgets/rating_dialog.dart';
@@ -66,12 +68,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
   @override
   Widget build(BuildContext context) {
     final ordersState = ref.watch(ordersProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
         // Header
         FHeader(
-          title: const Text('Orders', style: TextStyle(fontSize: 18)),
+          title: Text(l10n.orders, style: context.textStyle(fontSize: 18)),
         ),
 
         // Body
@@ -84,6 +87,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
 
   Widget _buildBody(OrdersState state) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     // Initial loading
     if (state.isLoading && state.orders.isEmpty) {
@@ -109,11 +113,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
                   children: [
                     Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
                     const SizedBox(height: 16),
-                    Text('Failed to load orders', style: TextStyle(color: colors.foreground)),
+                    Text(l10n.failedToLoadOrders, style: context.textStyle(color: colors.foreground)),
                     const SizedBox(height: 8),
                     Text(
-                      'Pull down to retry',
-                      style: TextStyle(color: colors.mutedForeground),
+                      l10n.pullDownToRetry,
+                      style: context.textStyle(color: colors.mutedForeground),
                     ),
                   ],
                 ),
@@ -177,6 +181,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
   }
 
   Widget _buildEmptyState(dynamic colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -188,16 +193,16 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
           ),
           const SizedBox(height: 16),
           Text(
-            'No orders yet',
-            style: TextStyle(
+            l10n.noOrdersYet,
+            style: context.textStyle(
               fontSize: 18,
               color: colors.foreground,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Your order history will appear here',
-            style: TextStyle(
+            l10n.orderHistoryWillAppearHere,
+            style: context.textStyle(
               color: colors.mutedForeground,
             ),
           ),
@@ -260,6 +265,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
     final dateFormat = DateFormat('MMM d, yyyy h:mm a');
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,8 +286,8 @@ class _OrderTileState extends ConsumerState<OrderTile>
                           _buildStatusDot(widget.order.status),
                           const SizedBox(width: 8),
                           Text(
-                            'Order #${widget.order.id}',
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colors.foreground),
+                            l10n.orderNumber(widget.order.id.toString()),
+                            style: context.textStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colors.foreground),
                           ),
                         ],
                       ),
@@ -290,7 +296,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                         children: [
                           Text(
                             dateFormat.format(widget.order.date),
-                            style: TextStyle(
+                            style: context.textStyle(
                               fontSize: 13,
                               color: colors.mutedForeground,
                             ),
@@ -299,7 +305,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                             const SizedBox(width: 8),
                             Text(
                               '• ${widget.order.roomName}',
-                              style: TextStyle(
+                              style: context.textStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,
                               ),
@@ -312,7 +318,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                 ),
                 Text(
                   '£${widget.order.total.toStringAsFixed(2)}',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colors.foreground),
+                  style: context.textStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colors.foreground),
                 ),
                 const SizedBox(width: 8),
                 Icon(
@@ -336,6 +342,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
   Widget _buildExpandedContent() {
     final colors = context.theme.colors;
     final orderDetailsAsync = ref.watch(orderProvider(widget.order.id));
+    final l10n = AppLocalizations.of(context)!;
 
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
@@ -354,8 +361,8 @@ class _OrderTileState extends ConsumerState<OrderTile>
           ),
         ),
         error: (error, _) => Text(
-          'Failed to load details',
-          style: TextStyle(color: AppTheme.errorColor, fontSize: 13),
+          l10n.failedToLoadDetails,
+          style: context.textStyle(color: AppTheme.errorColor, fontSize: 13),
         ),
         data: (orderDetails) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,12 +379,12 @@ class _OrderTileState extends ConsumerState<OrderTile>
                           children: [
                             Text(
                               '${item.units}x ',
-                              style: TextStyle(fontSize: 14, color: colors.mutedForeground),
+                              style: context.textStyle(fontSize: 14, color: colors.mutedForeground),
                             ),
-                            Expanded(child: Text(item.productName, style: TextStyle(fontSize: 14, color: colors.foreground))),
+                            Expanded(child: Text(item.productName, style: context.textStyle(fontSize: 14, color: colors.foreground))),
                             Text(
                               '£${item.totalPrice.toStringAsFixed(2)}',
-                              style: TextStyle(fontSize: 14, color: colors.mutedForeground),
+                              style: context.textStyle(fontSize: 14, color: colors.mutedForeground),
                             ),
                           ],
                         ),
@@ -387,7 +394,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                             padding: const EdgeInsets.only(left: 24, top: 2),
                             child: Text(
                               item.customizationsDescription!,
-                              style: TextStyle(
+                              style: context.textStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,
                               ),
@@ -400,9 +407,8 @@ class _OrderTileState extends ConsumerState<OrderTile>
                             padding: const EdgeInsets.only(left: 24, top: 2),
                             child: Text(
                               '"${item.specialInstructions}"',
-                              style: TextStyle(
+                              style: context.textStyle(
                                 fontSize: 13,
-                                fontStyle: FontStyle.italic,
                                 color: colors.mutedForeground,
                               ),
                             ),
@@ -413,8 +419,8 @@ class _OrderTileState extends ConsumerState<OrderTile>
                   )),
             ] else ...[
               Text(
-                'No items',
-                style: TextStyle(color: colors.mutedForeground, fontSize: 13),
+                l10n.noItems,
+                style: context.textStyle(color: colors.mutedForeground, fontSize: 13),
               ),
             ],
 
@@ -422,9 +428,8 @@ class _OrderTileState extends ConsumerState<OrderTile>
             if (orderDetails.customerNote != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Note: ${orderDetails.customerNote}',
-                style: TextStyle(
-                  fontStyle: FontStyle.italic,
+                l10n.noteWithText(orderDetails.customerNote!),
+                style: context.textStyle(
                   color: colors.mutedForeground,
                   fontSize: 13,
                 ),
@@ -437,8 +442,8 @@ class _OrderTileState extends ConsumerState<OrderTile>
               Row(
                 children: [
                   Text(
-                    'Your rating: ',
-                    style: TextStyle(
+                    l10n.yourRating,
+                    style: context.textStyle(
                       fontSize: 13,
                       color: colors.mutedForeground,
                     ),
@@ -450,8 +455,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                 const SizedBox(height: 4),
                 Text(
                   '"${orderDetails.rating!.comment}"',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
+                  style: context.textStyle(
                     color: colors.mutedForeground,
                     fontSize: 13,
                   ),
@@ -470,7 +474,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                     );
                   },
                   icon: const Icon(Icons.star_border, size: 18),
-                  label: const Text('Rate This Order'),
+                  label: Text(l10n.rateThisOrder),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colors.primary,
                     side: BorderSide(color: colors.primary),

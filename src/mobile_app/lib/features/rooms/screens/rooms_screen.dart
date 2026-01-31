@@ -4,7 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../notifications/services/notification_service.dart';
 import '../../service_request/models/service_request.dart';
 import '../../service_request/services/service_request_service.dart';
@@ -49,9 +52,10 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   }
 
   Future<void> _joinSession() async {
+    final l10n = AppLocalizations.of(context)!;
     final code = _codeController.text.trim();
     if (code.length != 6) {
-      setState(() => _joinError = 'Enter 6-digit code');
+      setState(() => _joinError = l10n.enterSixDigitCode);
       return;
     }
 
@@ -71,13 +75,13 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         ref.invalidate(roomsProvider);
         showFToast(
           context: context,
-          title: const Text('Joined session!'),
+          title: Text(l10n.joinedSession),
           icon: Icon(FIcons.check, color: AppTheme.successColor),
         );
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _joinError = 'Invalid code');
+        setState(() => _joinError = l10n.invalidCode);
       }
     } finally {
       if (mounted) {
@@ -90,6 +94,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   Widget build(BuildContext context) {
     final roomsAsync = ref.watch(roomsProvider);
     final sessionsAsync = ref.watch(mySessionsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     // Determine if user has an active session
     final hasActiveSession = sessionsAsync.whenOrNull(
@@ -104,7 +109,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         children: [
           // Header
           FHeader(
-            title: const Text('Rooms', style: TextStyle(fontSize: 18)),
+            title: Text(l10n.rooms, style: context.textStyle(fontSize: 18)),
           ),
 
           // Content
@@ -168,18 +173,17 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   maxLength: 6,
-                  style: const TextStyle(
+                  style: context.textStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 8,
-                    fontFamily: 'monospace',
                   ),
                   decoration: InputDecoration(
                     counterText: '',
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    hintText: 'Enter code',
-                    hintStyle: TextStyle(
+                    hintText: AppLocalizations.of(context)!.enterCode,
+                    hintStyle: context.textStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.normal,
                       letterSpacing: 0,
@@ -221,9 +225,9 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Join',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    : Text(
+                        AppLocalizations.of(context)!.join,
+                        style: context.textStyle(fontWeight: FontWeight.bold),
                       ),
               ),
             ),
@@ -246,11 +250,11 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           children: [
             Icon(FIcons.circleAlert, size: 48, color: context.theme.colors.mutedForeground),
             const SizedBox(height: 16),
-            const Text('Failed to load rooms'),
+            Text(AppLocalizations.of(context)!.failedToLoadRooms),
             const SizedBox(height: 16),
             FButton(
               onPress: () => ref.refresh(roomsProvider),
-              child: const Text('Retry'),
+              child: Text(AppLocalizations.of(context)!.retry),
             ),
           ],
         ),
@@ -412,8 +416,8 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                       const Icon(FIcons.gamepad2, color: Colors.white, size: 24),
                       const SizedBox(width: 8),
                       Text(
-                        session.roomName,
-                        style: const TextStyle(
+                        session.roomName.localized(context),
+                        style: context.textStyle(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -428,9 +432,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      'Session Active',
-                      style: TextStyle(
+                    child: Text(
+                      AppLocalizations.of(context)!.sessionActive,
+                      style: context.textStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -442,8 +446,8 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   if (session.accessCode != null) ...[
                     const SizedBox(height: 20),
                     Text(
-                      'Share code with friends',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.shareCodeWithFriends,
+                      style: context.textStyle(
                         color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 12,
                       ),
@@ -455,7 +459,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                         Clipboard.setData(ClipboardData(text: session.accessCode!));
                         showFToast(
                           context: context,
-                          title: const Text('Code copied!'),
+                          title: Text(AppLocalizations.of(context)!.codeCopied),
                           icon: Icon(FIcons.check, color: AppTheme.successColor),
                         );
                       },
@@ -471,11 +475,10 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                           children: [
                             Text(
                               session.accessCode!,
-                              style: const TextStyle(
+                              style: context.textStyle(
                                 color: Colors.white,
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                fontFamily: 'monospace',
                                 letterSpacing: 6,
                               ),
                             ),
@@ -495,18 +498,17 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   // Timer
                   Text(
                     session.formattedDuration,
-                    style: const TextStyle(
+                    style: context.textStyle(
                       color: Colors.white,
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'monospace',
                       letterSpacing: 2,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '£${session.hourlyRate.toStringAsFixed(0)}/hour',
-                    style: TextStyle(
+                    AppLocalizations.of(context)!.hourlyRateFormat(session.hourlyRate.toStringAsFixed(0)),
+                    style: context.textStyle(
                       color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 14,
                     ),
@@ -519,8 +521,8 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
 
             // Quick actions
             Text(
-              'Need something?',
-              style: TextStyle(
+              AppLocalizations.of(context)!.needSomething,
+              style: context.textStyle(
                 color: AppTheme.textSecondary,
                 fontSize: 14,
               ),
@@ -533,7 +535,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                 Expanded(
                   child: _QuickActionButton(
                     icon: FIcons.user,
-                    label: 'Call Waiter',
+                    label: AppLocalizations.of(context)!.callWaiter,
                     cooldownSeconds: _getCooldownRemaining(ServiceRequestType.callWaiter),
                     onTap: () => _submitRequest(ServiceRequestType.callWaiter),
                   ),
@@ -542,7 +544,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                 Expanded(
                   child: _QuickActionButton(
                     icon: FIcons.gamepad2,
-                    label: 'Controller',
+                    label: AppLocalizations.of(context)!.controller,
                     cooldownSeconds: _getCooldownRemaining(ServiceRequestType.controllerChange),
                     onTap: () => _submitRequest(ServiceRequestType.controllerChange),
                   ),
@@ -551,7 +553,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                 Expanded(
                   child: _QuickActionButton(
                     icon: FIcons.receipt,
-                    label: 'Get Bill',
+                    label: AppLocalizations.of(context)!.getBill,
                     cooldownSeconds: _getCooldownRemaining(ServiceRequestType.receiptToPay),
                     onTap: () => _submitRequest(ServiceRequestType.receiptToPay),
                   ),
@@ -572,7 +574,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
     final request = CreateServiceRequest(
       sessionId: session.id,
       roomId: session.roomId,
-      roomName: session.roomName,
+      roomName: session.roomName.en,
       requestType: type,
     );
 
@@ -599,13 +601,14 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
   }
 
   String _getSuccessMessage(ServiceRequestType type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case ServiceRequestType.callWaiter:
-        return 'Waiter has been notified';
+        return l10n.waiterNotified;
       case ServiceRequestType.controllerChange:
-        return 'Controller request sent';
+        return l10n.controllerRequestSent;
       case ServiceRequestType.receiptToPay:
-        return 'Bill request sent';
+        return l10n.billRequestSent;
     }
   }
 }
@@ -665,7 +668,7 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
                 // Show countdown
                 Text(
                   '${widget.cooldownSeconds}s',
-                  style: TextStyle(
+                  style: context.textStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textMuted,
@@ -674,7 +677,7 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
                 const SizedBox(height: 4),
                 Text(
                   widget.label,
-                  style: TextStyle(
+                  style: context.textStyle(
                     fontSize: 11,
                     color: AppTheme.textMuted,
                   ),
@@ -684,7 +687,7 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
                 const SizedBox(height: 8),
                 Text(
                   widget.label,
-                  style: TextStyle(
+                  style: context.textStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
@@ -738,8 +741,8 @@ class _ReservedSessionBanner extends ConsumerWidget {
               const Icon(FIcons.gamepad2, color: Colors.white, size: 24),
               const SizedBox(width: 8),
               Text(
-                session.roomName,
-                style: const TextStyle(
+                session.roomName.localized(context),
+                style: context.textStyle(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -755,9 +758,9 @@ class _ReservedSessionBanner extends ConsumerWidget {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              'Reserved',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context)!.reserved,
+              style: context.textStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -768,7 +771,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
           // Date and time
           Text(
             DateFormat('EEEE, MMM d').format(session.reservationTime),
-            style: const TextStyle(
+            style: context.textStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -777,11 +780,10 @@ class _ReservedSessionBanner extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             DateFormat('h:mm a').format(session.reservationTime),
-            style: TextStyle(
+            style: context.textStyle(
               color: Colors.white.withValues(alpha: 0.8),
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
             ),
           ),
           const SizedBox(height: 16),
@@ -789,12 +791,11 @@ class _ReservedSessionBanner extends ConsumerWidget {
           GestureDetector(
             onTap: () => _cancelReservation(context, ref),
             child: Text(
-              'Cancel Reservation',
-              style: TextStyle(
+              AppLocalizations.of(context)!.cancelReservation,
+              style: context.textStyle(
                 color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 13,
                 decoration: TextDecoration.underline,
-                decorationColor: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ),
@@ -804,22 +805,23 @@ class _ReservedSessionBanner extends ConsumerWidget {
   }
 
   Future<void> _cancelReservation(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Cancel Reservation?'),
-        body: const Text('Are you sure you want to cancel your reservation?'),
+        title: Text(l10n.cancelReservationQuestion),
+        body: Text(l10n.confirmCancelReservation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
             onPress: () => Navigator.pop(context, false),
-            child: const Text('No, Keep'),
+            child: Text(l10n.noKeep),
           ),
           FButton(
             style: FButtonStyle.destructive(),
             onPress: () => Navigator.pop(context, true),
-            child: const Text('Yes, Cancel'),
+            child: Text(l10n.yesCancel),
           ),
         ],
       ),
@@ -834,7 +836,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
         if (context.mounted) {
           showFToast(
             context: context,
-            title: const Text('Reservation cancelled'),
+            title: Text(l10n.reservationCancelled),
             icon: Icon(FIcons.check, color: AppTheme.successColor),
           );
         }
@@ -842,7 +844,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
         if (context.mounted) {
           showFToast(
             context: context,
-            title: const Text('Failed to cancel reservation'),
+            title: Text(l10n.failedToCancelReservation),
             icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
           );
         }
@@ -866,17 +868,20 @@ class NotifyMeBanner extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
       ),
-      child: Column(
+      child: Builder(
+        builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Icon(FIcons.bell, size: 20, color: AppTheme.primaryColor),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'All rooms are currently busy',
-                  style: TextStyle(
+                  l10n.allRoomsBusy,
+                  style: context.textStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -886,8 +891,8 @@ class NotifyMeBanner extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Get notified when a room becomes available',
-            style: TextStyle(
+            l10n.getNotifiedWhenAvailable,
+            style: context.textStyle(
               color: AppTheme.textSecondary,
               fontSize: 13,
             ),
@@ -903,7 +908,7 @@ class NotifyMeBanner extends ConsumerWidget {
             ),
             error: (_, _) => FButton(
               onPress: () => ref.refresh(roomAvailabilitySubscriptionProvider),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
             data: (isSubscribed) => isSubscribed
                 ? Row(
@@ -912,8 +917,8 @@ class NotifyMeBanner extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'You will be notified when a room is available',
-                          style: TextStyle(
+                          l10n.willBeNotifiedWhenAvailable,
+                          style: context.textStyle(
                             color: AppTheme.successColor,
                             fontSize: 13,
                           ),
@@ -928,12 +933,12 @@ class NotifyMeBanner extends ConsumerWidget {
                           if (success && context.mounted) {
                             showFToast(
                               context: context,
-                              title: const Text('Unsubscribed from notifications'),
+                              title: Text(l10n.unsubscribedFromNotifications),
                               icon: Icon(FIcons.check, color: AppTheme.textMuted),
                             );
                           }
                         },
-                        child: const Text('Cancel'),
+                        child: Text(l10n.cancel),
                       ),
                     ],
                   )
@@ -948,30 +953,32 @@ class NotifyMeBanner extends ConsumerWidget {
                           if (success) {
                             showFToast(
                               context: context,
-                              title: const Text('You will be notified!'),
+                              title: Text(l10n.youWillBeNotified),
                               icon: Icon(FIcons.bell, color: AppTheme.successColor),
                             );
                           } else {
                             showFToast(
                               context: context,
-                              title: const Text('Failed to subscribe'),
+                              title: Text(l10n.failedToSubscribe),
                               icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
                             );
                           }
                         }
                       },
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(FIcons.bell, size: 16),
-                          SizedBox(width: 8),
-                          Text('Notify Me'),
+                          const Icon(FIcons.bell, size: 16),
+                          const SizedBox(width: 8),
+                          Text(l10n.notifyMe),
                         ],
                       ),
                     ),
                   ),
           ),
         ],
+      );
+      },
       ),
     );
   }
@@ -1026,8 +1033,8 @@ class RoomListItem extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    room.name,
-                    style: TextStyle(
+                    room.name.localized(context),
+                    style: context.textStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: colors.foreground,
@@ -1036,8 +1043,8 @@ class RoomListItem extends ConsumerWidget {
                   if (room.description != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      room.description!,
-                      style: TextStyle(
+                      room.description!.localized(context),
+                      style: context.textStyle(
                         color: colors.mutedForeground,
                         fontSize: 13,
                       ),
@@ -1049,8 +1056,8 @@ class RoomListItem extends ConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        '£${room.hourlyRate.toStringAsFixed(0)}/hr',
-                        style: TextStyle(
+                        '£${room.hourlyRate.toStringAsFixed(0)}${AppLocalizations.of(context)!.perHour}',
+                        style: context.textStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                           color: colors.foreground,
@@ -1058,8 +1065,8 @@ class RoomListItem extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '• ${room.displayStatus.label}',
-                        style: TextStyle(
+                        '• ${_getLocalizedStatus(context, room.displayStatus)}',
+                        style: context.textStyle(
                           color: statusColor,
                           fontSize: 13,
                         ),
@@ -1093,8 +1100,8 @@ class RoomListItem extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Available',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.available,
+                  style: context.textStyle(
                     color: colors.mutedForeground,
                     fontSize: 12,
                   ),
@@ -1116,6 +1123,20 @@ class RoomListItem extends ConsumerWidget {
         return AppTheme.warningColor;
       case RoomDisplayStatus.maintenance:
         return colors.mutedForeground;
+    }
+  }
+
+  String _getLocalizedStatus(BuildContext context, RoomDisplayStatus status) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (status) {
+      case RoomDisplayStatus.available:
+        return l10n.available;
+      case RoomDisplayStatus.occupied:
+        return l10n.occupied;
+      case RoomDisplayStatus.reserved:
+        return l10n.reserved;
+      case RoomDisplayStatus.maintenance:
+        return l10n.maintenance;
     }
   }
 
@@ -1146,6 +1167,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: colors.background,
@@ -1176,8 +1198,8 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Reserve ${widget.room.name}',
-                      style: TextStyle(
+                      l10n.reserveRoomName(widget.room.name.localized(context)),
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -1192,8 +1214,8 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
               ),
               const SizedBox(height: 8),
               Text(
-                '£${widget.room.hourlyRate.toStringAsFixed(0)}/hour',
-                style: TextStyle(
+                '£${widget.room.hourlyRate.toStringAsFixed(0)}${l10n.perHour}',
+                style: context.textStyle(
                   color: colors.mutedForeground,
                   fontSize: 15,
                 ),
@@ -1218,8 +1240,8 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '15 minutes to arrive',
-                            style: TextStyle(
+                            l10n.fifteenMinutesToArrive,
+                            style: context.textStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                               color: colors.foreground,
@@ -1227,8 +1249,8 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Your reservation will be automatically cancelled if you don\'t check in within 15 minutes.',
-                            style: TextStyle(
+                            l10n.reservationCancelledIfNoCheckIn,
+                            style: context.textStyle(
                               fontSize: 13,
                               color: colors.mutedForeground,
                             ),
@@ -1261,9 +1283,9 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Reserve Now',
-                          style: TextStyle(
+                      : Text(
+                          l10n.reserveNow,
+                          style: context.textStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -1278,6 +1300,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
   }
 
   Future<void> _handleReserve() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
 
     final success = await ref
@@ -1292,13 +1315,13 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
       ref.read(mySessionsProvider.notifier).refresh();
       showFToast(
         context: context,
-        title: const Text('Room reserved! You have 15 minutes to arrive.'),
+        title: Text(l10n.roomReservedSuccess),
         icon: Icon(FIcons.check, color: AppTheme.successColor),
       );
     } else if (mounted) {
       showFToast(
         context: context,
-        title: const Text('Failed to reserve room'),
+        title: Text(l10n.failedToReserveRoom),
         icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
       );
     }

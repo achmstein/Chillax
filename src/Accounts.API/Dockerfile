@@ -1,0 +1,43 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+# Copy solution files and project files
+COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Packages.props", "./"]
+COPY ["src/Accounts.API/Accounts.API.csproj", "Accounts.API/"]
+COPY ["src/Accounts.Domain/Accounts.Domain.csproj", "Accounts.Domain/"]
+COPY ["src/Accounts.Infrastructure/Accounts.Infrastructure.csproj", "Accounts.Infrastructure/"]
+COPY ["src/EventBus/EventBus.csproj", "EventBus/"]
+COPY ["src/EventBusRabbitMQ/EventBusRabbitMQ.csproj", "EventBusRabbitMQ/"]
+COPY ["src/IntegrationEventLogEF/IntegrationEventLogEF.csproj", "IntegrationEventLogEF/"]
+COPY ["src/Chillax.ServiceDefaults/Chillax.ServiceDefaults.csproj", "Chillax.ServiceDefaults/"]
+COPY ["src/Shared/", "Shared/"]
+
+# Restore dependencies
+RUN dotnet restore "Accounts.API/Accounts.API.csproj"
+
+# Copy source code
+COPY ["src/Accounts.API/", "Accounts.API/"]
+COPY ["src/Accounts.Domain/", "Accounts.Domain/"]
+COPY ["src/Accounts.Infrastructure/", "Accounts.Infrastructure/"]
+COPY ["src/EventBus/", "EventBus/"]
+COPY ["src/EventBusRabbitMQ/", "EventBusRabbitMQ/"]
+COPY ["src/IntegrationEventLogEF/", "IntegrationEventLogEF/"]
+COPY ["src/Chillax.ServiceDefaults/", "Chillax.ServiceDefaults/"]
+
+# Build
+WORKDIR /src/Accounts.API
+RUN dotnet build -c Release -o /app/build
+
+# Publish
+RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "Accounts.API.dll"]

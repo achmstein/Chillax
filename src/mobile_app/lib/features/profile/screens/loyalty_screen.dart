@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/loyalty_info.dart';
 import '../providers/loyalty_provider.dart';
 
@@ -42,10 +44,10 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                     child: const Icon(FIcons.arrowLeft, size: 22),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Loyalty Rewards',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      AppLocalizations.of(context)!.loyaltyRewards,
+                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -73,8 +75,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
 
                             // Recent Activity header
                             Text(
-                              'Recent Activity',
-                              style: TextStyle(
+                              AppLocalizations.of(context)!.recentActivity,
+                              style: context.textStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: colors.foreground,
@@ -115,8 +117,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No loyalty account yet',
-            style: TextStyle(
+            AppLocalizations.of(context)!.noLoyaltyAccountYet,
+            style: context.textStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: colors.foreground,
@@ -124,8 +126,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Make a purchase to start earning points!',
-            style: TextStyle(color: colors.mutedForeground),
+            AppLocalizations.of(context)!.makePurchaseToEarn,
+            style: context.textStyle(color: colors.mutedForeground),
           ),
         ],
       ),
@@ -163,8 +165,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Loyalty Rewards',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.loyaltyRewards,
+                  style: context.textStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                     color: colors.foreground,
@@ -192,7 +194,7 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                   ),
                   child: Text(
                     info.currentTier.name.toUpperCase(),
-                    style: TextStyle(
+                    style: context.textStyle(
                       color: textColor,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -216,7 +218,7 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                     Expanded(
                       child: Text(
                         '${numberFormat.format(info.pointsBalance)} pts',
-                        style: TextStyle(
+                        style: context.textStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: colors.foreground,
@@ -224,8 +226,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                       ),
                     ),
                     Text(
-                      'Lifetime: ${numberFormat.format(info.lifetimePoints)} pts',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.lifetimePoints(numberFormat.format(info.lifetimePoints)),
+                      style: context.textStyle(
                         fontSize: 13,
                         color: colors.mutedForeground,
                       ),
@@ -247,8 +249,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${numberFormat.format(info.pointsToNextTier)} pts to ${info.nextTier!.name[0].toUpperCase()}${info.nextTier!.name.substring(1)}',
-                    style: TextStyle(
+                    AppLocalizations.of(context)!.pointsToNextTier(numberFormat.format(info.pointsToNextTier), '${info.nextTier!.name[0].toUpperCase()}${info.nextTier!.name.substring(1)}'),
+                    style: context.textStyle(
                       fontSize: 13,
                       color: colors.mutedForeground,
                     ),
@@ -274,8 +276,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'No transactions yet',
-            style: TextStyle(color: colors.mutedForeground),
+            AppLocalizations.of(context)!.noTransactionsYet,
+            style: context.textStyle(color: colors.mutedForeground),
           ),
         ],
       ),
@@ -323,7 +325,7 @@ class _TransactionTile extends StatelessWidget {
               child: Text(
                 '${isEarned ? '+' : '-'}${numberFormat.format(transaction.points.abs())}',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: context.textStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: isEarned ? AppTheme.successColor : AppTheme.errorColor,
@@ -343,7 +345,7 @@ class _TransactionTile extends StatelessWidget {
                   children: [
                     Text(
                       transaction.typeDisplay,
-                      style: TextStyle(
+                      style: context.textStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                         color: colors.foreground,
@@ -351,7 +353,7 @@ class _TransactionTile extends StatelessWidget {
                     ),
                     Text(
                       _formatDate(transaction.createdAt),
-                      style: TextStyle(
+                      style: context.textStyle(
                         fontSize: 12,
                         color: colors.mutedForeground,
                       ),
@@ -361,7 +363,7 @@ class _TransactionTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   transaction.description,
-                  style: TextStyle(
+                  style: context.textStyle(
                     fontSize: 13,
                     color: colors.mutedForeground,
                   ),

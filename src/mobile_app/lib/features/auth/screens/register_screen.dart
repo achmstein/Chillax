@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Registration screen
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -33,6 +35,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
@@ -42,21 +45,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     // Validation
     if (name.isEmpty || username.isEmpty || email.isEmpty || password.isEmpty) {
       setState(() {
-        _error = 'Please fill in all fields.';
+        _error = l10n.fillAllFields;
       });
       return;
     }
 
     if (password != confirmPassword) {
       setState(() {
-        _error = 'Passwords do not match.';
+        _error = l10n.passwordsDontMatch;
       });
       return;
     }
 
     if (password.length < 6) {
       setState(() {
-        _error = 'Password must be at least 6 characters.';
+        _error = l10n.passwordTooShort;
       });
       return;
     }
@@ -79,7 +82,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             if (!loginSuccess) {
               // If auto-login fails, show message and redirect to login
               setState(() {
-                _success = 'Registration successful! Please sign in.';
+                _success = l10n.registrationSuccessful;
               });
               await Future.delayed(const Duration(seconds: 1));
               if (mounted) {
@@ -90,14 +93,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           }
         } else {
           setState(() {
-            _error = 'Registration failed. Username or email may already exist.';
+            _error = l10n.registrationFailed;
           });
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'An error occurred: $e';
+          _error = l10n.anErrorOccurred(e.toString());
         });
       }
     } finally {
@@ -113,6 +116,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final colors = theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -136,10 +140,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                 // Title
                 Text(
-                  'Create Account',
-                  style: theme.typography.xl2.copyWith(
+                  l10n.createAccount,
+                  style: context.textStyle(
                     fontWeight: FontWeight.bold,
                     color: colors.foreground,
+                    fontSize: 24,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -152,7 +157,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: FAlert(
                       style: FAlertStyle.primary(),
                       icon: Icon(FIcons.check),
-                      title: const Text('Success'),
+                      title: Text(l10n.success),
                       subtitle: Text(_success!),
                     ),
                   ),
@@ -164,7 +169,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: FAlert(
                       style: FAlertStyle.destructive(),
                       icon: Icon(FIcons.circleAlert),
-                      title: const Text('Error'),
+                      title: Text(l10n.error),
                       subtitle: Text(_error!),
                     ),
                   ),
@@ -172,8 +177,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Name field
                 FTextField(
                   control: FTextFieldControl.managed(controller: _nameController),
-                  label: const Text('Name'),
-                  hint: 'Your display name',
+                  label: Text(l10n.name),
+                  hint: l10n.yourDisplayName,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
@@ -181,8 +186,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Username field
                 FTextField(
                   control: FTextFieldControl.managed(controller: _usernameController),
-                  label: const Text('Username'),
-                  hint: 'Choose a username',
+                  label: Text(l10n.username),
+                  hint: l10n.chooseUsername,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
@@ -190,8 +195,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Email field
                 FTextField.email(
                   control: FTextFieldControl.managed(controller: _emailController),
-                  label: const Text('Email'),
-                  hint: 'Enter your email',
+                  label: Text(l10n.email),
+                  hint: l10n.enterEmail,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
@@ -199,8 +204,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Password field
                 FTextField.password(
                   control: FTextFieldControl.managed(controller: _passwordController),
-                  label: const Text('Password'),
-                  hint: 'Create a password',
+                  label: Text(l10n.password),
+                  hint: l10n.createPassword,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
@@ -208,8 +213,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Confirm password field
                 FTextField.password(
                   control: FTextFieldControl.managed(controller: _confirmPasswordController),
-                  label: const Text('Confirm Password'),
-                  hint: 'Confirm your password',
+                  label: Text(l10n.confirmPassword),
+                  hint: l10n.confirmYourPassword,
                   textInputAction: TextInputAction.done,
                   onSubmit: (_) => _handleRegister(),
                 ),
@@ -227,7 +232,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Register'),
+                      : Text(l10n.register),
                 ),
                 const SizedBox(height: 16),
 
@@ -236,18 +241,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Already have an account? ',
-                      style: theme.typography.sm.copyWith(
+                      l10n.alreadyHaveAccount,
+                      style: context.textStyle(
                         color: colors.mutedForeground,
+                        fontSize: 14,
                       ),
                     ),
                     GestureDetector(
                       onTap: () => context.go('/login'),
                       child: Text(
-                        'Sign In',
-                        style: theme.typography.sm.copyWith(
+                        l10n.signIn,
+                        style: context.textStyle(
                           color: colors.primary,
                           fontWeight: FontWeight.w600,
+                          fontSize: 14,
                         ),
                       ),
                     ),

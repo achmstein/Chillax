@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/loyalty_info.dart';
 
 /// Loyalty card widget for profile screen - Forui themed
@@ -20,6 +22,7 @@ class LoyaltyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final numberFormat = NumberFormat('#,###');
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return GestureDetector(
       onTap: onTap,
@@ -46,8 +49,8 @@ class LoyaltyCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Loyalty Rewards',
-                    style: TextStyle(
+                    l10n.loyaltyRewards,
+                    style: context.textStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                       color: colors.foreground,
@@ -74,7 +77,7 @@ class LoyaltyCard extends StatelessWidget {
                           children: [
                             Text(
                               '${numberFormat.format(loyaltyInfo.pointsBalance)} pts',
-                              style: TextStyle(
+                              style: context.textStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
                                 color: colors.foreground,
@@ -84,8 +87,8 @@ class LoyaltyCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Lifetime: ${numberFormat.format(loyaltyInfo.lifetimePoints)} pts',
-                        style: TextStyle(
+                        l10n.lifetimePoints(numberFormat.format(loyaltyInfo.lifetimePoints)),
+                        style: context.textStyle(
                           fontSize: 13,
                           color: colors.mutedForeground,
                         ),
@@ -110,8 +113,8 @@ class LoyaltyCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${numberFormat.format(loyaltyInfo.pointsToNextTier)} pts to ${loyaltyInfo.nextTier!.name[0].toUpperCase()}${loyaltyInfo.nextTier!.name.substring(1)}',
-                          style: TextStyle(
+                          l10n.pointsToNextTier(numberFormat.format(loyaltyInfo.pointsToNextTier), '${loyaltyInfo.nextTier!.name[0].toUpperCase()}${loyaltyInfo.nextTier!.name.substring(1)}'),
+                          style: context.textStyle(
                             fontSize: 13,
                             color: colors.mutedForeground,
                           ),
@@ -130,8 +133,8 @@ class LoyaltyCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          'View history',
-                          style: TextStyle(
+                          l10n.viewHistory,
+                          style: context.textStyle(
                             fontSize: 13,
                             color: colors.mutedForeground,
                           ),
@@ -188,7 +191,7 @@ class _TierBadge extends StatelessWidget {
       ),
       child: Text(
         tier.name.toUpperCase(),
-        style: TextStyle(
+        style: context.textStyle(
           color: textColor,
           fontSize: 11,
           fontWeight: FontWeight.bold,
@@ -213,6 +216,7 @@ class LoyaltyEmptyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -230,8 +234,8 @@ class LoyaltyEmptyCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Join our Loyalty Program',
-            style: TextStyle(
+            l10n.joinOurLoyaltyProgram,
+            style: context.textStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
               color: colors.foreground,
@@ -239,9 +243,9 @@ class LoyaltyEmptyCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Earn points on every purchase and unlock exclusive rewards!',
+            l10n.earnPointsDescription,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: context.textStyle(
               fontSize: 14,
               color: colors.mutedForeground,
             ),
@@ -261,7 +265,7 @@ class LoyaltyEmptyCard extends StatelessWidget {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('Join Now'),
+                    : Text(l10n.joinNow, style: context.textStyle()),
               ),
             ),
           ],

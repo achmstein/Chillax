@@ -1,3 +1,5 @@
+import '../../../core/models/localized_text.dart';
+
 /// Room display status from API
 enum RoomStatus {
   available(1, 'Available'),
@@ -41,8 +43,8 @@ enum SessionStatus {
 /// Room model
 class Room {
   final int id;
-  final String name;
-  final String? description;
+  final LocalizedText name;
+  final LocalizedText? description;
   final RoomStatus status;
   final double hourlyRate;
   final String? pictureUri;
@@ -58,8 +60,8 @@ class Room {
 
   Room copyWith({
     int? id,
-    String? name,
-    String? description,
+    LocalizedText? name,
+    LocalizedText? description,
     RoomStatus? status,
     double? hourlyRate,
     String? pictureUri,
@@ -79,8 +81,8 @@ class Room {
     final statusValue = json['displayStatus'] ?? json['status'];
     return Room(
       id: json['id'] as int,
-      name: json['name'] as String,
-      description: json['description'] as String?,
+      name: LocalizedText.parse(json['name']),
+      description: LocalizedText.parseNullable(json['description']),
       status: statusValue != null
           ? RoomStatus.fromValue(statusValue as int)
           : RoomStatus.available,
@@ -91,8 +93,10 @@ class Room {
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
-      'description': description,
+      'name': name.en,
+      'nameAr': name.ar,
+      'description': description?.en,
+      'descriptionAr': description?.ar,
       'hourlyRate': hourlyRate,
       'pictureFileName': pictureUri,
     };
@@ -103,7 +107,7 @@ class Room {
 class RoomSession {
   final int id;
   final int roomId;
-  final String roomName;
+  final LocalizedText roomName;
   final String? customerId;
   final String? userName;
   final DateTime reservationTime;
@@ -200,7 +204,7 @@ class RoomSession {
     return RoomSession(
       id: json['id'] as int,
       roomId: json['roomId'] as int,
-      roomName: json['roomName'] as String? ?? 'Room ${json['roomId']}',
+      roomName: LocalizedText.parse(json['roomName'] ?? 'Room ${json['roomId']}'),
       customerId: json['customerId'] as String?,
       userName: json['customerName'] as String?,
       reservationTime: DateTime.parse(createdAt as String),

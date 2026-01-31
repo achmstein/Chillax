@@ -408,7 +408,7 @@ class _SessionTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  session.roomName,
+                  session.roomName.en,
                   style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                 ),
                 Text(

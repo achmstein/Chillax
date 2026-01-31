@@ -156,6 +156,20 @@
   "roomReservedSuccess": "Room reserved! You have 15 minutes to arrive.",
   "failedToReserveRoom": "Failed to reserve room",
   "available": "Available",
+  "occupied": "Occupied",
+  "maintenance": "Maintenance",
+
+  "statusReserved": "Reserved",
+  "statusActive": "Active",
+  "statusCompleted": "Completed",
+  "statusCancelled": "Cancelled",
+
+  "hourlyRateFormat": "£{rate}/hour",
+  "@hourlyRateFormat": {
+    "placeholders": {
+      "rate": {"type": "String"}
+    }
+  },
 
   "orderHistory": "Order History",
   "sessionHistory": "Session History",
@@ -208,5 +222,82 @@
     "placeholders": {
       "price": {"type": "String"}
     }
-  }
+  },
+
+  "basePrice": "Base price: £{price}",
+  "@basePrice": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "specialInstructions": "Special Instructions",
+  "anySpecialRequestsOptional": "Any special requests?",
+  "required": "Required",
+
+  "loyaltyRewards": "Loyalty Rewards",
+  "recentActivity": "Recent Activity",
+  "noLoyaltyAccountYet": "No loyalty account yet",
+  "makePurchaseToEarn": "Make a purchase to start earning points!",
+  "noTransactionsYet": "No transactions yet",
+  "amountDue": "Amount Due",
+  "creditBalance": "Credit Balance",
+  "pleasePayAtCounter": "Please pay at the counter",
+  "willBeAppliedToNextPurchase": "Will be applied to your next purchase",
+  "noOutstandingBalance": "No outstanding balance",
+  "transactions": "Transactions",
+  "failedToLoadTransactions": "Failed to load transactions",
+  "failedToLoadFavorites": "Failed to load favorites: {error}",
+  "@failedToLoadFavorites": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "browseMenu": "Browse Menu",
+  "joinOurLoyaltyProgram": "Join our Loyalty Program",
+  "earnPointsDescription": "Earn points on every purchase and unlock exclusive rewards!",
+  "joinNow": "Join Now",
+  "viewHistory": "View history",
+  "lifetimePoints": "Lifetime: {points} pts",
+  "@lifetimePoints": {
+    "placeholders": {
+      "points": {"type": "String"}
+    }
+  },
+  "pointsToNextTier": "{points} pts to {tier}",
+  "@pointsToNextTier": {
+    "placeholders": {
+      "points": {"type": "String"},
+      "tier": {"type": "String"}
+    }
+  },
+
+  "rateYourOrder": "Rate Your Order",
+  "yourReviewOptional": "Your Review (optional)",
+  "shareYourExperience": "Share your experience...",
+  "submitRating": "Submit Rating",
+  "ratingPoor": "Poor",
+  "ratingFair": "Fair",
+  "ratingGood": "Good",
+  "ratingVeryGood": "Very Good",
+  "ratingExcellent": "Excellent",
+
+  "newPassword": "New Password",
+  "enterNewPassword": "Please enter a new password",
+  "passwordMustBe8Chars": "Password must be at least 8 characters",
+  "pleaseConfirmPassword": "Please confirm your password",
+  "passwordChangedSuccessfully": "Password changed successfully",
+  "failedToChangePassword": "Failed to change password. Please try again.",
+
+  "newEmail": "New Email",
+  "pleaseEnterEmail": "Please enter an email address",
+  "pleaseEnterValidEmail": "Please enter a valid email address",
+  "emailUpdatedSuccessfully": "Email updated successfully",
+  "failedToUpdateEmail": "Failed to update email. Please try again.",
+
+  "supportEmail": "support@chillax.com",
+  "supportPhone": "0100 469 8 469",
+
+  "joinedSessionSuccessfully": "Joined session successfully!",
+  "noFavoritesYet": "No favorites yet",
+  "noFavoritesDescription": "Items you love will appear here"
 }

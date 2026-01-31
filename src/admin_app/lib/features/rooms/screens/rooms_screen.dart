@@ -311,7 +311,7 @@ class _RoomTileState extends State<_RoomTile> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.room.name,
+                    widget.room.name.en,
                     style: theme.typography.base.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -320,7 +320,7 @@ class _RoomTileState extends State<_RoomTile> {
                   if (widget.room.description != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      widget.room.description!,
+                      widget.room.description!.en,
                       style: theme.typography.sm.copyWith(
                         color: theme.colors.mutedForeground,
                         fontSize: 13,

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../menu/models/menu_item.dart';
 import '../../menu/services/menu_service.dart';
 import '../../menu/providers/favorites_provider.dart';
@@ -49,10 +51,10 @@ class FavoritesScreen extends ConsumerWidget {
                     child: const Icon(FIcons.arrowLeft, size: 22),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Favorites',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      AppLocalizations.of(context)!.favorites,
+                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -71,11 +73,11 @@ class FavoritesScreen extends ConsumerWidget {
                     children: [
                       Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
                       const SizedBox(height: 16),
-                      Text('Failed to load favorites: $error', style: TextStyle(color: colors.foreground)),
+                      Text(AppLocalizations.of(context)!.failedToLoadFavorites(error.toString()), style: context.textStyle(color: colors.foreground)),
                       const SizedBox(height: 16),
                       FButton(
                         onPress: () => ref.refresh(favoriteMenuItemsProvider),
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context)!.retry, style: context.textStyle()),
                       ),
                     ],
                   ),
@@ -117,6 +119,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -128,8 +131,8 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No favorites yet',
-            style: TextStyle(
+            l10n.noFavoritesYet,
+            style: context.textStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: colors.foreground,
@@ -137,9 +140,9 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap the heart icon on menu items\nto add them to your favorites',
+            l10n.noFavoritesDescription,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: context.textStyle(
               fontSize: 14,
               color: colors.mutedForeground,
             ),
@@ -147,7 +150,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 24),
           FButton(
             onPress: () => context.go('/menu'),
-            child: const Text('Browse Menu'),
+            child: Text(l10n.browseMenu, style: context.textStyle()),
           ),
         ],
       ),
@@ -236,7 +239,7 @@ class _FavoriteItemTile extends ConsumerWidget {
                 children: [
                   Text(
                     item.name,
-                    style: TextStyle(
+                    style: context.textStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: colors.foreground,
@@ -246,7 +249,7 @@ class _FavoriteItemTile extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       item.description,
-                      style: TextStyle(
+                      style: context.textStyle(
                         color: colors.mutedForeground,
                         fontSize: 13,
                       ),
@@ -257,7 +260,7 @@ class _FavoriteItemTile extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     '\u00A3${item.price.toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: context.textStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: colors.foreground,
@@ -387,7 +390,7 @@ class _QuantityStepper extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               '$quantity',
-              style: TextStyle(
+              style: context.textStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
                 color: colors.foreground,

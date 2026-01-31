@@ -4,6 +4,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String _localeKey = 'app_locale';
 
+/// Cached initial locale loaded before app starts
+Locale? _initialLocale;
+
+/// Call this before runApp() to preload the saved locale
+Future<void> initializeLocale() async {
+  final prefs = await SharedPreferences.getInstance();
+  final savedLocale = prefs.getString(_localeKey);
+  _initialLocale = savedLocale != null ? Locale(savedLocale) : const Locale('ar');
+}
+
 /// Provider for managing the app's locale/language setting
 final localeProvider = NotifierProvider<LocaleNotifier, Locale>(() {
   return LocaleNotifier();
@@ -17,16 +27,8 @@ class LocaleNotifier extends Notifier<Locale> {
 
   @override
   Locale build() {
-    _loadSavedLocale();
-    return const Locale('ar'); // Default to Arabic
-  }
-
-  Future<void> _loadSavedLocale() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedLocale = prefs.getString(_localeKey);
-    if (savedLocale != null) {
-      state = Locale(savedLocale);
-    }
+    // Use preloaded locale or default to Arabic
+    return _initialLocale ?? const Locale('ar');
   }
 
   Future<void> setLocale(Locale locale) async {

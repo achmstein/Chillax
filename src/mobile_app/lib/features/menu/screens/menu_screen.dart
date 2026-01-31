@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../models/menu_item.dart';
 import '../services/menu_service.dart';
 import '../providers/favorites_provider.dart';
@@ -11,17 +14,17 @@ import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
 import '../widgets/item_customization_sheet.dart';
 
-/// Provider for grouped menu items by category
-final groupedMenuItemsProvider = FutureProvider<Map<String, List<MenuItem>>>((ref) async {
+/// Provider for grouped menu items by category with localized names
+final groupedMenuItemsProvider = FutureProvider.family<Map<MenuCategory, List<MenuItem>>, Locale>((ref, locale) async {
   final service = ref.watch(menuServiceProvider);
   final categories = await service.getCategories();
   final items = await service.getMenuItems();
 
-  final grouped = <String, List<MenuItem>>{};
+  final grouped = <MenuCategory, List<MenuItem>>{};
   for (final category in categories) {
     final categoryItems = items.where((item) => item.catalogTypeId == category.id).toList();
     if (categoryItems.isNotEmpty) {
-      grouped[category.name] = categoryItems;
+      grouped[category] = categoryItems;
     }
   }
   return grouped;
@@ -130,16 +133,18 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final groupedItemsAsync = ref.watch(groupedMenuItemsProvider);
+    final locale = ref.watch(localeProvider);
+    final groupedItemsAsync = ref.watch(groupedMenuItemsProvider(locale));
     final cart = ref.watch(cartProvider);
     final hasItems = !cart.isEmpty;
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
         // Header
         FHeader(
-          title: const Text('Menu', style: TextStyle(fontSize: 18)),
+          title: Text(l10n.menu, style: context.textStyle(fontSize: 18)),
         ),
 
         // Content
@@ -152,30 +157,31 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 children: [
                   Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
                   const SizedBox(height: 16),
-                  Text('Failed to load menu: $error', style: TextStyle(color: colors.foreground)),
+                  Text(l10n.failedToLoadMenu(error.toString()), style: context.textStyle(color: colors.foreground)),
                   const SizedBox(height: 16),
                   FButton(
-                    onPress: () => ref.refresh(groupedMenuItemsProvider),
-                    child: const Text('Retry'),
+                    onPress: () => ref.refresh(groupedMenuItemsProvider(locale)),
+                    child: Text(l10n.retry),
                   ),
                 ],
               ),
             ),
             data: (groupedItems) {
               if (groupedItems.isEmpty) {
-                return const Center(child: Text('No items available'));
+                return Center(child: Text(l10n.noItemsAvailable));
               }
 
-              // Initialize category keys
+              // Initialize category keys using localized names
               for (final category in groupedItems.keys) {
-                _categoryKeys.putIfAbsent(category, () => GlobalKey());
+                final localizedName = category.localizedName(locale);
+                _categoryKeys.putIfAbsent(localizedName, () => GlobalKey());
               }
 
               // Set initial selected category
-              _selectedCategory ??= groupedItems.keys.first;
+              _selectedCategory ??= groupedItems.keys.first.localizedName(locale);
 
               // Filter items based on search
-              final filteredItems = _filterItems(groupedItems);
+              final filteredItems = _filterItemsWithLocale(groupedItems, locale);
 
               return Column(
                 children: [
@@ -193,7 +199,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                           child: TextField(
                             controller: _searchController,
                             decoration: InputDecoration(
-                              hintText: 'Search menu...',
+                              hintText: l10n.searchMenu,
                               prefixIcon: Icon(FIcons.search, size: 20, color: colors.mutedForeground),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
@@ -228,7 +234,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
                   // Sticky category menu
                   _CategoryMenu(
-                    categories: groupedItems.keys.toList(),
+                    categories: groupedItems.keys.map((c) => c.localizedName(locale)).toList(),
                     selectedCategory: _selectedCategory,
                     onCategoryTap: _scrollToCategory,
                   ),
@@ -238,19 +244,21 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                     child: RefreshIndicator(
                       color: colors.primary,
                       backgroundColor: colors.background,
-                      onRefresh: () async => ref.refresh(groupedMenuItemsProvider),
+                      onRefresh: () async => ref.refresh(groupedMenuItemsProvider(locale)),
                       child: ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.only(bottom: 16),
                         cacheExtent: 2000, // Pre-render off-screen items for category scrolling
                         itemCount: filteredItems.length,
                         itemBuilder: (context, index) {
-                          final category = filteredItems.keys.elementAt(index);
-                          final items = filteredItems[category]!;
+                          final entry = filteredItems.entries.elementAt(index);
+                          final categoryName = entry.key.localizedName(locale);
+                          final items = entry.value;
                           return _CategorySection(
-                            key: _categoryKeys[category],
-                            categoryName: category,
+                            key: _categoryKeys[categoryName],
+                            categoryName: categoryName,
                             items: items,
+                            locale: locale,
                           );
                         },
                       ),
@@ -267,6 +275,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
           Builder(
             builder: (context) {
             final btnColors = context.theme.colors;
+            final btnL10n = AppLocalizations.of(context)!;
             return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -288,16 +297,16 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'View Cart',
-                      style: TextStyle(
+                    Text(
+                      btnL10n.viewCart,
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
                     Text(
                       '£${cart.totalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      style: context.textStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -313,15 +322,17 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     );
   }
 
-  Map<String, List<MenuItem>> _filterItems(Map<String, List<MenuItem>> items) {
+  Map<MenuCategory, List<MenuItem>> _filterItemsWithLocale(Map<MenuCategory, List<MenuItem>> items, Locale locale) {
     if (_searchQuery.isEmpty) return items;
 
-    final filtered = <String, List<MenuItem>>{};
+    final filtered = <MenuCategory, List<MenuItem>>{};
     final query = _searchQuery.toLowerCase();
 
     for (final entry in items.entries) {
       final matchingItems = entry.value
           .where((item) =>
+              item.localizedName(locale).toLowerCase().contains(query) ||
+              item.localizedDescription(locale).toLowerCase().contains(query) ||
               item.name.toLowerCase().contains(query) ||
               item.description.toLowerCase().contains(query))
           .toList();
@@ -416,7 +427,7 @@ class _CategoryMenuState extends State<_CategoryMenu> {
               alignment: Alignment.center,
               child: Text(
                 category,
-                style: TextStyle(
+                style: context.textStyle(
                   color: isSelected ? colors.primary : colors.mutedForeground,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 14,
@@ -434,11 +445,13 @@ class _CategoryMenuState extends State<_CategoryMenu> {
 class _CategorySection extends StatelessWidget {
   final String categoryName;
   final List<MenuItem> items;
+  final Locale locale;
 
   const _CategorySection({
     super.key,
     required this.categoryName,
     required this.items,
+    required this.locale,
   });
 
   @override
@@ -452,7 +465,7 @@ class _CategorySection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(
             categoryName,
-            style: TextStyle(
+            style: context.textStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
               color: colors.foreground,
@@ -463,6 +476,7 @@ class _CategorySection extends StatelessWidget {
         ...items.asMap().entries.map((entry) => MenuItemTile(
           item: entry.value,
           isLast: entry.key == items.length - 1,
+          locale: locale,
         )),
       ],
     );
@@ -473,8 +487,9 @@ class _CategorySection extends StatelessWidget {
 class MenuItemTile extends ConsumerWidget {
   final MenuItem item;
   final bool isLast;
+  final Locale locale;
 
-  const MenuItemTile({super.key, required this.item, this.isLast = false});
+  const MenuItemTile({super.key, required this.item, this.isLast = false, required this.locale});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -559,18 +574,18 @@ class MenuItemTile extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.name,
-                    style: TextStyle(
+                    item.localizedName(locale),
+                    style: context.textStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: colors.foreground,
                     ),
                   ),
-                  if (item.description.isNotEmpty) ...[
+                  if (item.localizedDescription(locale).isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
-                      item.description,
-                      style: TextStyle(
+                      item.localizedDescription(locale),
+                      style: context.textStyle(
                         color: colors.mutedForeground,
                         fontSize: 13,
                       ),
@@ -581,7 +596,7 @@ class MenuItemTile extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     '£${item.price.toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: context.textStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: colors.foreground,
@@ -711,7 +726,7 @@ class _QuantityStepper extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               '$quantity',
-              style: TextStyle(
+              style: context.textStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
                 color: colors.foreground,

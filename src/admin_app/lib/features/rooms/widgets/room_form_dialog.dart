@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import '../../../core/models/localized_text.dart';
 import '../models/room.dart';
 import '../providers/rooms_provider.dart';
 
@@ -27,9 +28,9 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.room?.name ?? '');
+    _nameController = TextEditingController(text: widget.room?.name.en ?? '');
     _descriptionController =
-        TextEditingController(text: widget.room?.description ?? '');
+        TextEditingController(text: widget.room?.description?.en ?? '');
     _hourlyRateController = TextEditingController(
         text: widget.room?.hourlyRate.toStringAsFixed(2) ?? '');
   }
@@ -131,9 +132,15 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
 
     final room = Room(
       id: widget.room?.id ?? 0,
-      name: _nameController.text.trim(),
+      name: LocalizedText(
+        en: _nameController.text.trim(),
+        ar: widget.room?.name.ar,
+      ),
       description: _descriptionController.text.trim().isNotEmpty
-          ? _descriptionController.text.trim()
+          ? LocalizedText(
+              en: _descriptionController.text.trim(),
+              ar: widget.room?.description?.ar,
+            )
           : null,
       status: widget.room?.status ?? RoomStatus.available,
       hourlyRate: double.parse(_hourlyRateController.text),

@@ -380,6 +380,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get available => 'Available';
 
   @override
+  String get occupied => 'Occupied';
+
+  @override
+  String get maintenance => 'Maintenance';
+
+  @override
+  String get statusReserved => 'Reserved';
+
+  @override
+  String get statusActive => 'Active';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String hourlyRateFormat(String rate) {
+    return '£$rate/hour';
+  }
+
+  @override
   String get orderHistory => 'Order History';
 
   @override
@@ -503,4 +526,162 @@ class AppLocalizationsEn extends AppLocalizations {
   String priceFormat(String price) {
     return '$price EGP';
   }
+
+  @override
+  String basePrice(String price) {
+    return 'Base price: £$price';
+  }
+
+  @override
+  String get specialInstructions => 'Special Instructions';
+
+  @override
+  String get anySpecialRequestsOptional => 'Any special requests?';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get loyaltyRewards => 'Loyalty Rewards';
+
+  @override
+  String get recentActivity => 'Recent Activity';
+
+  @override
+  String get noLoyaltyAccountYet => 'No loyalty account yet';
+
+  @override
+  String get makePurchaseToEarn => 'Make a purchase to start earning points!';
+
+  @override
+  String get noTransactionsYet => 'No transactions yet';
+
+  @override
+  String get amountDue => 'Amount Due';
+
+  @override
+  String get creditBalance => 'Credit Balance';
+
+  @override
+  String get pleasePayAtCounter => 'Please pay at the counter';
+
+  @override
+  String get willBeAppliedToNextPurchase =>
+      'Will be applied to your next purchase';
+
+  @override
+  String get noOutstandingBalance => 'No outstanding balance';
+
+  @override
+  String get transactions => 'Transactions';
+
+  @override
+  String get failedToLoadTransactions => 'Failed to load transactions';
+
+  @override
+  String failedToLoadFavorites(String error) {
+    return 'Failed to load favorites: $error';
+  }
+
+  @override
+  String get browseMenu => 'Browse Menu';
+
+  @override
+  String get joinOurLoyaltyProgram => 'Join our Loyalty Program';
+
+  @override
+  String get earnPointsDescription =>
+      'Earn points on every purchase and unlock exclusive rewards!';
+
+  @override
+  String get joinNow => 'Join Now';
+
+  @override
+  String get viewHistory => 'View history';
+
+  @override
+  String lifetimePoints(String points) {
+    return 'Lifetime: $points pts';
+  }
+
+  @override
+  String pointsToNextTier(String points, String tier) {
+    return '$points pts to $tier';
+  }
+
+  @override
+  String get rateYourOrder => 'Rate Your Order';
+
+  @override
+  String get yourReviewOptional => 'Your Review (optional)';
+
+  @override
+  String get shareYourExperience => 'Share your experience...';
+
+  @override
+  String get submitRating => 'Submit Rating';
+
+  @override
+  String get ratingPoor => 'Poor';
+
+  @override
+  String get ratingFair => 'Fair';
+
+  @override
+  String get ratingGood => 'Good';
+
+  @override
+  String get ratingVeryGood => 'Very Good';
+
+  @override
+  String get ratingExcellent => 'Excellent';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get enterNewPassword => 'Please enter a new password';
+
+  @override
+  String get passwordMustBe8Chars => 'Password must be at least 8 characters';
+
+  @override
+  String get pleaseConfirmPassword => 'Please confirm your password';
+
+  @override
+  String get passwordChangedSuccessfully => 'Password changed successfully';
+
+  @override
+  String get failedToChangePassword =>
+      'Failed to change password. Please try again.';
+
+  @override
+  String get newEmail => 'New Email';
+
+  @override
+  String get pleaseEnterEmail => 'Please enter an email address';
+
+  @override
+  String get pleaseEnterValidEmail => 'Please enter a valid email address';
+
+  @override
+  String get emailUpdatedSuccessfully => 'Email updated successfully';
+
+  @override
+  String get failedToUpdateEmail => 'Failed to update email. Please try again.';
+
+  @override
+  String get supportEmail => 'support@chillax.com';
+
+  @override
+  String get supportPhone => '0100 469 8 469';
+
+  @override
+  String get joinedSessionSuccessfully => 'Joined session successfully!';
+
+  @override
+  String get noFavoritesYet => 'No favorites yet';
+
+  @override
+  String get noFavoritesDescription => 'Items you love will appear here';
 }

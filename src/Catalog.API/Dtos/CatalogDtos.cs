@@ -7,11 +7,14 @@ public record CatalogItemDto
 {
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
+    public string? NameAr { get; init; }
     public string? Description { get; init; }
+    public string? DescriptionAr { get; init; }
     public decimal Price { get; init; }
     public string? PictureUri { get; init; }
     public int CatalogTypeId { get; init; }
     public string CatalogTypeName { get; init; } = string.Empty;
+    public string? CatalogTypeNameAr { get; init; }
     public bool IsAvailable { get; init; }
     public int? PreparationTimeMinutes { get; init; }
     public List<ItemCustomizationDto> Customizations { get; init; } = new();
@@ -24,6 +27,7 @@ public record CatalogTypeDto
 {
     public int Id { get; init; }
     public string Type { get; init; } = string.Empty;
+    public string? TypeAr { get; init; }
 }
 
 /// <summary>
@@ -33,6 +37,7 @@ public record ItemCustomizationDto
 {
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
+    public string? NameAr { get; init; }
     public bool IsRequired { get; init; }
     public bool AllowMultiple { get; init; }
     public List<CustomizationOptionDto> Options { get; init; } = new();
@@ -45,6 +50,7 @@ public record CustomizationOptionDto
 {
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
+    public string? NameAr { get; init; }
     public decimal PriceAdjustment { get; init; }
     public bool IsDefault { get; init; }
 }

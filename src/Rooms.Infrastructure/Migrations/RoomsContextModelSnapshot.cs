@@ -184,6 +184,9 @@ namespace Rooms.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("DescriptionAr")
+                        .HasColumnType("text");
+
                     b.Property<decimal>("HourlyRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -192,6 +195,9 @@ namespace Rooms.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NameAr")
+                        .HasColumnType("text");
 
                     b.Property<string>("PhysicalStatus")
                         .IsRequired()

@@ -4,6 +4,8 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/cart_item.dart';
 import '../services/cart_service.dart';
 import '../../orders/services/order_service.dart';
@@ -35,6 +37,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final cart = ref.watch(cartProvider);
     final checkoutState = ref.watch(checkoutProvider);
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
       child: SafeArea(
@@ -51,10 +54,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     child: const Icon(FIcons.arrowLeft, size: 22),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Cart',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      l10n.cart,
+                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                   if (!cart.isEmpty)
@@ -102,8 +105,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     // Note
                                     FTextField.multiline(
                                       control: FTextFieldControl.managed(controller: _noteController),
-                                      label: const Text('Order Note (optional)'),
-                                      hint: 'Any special requests',
+                                      label: Text(l10n.orderNoteOptional),
+                                      hint: l10n.anySpecialRequests,
                                     ),
                                     const SizedBox(height: 16),
 
@@ -139,9 +142,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                                     strokeWidth: 2,
                                                   ),
                                                 )
-                                              : const Text(
-                                                  'Place Order',
-                                                  style: TextStyle(
+                                              : Text(
+                                                  l10n.placeOrder,
+                                                  style: context.textStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 15,
                                                   ),
@@ -165,6 +168,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   Widget _buildPointsRedemption(double orderTotal, dynamic colors) {
+    final l10n = AppLocalizations.of(context)!;
     final loyaltyState = ref.watch(loyaltyProvider);
     final loyaltyInfo = loyaltyState.loyaltyInfo;
 
@@ -194,16 +198,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Use Loyalty Points',
-                  style: TextStyle(
+                  l10n.useLoyaltyPoints,
+                  style: context.textStyle(
                     fontWeight: FontWeight.w600,
                     color: colors.foreground,
                   ),
                 ),
               ),
               Text(
-                '${numberFormat.format(loyaltyInfo.pointsBalance)} pts',
-                style: TextStyle(
+                '${numberFormat.format(loyaltyInfo.pointsBalance)} ${l10n.pts}',
+                style: context.textStyle(
                   fontSize: 13,
                   color: colors.mutedForeground,
                 ),
@@ -262,14 +266,14 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               children: [
                 Text(
                   '${numberFormat.format(_pointsToRedeem)} pts',
-                  style: TextStyle(
+                  style: context.textStyle(
                     fontWeight: FontWeight.w600,
                     color: colors.foreground,
                   ),
                 ),
                 Text(
                   '-£${discount.toStringAsFixed(2)}',
-                  style: TextStyle(
+                  style: context.textStyle(
                     fontWeight: FontWeight.w600,
                     color: AppTheme.successColor,
                   ),
@@ -283,6 +287,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   Widget _buildTotalSection(double orderTotal, dynamic colors) {
+    final l10n = AppLocalizations.of(context)!;
     final discount = LoyaltyNotifier.pointsToDiscount(_pointsToRedeem);
     final finalTotal = orderTotal - discount;
 
@@ -294,15 +299,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Subtotal',
-                style: TextStyle(
+                l10n.subtotal,
+                style: context.textStyle(
                   fontSize: 14,
                   color: colors.mutedForeground,
                 ),
               ),
               Text(
                 '£${orderTotal.toStringAsFixed(2)}',
-                style: TextStyle(
+                style: context.textStyle(
                   fontSize: 14,
                   color: colors.mutedForeground,
                 ),
@@ -314,15 +319,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Points discount',
-                style: TextStyle(
+                l10n.pointsDiscount,
+                style: context.textStyle(
                   fontSize: 14,
                   color: AppTheme.successColor,
                 ),
               ),
               Text(
                 '-£${discount.toStringAsFixed(2)}',
-                style: TextStyle(
+                style: context.textStyle(
                   fontSize: 14,
                   color: AppTheme.successColor,
                 ),
@@ -335,16 +340,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Total',
-              style: TextStyle(
+            Text(
+              l10n.total,
+              style: context.textStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               '£${finalTotal.toStringAsFixed(2)}',
-              style: const TextStyle(
+              style: context.textStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -357,6 +362,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
   Widget _buildEmptyCart() {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -368,16 +374,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Your cart is empty',
-            style: TextStyle(
+            l10n.yourCartIsEmpty,
+            style: context.textStyle(
               fontSize: 18,
               color: colors.foreground,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Add items from the menu',
-            style: TextStyle(
+            l10n.addItemsFromMenu,
+            style: context.textStyle(
               color: colors.mutedForeground,
             ),
           ),
@@ -387,19 +393,20 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   void _showClearCartDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showFDialog(
       context: context,
       builder: (context, style, animation) => FDialog(
         style: style.call,
         animation: animation,
-        title: const Text('Clear Cart'),
-        body: const Text('Remove all items from your cart?'),
+        title: Text(l10n.clearCart),
+        body: Text(l10n.removeAllItemsFromCart),
         direction: Axis.horizontal,
         actions: [
           FButton(
             style: FButtonStyle.outline(),
             onPress: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FButton(
             style: FButtonStyle.destructive(),
@@ -407,7 +414,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               ref.read(cartProvider.notifier).clear();
               Navigator.pop(context);
             },
-            child: const Text('Clear'),
+            child: Text(l10n.clear),
           ),
         ],
       ),
@@ -415,6 +422,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   void _handleCheckout(Cart cart) async {
+    final l10n = AppLocalizations.of(context)!;
     final note = _noteController.text.isNotEmpty ? _noteController.text : null;
 
     // Get active room session's room name (if any)
@@ -423,7 +431,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     sessionsState.whenData((sessions) {
       final activeSession = sessions.where((s) => s.status == SessionStatus.active).firstOrNull;
       if (activeSession != null) {
-        roomName = activeSession.roomName;
+        roomName = activeSession.roomName.en;
       }
     });
 
@@ -448,14 +456,14 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       context.go('/orders');
       showFToast(
         context: context,
-        title: const Text('Order placed successfully!'),
+        title: Text(l10n.orderPlacedSuccessfully),
         icon: Icon(FIcons.check, color: AppTheme.successColor),
       );
     } else if (mounted) {
       final error = ref.read(checkoutProvider).error;
       showFToast(
         context: context,
-        title: Text(error ?? 'Failed to place order'),
+        title: Text(error ?? l10n.failedToPlaceOrder),
         icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
       );
     }
@@ -526,7 +534,7 @@ class CartItemTile extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         item.productName,
-                        style: TextStyle(
+                        style: context.textStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: colors.foreground,
@@ -545,7 +553,7 @@ class CartItemTile extends ConsumerWidget {
                     item.selectedCustomizations
                         .map((c) => c.optionName)
                         .join(', '),
-                    style: TextStyle(
+                    style: context.textStyle(
                       color: colors.mutedForeground,
                       fontSize: 13,
                     ),
@@ -554,11 +562,10 @@ class CartItemTile extends ConsumerWidget {
                 if (item.specialInstructions != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Note: ${item.specialInstructions}',
-                    style: TextStyle(
+                    AppLocalizations.of(context)!.noteWithText(item.specialInstructions!),
+                    style: context.textStyle(
                       color: colors.mutedForeground,
                       fontSize: 13,
-                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
@@ -594,7 +601,7 @@ class CartItemTile extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
                             '${item.quantity}',
-                            style: const TextStyle(
+                            style: context.textStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -618,7 +625,7 @@ class CartItemTile extends ConsumerWidget {
                     // Price
                     Text(
                       '£${item.totalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      style: context.textStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

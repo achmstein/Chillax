@@ -12,64 +12,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appTitle => 'تشيلاكس';
 
   @override
-  String get cafeAndGaming => 'كافيه وألعاب';
+  String get cafeAndGaming => 'كافيه وجيمنج';
 
   @override
-  String get signIn => 'تسجيل الدخول';
+  String get signIn => 'دخول';
 
   @override
-  String get signUp => 'إنشاء حساب';
+  String get signUp => 'تسجيل';
 
   @override
   String get register => 'تسجيل';
 
   @override
-  String get signOut => 'تسجيل الخروج';
+  String get signOut => 'خروج';
 
   @override
-  String get username => 'اسم المستخدم';
+  String get username => 'اليوزر';
 
   @override
-  String get usernameOrEmail => 'اسم المستخدم أو البريد';
+  String get usernameOrEmail => 'اليوزر أو الايميل';
 
   @override
-  String get email => 'البريد الإلكتروني';
+  String get email => 'الايميل';
 
   @override
-  String get password => 'كلمة المرور';
+  String get password => 'الباسورد';
 
   @override
-  String get confirmPassword => 'تأكيد كلمة المرور';
+  String get confirmPassword => 'تأكيد الباسورد';
 
   @override
   String get name => 'الاسم';
 
   @override
-  String get enterUsername => 'أدخل اسم المستخدم';
+  String get enterUsername => 'ادخل اليوزر';
 
   @override
-  String get enterUsernameOrEmail => 'أدخل اسم المستخدم أو البريد';
+  String get enterUsernameOrEmail => 'ادخل اليوزر أو الايميل';
 
   @override
-  String get enterEmail => 'أدخل بريدك الإلكتروني';
+  String get enterEmail => 'ادخل الايميل';
 
   @override
-  String get enterPassword => 'أدخل كلمة المرور';
+  String get enterPassword => 'ادخل الباسورد';
 
   @override
-  String get createPassword => 'أنشئ كلمة مرور';
+  String get createPassword => 'اعمل باسورد';
 
   @override
-  String get confirmYourPassword => 'أكد كلمة المرور';
+  String get confirmYourPassword => 'أكد الباسورد';
 
   @override
-  String get chooseUsername => 'اختر اسم مستخدم';
+  String get chooseUsername => 'اختار يوزر';
 
   @override
-  String get yourDisplayName => 'اسمك المعروض';
+  String get yourDisplayName => 'اسمك';
 
   @override
-  String get orContinueWith => 'أو تابع باستخدام';
+  String get orContinueWith => 'أو سجل بـ';
 
   @override
   String get google => 'جوجل';
@@ -78,149 +78,147 @@ class AppLocalizationsAr extends AppLocalizations {
   String get facebook => 'فيسبوك';
 
   @override
-  String get dontHaveAccount => 'ليس لديك حساب؟ ';
+  String get dontHaveAccount => 'معندكش حساب؟ ';
 
   @override
-  String get alreadyHaveAccount => 'لديك حساب بالفعل؟ ';
+  String get alreadyHaveAccount => 'عندك حساب؟ ';
 
   @override
-  String get createAccount => 'إنشاء حساب';
+  String get createAccount => 'عمل حساب';
 
   @override
   String get guestUser => 'زائر';
 
   @override
-  String get enterBothUsernamePassword =>
-      'الرجاء إدخال اسم المستخدم وكلمة المرور.';
+  String get enterBothUsernamePassword => 'ادخل اليوزر والباسورد.';
 
   @override
-  String get invalidCredentials =>
-      'اسم المستخدم أو كلمة المرور غير صحيحة. حاول مرة أخرى.';
+  String get invalidCredentials => 'اليوزر أو الباسورد غلط. جرب تاني.';
 
   @override
   String anErrorOccurred(String error) {
-    return 'حدث خطأ: $error';
+    return 'حصل مشكلة: $error';
   }
 
   @override
-  String get socialSignInFailed => 'فشل تسجيل الدخول. حاول مرة أخرى.';
+  String get socialSignInFailed => 'الدخول فشل. جرب تاني.';
 
   @override
-  String get fillAllFields => 'الرجاء ملء جميع الحقول.';
+  String get fillAllFields => 'املا كل الخانات.';
 
   @override
-  String get passwordsDontMatch => 'كلمتا المرور غير متطابقتين.';
+  String get passwordsDontMatch => 'الباسورد مش متطابق.';
 
   @override
-  String get passwordTooShort => 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.';
+  String get passwordTooShort => 'الباسورد لازم يكون 6 حروف على الأقل.';
 
   @override
-  String get registrationSuccessful => 'تم التسجيل بنجاح! قم بتسجيل الدخول.';
+  String get registrationSuccessful => 'تم التسجيل! سجل دخولك.';
 
   @override
   String get registrationFailed =>
-      'فشل التسجيل. اسم المستخدم أو البريد موجود مسبقاً.';
+      'التسجيل فشل. اليوزر أو الايميل موجود قبل كده.';
 
   @override
-  String get success => 'نجاح';
+  String get success => 'تمام';
 
   @override
   String get error => 'خطأ';
 
   @override
-  String get cancel => 'إلغاء';
+  String get cancel => 'الغاء';
 
   @override
-  String get delete => 'حذف';
+  String get delete => 'مسح';
 
   @override
   String get clear => 'مسح';
 
   @override
-  String get retry => 'إعادة المحاولة';
+  String get retry => 'جرب تاني';
 
   @override
-  String get join => 'انضمام';
+  String get join => 'ادخل';
 
   @override
-  String get close => 'إغلاق';
+  String get close => 'قفل';
 
   @override
-  String get menu => 'القائمة';
+  String get menu => 'المنيو';
 
   @override
   String get orders => 'الطلبات';
 
   @override
-  String get rooms => 'الغرف';
+  String get rooms => 'الاوض';
 
   @override
-  String get profile => 'الملف الشخصي';
+  String get profile => 'حسابي';
 
   @override
   String get cart => 'السلة';
 
   @override
-  String get settings => 'الإعدادات';
+  String get settings => 'الاعدادات';
 
   @override
-  String get searchMenu => 'البحث في القائمة...';
+  String get searchMenu => 'دور في المنيو...';
 
   @override
-  String get noItemsAvailable => 'لا توجد عناصر متاحة';
+  String get noItemsAvailable => 'مفيش حاجات متاحة';
 
   @override
   String failedToLoadMenu(String error) {
-    return 'فشل تحميل القائمة: $error';
+    return 'المنيو مش بيحمل: $error';
   }
 
   @override
-  String get viewCart => 'عرض السلة';
+  String get viewCart => 'شوف السلة';
 
   @override
   String get addToCart => 'أضف للسلة';
 
   @override
-  String get yourCartIsEmpty => 'السلة فارغة';
+  String get yourCartIsEmpty => 'السلة فاضية';
 
   @override
-  String get addItemsFromMenu => 'أضف عناصر من القائمة';
+  String get addItemsFromMenu => 'ضيف حاجات من المنيو';
 
   @override
-  String get orderNoteOptional => 'ملاحظة الطلب (اختياري)';
+  String get orderNoteOptional => 'ملاحظة (اختياري)';
 
   @override
   String get anySpecialRequests => 'أي طلبات خاصة';
 
   @override
-  String get useLoyaltyPoints => 'استخدم نقاط الولاء';
+  String get useLoyaltyPoints => 'استخدم النقط';
 
   @override
   String get pts => 'نقطة';
 
   @override
-  String get subtotal => 'المجموع الفرعي';
+  String get subtotal => 'المجموع';
 
   @override
-  String get pointsDiscount => 'خصم النقاط';
+  String get pointsDiscount => 'خصم النقط';
 
   @override
   String get total => 'الإجمالي';
 
   @override
-  String get placeOrder => 'تأكيد الطلب';
+  String get placeOrder => 'أكد الطلب';
 
   @override
-  String get clearCart => 'إفراغ السلة';
+  String get clearCart => 'فضي السلة';
 
   @override
-  String get removeAllItemsFromCart => 'حذف جميع العناصر من السلة؟';
+  String get removeAllItemsFromCart => 'تمسح كل الحاجات من السلة؟';
 
   @override
-  String get orderPlacedSuccessfully => 'تم تأكيد الطلب بنجاح!';
+  String get orderPlacedSuccessfully => 'الطلب اتأكد!';
 
   @override
-  String get failedToPlaceOrder => 'فشل تأكيد الطلب';
+  String get failedToPlaceOrder => 'الطلب مش بيتأكد';
 
   @override
   String noteWithText(String notes) {
@@ -228,16 +226,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get failedToLoadOrders => 'فشل تحميل الطلبات';
+  String get failedToLoadOrders => 'الطلبات مش بتحمل';
 
   @override
-  String get pullDownToRetry => 'اسحب للأسفل للمحاولة مجدداً';
+  String get pullDownToRetry => 'اسحب لتحت تجرب تاني';
 
   @override
-  String get noOrdersYet => 'لا توجد طلبات بعد';
+  String get noOrdersYet => 'مفيش طلبات لسه';
 
   @override
-  String get orderHistoryWillAppearHere => 'سيظهر سجل طلباتك هنا';
+  String get orderHistoryWillAppearHere => 'طلباتك هتظهر هنا';
 
   @override
   String orderNumber(String id) {
@@ -245,113 +243,113 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get noItems => 'لا توجد عناصر';
+  String get noItems => 'مفيش حاجات';
 
   @override
   String get yourRating => 'تقييمك: ';
 
   @override
-  String get rateThisOrder => 'قيّم هذا الطلب';
+  String get rateThisOrder => 'قيّم الطلب ده';
 
   @override
-  String get failedToLoadDetails => 'فشل تحميل التفاصيل';
+  String get failedToLoadDetails => 'التفاصيل مش بتحمل';
 
   @override
-  String get enterSixDigitCode => 'أدخل كود من 6 أرقام';
+  String get enterSixDigitCode => 'ادخل كود من 6 أرقام';
 
   @override
-  String get enterCode => 'أدخل الكود';
+  String get enterCode => 'ادخل الكود';
 
   @override
-  String get invalidCode => 'كود غير صحيح';
+  String get invalidCode => 'الكود غلط';
 
   @override
-  String get joinedSession => 'تم الانضمام للجلسة!';
+  String get joinedSession => 'دخلت الجلسة!';
 
   @override
-  String get failedToLoadRooms => 'فشل تحميل الغرف';
+  String get failedToLoadRooms => 'الاوض مش بتحمل';
 
   @override
-  String get sessionActive => 'الجلسة نشطة';
+  String get sessionActive => 'الجلسة شغالة';
 
   @override
-  String get shareCodeWithFriends => 'شارك الكود مع أصدقائك';
+  String get shareCodeWithFriends => 'شير الكود مع صحابك';
 
   @override
-  String get codeCopied => 'تم نسخ الكود!';
+  String get codeCopied => 'الكود اتنسخ!';
 
   @override
-  String get needSomething => 'تحتاج شيء؟';
+  String get needSomething => 'عايز حاجة؟';
 
   @override
-  String get callWaiter => 'استدعاء النادل';
+  String get callWaiter => 'نادي الجرسون';
 
   @override
-  String get controller => 'يد تحكم';
+  String get controller => 'دراع';
 
   @override
-  String get getBill => 'الحساب';
+  String get getBill => 'الفاتورة';
 
   @override
-  String get waiterNotified => 'تم إبلاغ النادل';
+  String get waiterNotified => 'الجرسون عرف';
 
   @override
-  String get controllerRequestSent => 'تم إرسال طلب يد التحكم';
+  String get controllerRequestSent => 'طلب الدراع اتبعت';
 
   @override
-  String get billRequestSent => 'تم إرسال طلب الحساب';
+  String get billRequestSent => 'طلب الفاتورة اتبعت';
 
   @override
   String get reserved => 'محجوز';
 
   @override
-  String get cancelReservation => 'إلغاء الحجز';
+  String get cancelReservation => 'الغي الحجز';
 
   @override
-  String get cancelReservationQuestion => 'إلغاء الحجز؟';
+  String get cancelReservationQuestion => 'تلغي الحجز؟';
 
   @override
-  String get confirmCancelReservation => 'هل أنت متأكد من إلغاء الحجز؟';
+  String get confirmCancelReservation => 'متأكد انك عايز تلغي الحجز؟';
 
   @override
-  String get noKeep => 'لا، احتفظ';
+  String get noKeep => 'لا، خليه';
 
   @override
-  String get yesCancel => 'نعم، إلغاء';
+  String get yesCancel => 'أيوه، الغي';
 
   @override
-  String get reservationCancelled => 'تم إلغاء الحجز';
+  String get reservationCancelled => 'الحجز اتلغى';
 
   @override
-  String get failedToCancelReservation => 'فشل إلغاء الحجز';
+  String get failedToCancelReservation => 'الحجز مش بيتلغي';
 
   @override
-  String get allRoomsBusy => 'جميع الغرف مشغولة حالياً';
+  String get allRoomsBusy => 'كل الاوض مشغولة دلوقتي';
 
   @override
-  String get getNotifiedWhenAvailable => 'احصل على إشعار عند توفر غرفة';
+  String get getNotifiedWhenAvailable => 'هنبلغك لما اوضة تفضى';
 
   @override
-  String get willBeNotifiedWhenAvailable => 'سيتم إشعارك عند توفر غرفة';
+  String get willBeNotifiedWhenAvailable => 'هنبلغك لما اوضة تفضى';
 
   @override
-  String get unsubscribedFromNotifications => 'تم إلغاء الاشتراك في الإشعارات';
+  String get unsubscribedFromNotifications => 'الاشعارات اتلغت';
 
   @override
-  String get youWillBeNotified => 'سيتم إشعارك!';
+  String get youWillBeNotified => 'هنبلغك!';
 
   @override
-  String get failedToSubscribe => 'فشل الاشتراك';
+  String get failedToSubscribe => 'الاشتراك فشل';
 
   @override
-  String get notifyMe => 'أبلغني';
+  String get notifyMe => 'بلغني';
 
   @override
-  String get fifteenMinutesToArrive => '15 دقيقة للوصول';
+  String get fifteenMinutesToArrive => 'عندك 15 دقيقة توصل';
 
   @override
   String get reservationCancelledIfNoCheckIn =>
-      'سيتم إلغاء حجزك تلقائياً إذا لم تصل خلال 15 دقيقة.';
+      'الحجز هيتلغي لو موصلتش خلال 15 دقيقة.';
 
   @override
   String reserveRoomName(String roomName) {
@@ -362,74 +360,96 @@ class AppLocalizationsAr extends AppLocalizations {
   String get perHour => '/ساعة';
 
   @override
-  String get reserveNow => 'احجز الآن';
+  String get reserveNow => 'احجز دلوقتي';
 
   @override
-  String get roomReservedSuccess => 'تم الحجز! لديك 15 دقيقة للوصول.';
+  String get roomReservedSuccess => 'الحجز تم! عندك 15 دقيقة توصل.';
 
   @override
-  String get failedToReserveRoom => 'فشل حجز الغرفة';
+  String get failedToReserveRoom => 'الحجز فشل';
 
   @override
   String get available => 'متاح';
 
   @override
-  String get orderHistory => 'سجل الطلبات';
+  String get occupied => 'مشغول';
 
   @override
-  String get sessionHistory => 'سجل الجلسات';
+  String get maintenance => 'صيانة';
+
+  @override
+  String get statusReserved => 'محجوز';
+
+  @override
+  String get statusActive => 'شغال';
+
+  @override
+  String get statusCompleted => 'انتهى';
+
+  @override
+  String get statusCancelled => 'ملغي';
+
+  @override
+  String hourlyRateFormat(String rate) {
+    return '£$rate/ساعة';
+  }
+
+  @override
+  String get orderHistory => 'طلباتي السابقة';
+
+  @override
+  String get sessionHistory => 'جلساتي السابقة';
 
   @override
   String get favorites => 'المفضلة';
 
   @override
-  String get helpAndSupport => 'المساعدة والدعم';
+  String get helpAndSupport => 'المساعدة';
 
   @override
-  String get about => 'حول التطبيق';
+  String get about => 'عن التطبيق';
 
   @override
   String version(String version) {
-    return 'الإصدار $version';
+    return 'الاصدار $version';
   }
 
   @override
-  String get signOutConfirmation => 'هل أنت متأكد من تسجيل الخروج؟';
+  String get signOutConfirmation => 'متأكد انك عايز تخرج؟';
 
   @override
-  String get needHelpContactUs => 'تحتاج مساعدة؟ تواصل معنا:';
+  String get needHelpContactUs => 'محتاج مساعدة؟ كلمنا:';
 
   @override
-  String get supportHours => 'يومياً: 10:00 صباحاً - 11:00 مساءً';
+  String get supportHours => 'كل يوم: 10 الصبح - 11 بليل';
 
   @override
   String get aboutDescription =>
-      'اطلب مشروبات وأكل لذيذ، أو احجز غرفة بلايستيشن لتجربة ألعاب رائعة.';
+      'اطلب مشروبات وأكل حلو، أو احجز اوضة بلايستيشن وانبسط.';
 
   @override
-  String get notifications => 'الإشعارات';
+  String get notifications => 'الاشعارات';
 
   @override
-  String get orderStatusUpdates => 'تحديثات حالة الطلب';
+  String get orderStatusUpdates => 'تحديثات الطلب';
 
   @override
-  String get orderStatusUpdatesDescription =>
-      'احصل على إشعار عند تغير حالة طلبك';
+  String get orderStatusUpdatesDescription => 'هنبلغك لما الطلب يتغير';
 
   @override
-  String get promotionsAndOffers => 'العروض والتخفيضات';
+  String get promotionsAndOffers => 'العروض';
 
   @override
-  String get promotionsDescription => 'احصل على عروض وخصومات خاصة';
+  String get promotionsDescription => 'هنبلغك بالعروض والخصومات';
 
   @override
   String get sessionReminders => 'تذكير الجلسات';
 
   @override
-  String get sessionRemindersDescription => 'تذكير قبل جلسة الألعاب';
+  String get sessionRemindersDescription => 'هنفكرك قبل الجلسة';
 
   @override
-  String get appearance => 'المظهر';
+  String get appearance => 'الشكل';
 
   @override
   String get theme => 'الثيم';
@@ -438,56 +458,56 @@ class AppLocalizationsAr extends AppLocalizations {
   String get account => 'الحساب';
 
   @override
-  String get changePassword => 'تغيير كلمة المرور';
+  String get changePassword => 'غير الباسورد';
 
   @override
-  String get updateEmail => 'تحديث البريد الإلكتروني';
+  String get updateEmail => 'غير الايميل';
 
   @override
-  String get deleteAccount => 'حذف الحساب';
+  String get deleteAccount => 'امسح الحساب';
 
   @override
   String get deleteAccountConfirmation =>
-      'هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.';
+      'متأكد انك عايز تمسح حسابك؟ مش هتقدر ترجعه.';
 
   @override
-  String get accountDeletedSuccessfully => 'تم حذف الحساب بنجاح';
+  String get accountDeletedSuccessfully => 'الحساب اتمسح';
 
   @override
-  String get failedToDeleteAccount => 'فشل حذف الحساب';
+  String get failedToDeleteAccount => 'الحساب مش بيتمسح';
 
   @override
-  String get selectTheme => 'اختر الثيم';
+  String get selectTheme => 'اختار الثيم';
 
   @override
   String get light => 'فاتح';
 
   @override
-  String get lightThemeDescription => 'استخدم الثيم الفاتح دائماً';
+  String get lightThemeDescription => 'الثيم الفاتح دايماً';
 
   @override
-  String get dark => 'داكن';
+  String get dark => 'غامق';
 
   @override
-  String get darkThemeDescription => 'استخدم الثيم الداكن دائماً';
+  String get darkThemeDescription => 'الثيم الغامق دايماً';
 
   @override
   String get systemDefault => 'تلقائي';
 
   @override
-  String get systemDefaultDescription => 'اتبع إعدادات الجهاز';
+  String get systemDefaultDescription => 'زي الموبايل';
 
   @override
   String get language => 'اللغة';
 
   @override
-  String get selectLanguage => 'اختر اللغة';
+  String get selectLanguage => 'اختار اللغة';
 
   @override
   String get english => 'English';
 
   @override
-  String get arabic => 'العربية';
+  String get arabic => 'عربي';
 
   @override
   String get currency => 'ج.م';
@@ -496,4 +516,160 @@ class AppLocalizationsAr extends AppLocalizations {
   String priceFormat(String price) {
     return '$price ج.م';
   }
+
+  @override
+  String basePrice(String price) {
+    return 'السعر: £$price';
+  }
+
+  @override
+  String get specialInstructions => 'ملاحظات';
+
+  @override
+  String get anySpecialRequestsOptional => 'أي طلبات خاصة؟';
+
+  @override
+  String get required => 'مطلوب';
+
+  @override
+  String get loyaltyRewards => 'مكافآت الولاء';
+
+  @override
+  String get recentActivity => 'النشاط الأخير';
+
+  @override
+  String get noLoyaltyAccountYet => 'معندكش حساب ولاء لسه';
+
+  @override
+  String get makePurchaseToEarn => 'اشتري حاجة وابدأ تجمع نقط!';
+
+  @override
+  String get noTransactionsYet => 'مفيش معاملات لسه';
+
+  @override
+  String get amountDue => 'مبلغ مستحق';
+
+  @override
+  String get creditBalance => 'رصيد دائن';
+
+  @override
+  String get pleasePayAtCounter => 'ادفع في الكاشير';
+
+  @override
+  String get willBeAppliedToNextPurchase => 'هيتخصم من طلبك الجاي';
+
+  @override
+  String get noOutstandingBalance => 'مفيش رصيد';
+
+  @override
+  String get transactions => 'المعاملات';
+
+  @override
+  String get failedToLoadTransactions => 'المعاملات مش بتحمل';
+
+  @override
+  String failedToLoadFavorites(String error) {
+    return 'المفضلة مش بتحمل: $error';
+  }
+
+  @override
+  String get browseMenu => 'تصفح المنيو';
+
+  @override
+  String get joinOurLoyaltyProgram => 'اشترك في برنامج الولاء';
+
+  @override
+  String get earnPointsDescription =>
+      'اجمع نقط من كل طلب واستمتع بمكافآت حصرية!';
+
+  @override
+  String get joinNow => 'اشترك دلوقتي';
+
+  @override
+  String get viewHistory => 'شوف السجل';
+
+  @override
+  String lifetimePoints(String points) {
+    return 'إجمالي: $points نقطة';
+  }
+
+  @override
+  String pointsToNextTier(String points, String tier) {
+    return '$points نقطة لـ $tier';
+  }
+
+  @override
+  String get rateYourOrder => 'قيّم طلبك';
+
+  @override
+  String get yourReviewOptional => 'رأيك (اختياري)';
+
+  @override
+  String get shareYourExperience => 'شاركنا تجربتك...';
+
+  @override
+  String get submitRating => 'أرسل التقييم';
+
+  @override
+  String get ratingPoor => 'سيء';
+
+  @override
+  String get ratingFair => 'مقبول';
+
+  @override
+  String get ratingGood => 'جيد';
+
+  @override
+  String get ratingVeryGood => 'جيد جداً';
+
+  @override
+  String get ratingExcellent => 'ممتاز';
+
+  @override
+  String get newPassword => 'الباسورد الجديد';
+
+  @override
+  String get enterNewPassword => 'ادخل الباسورد الجديد';
+
+  @override
+  String get passwordMustBe8Chars => 'الباسورد لازم يكون 8 حروف على الأقل';
+
+  @override
+  String get pleaseConfirmPassword => 'أكد الباسورد';
+
+  @override
+  String get passwordChangedSuccessfully => 'الباسورد اتغير';
+
+  @override
+  String get failedToChangePassword => 'الباسورد مش بيتغير. جرب تاني.';
+
+  @override
+  String get newEmail => 'الايميل الجديد';
+
+  @override
+  String get pleaseEnterEmail => 'ادخل الايميل';
+
+  @override
+  String get pleaseEnterValidEmail => 'ادخل ايميل صحيح';
+
+  @override
+  String get emailUpdatedSuccessfully => 'الايميل اتغير';
+
+  @override
+  String get failedToUpdateEmail => 'الايميل مش بيتغير. جرب تاني.';
+
+  @override
+  String get supportEmail => 'support@chillax.com';
+
+  @override
+  String get supportPhone => '0100 469 8 469';
+
+  @override
+  String get joinedSessionSuccessfully => 'دخلت الجلسة!';
+
+  @override
+  String get noFavoritesYet => 'مفيش مفضلة لسه';
+
+  @override
+  String get noFavoritesDescription => 'الحاجات اللي بتحبها هتظهر هنا';
 }

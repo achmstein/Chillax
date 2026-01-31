@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../auth/auth_service.dart';
+import '../theme/theme_provider.dart';
 import '../../features/menu/screens/menu_screen.dart';
 import '../../features/cart/screens/cart_screen.dart';
 import '../../features/orders/screens/orders_screen.dart';
@@ -52,7 +53,7 @@ class SplashScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Cafe & Gaming',
-              style: TextStyle(
+              style: context.textStyle(
                 fontSize: 16,
                 color: colors.mutedForeground,
                 letterSpacing: 2,

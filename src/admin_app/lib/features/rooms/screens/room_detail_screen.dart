@@ -218,7 +218,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
       builder: (context) => FDialog(
         direction: Axis.horizontal,
         title: const Text('Delete Room?'),
-        body: Text('Delete "${room.name}"? This cannot be undone.'),
+        body: Text('Delete "${room.name.en}"? This cannot be undone.'),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
@@ -305,7 +305,7 @@ class _CurrentStateSection extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  room.name,
+                  room.name.en,
                   style: theme.typography.xl.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -502,10 +502,10 @@ class _CurrentStateSection extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  if (room.description != null && room.description!.isNotEmpty) ...[
+                  if (room.description != null && room.description!.en.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
-                      room.description!,
+                      room.description!.en,
                       style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
                       textAlign: TextAlign.center,
                     ),

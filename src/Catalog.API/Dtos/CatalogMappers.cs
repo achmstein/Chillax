@@ -13,13 +13,16 @@ public static class CatalogMappers
         {
             Id = item.Id,
             Name = item.Name,
+            NameAr = item.NameAr,
             Description = item.Description,
+            DescriptionAr = item.DescriptionAr,
             Price = item.Price,
             PictureUri = string.IsNullOrEmpty(item.PictureFileName)
                 ? null
                 : $"{baseUrl}/api/catalog/items/{item.Id}/pic",
             CatalogTypeId = item.CatalogTypeId,
             CatalogTypeName = item.CatalogType?.Type ?? string.Empty,
+            CatalogTypeNameAr = item.CatalogType?.TypeAr,
             IsAvailable = item.IsAvailable,
             PreparationTimeMinutes = item.PreparationTimeMinutes,
             Customizations = item.Customizations.Select(c => c.ToDto()).ToList()
@@ -36,7 +39,8 @@ public static class CatalogMappers
         return new CatalogTypeDto
         {
             Id = type.Id,
-            Type = type.Type
+            Type = type.Type,
+            TypeAr = type.TypeAr
         };
     }
 
@@ -51,6 +55,7 @@ public static class CatalogMappers
         {
             Id = customization.Id,
             Name = customization.Name,
+            NameAr = customization.NameAr,
             IsRequired = customization.IsRequired,
             AllowMultiple = customization.AllowMultiple,
             Options = customization.Options.OrderBy(o => o.DisplayOrder).Select(o => o.ToDto()).ToList()
@@ -68,6 +73,7 @@ public static class CatalogMappers
         {
             Id = option.Id,
             Name = option.Name,
+            NameAr = option.NameAr,
             PriceAdjustment = option.PriceAdjustment,
             IsDefault = option.IsDefault
         };

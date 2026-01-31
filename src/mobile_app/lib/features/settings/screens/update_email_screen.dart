@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
 
 class UpdateEmailScreen extends ConsumerStatefulWidget {
@@ -23,20 +25,21 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
     super.dispose();
   }
 
-  String? _validateEmail() {
+  String? _validateEmail(AppLocalizations l10n) {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      return 'Please enter an email address';
+      return l10n.pleaseEnterEmail;
     }
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
-      return 'Please enter a valid email address';
+      return l10n.pleaseEnterValidEmail;
     }
     return null;
   }
 
   Future<void> _handleUpdateEmail() async {
-    final validationError = _validateEmail();
+    final l10n = AppLocalizations.of(context)!;
+    final validationError = _validateEmail(l10n);
     if (validationError != null) {
       setState(() => _error = validationError);
       return;
@@ -57,12 +60,12 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
           context.pop();
           showFToast(
             context: context,
-            title: const Text('Email updated successfully'),
+            title: Text(l10n.emailUpdatedSuccessfully, style: context.textStyle()),
             icon: Icon(FIcons.circleCheck, color: Colors.green.shade600),
           );
         } else {
           setState(() {
-            _error = 'Failed to update email. Please try again.';
+            _error = l10n.failedToUpdateEmail;
             _isLoading = false;
           });
         }
@@ -70,7 +73,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'An error occurred. Please try again.';
+          _error = l10n.anErrorOccurred(e.toString());
           _isLoading = false;
         });
       }
@@ -82,6 +85,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
     final theme = context.theme;
     final colors = theme.colors;
     final authState = ref.watch(authServiceProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
       child: SafeArea(
@@ -98,10 +102,10 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                     child: const Icon(FIcons.arrowLeft, size: 22),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Update Email',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      l10n.updateEmail,
+                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -130,7 +134,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                     if (authState.email != null) ...[
                       Text(
                         'Current Email',
-                        style: TextStyle(
+                        style: context.textStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: colors.mutedForeground,
@@ -146,7 +150,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                         ),
                         child: Text(
                           authState.email!,
-                          style: TextStyle(
+                          style: context.textStyle(
                             fontSize: 16,
                             color: colors.foreground,
                           ),
@@ -158,7 +162,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                     // Instructions
                     Text(
                         'Enter your new email address',
-                        style: TextStyle(
+                        style: context.textStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: colors.foreground,
@@ -167,7 +171,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'We\'ll update your account with the new email address. Make sure you have access to this email.',
-                        style: TextStyle(
+                        style: context.textStyle(
                           fontSize: 14,
                           color: colors.mutedForeground,
                         ),
@@ -177,8 +181,8 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                       // Email field
                       FTextField.email(
                         control: FTextFieldControl.managed(controller: _emailController),
-                        label: const Text('New Email'),
-                        hint: 'Enter your new email address',
+                        label: Text(l10n.newEmail, style: context.textStyle()),
+                        hint: l10n.pleaseEnterEmail,
                         enabled: !_isLoading,
                         onSubmit: (_) => _handleUpdateEmail(),
                       ),
@@ -198,7 +202,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text('Update Email'),
+                            : Text(l10n.updateEmail, style: context.textStyle()),
                       ),
                     ),
                   ],

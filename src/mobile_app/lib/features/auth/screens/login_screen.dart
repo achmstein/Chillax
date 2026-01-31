@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Login screen with native username/password authentication
 class LoginScreen extends ConsumerStatefulWidget {
@@ -27,12 +29,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleSignIn() async {
+    final l10n = AppLocalizations.of(context)!;
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
     if (username.isEmpty || password.isEmpty) {
       setState(() {
-        _error = 'Please enter both username and password.';
+        _error = l10n.enterBothUsernamePassword;
       });
       return;
     }
@@ -48,13 +51,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (!success && mounted) {
         setState(() {
-          _error = 'Invalid username or password. Please try again.';
+          _error = l10n.invalidCredentials;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'An error occurred: $e';
+          _error = l10n.anErrorOccurred(e.toString());
         });
       }
     } finally {
@@ -67,6 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleSocialSignIn(SocialProvider provider) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _isSocialLoading = true;
       _error = null;
@@ -78,13 +82,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (!success && mounted) {
         setState(() {
-          _error = 'Social sign in failed. Please try again.';
+          _error = l10n.socialSignInFailed;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'An error occurred: $e';
+          _error = l10n.anErrorOccurred(e.toString());
         });
       }
     } finally {
@@ -100,6 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final colors = theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -128,7 +133,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: FAlert(
                       style: FAlertStyle.destructive(),
                       icon: Icon(FIcons.circleAlert),
-                      title: const Text('Error'),
+                      title: Text(l10n.error),
                       subtitle: Text(_error!),
                     ),
                   ),
@@ -136,8 +141,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Username field
                 FTextField.email(
                   control: FTextFieldControl.managed(controller: _usernameController),
-                  label: const Text('Username or Email'),
-                  hint: 'Enter your username or email',
+                  label: Text(l10n.usernameOrEmail),
+                  hint: l10n.enterUsernameOrEmail,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
@@ -145,8 +150,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Password field
                 FTextField.password(
                   control: FTextFieldControl.managed(controller: _passwordController),
-                  label: const Text('Password'),
-                  hint: 'Enter your password',
+                  label: Text(l10n.password),
+                  hint: l10n.enterPassword,
                   textInputAction: TextInputAction.done,
                   onSubmit: (_) => _handleSignIn(),
                 ),
@@ -164,7 +169,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Sign In'),
+                      : Text(l10n.signIn),
                 ),
                 const SizedBox(height: 24),
 
@@ -179,9 +184,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'or continue with',
-                        style: theme.typography.sm.copyWith(
+                        l10n.orContinueWith,
+                        style: context.textStyle(
                           color: colors.mutedForeground,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -223,7 +229,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         const Icon(Icons.g_mobiledata, size: 20),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Text('Google'),
+                                  Text(l10n.google),
                                 ],
                               ),
                       ),
@@ -255,7 +261,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         const Icon(Icons.facebook, size: 20),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Text('Facebook'),
+                                  Text(l10n.facebook),
                                 ],
                               ),
                       ),
@@ -269,18 +275,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account? ",
-                      style: theme.typography.sm.copyWith(
+                      l10n.dontHaveAccount,
+                      style: context.textStyle(
                         color: colors.mutedForeground,
+                        fontSize: 14,
                       ),
                     ),
                     GestureDetector(
                       onTap: () => context.go('/register'),
                       child: Text(
-                        'Register',
-                        style: theme.typography.sm.copyWith(
+                        l10n.register,
+                        style: context.textStyle(
                           color: colors.primary,
                           fontWeight: FontWeight.w600,
+                          fontSize: 14,
                         ),
                       ),
                     ),

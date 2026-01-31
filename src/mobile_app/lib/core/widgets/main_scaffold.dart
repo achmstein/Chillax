@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../theme/theme_provider.dart';
 
 /// Main scaffold with bottom navigation using Forui
 class MainScaffold extends ConsumerWidget {
@@ -26,7 +27,7 @@ class MainScaffold extends ConsumerWidget {
               icon: const Icon(FIcons.utensils),
               label: Text(
                 l10n.menu,
-                style: TextStyle(
+                style: context.textStyle(
                   fontWeight: currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -35,7 +36,7 @@ class MainScaffold extends ConsumerWidget {
               icon: const Icon(FIcons.receipt),
               label: Text(
                 l10n.orders,
-                style: TextStyle(
+                style: context.textStyle(
                   fontWeight: currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -44,7 +45,7 @@ class MainScaffold extends ConsumerWidget {
               icon: const Icon(FIcons.gamepad2),
               label: Text(
                 l10n.rooms,
-                style: TextStyle(
+                style: context.textStyle(
                   fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -53,7 +54,7 @@ class MainScaffold extends ConsumerWidget {
               icon: const Icon(FIcons.user),
               label: Text(
                 l10n.profile,
-                style: TextStyle(
+                style: context.textStyle(
                   fontWeight: currentIndex == 3 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
