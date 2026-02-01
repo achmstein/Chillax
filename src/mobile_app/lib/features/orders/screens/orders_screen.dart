@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/order.dart';
 import '../services/order_service.dart';
@@ -74,7 +74,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
       children: [
         // Header
         FHeader(
-          title: Text(l10n.orders, style: context.textStyle(fontSize: 18)),
+          title: AppText(l10n.orders, style: TextStyle(fontSize: 18)),
         ),
 
         // Body
@@ -113,11 +113,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
                   children: [
                     Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
                     const SizedBox(height: 16),
-                    Text(l10n.failedToLoadOrders, style: context.textStyle(color: colors.foreground)),
+                    AppText(l10n.failedToLoadOrders, style: TextStyle(color: colors.foreground)),
                     const SizedBox(height: 8),
-                    Text(
+                    AppText(
                       l10n.pullDownToRetry,
-                      style: context.textStyle(color: colors.mutedForeground),
+                      style: TextStyle(color: colors.mutedForeground),
                     ),
                   ],
                 ),
@@ -192,17 +192,17 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
             color: colors.mutedForeground,
           ),
           const SizedBox(height: 16),
-          Text(
+          AppText(
             l10n.noOrdersYet,
-            style: context.textStyle(
+            style: TextStyle(
               fontSize: 18,
               color: colors.foreground,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             l10n.orderHistoryWillAppearHere,
-            style: context.textStyle(
+            style: TextStyle(
               color: colors.mutedForeground,
             ),
           ),
@@ -285,27 +285,27 @@ class _OrderTileState extends ConsumerState<OrderTile>
                         children: [
                           _buildStatusDot(widget.order.status),
                           const SizedBox(width: 8),
-                          Text(
+                          AppText(
                             l10n.orderNumber(widget.order.id.toString()),
-                            style: context.textStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colors.foreground),
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colors.foreground),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Text(
+                          AppText(
                             dateFormat.format(widget.order.date),
-                            style: context.textStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               color: colors.mutedForeground,
                             ),
                           ),
                           if (widget.order.roomName != null) ...[
                             const SizedBox(width: 8),
-                            Text(
+                            AppText(
                               '• ${widget.order.roomName}',
-                              style: context.textStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,
                               ),
@@ -316,9 +316,9 @@ class _OrderTileState extends ConsumerState<OrderTile>
                     ],
                   ),
                 ),
-                Text(
+                AppText(
                   '£${widget.order.total.toStringAsFixed(2)}',
-                  style: context.textStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colors.foreground),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colors.foreground),
                 ),
                 const SizedBox(width: 8),
                 Icon(
@@ -360,9 +360,9 @@ class _OrderTileState extends ConsumerState<OrderTile>
             ),
           ),
         ),
-        error: (error, _) => Text(
+        error: (error, _) => AppText(
           l10n.failedToLoadDetails,
-          style: context.textStyle(color: AppTheme.errorColor, fontSize: 13),
+          style: TextStyle(color: AppTheme.errorColor, fontSize: 13),
         ),
         data: (orderDetails) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,14 +377,14 @@ class _OrderTileState extends ConsumerState<OrderTile>
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            AppText(
                               '${item.units}x ',
-                              style: context.textStyle(fontSize: 14, color: colors.mutedForeground),
+                              style: TextStyle(fontSize: 14, color: colors.mutedForeground),
                             ),
-                            Expanded(child: Text(item.productName, style: context.textStyle(fontSize: 14, color: colors.foreground))),
-                            Text(
+                            Expanded(child: AppText(item.productName, style: TextStyle(fontSize: 14, color: colors.foreground))),
+                            AppText(
                               '£${item.totalPrice.toStringAsFixed(2)}',
-                              style: context.textStyle(fontSize: 14, color: colors.mutedForeground),
+                              style: TextStyle(fontSize: 14, color: colors.mutedForeground),
                             ),
                           ],
                         ),
@@ -392,9 +392,9 @@ class _OrderTileState extends ConsumerState<OrderTile>
                         if (item.customizationsDescription != null) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 24, top: 2),
-                            child: Text(
+                            child: AppText(
                               item.customizationsDescription!,
-                              style: context.textStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,
                               ),
@@ -405,9 +405,9 @@ class _OrderTileState extends ConsumerState<OrderTile>
                         if (item.specialInstructions != null) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 24, top: 2),
-                            child: Text(
+                            child: AppText(
                               '"${item.specialInstructions}"',
-                              style: context.textStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,
                               ),
@@ -418,18 +418,18 @@ class _OrderTileState extends ConsumerState<OrderTile>
                     ),
                   )),
             ] else ...[
-              Text(
+              AppText(
                 l10n.noItems,
-                style: context.textStyle(color: colors.mutedForeground, fontSize: 13),
+                style: TextStyle(color: colors.mutedForeground, fontSize: 13),
               ),
             ],
 
             // Customer note
             if (orderDetails.customerNote != null) ...[
               const SizedBox(height: 8),
-              Text(
+              AppText(
                 l10n.noteWithText(orderDetails.customerNote!),
-                style: context.textStyle(
+                style: TextStyle(
                   color: colors.mutedForeground,
                   fontSize: 13,
                 ),
@@ -441,9 +441,9 @@ class _OrderTileState extends ConsumerState<OrderTile>
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Text(
+                  AppText(
                     l10n.yourRating,
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       color: colors.mutedForeground,
                     ),
@@ -453,9 +453,9 @@ class _OrderTileState extends ConsumerState<OrderTile>
               ),
               if (orderDetails.rating!.comment != null && orderDetails.rating!.comment!.isNotEmpty) ...[
                 const SizedBox(height: 4),
-                Text(
+                AppText(
                   '"${orderDetails.rating!.comment}"',
-                  style: context.textStyle(
+                  style: TextStyle(
                     color: colors.mutedForeground,
                     fontSize: 13,
                   ),

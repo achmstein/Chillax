@@ -4,7 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/loyalty_card.dart';
@@ -48,7 +48,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         // Header
         FHeader(
-          title: Text(l10n.profile, style: context.textStyle(fontSize: 18)),
+          title: AppText(l10n.profile, style: TextStyle(fontSize: 18)),
         ),
 
         // Body
@@ -60,26 +60,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 // User avatar and info
                 FAvatar.raw(
                   size: 80,
-                  child: Text(
+                  child: AppText(
                     authState.name?.isNotEmpty == true
                         ? authState.name![0].toUpperCase()
                         : 'G',
-                    style: context.textStyle(fontSize: 32),
+                    style: TextStyle(fontSize: 32),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                AppText(
                   authState.name ?? l10n.guestUser,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                   ),
                 ),
                 if (authState.email != null) ...[
                   const SizedBox(height: 4),
-                  Text(
+                  AppText(
                     authState.email!,
-                    style: context.textStyle(color: colors.mutedForeground),
+                    style: TextStyle(color: colors.mutedForeground),
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -113,19 +113,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     FTile(
                       prefix: const Icon(FIcons.receipt),
-                      title: Text(l10n.orderHistory, style: context.textStyle()),
+                      title: AppText(l10n.orderHistory),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.go('/orders'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.gamepad2),
-                      title: Text(l10n.sessionHistory, style: context.textStyle()),
+                      title: AppText(l10n.sessionHistory),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.push('/sessions'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.heart),
-                      title: Text(l10n.favorites, style: context.textStyle()),
+                      title: AppText(l10n.favorites),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.push('/favorites'),
                     ),
@@ -138,19 +138,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     FTile(
                       prefix: const Icon(FIcons.settings),
-                      title: Text(l10n.settings, style: context.textStyle()),
+                      title: AppText(l10n.settings),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.push('/settings'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.lifeBuoy),
-                      title: Text(l10n.helpAndSupport, style: context.textStyle()),
+                      title: AppText(l10n.helpAndSupport),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => _showHelpSheet(context),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.info),
-                      title: Text(l10n.about, style: context.textStyle()),
+                      title: AppText(l10n.about),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => _showAboutSheet(context),
                     ),
@@ -171,7 +171,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             children: [
                               const Icon(FIcons.logOut),
                               const SizedBox(width: 8),
-                              Text(l10n.signOut, style: context.textStyle()),
+                              AppText(l10n.signOut),
                             ],
                           ),
                         )
@@ -182,7 +182,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             children: [
                               const Icon(FIcons.logIn),
                               const SizedBox(width: 8),
-                              Text(l10n.signIn, style: context.textStyle()),
+                              AppText(l10n.signIn),
                             ],
                           ),
                         ),
@@ -191,9 +191,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(height: 32),
 
                 // App version
-                Text(
+                AppText(
                   l10n.version(AppConfig.appVersion),
-                  style: context.textStyle(
+                  style: TextStyle(
                     color: colors.mutedForeground,
                     fontSize: 12,
                   ),
@@ -213,14 +213,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       builder: (context, style, animation) => FDialog(
         style: style.call,
         animation: animation,
-        title: Text(l10n.signOut, style: context.textStyle(fontWeight: FontWeight.bold)),
-        body: Text(l10n.signOutConfirmation, style: context.textStyle()),
+        title: AppText(l10n.signOut, style: TextStyle(fontWeight: FontWeight.bold)),
+        body: AppText(l10n.signOutConfirmation),
         direction: Axis.horizontal,
         actions: [
           FButton(
             style: FButtonStyle.outline(),
             onPress: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: context.textStyle()),
+            child: AppText(l10n.cancel),
           ),
           FButton(
             style: FButtonStyle.destructive(),
@@ -228,7 +228,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Navigator.pop(context);
               await ref.read(authServiceProvider.notifier).signOut();
             },
-            child: Text(l10n.signOut, style: context.textStyle()),
+            child: AppText(l10n.signOut),
           ),
         ],
       ),
@@ -297,9 +297,9 @@ class _HelpSupportSheet extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.helpAndSupport,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -322,9 +322,9 @@ class _HelpSupportSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     l10n.needHelpContactUs,
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       color: colors.foreground,
                     ),
@@ -384,9 +384,9 @@ class _ContactRow extends StatelessWidget {
           child: Icon(icon, size: 20, color: colors.mutedForeground),
         ),
         const SizedBox(width: 12),
-        Text(
+        AppText(
           text,
-          style: context.textStyle(
+          style: TextStyle(
             fontSize: 15,
             color: colors.foreground,
           ),
@@ -431,9 +431,9 @@ class _AboutSheet extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.about,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -463,19 +463,19 @@ class _AboutSheet extends StatelessWidget {
                     filterQuality: FilterQuality.high,
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  AppText(
                     l10n.cafeAndGaming,
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       color: colors.mutedForeground,
                       letterSpacing: 2,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
+                  AppText(
                     l10n.aboutDescription,
                     textAlign: TextAlign.center,
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       color: colors.mutedForeground,
                     ),
@@ -487,9 +487,9 @@ class _AboutSheet extends StatelessWidget {
                       color: colors.muted,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
+                    child: AppText(
                       l10n.version(AppConfig.appVersion),
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         color: colors.mutedForeground,
                       ),

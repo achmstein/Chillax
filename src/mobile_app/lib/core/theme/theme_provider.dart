@@ -17,53 +17,6 @@ extension LocaleFontExtension on BuildContext {
     final locale = Localizations.localeOf(this);
     return getFontFamily(locale);
   }
-
-  /// Create a TextStyle with the correct font family for the current locale
-  TextStyle get localizedTextStyle => TextStyle(fontFamily: fontFamily);
-
-  /// Merge a TextStyle with the locale's font family
-  TextStyle textStyle({
-    double? fontSize,
-    FontWeight? fontWeight,
-    Color? color,
-    double? height,
-    double? letterSpacing,
-    TextDecoration? decoration,
-  }) {
-    return TextStyle(
-      fontFamily: fontFamily,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      color: color,
-      height: height,
-      letterSpacing: letterSpacing,
-      decoration: decoration,
-    );
-  }
-}
-
-/// Creates a TextTheme with the appropriate font family for the locale
-TextTheme getLocalizedTextTheme(Locale locale, {bool isDark = false}) {
-  final fontFamily = getFontFamily(locale);
-  final baseColor = isDark ? Colors.white : Colors.black;
-
-  return TextTheme(
-    displayLarge: TextStyle(fontFamily: fontFamily, color: baseColor),
-    displayMedium: TextStyle(fontFamily: fontFamily, color: baseColor),
-    displaySmall: TextStyle(fontFamily: fontFamily, color: baseColor),
-    headlineLarge: TextStyle(fontFamily: fontFamily, color: baseColor),
-    headlineMedium: TextStyle(fontFamily: fontFamily, color: baseColor),
-    headlineSmall: TextStyle(fontFamily: fontFamily, color: baseColor),
-    titleLarge: TextStyle(fontFamily: fontFamily, color: baseColor),
-    titleMedium: TextStyle(fontFamily: fontFamily, color: baseColor),
-    titleSmall: TextStyle(fontFamily: fontFamily, color: baseColor),
-    bodyLarge: TextStyle(fontFamily: fontFamily, color: baseColor),
-    bodyMedium: TextStyle(fontFamily: fontFamily, color: baseColor),
-    bodySmall: TextStyle(fontFamily: fontFamily, color: baseColor),
-    labelLarge: TextStyle(fontFamily: fontFamily, color: baseColor),
-    labelMedium: TextStyle(fontFamily: fontFamily, color: baseColor),
-    labelSmall: TextStyle(fontFamily: fontFamily, color: baseColor),
-  );
 }
 
 class ThemeState {
@@ -86,34 +39,46 @@ class ThemeState {
   }
 
   FThemeData getForuiTheme(BuildContext context, {Locale? locale}) {
-    FThemeData baseTheme;
+    final Brightness brightness;
     switch (themeMode) {
       case AppThemeMode.light:
-        baseTheme = FThemes.zinc.light;
+        brightness = Brightness.light;
         break;
       case AppThemeMode.dark:
-        baseTheme = FThemes.zinc.dark;
+        brightness = Brightness.dark;
         break;
       case AppThemeMode.system:
-        final brightness = MediaQuery.platformBrightnessOf(context);
-        baseTheme = brightness == Brightness.dark
-            ? FThemes.zinc.dark
-            : FThemes.zinc.light;
+        brightness = MediaQuery.platformBrightnessOf(context);
         break;
     }
 
-    // Apply locale-specific font if provided
-    if (locale != null) {
-      final fontFamily = getFontFamily(locale);
-      return baseTheme.copyWith(
-        typography: FTypography.inherit(
-          colors: baseTheme.colors,
-          defaultFontFamily: fontFamily,
-        ),
-      );
-    }
+    // Get base colors from zinc theme
+    final colors = brightness == Brightness.dark
+        ? FThemes.zinc.dark.colors
+        : FThemes.zinc.light.colors;
 
-    return baseTheme;
+    // Get font family based on locale
+    final fontFamily = locale != null ? getFontFamily(locale) : 'Inter';
+
+    // Create typography with the correct font family
+    // This ensures all text styles use the locale-appropriate font
+    final typography = FTypography.inherit(
+      colors: colors,
+      defaultFontFamily: fontFamily,
+    );
+
+    // Create style that inherits from colors and typography
+    final style = FStyle.inherit(
+      colors: colors,
+      typography: typography,
+    );
+
+    // Build complete theme - widget styles will inherit from typography
+    return FThemeData(
+      colors: colors,
+      typography: typography,
+      style: style,
+    );
   }
 
   String get displayName {

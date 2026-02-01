@@ -7,6 +7,7 @@ import '../../../core/auth/auth_service.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -44,9 +45,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.settings,
-                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -64,8 +65,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     FTileGroup(
                       children: [
                         FTile(
-                          title: Text(l10n.orderStatusUpdates, style: context.textStyle()),
-                          subtitle: Text(l10n.orderStatusUpdatesDescription, style: context.textStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: AppText(l10n.orderStatusUpdates),
+                          subtitle: AppText(l10n.orderStatusUpdatesDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.orderStatusUpdates,
                             onChange: (value) {
@@ -76,8 +77,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                         FTile(
-                          title: Text(l10n.promotionsAndOffers, style: context.textStyle()),
-                          subtitle: Text(l10n.promotionsDescription, style: context.textStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: AppText(l10n.promotionsAndOffers),
+                          subtitle: AppText(l10n.promotionsDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.promotionsAndOffers,
                             onChange: (value) {
@@ -88,8 +89,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                         FTile(
-                          title: Text(l10n.sessionReminders, style: context.textStyle()),
-                          subtitle: Text(l10n.sessionRemindersDescription, style: context.textStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          title: AppText(l10n.sessionReminders),
+                          subtitle: AppText(l10n.sessionRemindersDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.sessionReminders,
                             onChange: (value) {
@@ -111,15 +112,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       children: [
                         FTile(
                           prefix: const Icon(FIcons.palette),
-                          title: Text(l10n.theme, style: context.textStyle()),
-                          subtitle: Text(_getLocalizedThemeName(themeState.themeMode, l10n), style: context.textStyle()),
+                          title: AppText(l10n.theme),
+                          subtitle: AppText(_getLocalizedThemeName(themeState.themeMode, l10n)),
                           suffix: const Icon(FIcons.chevronRight),
                           onPress: () => _showThemeSelector(context, ref),
                         ),
                         FTile(
                           prefix: const Icon(FIcons.globe),
-                          title: Text(l10n.language, style: context.textStyle()),
-                          subtitle: Text(locale.languageCode == 'ar' ? l10n.arabic : l10n.english, style: context.textStyle()),
+                          title: AppText(l10n.language),
+                          subtitle: AppText(locale.languageCode == 'ar' ? l10n.arabic : l10n.english),
                           suffix: const Icon(FIcons.chevronRight),
                           onPress: () => _showLanguageSelector(context, ref),
                         ),
@@ -136,19 +137,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         children: [
                           FTile(
                             prefix: const Icon(FIcons.lock),
-                            title: Text(l10n.changePassword, style: context.textStyle()),
+                            title: AppText(l10n.changePassword),
                             suffix: const Icon(FIcons.chevronRight),
                             onPress: () => context.push('/settings/change-password'),
                           ),
                           FTile(
                             prefix: const Icon(FIcons.mail),
-                            title: Text(l10n.updateEmail, style: context.textStyle()),
+                            title: AppText(l10n.updateEmail),
                             suffix: const Icon(FIcons.chevronRight),
                             onPress: () => context.push('/settings/update-email'),
                           ),
                           FTile(
                             prefix: Icon(FIcons.trash2, color: AppTheme.errorColor),
-                            title: Text(l10n.deleteAccount, style: context.textStyle(color: AppTheme.errorColor)),
+                            title: AppText(l10n.deleteAccount, style: TextStyle(color: AppTheme.errorColor)),
                             suffix: Icon(FIcons.chevronRight, color: AppTheme.errorColor),
                             onPress: () => _showDeleteAccountDialog(context, ref),
                           ),
@@ -177,9 +178,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(
+    return AppText(
       title,
-      style: context.textStyle(
+      style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppTheme.textSecondary,
@@ -234,13 +235,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (dialogContext, style, animation) => FDialog(
         style: style.call,
         animation: animation,
-        title: Text(l10n.deleteAccount, style: context.textStyle(fontWeight: FontWeight.bold)),
-        body: Text(l10n.deleteAccountConfirmation, style: context.textStyle()),
+        title: AppText(l10n.deleteAccount, style: TextStyle(fontWeight: FontWeight.bold)),
+        body: AppText(l10n.deleteAccountConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
             onPress: () => Navigator.pop(dialogContext),
-            child: Text(l10n.cancel, style: context.textStyle()),
+            child: AppText(l10n.cancel),
           ),
           FButton(
             style: FButtonStyle.destructive(),
@@ -255,19 +256,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (context.mounted) {
                   showFToast(
                     context: context,
-                    title: Text(l10n.accountDeletedSuccessfully, style: context.textStyle()),
+                    title: AppText(l10n.accountDeletedSuccessfully),
                     icon: Icon(FIcons.check, color: AppTheme.successColor),
                   );
                 }
               } else if (context.mounted) {
                 showFToast(
                   context: context,
-                  title: Text(l10n.failedToDeleteAccount, style: context.textStyle()),
+                  title: AppText(l10n.failedToDeleteAccount),
                   icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
                 );
               }
             },
-            child: Text(l10n.delete, style: context.textStyle()),
+            child: AppText(l10n.delete),
           ),
         ],
       ),
@@ -318,9 +319,9 @@ class _ThemeSelectorSheet extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.selectTheme,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -371,18 +372,18 @@ class _ThemeSelectorSheet extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            AppText(
                               _getThemeModeName(mode),
-                              style: context.textStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                                 color: colors.foreground,
                               ),
                             ),
                             const SizedBox(height: 2),
-                            Text(
+                            AppText(
                               _getThemeModeDescription(mode),
-                              style: context.textStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,
                               ),
@@ -484,9 +485,9 @@ class _LanguageSelectorSheet extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.selectLanguage,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -523,9 +524,9 @@ class _LanguageSelectorSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
-                          child: Text(
+                          child: AppText(
                             lang.locale.languageCode.toUpperCase(),
-                            style: context.textStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: isSelected ? colors.primary : colors.mutedForeground,
@@ -535,9 +536,9 @@ class _LanguageSelectorSheet extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: Text(
+                        child: AppText(
                           lang.name,
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                             color: colors.foreground,

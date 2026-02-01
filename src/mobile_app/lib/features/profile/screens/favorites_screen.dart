@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../menu/models/menu_item.dart';
 import '../../menu/services/menu_service.dart';
@@ -52,9 +52,9 @@ class FavoritesScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       AppLocalizations.of(context)!.favorites,
-                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -73,11 +73,11 @@ class FavoritesScreen extends ConsumerWidget {
                     children: [
                       Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
                       const SizedBox(height: 16),
-                      Text(AppLocalizations.of(context)!.failedToLoadFavorites(error.toString()), style: context.textStyle(color: colors.foreground)),
+                      AppText(AppLocalizations.of(context)!.failedToLoadFavorites(error.toString()), style: TextStyle(color: colors.foreground)),
                       const SizedBox(height: 16),
                       FButton(
                         onPress: () => ref.refresh(favoriteMenuItemsProvider),
-                        child: Text(AppLocalizations.of(context)!.retry, style: context.textStyle()),
+                        child: AppText(AppLocalizations.of(context)!.retry),
                       ),
                     ],
                   ),
@@ -130,19 +130,19 @@ class _EmptyState extends StatelessWidget {
             color: colors.mutedForeground,
           ),
           const SizedBox(height: 16),
-          Text(
+          AppText(
             l10n.noFavoritesYet,
-            style: context.textStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: colors.foreground,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             l10n.noFavoritesDescription,
             textAlign: TextAlign.center,
-            style: context.textStyle(
+            style: TextStyle(
               fontSize: 14,
               color: colors.mutedForeground,
             ),
@@ -150,7 +150,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 24),
           FButton(
             onPress: () => context.go('/menu'),
-            child: Text(l10n.browseMenu, style: context.textStyle()),
+            child: AppText(l10n.browseMenu),
           ),
         ],
       ),
@@ -237,9 +237,9 @@ class _FavoriteItemTile extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     item.name,
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: colors.foreground,
@@ -247,9 +247,9 @@ class _FavoriteItemTile extends ConsumerWidget {
                   ),
                   if (item.description.isNotEmpty) ...[
                     const SizedBox(height: 2),
-                    Text(
+                    AppText(
                       item.description,
-                      style: context.textStyle(
+                      style: TextStyle(
                         color: colors.mutedForeground,
                         fontSize: 13,
                       ),
@@ -258,9 +258,9 @@ class _FavoriteItemTile extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: 4),
-                  Text(
+                  AppText(
                     '\u00A3${item.price.toStringAsFixed(2)}',
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: colors.foreground,
@@ -388,9 +388,9 @@ class _QuantityStepper extends StatelessWidget {
           Container(
             constraints: const BoxConstraints(minWidth: 24),
             alignment: Alignment.center,
-            child: Text(
+            child: AppText(
               '$quantity',
-              style: context.textStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
                 color: colors.foreground,

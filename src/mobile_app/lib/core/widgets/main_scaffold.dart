@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import '../theme/theme_provider.dart';
+import 'app_text.dart';
 
 /// Main scaffold with bottom navigation using Forui
 class MainScaffold extends ConsumerWidget {
@@ -25,36 +25,36 @@ class MainScaffold extends ConsumerWidget {
           children: [
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.utensils),
-              label: Text(
+              label: AppText(
                 l10n.menu,
-                style: context.textStyle(
+                style: TextStyle(
                   fontWeight: currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.receipt),
-              label: Text(
+              label: AppText(
                 l10n.orders,
-                style: context.textStyle(
+                style: TextStyle(
                   fontWeight: currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.gamepad2),
-              label: Text(
+              label: AppText(
                 l10n.rooms,
-                style: context.textStyle(
+                style: TextStyle(
                   fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
             FBottomNavigationBarItem(
               icon: const Icon(FIcons.user),
-              label: Text(
+              label: AppText(
                 l10n.profile,
-                style: context.textStyle(
+                style: TextStyle(
                   fontWeight: currentIndex == 3 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),

@@ -4,7 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/cart_item.dart';
 import '../services/cart_service.dart';
@@ -55,9 +55,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.cart,
-                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                   if (!cart.isEmpty)
@@ -142,9 +142,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                                     strokeWidth: 2,
                                                   ),
                                                 )
-                                              : Text(
+                                              : AppText(
                                                   l10n.placeOrder,
-                                                  style: context.textStyle(
+                                                  style: TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 15,
                                                   ),
@@ -197,17 +197,17 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               Icon(FIcons.gift, size: 18, color: colors.primary),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
+                child: AppText(
                   l10n.useLoyaltyPoints,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: colors.foreground,
                   ),
                 ),
               ),
-              Text(
+              AppText(
                 '${numberFormat.format(loyaltyInfo.pointsBalance)} ${l10n.pts}',
-                style: context.textStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: colors.mutedForeground,
                 ),
@@ -264,16 +264,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                AppText(
                   '${numberFormat.format(_pointsToRedeem)} pts',
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: colors.foreground,
                   ),
                 ),
-                Text(
+                AppText(
                   '-£${discount.toStringAsFixed(2)}',
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: AppTheme.successColor,
                   ),
@@ -298,16 +298,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              AppText(
                 l10n.subtotal,
-                style: context.textStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: colors.mutedForeground,
                 ),
               ),
-              Text(
+              AppText(
                 '£${orderTotal.toStringAsFixed(2)}',
-                style: context.textStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: colors.mutedForeground,
                 ),
@@ -318,16 +318,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              AppText(
                 l10n.pointsDiscount,
-                style: context.textStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.successColor,
                 ),
               ),
-              Text(
+              AppText(
                 '-£${discount.toStringAsFixed(2)}',
-                style: context.textStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.successColor,
                 ),
@@ -340,16 +340,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            AppText(
               l10n.total,
-              style: context.textStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text(
+            AppText(
               '£${finalTotal.toStringAsFixed(2)}',
-              style: context.textStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -373,17 +373,17 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             color: colors.mutedForeground,
           ),
           const SizedBox(height: 16),
-          Text(
+          AppText(
             l10n.yourCartIsEmpty,
-            style: context.textStyle(
+            style: TextStyle(
               fontSize: 18,
               color: colors.foreground,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             l10n.addItemsFromMenu,
-            style: context.textStyle(
+            style: TextStyle(
               color: colors.mutedForeground,
             ),
           ),
@@ -532,9 +532,9 @@ class CartItemTile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: AppText(
                         item.productName,
-                        style: context.textStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: colors.foreground,
@@ -549,11 +549,11 @@ class CartItemTile extends ConsumerWidget {
                 ),
                 if (item.selectedCustomizations.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(
+                  AppText(
                     item.selectedCustomizations
                         .map((c) => c.optionName)
                         .join(', '),
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: colors.mutedForeground,
                       fontSize: 13,
                     ),
@@ -561,9 +561,9 @@ class CartItemTile extends ConsumerWidget {
                 ],
                 if (item.specialInstructions != null) ...[
                   const SizedBox(height: 4),
-                  Text(
+                  AppText(
                     AppLocalizations.of(context)!.noteWithText(item.specialInstructions!),
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: colors.mutedForeground,
                       fontSize: 13,
                     ),
@@ -599,9 +599,9 @@ class CartItemTile extends ConsumerWidget {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
+                          child: AppText(
                             '${item.quantity}',
-                            style: context.textStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -623,9 +623,9 @@ class CartItemTile extends ConsumerWidget {
                     ),
 
                     // Price
-                    Text(
+                    AppText(
                       '£${item.totalPrice.toStringAsFixed(2)}',
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

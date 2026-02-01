@@ -672,4 +672,44 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noFavoritesDescription => 'الحاجات اللي بتحبها هتظهر هنا';
+
+  @override
+  String get createStrongPassword => 'اعمل باسورد قوي';
+
+  @override
+  String get passwordRequirements =>
+      'الباسورد لازم يكون 8 حروف على الأقل. نفضل خلط حروف وأرقام ورموز.';
+
+  @override
+  String get currentEmail => 'الايميل الحالي';
+
+  @override
+  String get enterNewEmailAddress => 'ادخل الايميل الجديد';
+
+  @override
+  String get emailUpdateInstructions =>
+      'هنحدث حسابك بالايميل الجديد. تأكد إنك تقدر تدخل عليه.';
+
+  @override
+  String get failedToLoadSessions => 'الجلسات مش بتحمل';
+
+  @override
+  String get noSessionsYet => 'مفيش جلسات لسه';
+
+  @override
+  String get reserveRoomToStart => 'احجز اوضة عشان تبدأ';
+
+  @override
+  String durationLabel(String duration) {
+    return 'المدة: $duration';
+  }
+
+  @override
+  String get phoneNumber => 'رقم الموبايل';
+
+  @override
+  String get enterPhoneNumber => 'ادخل رقم الموبايل';
+
+  @override
+  String get yourPhoneNumber => 'رقمك';
 }

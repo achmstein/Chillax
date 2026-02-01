@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../services/order_service.dart';
 import 'rating_widget.dart';
@@ -122,9 +122,9 @@ class _RatingDialogState extends State<RatingDialog> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.rateYourOrder,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -153,9 +153,9 @@ class _RatingDialogState extends State<RatingDialog> {
               ),
               const SizedBox(height: 8),
               Center(
-                child: Text(
+                child: AppText(
                   _getRatingLabel(_rating, l10n),
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     color: colors.mutedForeground,
                   ),
@@ -164,9 +164,9 @@ class _RatingDialogState extends State<RatingDialog> {
               const SizedBox(height: 24),
 
               // Comment field
-              Text(
+              AppText(
                 l10n.yourReviewOptional,
-                style: context.textStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                   color: colors.foreground,
@@ -184,12 +184,12 @@ class _RatingDialogState extends State<RatingDialog> {
                   maxLength: 500,
                   decoration: InputDecoration(
                     hintText: l10n.shareYourExperience,
-                    hintStyle: context.textStyle(color: colors.mutedForeground),
+                    hintStyle: TextStyle(color: colors.mutedForeground),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.all(12),
                     counterText: '',
                   ),
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     color: colors.foreground,
                   ),
@@ -214,9 +214,9 @@ class _RatingDialogState extends State<RatingDialog> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
+                        child: AppText(
                           _errorMessage!,
-                          style: context.textStyle(
+                          style: TextStyle(
                             color: AppTheme.errorColor,
                             fontSize: 13,
                           ),
@@ -248,9 +248,9 @@ class _RatingDialogState extends State<RatingDialog> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Text(
+                      : AppText(
                           l10n.submitRating,
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),

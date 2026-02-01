@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/account_provider.dart';
 
@@ -56,9 +56,9 @@ class BalanceCard extends ConsumerWidget {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                Text(
+                AppText(
                   account.owesAmount ? l10n.amountDue : l10n.creditBalance,
-                  style: context.textStyle(
+                  style: TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -73,20 +73,20 @@ class BalanceCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
+            AppText(
               '${account.balance.abs().toStringAsFixed(2)} EGP',
-              style: context.textStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 4),
-            Text(
+            AppText(
               account.owesAmount
                   ? l10n.pleasePayAtCounter
                   : l10n.willBeAppliedToNextPurchase,
-              style: context.textStyle(
+              style: TextStyle(
                 color: Colors.white70,
                 fontSize: 12,
               ),

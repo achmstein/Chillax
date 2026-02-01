@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Login screen with native username/password authentication
@@ -122,6 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     'assets/images/logo.png',
                     width: 200,
                     height: 200,
+                    color: colors.foreground,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -133,15 +134,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: FAlert(
                       style: FAlertStyle.destructive(),
                       icon: Icon(FIcons.circleAlert),
-                      title: Text(l10n.error),
-                      subtitle: Text(_error!),
+                      title: AppText(l10n.error),
+                      subtitle: AppText(_error!),
                     ),
                   ),
 
                 // Username field
                 FTextField.email(
                   control: FTextFieldControl.managed(controller: _usernameController),
-                  label: Text(l10n.usernameOrEmail),
+                  label: AppText(l10n.usernameOrEmail),
                   hint: l10n.enterUsernameOrEmail,
                   textInputAction: TextInputAction.next,
                 ),
@@ -150,7 +151,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Password field
                 FTextField.password(
                   control: FTextFieldControl.managed(controller: _passwordController),
-                  label: Text(l10n.password),
+                  label: AppText(l10n.password),
                   hint: l10n.enterPassword,
                   textInputAction: TextInputAction.done,
                   onSubmit: (_) => _handleSignIn(),
@@ -169,7 +170,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : Text(l10n.signIn),
+                      : AppText(l10n.signIn),
                 ),
                 const SizedBox(height: 24),
 
@@ -183,9 +184,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
+                      child: AppText(
                         l10n.orContinueWith,
-                        style: context.textStyle(
+                        style: TextStyle(
                           color: colors.mutedForeground,
                           fontSize: 14,
                         ),
@@ -229,7 +230,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         const Icon(Icons.g_mobiledata, size: 20),
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(l10n.google),
+                                  AppText(l10n.google),
                                 ],
                               ),
                       ),
@@ -261,7 +262,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         const Icon(Icons.facebook, size: 20),
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(l10n.facebook),
+                                  AppText(l10n.facebook),
                                 ],
                               ),
                       ),
@@ -274,18 +275,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    AppText(
                       l10n.dontHaveAccount,
-                      style: context.textStyle(
+                      style: TextStyle(
                         color: colors.mutedForeground,
                         fontSize: 14,
                       ),
                     ),
                     GestureDetector(
                       onTap: () => context.go('/register'),
-                      child: Text(
+                      child: AppText(
                         l10n.register,
-                        style: context.textStyle(
+                        style: TextStyle(
                           color: colors.primary,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,

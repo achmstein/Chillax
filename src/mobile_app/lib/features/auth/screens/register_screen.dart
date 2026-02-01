@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Registration screen
@@ -16,8 +16,8 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
-  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
@@ -27,8 +27,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _usernameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -37,13 +37,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _handleRegister() async {
     final l10n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
-    final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
     // Validation
-    if (name.isEmpty || username.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
       setState(() {
         _error = l10n.fillAllFields;
       });
@@ -72,12 +72,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     try {
       final authService = ref.read(authServiceProvider.notifier);
-      final success = await authService.register(name, username, email, password);
+      final success = await authService.register(name, email, phone, password);
 
       if (mounted) {
         if (success) {
           // Auto-login after successful registration
-          final loginSuccess = await authService.signIn(username, password);
+          final loginSuccess = await authService.signIn(email, password);
           if (mounted) {
             if (!loginSuccess) {
               // If auto-login fails, show message and redirect to login
@@ -134,14 +134,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     'assets/images/logo.png',
                     width: 120,
                     height: 120,
+                    color: colors.foreground,
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 // Title
-                Text(
+                AppText(
                   l10n.createAccount,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: colors.foreground,
                     fontSize: 24,
@@ -157,8 +158,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: FAlert(
                       style: FAlertStyle.primary(),
                       icon: Icon(FIcons.check),
-                      title: Text(l10n.success),
-                      subtitle: Text(_success!),
+                      title: AppText(l10n.success),
+                      subtitle: AppText(_success!),
                     ),
                   ),
 
@@ -169,25 +170,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: FAlert(
                       style: FAlertStyle.destructive(),
                       icon: Icon(FIcons.circleAlert),
-                      title: Text(l10n.error),
-                      subtitle: Text(_error!),
+                      title: AppText(l10n.error),
+                      subtitle: AppText(_error!),
                     ),
                   ),
 
                 // Name field
                 FTextField(
                   control: FTextFieldControl.managed(controller: _nameController),
-                  label: Text(l10n.name),
+                  label: AppText(l10n.name),
                   hint: l10n.yourDisplayName,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 16),
-
-                // Username field
-                FTextField(
-                  control: FTextFieldControl.managed(controller: _usernameController),
-                  label: Text(l10n.username),
-                  hint: l10n.chooseUsername,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
@@ -195,16 +187,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Email field
                 FTextField.email(
                   control: FTextFieldControl.managed(controller: _emailController),
-                  label: Text(l10n.email),
+                  label: AppText(l10n.email),
                   hint: l10n.enterEmail,
                   textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 16),
+
+                // Phone field
+                FTextField(
+                  control: FTextFieldControl.managed(controller: _phoneController),
+                  label: AppText(l10n.phoneNumber),
+                  hint: l10n.enterPhoneNumber,
+                  textInputAction: TextInputAction.next,
+                  keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
 
                 // Password field
                 FTextField.password(
                   control: FTextFieldControl.managed(controller: _passwordController),
-                  label: Text(l10n.password),
+                  label: AppText(l10n.password),
                   hint: l10n.createPassword,
                   textInputAction: TextInputAction.next,
                 ),
@@ -213,7 +215,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // Confirm password field
                 FTextField.password(
                   control: FTextFieldControl.managed(controller: _confirmPasswordController),
-                  label: Text(l10n.confirmPassword),
+                  label: AppText(l10n.confirmPassword),
                   hint: l10n.confirmYourPassword,
                   textInputAction: TextInputAction.done,
                   onSubmit: (_) => _handleRegister(),
@@ -232,7 +234,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : Text(l10n.register),
+                      : AppText(l10n.register),
                 ),
                 const SizedBox(height: 16),
 
@@ -240,18 +242,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    AppText(
                       l10n.alreadyHaveAccount,
-                      style: context.textStyle(
+                      style: TextStyle(
                         color: colors.mutedForeground,
                         fontSize: 14,
                       ),
                     ),
                     GestureDetector(
                       onTap: () => context.go('/login'),
-                      child: Text(
+                      child: AppText(
                         l10n.signIn,
-                        style: context.textStyle(
+                        style: TextStyle(
                           color: colors.primary,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,

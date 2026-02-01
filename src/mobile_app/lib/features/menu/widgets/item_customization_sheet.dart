@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../models/menu_item.dart';
@@ -198,9 +198,9 @@ class _ItemCustomizationSheetState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Text(
+                        child: AppText(
                           widget.item.localizedName(locale),
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 24,
                             color: colors.foreground,
@@ -215,15 +215,15 @@ class _ItemCustomizationSheetState
                   ),
                   if (widget.item.localizedDescription(locale).isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(
+                    AppText(
                       widget.item.localizedDescription(locale),
-                      style: context.textStyle(color: colors.mutedForeground),
+                      style: TextStyle(color: colors.mutedForeground),
                     ),
                   ],
                   const SizedBox(height: 8),
-                  Text(
+                  AppText(
                     l10n.basePrice(widget.item.price.toStringAsFixed(2)),
-                    style: context.textStyle(fontWeight: FontWeight.bold, color: colors.foreground),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: colors.foreground),
                   ),
                   const SizedBox(height: 24),
 
@@ -232,9 +232,9 @@ class _ItemCustomizationSheetState
                     _buildCustomizationSection(context, customization, locale)),
 
                   // Special instructions
-                  Text(
+                  AppText(
                     l10n.specialInstructions,
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: colors.foreground,
@@ -259,9 +259,9 @@ class _ItemCustomizationSheetState
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
+                        child: AppText(
                           '$_quantity',
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: colors.foreground,
@@ -307,16 +307,16 @@ class _ItemCustomizationSheetState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    AppText(
                       l10n.addToCart,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
-                    Text(
+                    AppText(
                       '£${_totalPrice.toStringAsFixed(2)}',
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -342,9 +342,9 @@ class _ItemCustomizationSheetState
       children: [
         Row(
           children: [
-            Text(
+            AppText(
               customization.localizedName(locale),
-              style: context.textStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: colors.foreground,
@@ -354,7 +354,7 @@ class _ItemCustomizationSheetState
               const Spacer(),
               FBadge(
                 style: FBadgeStyle.destructive(),
-                child: Text(l10n.required, style: context.textStyle(fontSize: 12)),
+                child: AppText(l10n.required, style: TextStyle(fontSize: 12)),
               ),
             ],
           ],
@@ -417,18 +417,18 @@ class _ItemCustomizationSheetState
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
+                  child: AppText(
                     option.localizedName(locale),
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: colors.foreground,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ),
                 if (priceText.isNotEmpty)
-                  Text(
+                  AppText(
                     priceText,
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: option.priceAdjustment > 0
                           ? colors.mutedForeground
                           : AppTheme.successColor,
@@ -495,18 +495,18 @@ class _ItemCustomizationSheetState
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
+                  child: AppText(
                     option.localizedName(locale),
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: colors.foreground,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ),
                 if (priceText.isNotEmpty)
-                  Text(
+                  AppText(
                     priceText,
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: option.priceAdjustment > 0
                           ? colors.mutedForeground
                           : AppTheme.successColor,

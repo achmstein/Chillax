@@ -4,7 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/localized_text.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
@@ -33,9 +33,14 @@ class SessionsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      'Session History',
-                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    child: Builder(
+                      builder: (context) {
+                        final l10n = AppLocalizations.of(context)!;
+                        return AppText(
+                          l10n.sessionHistory,
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -46,21 +51,24 @@ class SessionsScreen extends ConsumerWidget {
             Expanded(
               child: sessionsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
-                      const SizedBox(height: 16),
-                      Text('Failed to load sessions', style: context.textStyle(color: colors.foreground)),
-                      const SizedBox(height: 16),
-                      FButton(
-                        onPress: () => ref.read(mySessionsProvider.notifier).refresh(),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                ),
+                error: (error, _) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
+                        const SizedBox(height: 16),
+                        AppText(l10n.failedToLoadSessions, style: TextStyle(color: colors.foreground)),
+                        const SizedBox(height: 16),
+                        FButton(
+                          onPress: () => ref.read(mySessionsProvider.notifier).refresh(),
+                          child: AppText(l10n.retry),
+                        ),
+                      ],
+                    ),
+                  );
+                },
                 data: (sessions) => sessions.isEmpty
                     ? _buildEmptyState(context, colors)
                     : RefreshIndicator(
@@ -85,6 +93,7 @@ class SessionsScreen extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, dynamic colors) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -95,17 +104,17 @@ class SessionsScreen extends ConsumerWidget {
             color: colors.mutedForeground,
           ),
           const SizedBox(height: 16),
-          Text(
-            'No sessions yet',
-            style: context.textStyle(
+          AppText(
+            l10n.noSessionsYet,
+            style: TextStyle(
               fontSize: 18,
               color: colors.foreground,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Reserve a room to get started',
-            style: context.textStyle(
+          AppText(
+            l10n.reserveRoomToStart,
+            style: TextStyle(
               color: colors.mutedForeground,
             ),
           ),
@@ -163,9 +172,9 @@ class _SessionTileState extends State<SessionTile> {
               Icon(FIcons.gamepad2, size: 20, color: colors.foreground),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
+                child: AppText(
                   session.roomName.localized(context),
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: colors.foreground,
@@ -182,24 +191,29 @@ class _SessionTileState extends State<SessionTile> {
             children: [
               Icon(FIcons.calendar, size: 14, color: colors.mutedForeground),
               const SizedBox(width: 4),
-              Text(
+              AppText(
                 dateFormat.format(session.reservationTime),
-                style: context.textStyle(color: colors.mutedForeground, fontSize: 13),
+                style: TextStyle(color: colors.mutedForeground, fontSize: 13),
               ),
             ],
           ),
 
           if (session.status == SessionStatus.active) ...[
             const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(FIcons.timer, size: 14, color: colors.mutedForeground),
-                const SizedBox(width: 4),
-                Text(
-                  'Duration: ${session.formattedDuration}',
-                  style: context.textStyle(color: colors.mutedForeground, fontSize: 13),
-                ),
-              ],
+            Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context)!;
+                return Row(
+                  children: [
+                    Icon(FIcons.timer, size: 14, color: colors.mutedForeground),
+                    const SizedBox(width: 4),
+                    AppText(
+                      l10n.durationLabel(session.formattedDuration),
+                      style: TextStyle(color: colors.mutedForeground, fontSize: 13),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
 
@@ -209,9 +223,9 @@ class _SessionTileState extends State<SessionTile> {
               children: [
                 Icon(FIcons.poundSterling, size: 14, color: colors.mutedForeground),
                 const SizedBox(width: 4),
-                Text(
+                AppText(
                   session.totalCost!.toStringAsFixed(2),
-                  style: context.textStyle(fontWeight: FontWeight.w500, fontSize: 13, color: colors.foreground),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: colors.foreground),
                 ),
               ],
             ),

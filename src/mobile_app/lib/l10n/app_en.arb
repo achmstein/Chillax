@@ -299,5 +299,25 @@
 
   "joinedSessionSuccessfully": "Joined session successfully!",
   "noFavoritesYet": "No favorites yet",
-  "noFavoritesDescription": "Items you love will appear here"
+  "noFavoritesDescription": "Items you love will appear here",
+
+  "createStrongPassword": "Create a strong password",
+  "passwordRequirements": "Your password must be at least 8 characters long. We recommend using a mix of letters, numbers, and symbols.",
+  "currentEmail": "Current Email",
+  "enterNewEmailAddress": "Enter your new email address",
+  "emailUpdateInstructions": "We'll update your account with the new email address. Make sure you have access to this email.",
+
+  "failedToLoadSessions": "Failed to load sessions",
+  "noSessionsYet": "No sessions yet",
+  "reserveRoomToStart": "Reserve a room to get started",
+  "durationLabel": "Duration: {duration}",
+  "@durationLabel": {
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
+  },
+
+  "phoneNumber": "Phone Number",
+  "enterPhoneNumber": "Enter your phone number",
+  "yourPhoneNumber": "Your phone number"
 }
