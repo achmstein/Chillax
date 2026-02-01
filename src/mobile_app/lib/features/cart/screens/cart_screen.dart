@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -484,6 +485,7 @@ class CartItemTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.colors;
+    final locale = ref.watch(localeProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -533,7 +535,7 @@ class CartItemTile extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: AppText(
-                        item.productName,
+                        item.productName.getText(locale),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -551,7 +553,7 @@ class CartItemTile extends ConsumerWidget {
                   const SizedBox(height: 4),
                   AppText(
                     item.selectedCustomizations
-                        .map((c) => c.optionName)
+                        .map((c) => c.optionName.getText(locale))
                         .join(', '),
                     style: TextStyle(
                       color: colors.mutedForeground,

@@ -1,0 +1,747 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Arabic (`ar`).
+class AppLocalizationsAr extends AppLocalizations {
+  AppLocalizationsAr([String locale = 'ar']) : super(locale);
+
+  @override
+  String get appTitle => 'تشيلاكس ادمن';
+
+  @override
+  String get dashboard => 'لوحة التحكم';
+
+  @override
+  String get pending => 'معلّق';
+
+  @override
+  String get active => 'نشط';
+
+  @override
+  String get available => 'متاح';
+
+  @override
+  String get pendingOrders => 'الطلبات المعلقة';
+
+  @override
+  String get activeSessions => 'الجلسات النشطة';
+
+  @override
+  String get availableRooms => 'الغرف المتاحة';
+
+  @override
+  String get viewAll => 'عرض الكل';
+
+  @override
+  String get noPendingOrders => 'مفيش طلبات معلقة';
+
+  @override
+  String get noActiveSessions => 'مفيش جلسات نشطة';
+
+  @override
+  String get signIn => 'تسجيل الدخول';
+
+  @override
+  String get signOut => 'تسجيل الخروج';
+
+  @override
+  String get adminDashboard => 'لوحة تحكم الأدمن';
+
+  @override
+  String get usernameOrEmail => 'اليوزر أو الإيميل';
+
+  @override
+  String get enterUsernameOrEmail => 'اكتب اليوزر أو الإيميل';
+
+  @override
+  String get password => 'الباسورد';
+
+  @override
+  String get enterPassword => 'اكتب الباسورد';
+
+  @override
+  String get error => 'خطأ';
+
+  @override
+  String get adminRoleRequired =>
+      'لازم يكون عندك صلاحية أدمن عشان تدخل التطبيق ده.';
+
+  @override
+  String get enterBothFields => 'من فضلك اكتب اليوزر والباسورد.';
+
+  @override
+  String get invalidCredentials => 'اليوزر أو الباسورد غلط. حاول تاني.';
+
+  @override
+  String get orders => 'الطلبات';
+
+  @override
+  String get cancelOrder => 'إلغاء الطلب';
+
+  @override
+  String get cancelOrderQuestion => 'إلغاء الطلب؟';
+
+  @override
+  String get cancelOrderConfirmation => 'متأكد إنك عايز تلغي الطلب ده؟';
+
+  @override
+  String get keep => 'خليه';
+
+  @override
+  String get cancel => 'إلغاء';
+
+  @override
+  String get confirm => 'تأكيد';
+
+  @override
+  String get delete => 'حذف';
+
+  @override
+  String get edit => 'تعديل';
+
+  @override
+  String get add => 'إضافة';
+
+  @override
+  String get save => 'حفظ';
+
+  @override
+  String get update => 'تحديث';
+
+  @override
+  String get create => 'إنشاء';
+
+  @override
+  String get close => 'إغلاق';
+
+  @override
+  String get ok => 'تمام';
+
+  @override
+  String get failedToLoad => 'فشل التحميل';
+
+  @override
+  String get item => 'عنصر';
+
+  @override
+  String get items => 'العناصر';
+
+  @override
+  String itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عناصر',
+      one: 'عنصر',
+    );
+    return '$count $_temp0';
+  }
+
+  @override
+  String get note => 'ملاحظة';
+
+  @override
+  String get customerNote => 'ملاحظة العميل';
+
+  @override
+  String get total => 'الإجمالي';
+
+  @override
+  String get date => 'التاريخ';
+
+  @override
+  String get each => 'الواحدة';
+
+  @override
+  String orderNumber(int id) {
+    return 'طلب #$id';
+  }
+
+  @override
+  String get validating => 'جاري التحقق';
+
+  @override
+  String get confirmed => 'مؤكد';
+
+  @override
+  String get cancelled => 'ملغي';
+
+  @override
+  String get confirmOrder => 'تأكيد الطلب';
+
+  @override
+  String get cancelOrderButton => 'إلغاء الطلب';
+
+  @override
+  String get noKeep => 'لا، خليه';
+
+  @override
+  String get yesCancel => 'أيوه، الغيه';
+
+  @override
+  String get rooms => 'الغرف';
+
+  @override
+  String get addRoom => 'إضافة غرفة';
+
+  @override
+  String get editRoom => 'تعديل الغرفة';
+
+  @override
+  String get noRoomsConfigured => 'مفيش غرف متضافة';
+
+  @override
+  String get addRoomToGetStarted => 'ضيف غرفة عشان تبدأ';
+
+  @override
+  String get endSession => 'إنهاء الجلسة؟';
+
+  @override
+  String get endSessionConfirmation =>
+      'متأكد إنك عايز تنهي الجلسة دي؟ هيتحاسب العميل على الوقت اللي استخدمه.';
+
+  @override
+  String get endSessionButton => 'إنهاء الجلسة';
+
+  @override
+  String get statusActive => 'نشط';
+
+  @override
+  String get statusReserved => 'محجوزة';
+
+  @override
+  String get statusAvailable => 'متاح';
+
+  @override
+  String get statusOccupied => 'مشغول';
+
+  @override
+  String get statusMaintenance => 'صيانة';
+
+  @override
+  String reservedCountdown(String countdown) {
+    return 'محجوزة ($countdown)';
+  }
+
+  @override
+  String get expiring => 'على وشك الانتهاء...';
+
+  @override
+  String get perHour => '/ساعة';
+
+  @override
+  String get name => 'الاسم';
+
+  @override
+  String get nameRequired => 'الاسم *';
+
+  @override
+  String get description => 'الوصف';
+
+  @override
+  String get optionalDescription => 'وصف اختياري';
+
+  @override
+  String get hourlyRate => 'سعر الساعة (جنيه) *';
+
+  @override
+  String get menu => 'المنيو';
+
+  @override
+  String get categories => 'الأقسام';
+
+  @override
+  String get addItem => 'إضافة صنف';
+
+  @override
+  String get addCategory => 'إضافة قسم';
+
+  @override
+  String get editCategory => 'تعديل القسم';
+
+  @override
+  String get all => 'الكل';
+
+  @override
+  String get noItemsFound => 'مفيش أصناف';
+
+  @override
+  String get deleteItem => 'حذف الصنف؟';
+
+  @override
+  String deleteItemConfirmation(String name) {
+    return 'متأكد إنك عايز تحذف \"$name\"؟';
+  }
+
+  @override
+  String get availableLabel => 'متاح';
+
+  @override
+  String get unavailable => 'مش متاح';
+
+  @override
+  String get noCategoriesFound => 'مفيش أقسام';
+
+  @override
+  String get clickAddCategoryHint => 'اضغط على + فوق عشان تضيف واحد';
+
+  @override
+  String get categoryName => 'اسم القسم';
+
+  @override
+  String get categoryNameHint => 'مثلاً: مشروبات، أكل، حلويات';
+
+  @override
+  String get categoryCreatedSuccess => 'تم إنشاء القسم بنجاح';
+
+  @override
+  String get categoryUpdatedSuccess => 'تم تحديث القسم بنجاح';
+
+  @override
+  String get categoryDeletedSuccess => 'تم حذف القسم بنجاح';
+
+  @override
+  String get cannotDeleteCategory => 'مينفعش تحذف القسم ده';
+
+  @override
+  String categoryHasItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أصناف',
+      one: 'صنف',
+    );
+    return 'القسم ده فيه $count $_temp0. امسح أو انقل الأصناف الأول.';
+  }
+
+  @override
+  String get deleteCategory => 'حذف القسم؟';
+
+  @override
+  String deleteCategoryConfirmation(String name) {
+    return 'متأكد إنك عايز تحذف \"$name\"؟';
+  }
+
+  @override
+  String get backToMenu => 'رجوع للمنيو';
+
+  @override
+  String get settings => 'الإعدادات';
+
+  @override
+  String get profile => 'الملف الشخصي';
+
+  @override
+  String get adminUser => 'مستخدم أدمن';
+
+  @override
+  String get about => 'عن التطبيق';
+
+  @override
+  String get appVersion => 'إصدار التطبيق';
+
+  @override
+  String get identityProvider => 'مزود الهوية';
+
+  @override
+  String get ordersApi => 'API الطلبات';
+
+  @override
+  String get roomsApi => 'API الغرف';
+
+  @override
+  String get catalogApi => 'API الكتالوج';
+
+  @override
+  String get signOutQuestion => 'تسجيل الخروج؟';
+
+  @override
+  String get signOutConfirmation => 'متأكد إنك عايز تسجل خروج؟';
+
+  @override
+  String get language => 'اللغة';
+
+  @override
+  String get arabic => 'العربية';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get accounts => 'الحسابات';
+
+  @override
+  String get addCharge => 'إضافة رصيد';
+
+  @override
+  String get totalOutstanding => 'إجمالي المستحق';
+
+  @override
+  String get searchByName => 'ابحث بالاسم...';
+
+  @override
+  String get noAccountsFound => 'مفيش حسابات';
+
+  @override
+  String get addChargeToCreate => 'ضيف رصيد عشان تعمل حساب';
+
+  @override
+  String get today => 'النهاردة';
+
+  @override
+  String get yesterday => 'إمبارح';
+
+  @override
+  String daysAgo(int days) {
+    return 'من $days يوم';
+  }
+
+  @override
+  String get customer => 'العميل';
+
+  @override
+  String get customerRequired => 'العميل *';
+
+  @override
+  String get searchCustomerByName => 'ابحث عن العميل بالاسم...';
+
+  @override
+  String get amount => 'المبلغ';
+
+  @override
+  String get amountEgp => 'المبلغ (جنيه) *';
+
+  @override
+  String get descriptionOptional => 'الوصف';
+
+  @override
+  String get chargeDescriptionHint => 'مثلاً: باقي من جلسة - غرفة 3';
+
+  @override
+  String get pleaseEnterValidAmount => 'من فضلك اكتب مبلغ صحيح';
+
+  @override
+  String get chargeAddedSuccess => 'تم إضافة الرصيد بنجاح';
+
+  @override
+  String get failedToAddCharge => 'فشل إضافة الرصيد';
+
+  @override
+  String get loyalty => 'الولاء';
+
+  @override
+  String get overview => 'نظرة عامة';
+
+  @override
+  String get accountsLabel => 'حسابات';
+
+  @override
+  String get todayLabel => 'النهاردة';
+
+  @override
+  String get weekLabel => 'الأسبوع';
+
+  @override
+  String get monthLabel => 'الشهر';
+
+  @override
+  String get tiers => 'المستويات';
+
+  @override
+  String get noLoyaltyAccounts => 'مفيش حسابات ولاء لسه';
+
+  @override
+  String get points => 'نقطة';
+
+  @override
+  String get lifetime => 'إجمالي';
+
+  @override
+  String get requests => 'الطلبات';
+
+  @override
+  String get allClear => 'تمام';
+
+  @override
+  String get noPendingRequests => 'مفيش طلبات معلقة';
+
+  @override
+  String get acknowledge => 'استلام';
+
+  @override
+  String get markComplete => 'تم';
+
+  @override
+  String get pendingStatus => 'معلّق';
+
+  @override
+  String get inProgress => 'جاري التنفيذ';
+
+  @override
+  String get done => 'خلص';
+
+  @override
+  String get room => 'الغرفة';
+
+  @override
+  String get time => 'الوقت';
+
+  @override
+  String get tap => 'اضغط';
+
+  @override
+  String get doneLabel => 'تم';
+
+  @override
+  String get justNow => 'دلوقتي';
+
+  @override
+  String minutesAgo(int minutes) {
+    return 'من $minutes دقيقة';
+  }
+
+  @override
+  String hoursAgo(int hours) {
+    return 'من $hours ساعة';
+  }
+
+  @override
+  String get callWaiter => 'استدعاء ويتر';
+
+  @override
+  String get controllerChange => 'تغيير الدراع';
+
+  @override
+  String get receiptToPay => 'الفاتورة للدفع';
+
+  @override
+  String get customers => 'العملاء';
+
+  @override
+  String get more => 'المزيد';
+
+  @override
+  String get now => 'دلوقتي';
+
+  @override
+  String get end => 'إنهاء';
+
+  @override
+  String get no => 'لا';
+
+  @override
+  String get cancelReservation => 'إلغاء الحجز';
+
+  @override
+  String get cancelReservationQuestion => 'إلغاء الحجز؟';
+
+  @override
+  String get cancelReservationConfirmation => 'متأكد إنك عايز تلغي الحجز ده؟';
+
+  @override
+  String get deleteRoom => 'حذف الغرفة؟';
+
+  @override
+  String deleteRoomConfirmation(String name) {
+    return 'حذف \"$name\"؟ مينفعش ترجع فيه.';
+  }
+
+  @override
+  String get startSession => 'ابدأ جلسة';
+
+  @override
+  String get reserve => 'حجز';
+
+  @override
+  String get walkIn => 'زيارة مباشرة';
+
+  @override
+  String get customerWillBeCharged => 'هيتحاسب العميل على الوقت اللي استخدمه.';
+
+  @override
+  String get accessCodeCopied => 'تم نسخ كود الدخول!';
+
+  @override
+  String get record => 'تسجيل';
+
+  @override
+  String get paymentRecorded => 'تم تسجيل الدفع';
+
+  @override
+  String get failedToRecordPayment => 'فشل تسجيل الدفع';
+
+  @override
+  String get charge => 'رصيد';
+
+  @override
+  String get payment => 'دفع';
+
+  @override
+  String get adjust => 'تعديل';
+
+  @override
+  String get addPoints => 'إضافة نقاط';
+
+  @override
+  String get pleaseEnterValidPoints => 'من فضلك اكتب عدد نقاط صحيح';
+
+  @override
+  String get pointsAdjusted => 'تم تعديل النقاط';
+
+  @override
+  String get pointsAdded => 'تم إضافة النقاط';
+
+  @override
+  String get failedToAdjustPoints => 'فشل تعديل النقاط';
+
+  @override
+  String get failedToAddPoints => 'فشل إضافة النقاط';
+
+  @override
+  String get pleaseSelectCategory => 'من فضلك اختار قسم';
+
+  @override
+  String get accountTab => 'الحساب';
+
+  @override
+  String get loyaltyTab => 'الولاء';
+
+  @override
+  String get logout => 'تسجيل الخروج';
+
+  @override
+  String get logoutConfirmation => 'متأكد إنك عايز تسجل خروج؟';
+
+  @override
+  String viewAllOrdersCount(int count) {
+    return 'عرض كل الـ $count طلب';
+  }
+
+  @override
+  String get amountEgpLabel => 'المبلغ (جنيه)';
+
+  @override
+  String get readyToStart => 'جاهز للبدء';
+
+  @override
+  String codeLabel(String code) {
+    return 'الكود: $code';
+  }
+
+  @override
+  String get balance => 'الرصيد';
+
+  @override
+  String get memberSince => 'عضو من';
+
+  @override
+  String get status => 'الحالة';
+
+  @override
+  String get disabled => 'معطّل';
+
+  @override
+  String get customerNotFound => 'العميل مش موجود';
+
+  @override
+  String get accountNotFound => 'الحساب مش موجود';
+
+  @override
+  String get orderHistory => 'سجل الطلبات';
+
+  @override
+  String get noOrdersYet => 'مفيش طلبات لسه';
+
+  @override
+  String get viewCustomer => 'عرض العميل';
+
+  @override
+  String get history => 'السجل';
+
+  @override
+  String get noTransactionsYet => 'مفيش معاملات لسه';
+
+  @override
+  String get currentBalance => 'الرصيد الحالي';
+
+  @override
+  String get cashPaymentHint => 'مثلاً: دفع كاش';
+
+  @override
+  String get sessionBalanceHint => 'مثلاً: رصيد الجلسة';
+
+  @override
+  String get chargeAdded => 'تم إضافة الرصيد';
+
+  @override
+  String get loyaltyAccount => 'حساب الولاء';
+
+  @override
+  String get pointsBalance => 'رصيد النقاط';
+
+  @override
+  String get usePositiveToAdd => 'استخدم رقم موجب للإضافة، سالب للخصم';
+
+  @override
+  String get reason => 'السبب';
+
+  @override
+  String get correctionHint => 'مثلاً: تصحيح';
+
+  @override
+  String get bonusPointsHint => 'مثلاً: نقاط مكافأة';
+
+  @override
+  String get pointsValueHint => 'مثلاً: 100 أو -50';
+
+  @override
+  String get editMenuItem => 'تعديل صنف';
+
+  @override
+  String get addMenuItem => 'إضافة صنف';
+
+  @override
+  String get enterItemName => 'اكتب اسم الصنف';
+
+  @override
+  String get enterItemDescription => 'اكتب وصف الصنف';
+
+  @override
+  String get price => 'السعر';
+
+  @override
+  String get categoryRequired => 'القسم *';
+
+  @override
+  String get selectCategory => 'اختار قسم';
+
+  @override
+  String get preparationTime => 'وقت التحضير (دقائق)';
+
+  @override
+  String get prepTimeHint => 'مثلاً 10';
+
+  @override
+  String get searchByNameOrEmail => 'ابحث بالاسم أو الإيميل...';
+
+  @override
+  String get noCustomersFound => 'مفيش عملاء';
+
+  @override
+  String get roomNameHint => 'مثلاً: غرفة بلايستيشن 1';
+
+  @override
+  String get tierBronze => 'برونزي';
+
+  @override
+  String get tierSilver => 'فضي';
+
+  @override
+  String get tierGold => 'ذهبي';
+
+  @override
+  String get tierPlatinum => 'بلاتيني';
+}

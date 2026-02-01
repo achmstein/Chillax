@@ -2,6 +2,7 @@ using Chillax.EventBus.Abstractions;
 using Chillax.Rooms.API.Application.IntegrationEvents.Events;
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using Chillax.Rooms.Domain.Events;
+using Chillax.Rooms.Domain.SeedWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -32,7 +33,7 @@ public class ReservationCancelledDomainEventHandler : INotificationHandler<Reser
         {
             var roomAvailableEvent = new RoomBecameAvailableIntegrationEvent(
                 reservation.RoomId,
-                reservation.Room?.Name ?? $"Room {reservation.RoomId}");
+                reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"));
 
             await _eventBus.PublishAsync(roomAvailableEvent);
         }

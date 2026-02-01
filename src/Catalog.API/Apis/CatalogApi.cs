@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Chillax.Catalog.API.Dtos;
-using Chillax.ServiceDefaults;
+using Chillax.Catalog.API.Model;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -194,7 +194,10 @@ public static class CatalogApi
             query = query.Where(c => c.CatalogTypeId == categoryId.Value);
         }
 
-        var items = await query.OrderBy(c => c.Name).ToListAsync();
+        var items = await query
+            .OrderBy(c => c.CatalogType!.DisplayOrder)
+            .ThenBy(c => c.DisplayOrder)
+            .ToListAsync();
         return TypedResults.Ok(items.ToDtoList(baseUrl));
     }
 
@@ -217,7 +220,10 @@ public static class CatalogApi
             query = query.Where(c => c.CatalogTypeId == categoryId.Value);
         }
 
-        var items = await query.OrderBy(c => c.Name).ToListAsync();
+        var items = await query
+            .OrderBy(c => c.CatalogType!.DisplayOrder)
+            .ThenBy(c => c.DisplayOrder)
+            .ToListAsync();
         return TypedResults.Ok(items.ToDtoList(baseUrl));
     }
 
@@ -281,12 +287,12 @@ public static class CatalogApi
             .Include(c => c.CatalogType)
             .Include(c => c.Customizations)
                 .ThenInclude(c => c.Options)
-            .Where(c => c.Name.ToLower().Contains(name.ToLower()));
+            .Where(c => c.Name.En.ToLower().Contains(name.ToLower()));
 
         var totalItems = await query.LongCountAsync();
 
         var itemsOnPage = await query
-            .OrderBy(c => c.Name)
+            .OrderBy(c => c.DisplayOrder)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)
             .ToListAsync();
@@ -315,7 +321,7 @@ public static class CatalogApi
         var totalItems = await query.LongCountAsync();
 
         var itemsOnPage = await query
-            .OrderBy(c => c.Name)
+            .OrderBy(c => c.DisplayOrder)
             .Skip(pageSize * pageIndex)
             .Take(pageSize)
             .ToListAsync();
@@ -350,7 +356,7 @@ public static class CatalogApi
 
     public static async Task<Ok<List<CatalogTypeDto>>> GetCategories(CatalogContext context)
     {
-        var categories = await context.CatalogTypes.OrderBy(x => x.Type).ToListAsync();
+        var categories = await context.CatalogTypes.OrderBy(x => x.DisplayOrder).ToListAsync();
         return TypedResults.Ok(categories.ToDtoList());
     }
 
@@ -372,7 +378,7 @@ public static class CatalogApi
         CatalogContext context,
         CatalogType category)
     {
-        var newCategory = new CatalogType(category.Type);
+        var newCategory = new CatalogType(category.Name) { DisplayOrder = category.DisplayOrder };
         context.CatalogTypes.Add(newCategory);
         await context.SaveChangesAsync();
 
@@ -391,7 +397,8 @@ public static class CatalogApi
             return TypedResults.NotFound();
         }
 
-        category.Type = categoryToUpdate.Type;
+        category.Name = categoryToUpdate.Name;
+        category.DisplayOrder = categoryToUpdate.DisplayOrder;
         await context.SaveChangesAsync();
 
         return TypedResults.Ok(category.ToDto());
@@ -436,7 +443,8 @@ public static class CatalogApi
             PictureFileName = product.PictureFileName,
             Price = product.Price,
             IsAvailable = product.IsAvailable,
-            PreparationTimeMinutes = product.PreparationTimeMinutes
+            PreparationTimeMinutes = product.PreparationTimeMinutes,
+            DisplayOrder = product.DisplayOrder
         };
 
         services.Context.CatalogItems.Add(item);
@@ -468,6 +476,7 @@ public static class CatalogApi
         catalogItem.CatalogTypeId = productToUpdate.CatalogTypeId;
         catalogItem.IsAvailable = productToUpdate.IsAvailable;
         catalogItem.PreparationTimeMinutes = productToUpdate.PreparationTimeMinutes;
+        catalogItem.DisplayOrder = productToUpdate.DisplayOrder;
 
         var priceChanged = services.Context.Entry(catalogItem).Property(i => i.Price).IsModified;
 

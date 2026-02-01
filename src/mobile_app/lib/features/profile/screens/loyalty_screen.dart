@@ -7,6 +7,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/loyalty_info.dart';
 import '../providers/loyalty_provider.dart';
+import '../widgets/loyalty_card.dart' show getLocalizedTierName;
 
 /// Loyalty history screen
 class LoyaltyScreen extends ConsumerStatefulWidget {
@@ -193,7 +194,7 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                     ],
                   ),
                   child: AppText(
-                    info.currentTier.name.toUpperCase(),
+                    getLocalizedTierName(info.currentTier, AppLocalizations.of(context)!),
                     style: TextStyle(
                       color: textColor,
                       fontSize: 11,
@@ -217,7 +218,7 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                   children: [
                     Expanded(
                       child: AppText(
-                        '${numberFormat.format(info.pointsBalance)} pts',
+                        '${numberFormat.format(info.pointsBalance)} ${AppLocalizations.of(context)!.pts}',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -249,7 +250,7 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                   ),
                   const SizedBox(height: 8),
                   AppText(
-                    AppLocalizations.of(context)!.pointsToNextTier(numberFormat.format(info.pointsToNextTier), '${info.nextTier!.name[0].toUpperCase()}${info.nextTier!.name.substring(1)}'),
+                    AppLocalizations.of(context)!.pointsToNextTier(numberFormat.format(info.pointsToNextTier), getLocalizedTierName(info.nextTier!, AppLocalizations.of(context)!)),
                     style: TextStyle(
                       fontSize: 13,
                       color: colors.mutedForeground,

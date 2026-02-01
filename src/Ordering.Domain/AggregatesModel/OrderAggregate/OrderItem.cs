@@ -6,8 +6,11 @@ namespace Chillax.Ordering.Domain.AggregatesModel.OrderAggregate;
 public class OrderItem
     : Entity
 {
+    /// <summary>
+    /// Localized product name (stored as JSON)
+    /// </summary>
     [Required]
-    public string ProductName { get; private set; } = string.Empty;
+    public LocalizedText ProductName { get; private set; } = new();
 
     public string PictureUrl { get; private set; } = string.Empty;
 
@@ -20,9 +23,9 @@ public class OrderItem
     public int ProductId { get; private set; }
 
     /// <summary>
-    /// Description of selected customizations (e.g., "Size: Large, Milk: Oat")
+    /// Localized description of selected customizations (stored as JSON)
     /// </summary>
-    public string? CustomizationsDescription { get; private set; }
+    public LocalizedText? CustomizationsDescription { get; private set; }
 
     /// <summary>
     /// Special instructions from customer (e.g., "extra hot")
@@ -31,7 +34,7 @@ public class OrderItem
 
     protected OrderItem() { }
 
-    public OrderItem(int productId, string productName, decimal unitPrice, decimal discount, string pictureUrl, int units = 1, string? customizationsDescription = null, string? specialInstructions = null)
+    public OrderItem(int productId, LocalizedText productName, decimal unitPrice, decimal discount, string pictureUrl, int units = 1, LocalizedText? customizationsDescription = null, string? specialInstructions = null)
     {
         if (units <= 0)
         {

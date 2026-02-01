@@ -1,0 +1,342 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Chillax Admin",
+
+  "dashboard": "Dashboard",
+  "pending": "Pending",
+  "active": "Active",
+  "available": "Available",
+  "pendingOrders": "Pending Orders",
+  "activeSessions": "Active Sessions",
+  "availableRooms": "Available Rooms",
+  "viewAll": "View all",
+  "noPendingOrders": "No pending orders",
+  "noActiveSessions": "No active sessions",
+
+  "signIn": "Sign In",
+  "signOut": "Sign Out",
+  "adminDashboard": "Admin Dashboard",
+  "usernameOrEmail": "Username or Email",
+  "enterUsernameOrEmail": "Enter your username or email",
+  "password": "Password",
+  "enterPassword": "Enter your password",
+  "error": "Error",
+  "adminRoleRequired": "You must have Admin role to access this application.",
+  "enterBothFields": "Please enter both username and password.",
+  "invalidCredentials": "Invalid username or password. Please try again.",
+
+  "orders": "Orders",
+  "cancelOrder": "Cancel Order",
+  "cancelOrderQuestion": "Cancel Order?",
+  "cancelOrderConfirmation": "Are you sure you want to cancel this order?",
+  "keep": "Keep",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "delete": "Delete",
+  "edit": "Edit",
+  "add": "Add",
+  "save": "Save",
+  "update": "Update",
+  "create": "Create",
+  "close": "Close",
+  "ok": "OK",
+  "failedToLoad": "Failed to load",
+  "item": "item",
+  "items": "Items",
+  "itemCount": "{count} {count, plural, =1{item} other{items}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "note": "Note",
+  "customerNote": "Customer Note",
+  "total": "Total",
+  "date": "Date",
+  "each": "each",
+  "orderNumber": "Order #{id}",
+  "@orderNumber": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "validating": "Validating",
+  "confirmed": "Confirmed",
+  "cancelled": "Cancelled",
+  "confirmOrder": "Confirm Order",
+  "cancelOrderButton": "Cancel Order",
+  "noKeep": "No, Keep",
+  "yesCancel": "Yes, Cancel",
+
+  "rooms": "Rooms",
+  "addRoom": "Add Room",
+  "editRoom": "Edit Room",
+  "noRoomsConfigured": "No rooms configured",
+  "addRoomToGetStarted": "Add a room to get started",
+  "endSession": "End Session?",
+  "endSessionConfirmation": "Are you sure you want to end this session? The customer will be charged for the time used.",
+  "endSessionButton": "End Session",
+  "statusActive": "Active",
+  "statusReserved": "Reserved",
+  "statusAvailable": "Available",
+  "statusOccupied": "Occupied",
+  "statusMaintenance": "Maintenance",
+  "reservedCountdown": "Reserved ({countdown})",
+  "@reservedCountdown": {
+    "placeholders": {
+      "countdown": {
+        "type": "String"
+      }
+    }
+  },
+  "expiring": "Expiring...",
+  "perHour": "/hr",
+  "name": "Name",
+  "nameRequired": "Name *",
+  "description": "Description",
+  "optionalDescription": "Optional description",
+  "hourlyRate": "Hourly Rate ($) *",
+
+  "menu": "Menu",
+  "categories": "Categories",
+  "addItem": "Add item",
+  "addCategory": "Add category",
+  "editCategory": "Edit Category",
+  "all": "All",
+  "noItemsFound": "No items found",
+  "deleteItem": "Delete Item?",
+  "deleteItemConfirmation": "Are you sure you want to delete \"{name}\"?",
+  "@deleteItemConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "availableLabel": "Available",
+  "unavailable": "Unavailable",
+  "noCategoriesFound": "No categories found",
+  "clickAddCategoryHint": "Click the + button above to create one",
+  "categoryName": "Category Name",
+  "categoryNameHint": "e.g., Drinks, Food, Desserts",
+  "categoryCreatedSuccess": "Category created successfully",
+  "categoryUpdatedSuccess": "Category updated successfully",
+  "categoryDeletedSuccess": "Category deleted successfully",
+  "cannotDeleteCategory": "Cannot Delete Category",
+  "categoryHasItems": "This category has {count} {count, plural, =1{item} other{items}}. Move or delete the items before deleting the category.",
+  "@categoryHasItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteCategory": "Delete Category?",
+  "deleteCategoryConfirmation": "Are you sure you want to delete \"{name}\"?",
+  "@deleteCategoryConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "backToMenu": "Back to menu",
+
+  "settings": "Settings",
+  "profile": "Profile",
+  "adminUser": "Admin User",
+  "about": "About",
+  "appVersion": "App Version",
+  "identityProvider": "Identity Provider",
+  "ordersApi": "Orders API",
+  "roomsApi": "Rooms API",
+  "catalogApi": "Catalog API",
+  "signOutQuestion": "Sign Out?",
+  "signOutConfirmation": "Are you sure you want to sign out?",
+  "language": "Language",
+  "arabic": "Arabic",
+  "english": "English",
+
+  "accounts": "Accounts",
+  "addCharge": "Add Charge",
+  "totalOutstanding": "Total Outstanding",
+  "searchByName": "Search by name...",
+  "noAccountsFound": "No accounts found",
+  "addChargeToCreate": "Add a charge to create an account",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "daysAgo": "{days}d ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "customer": "Customer",
+  "customerRequired": "Customer *",
+  "searchCustomerByName": "Search customer by name...",
+  "amount": "Amount",
+  "amountEgp": "Amount (EGP) *",
+  "descriptionOptional": "Description",
+  "chargeDescriptionHint": "e.g., Remaining from session - Room 3",
+  "pleaseEnterValidAmount": "Please enter a valid amount",
+  "chargeAddedSuccess": "Charge added successfully",
+  "failedToAddCharge": "Failed to add charge",
+
+  "loyalty": "Loyalty",
+  "overview": "Overview",
+  "accountsLabel": "Accounts",
+  "todayLabel": "Today",
+  "weekLabel": "Week",
+  "monthLabel": "Month",
+  "tiers": "Tiers",
+  "noLoyaltyAccounts": "No loyalty accounts yet",
+  "points": "pts",
+  "lifetime": "lifetime",
+
+  "requests": "Requests",
+  "allClear": "All clear",
+  "noPendingRequests": "No pending requests",
+  "acknowledge": "Acknowledge",
+  "markComplete": "Mark Complete",
+  "pendingStatus": "Pending",
+  "inProgress": "In Progress",
+  "done": "Done",
+  "room": "Room",
+  "time": "Time",
+  "tap": "TAP",
+  "doneLabel": "DONE",
+  "justNow": "Just now",
+  "minutesAgo": "{minutes}m ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{hours}h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "callWaiter": "Call Waiter",
+  "controllerChange": "Controller Change",
+  "receiptToPay": "Receipt to Pay",
+
+  "customers": "Customers",
+  "more": "More",
+
+  "now": "now",
+
+  "end": "End",
+  "no": "No",
+  "cancelReservation": "Cancel Reservation",
+  "cancelReservationQuestion": "Cancel Reservation?",
+  "cancelReservationConfirmation": "Are you sure you want to cancel this reservation?",
+  "deleteRoom": "Delete Room?",
+  "deleteRoomConfirmation": "Delete \"{name}\"? This cannot be undone.",
+  "@deleteRoomConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "startSession": "Start Session",
+  "reserve": "Reserve",
+  "walkIn": "Walk-in",
+  "customerWillBeCharged": "The customer will be charged for the time used.",
+  "accessCodeCopied": "Access code copied!",
+
+  "record": "Record",
+  "paymentRecorded": "Payment recorded",
+  "failedToRecordPayment": "Failed to record payment",
+  "charge": "Charge",
+  "payment": "Payment",
+
+  "adjust": "Adjust",
+  "addPoints": "Add Points",
+  "pleaseEnterValidPoints": "Please enter a valid points amount",
+  "pointsAdjusted": "Points adjusted",
+  "pointsAdded": "Points added",
+  "failedToAdjustPoints": "Failed to adjust points",
+  "failedToAddPoints": "Failed to add points",
+
+  "pleaseSelectCategory": "Please select a category",
+  "accountTab": "Account",
+  "loyaltyTab": "Loyalty",
+
+  "logout": "Logout",
+  "logoutConfirmation": "Are you sure you want to logout?",
+
+  "viewAllOrdersCount": "View all {count} orders",
+  "@viewAllOrdersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "amountEgpLabel": "Amount (EGP)",
+
+  "readyToStart": "Ready to Start",
+  "codeLabel": "Code: {code}",
+  "@codeLabel": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+
+  "balance": "Balance",
+  "memberSince": "Member since",
+  "status": "Status",
+  "disabled": "Disabled",
+  "customerNotFound": "Customer not found",
+  "accountNotFound": "Account not found",
+  "orderHistory": "Order History",
+  "noOrdersYet": "No orders yet",
+  "viewCustomer": "View Customer",
+  "history": "History",
+  "noTransactionsYet": "No transactions yet",
+  "currentBalance": "Current Balance",
+  "cashPaymentHint": "e.g., Cash payment",
+  "sessionBalanceHint": "e.g., Session balance",
+  "chargeAdded": "Charge added",
+  "loyaltyAccount": "Loyalty Account",
+  "pointsBalance": "Points Balance",
+  "usePositiveToAdd": "Use positive to add, negative to deduct",
+  "reason": "Reason",
+  "correctionHint": "e.g., Correction",
+  "bonusPointsHint": "e.g., Bonus points",
+  "pointsValueHint": "e.g., 100 or -50",
+  "editMenuItem": "Edit Menu Item",
+  "addMenuItem": "Add Menu Item",
+  "enterItemName": "Enter item name",
+  "enterItemDescription": "Enter item description",
+  "price": "Price",
+  "categoryRequired": "Category *",
+  "selectCategory": "Select category",
+  "preparationTime": "Preparation Time (minutes)",
+  "prepTimeHint": "e.g. 10",
+  "searchByNameOrEmail": "Search by name or email...",
+  "noCustomersFound": "No customers found",
+  "roomNameHint": "e.g. PlayStation Room 1",
+
+  "tierBronze": "BRONZE",
+  "tierSilver": "SILVER",
+  "tierGold": "GOLD",
+  "tierPlatinum": "PLATINUM"
+}

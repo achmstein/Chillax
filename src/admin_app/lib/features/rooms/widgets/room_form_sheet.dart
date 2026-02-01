@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/models/localized_text.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../providers/rooms_provider.dart';
 
@@ -46,6 +48,7 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -74,8 +77,8 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      widget.isEditing ? 'Edit Room' : 'Add Room',
+                    child: AppText(
+                      widget.isEditing ? l10n.editRoom : l10n.addRoom,
                       style: theme.typography.lg.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -104,8 +107,8 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Name field
-                      Text(
-                        'Name *',
+                      AppText(
+                        l10n.nameRequired,
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -118,8 +121,8 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                       const SizedBox(height: 16),
 
                       // Description field
-                      Text(
-                        'Description',
+                      AppText(
+                        l10n.description,
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -127,15 +130,15 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                       const SizedBox(height: 8),
                       FTextField.multiline(
                         control: FTextFieldControl.managed(controller: _descriptionController),
-                        hint: 'Optional description',
+                        hint: l10n.optionalDescription,
                         minLines: 2,
                         maxLines: 4,
                       ),
                       const SizedBox(height: 16),
 
                       // Hourly rate field
-                      Text(
-                        'Hourly Rate (\$) *',
+                      AppText(
+                        l10n.hourlyRate,
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -171,7 +174,7 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                     child: FButton(
                       style: FButtonStyle.outline(),
                       onPress: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: AppText(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -184,7 +187,7 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(widget.isEditing ? 'Update' : 'Create'),
+                          : AppText(widget.isEditing ? l10n.update : l10n.create),
                     ),
                   ),
                 ],

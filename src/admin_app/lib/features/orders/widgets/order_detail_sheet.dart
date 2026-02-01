@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
 
@@ -13,8 +16,10 @@ class OrderDetailSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
-    final dateFormat = DateFormat.yMd().add_Hm();
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context);
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
+    final dateFormat = DateFormat.yMd(locale.languageCode).add_Hm();
 
     return SizedBox(
       width: 400,
@@ -27,8 +32,8 @@ class OrderDetailSheet extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Order #${order.id}',
+                AppText(
+                  l10n.orderNumber(order.id),
                   style: theme.typography.xl.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -53,11 +58,11 @@ class OrderDetailSheet extends ConsumerWidget {
                   // Status and info
                   Row(
                     children: [
-                      _buildStatusBadge(order.status),
+                      _buildStatusBadge(order.status, l10n),
                       if (order.roomName != null) ...[
                         const SizedBox(width: 8),
                         FBadge(style: FBadgeStyle.secondary(),
-                          child: Text(order.roomName!),
+                          child: AppText(order.roomName!.localized(context)),
                         ),
                       ],
                     ],
@@ -65,13 +70,13 @@ class OrderDetailSheet extends ConsumerWidget {
                   const SizedBox(height: 16),
 
                   // Date
-                  _buildInfoRow(theme, 'Date', dateFormat.format(order.date)),
+                  _buildInfoRow(theme, l10n.date, dateFormat.format(order.date)),
 
                   // Customer note
                   if (order.customerNote != null && order.customerNote!.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    Text(
-                      'Customer Note',
+                    AppText(
+                      l10n.customerNote,
                       style: theme.typography.sm.copyWith(
                         color: theme.colors.mutedForeground,
                       ),
@@ -89,7 +94,7 @@ class OrderDetailSheet extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
+                              child: AppText(
                                 order.customerNote!,
                                 style: theme.typography.sm,
                               ),
@@ -103,14 +108,14 @@ class OrderDetailSheet extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // Order items
-                  Text(
-                    'Items',
+                  AppText(
+                    l10n.items,
                     style: theme.typography.base.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...order.items.map((item) => _buildOrderItem(theme, item, currencyFormat)),
+                  ...order.items.map((item) => _buildOrderItem(context, theme, item, currencyFormat, l10n)),
 
                   const SizedBox(height: 16),
                   const FDivider(),
@@ -120,13 +125,13 @@ class OrderDetailSheet extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Total',
+                      AppText(
+                        l10n.total,
                         style: theme.typography.lg.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
+                      AppText(
                         currencyFormat.format(order.total),
                         style: theme.typography.lg.copyWith(
                           fontWeight: FontWeight.bold,
@@ -150,14 +155,14 @@ class OrderDetailSheet extends ConsumerWidget {
                   Expanded(
                     child: FButton(
                       style: FButtonStyle.outline(),
-                      child: const Text('Cancel Order'),
-                      onPress: () => _cancelOrder(context, ref),
+                      child: AppText(l10n.cancelOrder),
+                      onPress: () => _cancelOrder(context, ref, l10n),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: FButton(
-                      child: const Text('Confirm Order'),
+                      child: AppText(l10n.confirmOrder),
                       onPress: () => _confirmOrder(context, ref),
                     ),
                   ),
@@ -170,23 +175,23 @@ class OrderDetailSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusBadge(OrderStatus status) {
+  Widget _buildStatusBadge(OrderStatus status, AppLocalizations l10n) {
     switch (status) {
       case OrderStatus.awaitingValidation:
         return FBadge(style: FBadgeStyle.secondary(),
-          child: const Text('Validating'),
+          child: AppText(l10n.validating),
         );
       case OrderStatus.submitted:
         return FBadge(style: FBadgeStyle.destructive(),
-          child: const Text('Pending'),
+          child: AppText(l10n.pending),
         );
       case OrderStatus.confirmed:
         return FBadge(
-          child: const Text('Confirmed'),
+          child: AppText(l10n.confirmed),
         );
       case OrderStatus.cancelled:
         return FBadge(style: FBadgeStyle.outline(),
-          child: const Text('Cancelled'),
+          child: AppText(l10n.cancelled),
         );
     }
   }
@@ -195,13 +200,13 @@ class OrderDetailSheet extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
+        AppText(
           label,
           style: theme.typography.sm.copyWith(
             color: theme.colors.mutedForeground,
           ),
         ),
-        Text(
+        AppText(
           value,
           style: theme.typography.sm,
         ),
@@ -209,7 +214,7 @@ class OrderDetailSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildOrderItem(FThemeData theme, OrderItem item, NumberFormat format) {
+  Widget _buildOrderItem(BuildContext context, FThemeData theme, OrderItem item, NumberFormat format, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -223,7 +228,7 @@ class OrderDetailSheet extends ConsumerWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             alignment: Alignment.center,
-            child: Text(
+            child: AppText(
               '${item.units}x',
               style: theme.typography.sm.copyWith(
                 fontWeight: FontWeight.w600,
@@ -235,14 +240,14 @@ class OrderDetailSheet extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.productName,
+                AppText(
+                  item.productName.localized(context),
                   style: theme.typography.sm.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Text(
-                  '${format.format(item.unitPrice)} each',
+                AppText(
+                  '${format.format(item.unitPrice)} ${l10n.each}',
                   style: theme.typography.xs.copyWith(
                     color: theme.colors.mutedForeground,
                   ),
@@ -250,7 +255,7 @@ class OrderDetailSheet extends ConsumerWidget {
               ],
             ),
           ),
-          Text(
+          AppText(
             format.format(item.totalPrice),
             style: theme.typography.sm.copyWith(
               fontWeight: FontWeight.w500,
@@ -268,22 +273,22 @@ class OrderDetailSheet extends ConsumerWidget {
     }
   }
 
-  Future<void> _cancelOrder(BuildContext context, WidgetRef ref) async {
+  Future<void> _cancelOrder(BuildContext context, WidgetRef ref, AppLocalizations l10n) async {
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Cancel Order?'),
-        body: const Text('Are you sure you want to cancel this order?'),
+        title: AppText(l10n.cancelOrderQuestion),
+        body: AppText(l10n.cancelOrderConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('No, Keep'),
+            child: AppText(l10n.noKeep),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
             style: FButtonStyle.destructive(),
-            child: const Text('Yes, Cancel'),
+            child: AppText(l10n.yesCancel),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],

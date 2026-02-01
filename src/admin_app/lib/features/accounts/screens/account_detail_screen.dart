@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/customer_account.dart';
 import '../providers/accounts_provider.dart';
 
@@ -28,6 +30,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(accountsProvider);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     final account = state.selectedAccount ??
         state.accounts.where((a) => a.customerId == widget.customerId).firstOrNull;
@@ -39,7 +42,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(context, theme, null),
+              _buildHeader(context, theme, null, l10n),
               const Expanded(child: Center(child: CircularProgressIndicator())),
             ],
           ),
@@ -53,11 +56,11 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(context, theme, null),
+              _buildHeader(context, theme, null, l10n),
               Expanded(
                 child: Center(
-                  child: Text(
-                    'Account not found',
+                  child: AppText(
+                    l10n.accountNotFound,
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.mutedForeground,
                     ),
@@ -70,7 +73,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
       );
     }
 
-    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final hasBalance = account.hasBalance;
 
     return Scaffold(
@@ -79,7 +82,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
         child: Column(
           children: [
             // Header with name
-            _buildHeader(context, theme, account),
+            _buildHeader(context, theme, account, l10n),
 
             // Balance and actions
             Padding(
@@ -87,15 +90,15 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
               child: Column(
                 children: [
                   // Balance label
-                  Text(
-                    'Balance',
+                  AppText(
+                    l10n.balance,
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.mutedForeground,
                     ),
                   ),
                   const SizedBox(height: 4),
                   // Balance amount
-                  Text(
+                  AppText(
                     currencyFormat.format(account.balance),
                     style: TextStyle(
                       fontSize: 36,
@@ -110,13 +113,13 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                       Expanded(
                         child: FButton(
                           style: FButtonStyle.outline(),
-                          onPress: () => _showAddCharge(context, account),
-                          child: const Row(
+                          onPress: () => _showAddCharge(context, account, l10n),
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add, size: 18),
-                              SizedBox(width: 8),
-                              Text('Charge'),
+                              const Icon(Icons.add, size: 18),
+                              const SizedBox(width: 8),
+                              AppText(l10n.charge),
                             ],
                           ),
                         ),
@@ -124,13 +127,13 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: FButton(
-                          onPress: hasBalance ? () => _showRecordPayment(context, account) : null,
-                          child: const Row(
+                          onPress: hasBalance ? () => _showRecordPayment(context, account, l10n) : null,
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.payments_outlined, size: 18),
-                              SizedBox(width: 8),
-                              Text('Payment'),
+                              const Icon(Icons.payments_outlined, size: 18),
+                              const SizedBox(width: 8),
+                              AppText(l10n.payment),
                             ],
                           ),
                         ),
@@ -149,6 +152,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                 onRefresh: () => ref
                     .read(accountsProvider.notifier)
                     .selectAccount(widget.customerId),
+                l10n: l10n,
               ),
             ),
           ],
@@ -157,7 +161,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, FThemeData theme, CustomerAccount? account) {
+  Widget _buildHeader(BuildContext context, FThemeData theme, CustomerAccount? account, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
@@ -168,8 +172,8 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
           ),
           const SizedBox(width: 4),
           Expanded(
-            child: Text(
-              account?.displayName ?? 'Account',
+            child: AppText(
+              account?.displayName ?? l10n.accountTab,
               style: theme.typography.base.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -180,21 +184,21 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
             IconButton(
               icon: const Icon(Icons.person_outline, size: 22),
               onPressed: () => context.go('/customers/${account.customerId}'),
-              tooltip: 'View Customer',
+              tooltip: l10n.viewCustomer,
             ),
         ],
       ),
     );
   }
 
-  void _showAddCharge(BuildContext context, CustomerAccount account) {
+  void _showAddCharge(BuildContext context, CustomerAccount account, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) => _AmountSheet(
-        title: 'Add Charge',
+        title: l10n.addCharge,
         account: account,
         isPayment: false,
         onComplete: () {
@@ -204,14 +208,14 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
     );
   }
 
-  void _showRecordPayment(BuildContext context, CustomerAccount account) {
+  void _showRecordPayment(BuildContext context, CustomerAccount account, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) => _AmountSheet(
-        title: 'Record Payment',
+        title: l10n.record,
         account: account,
         isPayment: true,
         onComplete: () {
@@ -226,19 +230,22 @@ class _TransactionHistorySection extends StatelessWidget {
   final List<AccountTransaction> transactions;
   final bool isLoading;
   final Future<void> Function() onRefresh;
+  final AppLocalizations l10n;
 
   const _TransactionHistorySection({
     required this.transactions,
     required this.isLoading,
     required this.onRefresh,
+    required this.l10n,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
-    final dateFormat = DateFormat('MMM d');
-    final timeFormat = DateFormat('h:mm a');
+    final locale = Localizations.localeOf(context);
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
+    final dateFormat = DateFormat('MMM d', locale.languageCode);
+    final timeFormat = DateFormat('h:mm a', locale.languageCode);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,8 +253,8 @@ class _TransactionHistorySection extends StatelessWidget {
         // Header
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-          child: Text(
-            'History',
+          child: AppText(
+            l10n.history,
             style: theme.typography.sm.copyWith(
               fontWeight: FontWeight.w600,
               color: theme.colors.mutedForeground,
@@ -261,8 +268,8 @@ class _TransactionHistorySection extends StatelessWidget {
               ? const Center(child: CircularProgressIndicator())
               : transactions.isEmpty
                   ? Center(
-                      child: Text(
-                        'No transactions yet',
+                      child: AppText(
+                        l10n.noTransactionsYet,
                         style: theme.typography.sm.copyWith(
                           color: theme.colors.mutedForeground,
                         ),
@@ -302,10 +309,10 @@ class _TransactionHistorySection extends StatelessWidget {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      AppText(
                                         tx.description?.isNotEmpty == true
                                             ? tx.description!
-                                            : (isCharge ? 'Charge' : 'Payment'),
+                                            : (isCharge ? l10n.charge : l10n.payment),
                                         style: theme.typography.sm.copyWith(
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -313,7 +320,7 @@ class _TransactionHistorySection extends StatelessWidget {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
+                                      AppText(
                                         '${dateFormat.format(tx.createdAt.toLocal())} at ${timeFormat.format(tx.createdAt.toLocal())}',
                                         style: theme.typography.xs.copyWith(
                                           color: theme.colors.mutedForeground,
@@ -324,7 +331,7 @@ class _TransactionHistorySection extends StatelessWidget {
                                 ),
 
                                 // Amount
-                                Text(
+                                AppText(
                                   '${isCharge ? '+' : '-'}${currencyFormat.format(tx.amount)}',
                                   style: theme.typography.sm.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -377,7 +384,8 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
+    final l10n = AppLocalizations.of(context)!;
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
 
     return Container(
       decoration: BoxDecoration(
@@ -406,7 +414,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       widget.title,
                       style: theme.typography.lg.copyWith(
                         fontWeight: FontWeight.bold,
@@ -444,13 +452,13 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Current Balance',
+                            AppText(
+                              l10n.currentBalance,
                               style: theme.typography.sm.copyWith(
                                 color: theme.colors.mutedForeground,
                               ),
                             ),
-                            Text(
+                            AppText(
                               currencyFormat.format(widget.account.balance),
                               style: theme.typography.sm.copyWith(
                                 fontWeight: FontWeight.w600,
@@ -464,8 +472,8 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                     ],
 
                     // Amount
-                    Text(
-                      'Amount (EGP)',
+                    AppText(
+                      l10n.amountEgpLabel,
                       style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
@@ -478,14 +486,14 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                     const SizedBox(height: 16),
 
                     // Description
-                    Text(
-                      'Description',
+                    AppText(
+                      l10n.description,
                       style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
                     FTextField.multiline(
                       control: FTextFieldControl.managed(controller: _descriptionController),
-                      hint: widget.isPayment ? 'e.g., Cash payment' : 'e.g., Session balance',
+                      hint: widget.isPayment ? l10n.cashPaymentHint : l10n.sessionBalanceHint,
                       minLines: 2,
                       maxLines: 3,
                     ),
@@ -509,7 +517,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                     child: FButton(
                       style: FButtonStyle.outline(),
                       onPress: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: AppText(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -525,7 +533,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(widget.isPayment ? 'Record' : 'Add Charge'),
+                          : AppText(widget.isPayment ? l10n.record : l10n.addCharge),
                     ),
                   ),
                 ],
@@ -538,10 +546,11 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid amount')),
+        SnackBar(content: AppText(l10n.pleaseEnterValidAmount)),
       );
       return;
     }
@@ -576,13 +585,13 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
         widget.onComplete?.call();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isPayment ? 'Payment recorded' : 'Charge added'),
+            content: AppText(widget.isPayment ? l10n.paymentRecorded : l10n.chargeAdded),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isPayment ? 'Failed to record payment' : 'Failed to add charge'),
+            content: AppText(widget.isPayment ? l10n.failedToRecordPayment : l10n.failedToAddCharge),
           ),
         );
       }

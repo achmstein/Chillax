@@ -7,12 +7,8 @@ class CustomizationOptionEntityTypeConfiguration
     {
         builder.ToTable("CustomizationOptions");
 
-        builder.Property(co => co.Name)
-            .HasMaxLength(100)
-            .IsRequired();
-
-        builder.Property(co => co.NameAr)
-            .HasMaxLength(100);
+        // Configure Name as JSON column
+        builder.OwnsOne(co => co.Name, b => b.ToJson());
 
         builder.Property(co => co.PriceAdjustment)
             .HasPrecision(18, 2);

@@ -85,20 +85,26 @@ public class OrdersWebApiTest
     public async Task Get_orders_success()
     {
         // Arrange
-        var fakeDynamicResult = Enumerable.Empty<OrderSummary>();
+        var fakePaginatedResult = new PaginatedResult<OrderSummary>
+        {
+            Items = Enumerable.Empty<OrderSummary>(),
+            PageIndex = 0,
+            PageSize = 10,
+            TotalCount = 0
+        };
 
         _identityServiceMock.GetUserIdentity()
             .Returns(Guid.NewGuid().ToString());
 
-        _orderQueriesMock.GetOrdersFromUserAsync(Guid.NewGuid().ToString())
-            .Returns(Task.FromResult(fakeDynamicResult));
+        _orderQueriesMock.GetOrdersFromUserAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<int>())
+            .Returns(Task.FromResult(fakePaginatedResult));
 
         // Act
         var orderServices = new OrderServices(_mediatorMock, _orderQueriesMock, _identityServiceMock, _loggerMock);
-        var result = await OrdersApi.GetOrdersByUserAsync(orderServices);
+        var result = await OrdersApi.GetOrdersByUserAsync(0, 10, orderServices);
 
         // Assert
-        Assert.IsInstanceOfType<Ok<IEnumerable<OrderSummary>>>(result);
+        Assert.IsInstanceOfType<Ok<PaginatedResult<OrderSummary>>>(result);
     }
 
     [TestMethod]

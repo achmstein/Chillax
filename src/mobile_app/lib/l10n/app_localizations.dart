@@ -1352,6 +1352,30 @@ abstract class AppLocalizations {
   /// **'0100 469 8 469'**
   String get supportPhone;
 
+  /// No description provided for @tierBronze.
+  ///
+  /// In en, this message translates to:
+  /// **'BRONZE'**
+  String get tierBronze;
+
+  /// No description provided for @tierSilver.
+  ///
+  /// In en, this message translates to:
+  /// **'SILVER'**
+  String get tierSilver;
+
+  /// No description provided for @tierGold.
+  ///
+  /// In en, this message translates to:
+  /// **'GOLD'**
+  String get tierGold;
+
+  /// No description provided for @tierPlatinum.
+  ///
+  /// In en, this message translates to:
+  /// **'PLATINUM'**
+  String get tierPlatinum;
+
   /// No description provided for @joinedSessionSuccessfully.
   ///
   /// In en, this message translates to:

@@ -143,9 +143,6 @@ namespace Ordering.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "orderitemseq");
 
-                    b.Property<string>("CustomizationsDescription")
-                        .HasColumnType("text");
-
                     b.Property<decimal>("Discount")
                         .HasColumnType("numeric");
 
@@ -158,10 +155,6 @@ namespace Ordering.Infrastructure.Migrations
 
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("SpecialInstructions")
                         .HasColumnType("text");
@@ -246,6 +239,49 @@ namespace Ordering.Infrastructure.Migrations
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Chillax.Ordering.Domain.Seedwork.LocalizedText", "CustomizationsDescription", b1 =>
+                        {
+                            b1.Property<int>("OrderItemId");
+
+                            b1.Property<string>("Ar");
+
+                            b1.Property<string>("En")
+                                .IsRequired();
+
+                            b1.HasKey("OrderItemId");
+
+                            b1.ToTable("orderItems", "ordering");
+
+                            b1.ToJson("CustomizationsDescription");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderItemId");
+                        });
+
+                    b.OwnsOne("Chillax.Ordering.Domain.Seedwork.LocalizedText", "ProductName", b1 =>
+                        {
+                            b1.Property<int>("OrderItemId");
+
+                            b1.Property<string>("Ar");
+
+                            b1.Property<string>("En")
+                                .IsRequired();
+
+                            b1.HasKey("OrderItemId");
+
+                            b1.ToTable("orderItems", "ordering");
+
+                            b1.ToJson("ProductName");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderItemId");
+                        });
+
+                    b.Navigation("CustomizationsDescription");
+
+                    b.Navigation("ProductName")
                         .IsRequired();
                 });
 

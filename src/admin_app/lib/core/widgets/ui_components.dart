@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:shimmer/shimmer.dart';
+import 'app_text.dart';
 
 /// Standard screen padding for all screens
 const kScreenPadding = EdgeInsets.all(16);
@@ -238,7 +239,7 @@ class EmptyState extends StatelessWidget {
               color: theme.colors.mutedForeground,
             ),
             const SizedBox(height: 12),
-            Text(
+            AppText(
               title,
               style: theme.typography.base.copyWith(
                 color: theme.colors.mutedForeground,
@@ -246,7 +247,7 @@ class EmptyState extends StatelessWidget {
             ),
             if (subtitle != null) ...[
               const SizedBox(height: 4),
-              Text(
+              AppText(
                 subtitle!,
                 style: theme.typography.sm.copyWith(
                   color: theme.colors.mutedForeground,
@@ -282,7 +283,7 @@ class SectionHeader extends StatelessWidget {
 
     return Row(
       children: [
-        Text(
+        AppText(
           title,
           style: theme.typography.base.copyWith(fontWeight: FontWeight.w600),
         ),
@@ -294,7 +295,7 @@ class SectionHeader extends StatelessWidget {
               color: theme.colors.secondary,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
+            child: AppText(
               '$count',
               style: theme.typography.xs.copyWith(fontWeight: FontWeight.w500),
             ),
@@ -304,7 +305,7 @@ class SectionHeader extends StatelessWidget {
         if (actionText != null && onAction != null)
           GestureDetector(
             onTap: onAction,
-            child: Text(
+            child: AppText(
               actionText!,
               style: theme.typography.sm.copyWith(color: theme.colors.primary),
             ),

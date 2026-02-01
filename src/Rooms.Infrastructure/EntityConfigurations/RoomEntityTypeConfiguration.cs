@@ -13,12 +13,11 @@ class RoomEntityTypeConfiguration : IEntityTypeConfiguration<Room>
 
         builder.Ignore(r => r.DomainEvents);
 
-        builder.Property(r => r.Name)
-            .IsRequired()
-            .HasMaxLength(100);
+        // Configure Name as JSON column
+        builder.OwnsOne(r => r.Name, b => b.ToJson());
 
-        builder.Property(r => r.Description)
-            .HasMaxLength(500);
+        // Configure Description as JSON column
+        builder.OwnsOne(r => r.Description, b => b.ToJson());
 
         builder.Property(r => r.HourlyRate)
             .HasPrecision(18, 2)
@@ -30,7 +29,6 @@ class RoomEntityTypeConfiguration : IEntityTypeConfiguration<Room>
             .IsRequired();
 
         // Indexes
-        builder.HasIndex(r => r.Name);
         builder.HasIndex(r => r.PhysicalStatus);
     }
 }

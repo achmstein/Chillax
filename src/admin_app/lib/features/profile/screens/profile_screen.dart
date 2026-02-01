@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Admin profile screen - simple and minimal
 class ProfileScreen extends ConsumerWidget {
@@ -12,12 +14,13 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authServiceProvider);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
         // Header
         FHeader(
-          title: const Text('Profile', style: TextStyle(fontSize: 18)),
+          title: AppText(l10n.profile, style: const TextStyle(fontSize: 18)),
         ),
 
         // Body
@@ -37,7 +40,7 @@ class ProfileScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(40),
                   ),
                   child: Center(
-                    child: Text(
+                    child: AppText(
                       (authState.name ?? 'A').substring(0, 1).toUpperCase(),
                       style: theme.typography.xl.copyWith(
                         fontWeight: FontWeight.w600,
@@ -50,8 +53,8 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
 
                 // Name
-                Text(
-                  authState.name ?? 'Admin',
+                AppText(
+                  authState.name ?? l10n.adminUser,
                   style: theme.typography.xl.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -60,7 +63,7 @@ class ProfileScreen extends ConsumerWidget {
 
                 // Email
                 if (authState.email != null)
-                  Text(
+                  AppText(
                     authState.email!,
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.mutedForeground,
@@ -79,15 +82,15 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       _ProfileMenuItem(
                         icon: Icons.settings_outlined,
-                        title: 'Settings',
+                        title: l10n.settings,
                         onTap: () => context.go('/settings'),
                       ),
                       Divider(height: 1, color: theme.colors.border),
                       _ProfileMenuItem(
                         icon: Icons.logout,
-                        title: 'Logout',
+                        title: l10n.logout,
                         isDestructive: true,
-                        onTap: () => _handleLogout(context, ref),
+                        onTap: () => _handleLogout(context, ref, l10n),
                       ),
                     ],
                   ),
@@ -100,22 +103,22 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref, AppLocalizations l10n) async {
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Logout'),
-        body: const Text('Are you sure you want to logout?'),
+        title: AppText(l10n.logout),
+        body: AppText(l10n.logoutConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
             style: FButtonStyle.destructive(),
-            child: const Text('Logout'),
+            child: AppText(l10n.logout),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -159,7 +162,7 @@ class _ProfileMenuItem extends StatelessWidget {
               Icon(icon, size: 20, color: color),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
+                child: AppText(
                   title,
                   style: theme.typography.sm.copyWith(
                     color: color,

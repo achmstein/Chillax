@@ -76,7 +76,7 @@ class LoyaltyCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             AppText(
-                              '${numberFormat.format(loyaltyInfo.pointsBalance)} pts',
+                              '${numberFormat.format(loyaltyInfo.pointsBalance)} ${l10n.pts}',
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -113,7 +113,7 @@ class LoyaltyCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         AppText(
-                          l10n.pointsToNextTier(numberFormat.format(loyaltyInfo.pointsToNextTier), '${loyaltyInfo.nextTier!.name[0].toUpperCase()}${loyaltyInfo.nextTier!.name.substring(1)}'),
+                          l10n.pointsToNextTier(numberFormat.format(loyaltyInfo.pointsToNextTier), getLocalizedTierName(loyaltyInfo.nextTier!, l10n)),
                           style: TextStyle(
                             fontSize: 13,
                             color: colors.mutedForeground,
@@ -158,6 +158,20 @@ class LoyaltyCard extends StatelessWidget {
   }
 }
 
+/// Helper function to get localized tier name
+String getLocalizedTierName(LoyaltyTier tier, AppLocalizations l10n) {
+  switch (tier) {
+    case LoyaltyTier.bronze:
+      return l10n.tierBronze;
+    case LoyaltyTier.silver:
+      return l10n.tierSilver;
+    case LoyaltyTier.gold:
+      return l10n.tierGold;
+    case LoyaltyTier.platinum:
+      return l10n.tierPlatinum;
+  }
+}
+
 /// Tier badge widget with metallic gradient
 class _TierBadge extends StatelessWidget {
   final LoyaltyTier tier;
@@ -166,6 +180,7 @@ class _TierBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final gradientColors = tier.gradientColors.map((c) => Color(c)).toList();
     // Use dark text for light tier colors (silver, gold), white for darker (bronze, platinum)
     final textColor = (tier == LoyaltyTier.bronze || tier == LoyaltyTier.platinum)
@@ -190,7 +205,7 @@ class _TierBadge extends StatelessWidget {
         ],
       ),
       child: AppText(
-        tier.name.toUpperCase(),
+        getLocalizedTierName(tier, l10n),
         style: TextStyle(
           color: textColor,
           fontSize: 11,

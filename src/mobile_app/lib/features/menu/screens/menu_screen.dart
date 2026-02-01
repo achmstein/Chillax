@@ -173,12 +173,12 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
               // Initialize category keys using localized names
               for (final category in groupedItems.keys) {
-                final localizedName = category.localizedName(locale);
+                final localizedName = category.name.getText(locale);
                 _categoryKeys.putIfAbsent(localizedName, () => GlobalKey());
               }
 
               // Set initial selected category
-              _selectedCategory ??= groupedItems.keys.first.localizedName(locale);
+              _selectedCategory ??= groupedItems.keys.first.name.getText(locale);
 
               // Filter items based on search
               final filteredItems = _filterItemsWithLocale(groupedItems, locale);
@@ -234,7 +234,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
                   // Sticky category menu
                   _CategoryMenu(
-                    categories: groupedItems.keys.map((c) => c.localizedName(locale)).toList(),
+                    categories: groupedItems.keys.map((c) => c.name.getText(locale)).toList(),
                     selectedCategory: _selectedCategory,
                     onCategoryTap: _scrollToCategory,
                   ),
@@ -252,7 +252,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                         itemCount: filteredItems.length,
                         itemBuilder: (context, index) {
                           final entry = filteredItems.entries.elementAt(index);
-                          final categoryName = entry.key.localizedName(locale);
+                          final categoryName = entry.key.name.getText(locale);
                           final items = entry.value;
                           return _CategorySection(
                             key: _categoryKeys[categoryName],
@@ -331,10 +331,10 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     for (final entry in items.entries) {
       final matchingItems = entry.value
           .where((item) =>
-              item.localizedName(locale).toLowerCase().contains(query) ||
-              item.localizedDescription(locale).toLowerCase().contains(query) ||
-              item.name.toLowerCase().contains(query) ||
-              item.description.toLowerCase().contains(query))
+              item.name.getText(locale).toLowerCase().contains(query) ||
+              item.description.getText(locale).toLowerCase().contains(query) ||
+              item.name.en.toLowerCase().contains(query) ||
+              item.description.en.toLowerCase().contains(query))
           .toList();
       if (matchingItems.isNotEmpty) {
         filtered[entry.key] = matchingItems;
@@ -574,17 +574,17 @@ class MenuItemTile extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppText(
-                    item.localizedName(locale),
+                    item.name.getText(locale),
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: colors.foreground,
                     ),
                   ),
-                  if (item.localizedDescription(locale).isNotEmpty) ...[
+                  if (item.description.getText(locale).isNotEmpty) ...[
                     const SizedBox(height: 2),
                     AppText(
-                      item.localizedDescription(locale),
+                      item.description.getText(locale),
                       style: TextStyle(
                         color: colors.mutedForeground,
                         fontSize: 13,

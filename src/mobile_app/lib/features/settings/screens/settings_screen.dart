@@ -28,7 +28,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return FScaffold(
       child: SafeArea(
-        bottom: false,
         child: Column(
           children: [
             // Custom header with back button
@@ -38,10 +37,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: Icon(
-                      locale.languageCode == 'ar' ? FIcons.arrowRight : FIcons.arrowLeft,
-                      size: 22,
-                    ),
+                    child: const Icon(FIcons.arrowLeft, size: 22),
                   ),
                   const SizedBox(width: 8),
                   Expanded(

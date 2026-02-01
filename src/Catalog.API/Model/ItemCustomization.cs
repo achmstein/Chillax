@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Chillax.Catalog.API.Model;
 
 /// <summary>
@@ -14,15 +12,9 @@ public class ItemCustomization
     public CatalogItem? CatalogItem { get; set; }
 
     /// <summary>
-    /// Name of the customization group (e.g., "Roasting", "Sugar Level", "Size", "Milk")
+    /// Localized name of the customization group (e.g., "Roasting", "Sugar Level", "Size", "Milk")
     /// </summary>
-    [Required]
-    public string Name { get; set; }
-
-    /// <summary>
-    /// Arabic name for the customization group
-    /// </summary>
-    public string? NameAr { get; set; }
+    public LocalizedText Name { get; set; } = new();
 
     /// <summary>
     /// If true, customer must select at least one option
@@ -44,7 +36,17 @@ public class ItemCustomization
     /// </summary>
     public ICollection<CustomizationOption> Options { get; set; } = new List<CustomizationOption>();
 
+    /// <summary>
+    /// Required for EF Core
+    /// </summary>
+    private ItemCustomization() { }
+
     public ItemCustomization(string name)
+    {
+        Name = new LocalizedText(name);
+    }
+
+    public ItemCustomization(LocalizedText name)
     {
         Name = name;
     }

@@ -300,7 +300,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get billRequestSent => 'طلب الفاتورة اتبعت';
 
   @override
-  String get reserved => 'محجوز';
+  String get reserved => 'محجوزة';
 
   @override
   String get cancelReservation => 'الغي الحجز';
@@ -378,7 +378,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maintenance => 'صيانة';
 
   @override
-  String get statusReserved => 'محجوز';
+  String get statusReserved => 'محجوزة';
 
   @override
   String get statusActive => 'شغال';
@@ -663,6 +663,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get supportPhone => '0100 469 8 469';
+
+  @override
+  String get tierBronze => 'برونزي';
+
+  @override
+  String get tierSilver => 'فضي';
+
+  @override
+  String get tierGold => 'ذهبي';
+
+  @override
+  String get tierPlatinum => 'بلاتيني';
 
   @override
   String get joinedSessionSuccessfully => 'دخلت الجلسة!';

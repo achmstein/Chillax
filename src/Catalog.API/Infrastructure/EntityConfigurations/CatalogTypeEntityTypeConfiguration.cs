@@ -1,4 +1,4 @@
-﻿namespace Chillax.Catalog.API.Infrastructure.EntityConfigurations;
+namespace Chillax.Catalog.API.Infrastructure.EntityConfigurations;
 
 class CatalogTypeEntityTypeConfiguration
     : IEntityTypeConfiguration<CatalogType>
@@ -7,10 +7,7 @@ class CatalogTypeEntityTypeConfiguration
     {
         builder.ToTable("CatalogType");
 
-        builder.Property(cb => cb.Type)
-            .HasMaxLength(100);
-
-        builder.Property(cb => cb.TypeAr)
-            .HasMaxLength(100);
+        // Configure Name as JSON column
+        builder.OwnsOne(ct => ct.Name, b => b.ToJson());
     }
 }

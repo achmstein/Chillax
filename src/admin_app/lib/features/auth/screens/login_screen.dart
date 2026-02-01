@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   final String? error;
@@ -22,8 +24,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.error == 'not_admin') {
-      _errorMessage = 'You must have Admin role to access this application.';
+    // Error message will be set in build() when l10n is available
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.error == 'not_admin' && _errorMessage == null) {
+      final l10n = AppLocalizations.of(context);
+      if (l10n != null) {
+        _errorMessage = l10n.adminRoleRequired;
+      }
     }
   }
 
@@ -35,12 +46,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _signIn() async {
+    final l10n = AppLocalizations.of(context)!;
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
     if (username.isEmpty || password.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter both username and password.';
+        _errorMessage = l10n.enterBothFields;
       });
       return;
     }
@@ -60,16 +72,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       switch (result) {
         case SignInResult.success:
-          context.go('/dashboard');
+          context.go('/orders');
           break;
         case SignInResult.notAdmin:
           setState(() {
-            _errorMessage = 'You must have Admin role to access this application.';
+            _errorMessage = l10n.adminRoleRequired;
           });
           break;
         case SignInResult.failed:
           setState(() {
-            _errorMessage = 'Invalid username or password. Please try again.';
+            _errorMessage = l10n.invalidCredentials;
           });
           break;
       }
@@ -85,6 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: SafeArea(
@@ -109,8 +122,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   // Admin subtitle
                   Center(
-                    child: Text(
-                      'Admin Dashboard',
+                    child: AppText(
+                      l10n.adminDashboard,
                       style: theme.typography.base.copyWith(
                         color: theme.colors.mutedForeground,
                       ),
@@ -125,16 +138,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: FAlert(
                         style: FAlertStyle.destructive(),
                         icon: const Icon(Icons.error_outline),
-                        title: const Text('Error'),
-                        subtitle: Text(_errorMessage!),
+                        title: AppText(l10n.error),
+                        subtitle: AppText(_errorMessage!),
                       ),
                     ),
 
                   // Username field
                   FTextField.email(
                     control: FTextFieldControl.managed(controller: _usernameController),
-                    label: const Text('Username or Email'),
-                    hint: 'Enter your username or email',
+                    label: AppText(l10n.usernameOrEmail),
+                    hint: l10n.enterUsernameOrEmail,
                     textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 16),
@@ -142,8 +155,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // Password field
                   FTextField.password(
                     control: FTextFieldControl.managed(controller: _passwordController),
-                    label: const Text('Password'),
-                    hint: 'Enter your password',
+                    label: AppText(l10n.password),
+                    hint: l10n.enterPassword,
                     textInputAction: TextInputAction.done,
                     onSubmit: (_) => _signIn(),
                   ),
@@ -161,7 +174,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Sign In'),
+                        : AppText(l10n.signIn),
                   ),
                 ],
               ),

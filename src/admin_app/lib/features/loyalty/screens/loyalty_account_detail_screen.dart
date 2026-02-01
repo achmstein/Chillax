@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/loyalty_account.dart';
 import '../models/points_transaction.dart';
 import '../providers/loyalty_provider.dart';
+import 'loyalty_screen.dart' show getLocalizedTierName;
 
 /// Wrapper for loyalty account detail as a full page
 class LoyaltyAccountDetailPageWrapper extends ConsumerStatefulWidget {
@@ -74,6 +77,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final numberFormat = NumberFormat('#,###');
 
     if (_isLoading) {
@@ -82,7 +86,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(context, theme, null),
+              _buildHeader(context, theme, null, l10n),
               const Expanded(child: Center(child: CircularProgressIndicator())),
             ],
           ),
@@ -96,11 +100,11 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(context, theme, null),
+              _buildHeader(context, theme, null, l10n),
               Expanded(
                 child: Center(
-                  child: Text(
-                    'Account not found',
+                  child: AppText(
+                    l10n.accountNotFound,
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.mutedForeground,
                     ),
@@ -119,7 +123,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
         child: Column(
           children: [
             // Header with name
-            _buildHeader(context, theme, _account),
+            _buildHeader(context, theme, _account, l10n),
 
             // Points balance and actions
             Padding(
@@ -127,15 +131,15 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
               child: Column(
                 children: [
                   // Points label
-                  Text(
-                    'Points Balance',
+                  AppText(
+                    l10n.pointsBalance,
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.mutedForeground,
                     ),
                   ),
                   const SizedBox(height: 4),
                   // Points amount
-                  Text(
+                  AppText(
                     numberFormat.format(_account!.pointsBalance),
                     style: TextStyle(
                       fontSize: 36,
@@ -150,8 +154,8 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
                     children: [
                       _TierBadge(tier: _account!.currentTier),
                       const SizedBox(width: 12),
-                      Text(
-                        '${numberFormat.format(_account!.lifetimePoints)} lifetime',
+                      AppText(
+                        '${numberFormat.format(_account!.lifetimePoints)} ${l10n.lifetime}',
                         style: theme.typography.sm.copyWith(
                           color: theme.colors.mutedForeground,
                         ),
@@ -165,13 +169,13 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
                       Expanded(
                         child: FButton(
                           style: FButtonStyle.outline(),
-                          onPress: () => _showAdjustPointsSheet(context),
-                          child: const Row(
+                          onPress: () => _showAdjustPointsSheet(context, l10n),
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.edit, size: 18),
-                              SizedBox(width: 8),
-                              Text('Adjust'),
+                              const Icon(Icons.edit, size: 18),
+                              const SizedBox(width: 8),
+                              AppText(l10n.adjust),
                             ],
                           ),
                         ),
@@ -179,13 +183,13 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
                       const SizedBox(width: 12),
                       Expanded(
                         child: FButton(
-                          onPress: () => _showAddPointsSheet(context),
-                          child: const Row(
+                          onPress: () => _showAddPointsSheet(context, l10n),
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add, size: 18),
-                              SizedBox(width: 8),
-                              Text('Add Points'),
+                              const Icon(Icons.add, size: 18),
+                              const SizedBox(width: 8),
+                              AppText(l10n.addPoints),
                             ],
                           ),
                         ),
@@ -202,6 +206,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
                 transactions: _transactions,
                 isLoading: _isLoadingTransactions,
                 onRefresh: _refresh,
+                l10n: l10n,
               ),
             ),
           ],
@@ -210,7 +215,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
     );
   }
 
-  Widget _buildHeader(BuildContext context, FThemeData theme, LoyaltyAccount? account) {
+  Widget _buildHeader(BuildContext context, FThemeData theme, LoyaltyAccount? account, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
@@ -221,8 +226,8 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
           ),
           const SizedBox(width: 4),
           Expanded(
-            child: Text(
-              account?.displayName ?? 'Loyalty Account',
+            child: AppText(
+              account?.displayName ?? l10n.loyaltyAccount,
               style: theme.typography.base.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -233,21 +238,21 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
             IconButton(
               icon: const Icon(Icons.person_outline, size: 22),
               onPressed: () => context.push('/customers/${account.userId}'),
-              tooltip: 'View Customer',
+              tooltip: l10n.viewCustomer,
             ),
         ],
       ),
     );
   }
 
-  void _showAddPointsSheet(BuildContext context) {
+  void _showAddPointsSheet(BuildContext context, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) => _PointsSheet(
-        title: 'Add Points',
+        title: l10n.addPoints,
         account: _account!,
         isAdjustment: false,
         onComplete: () => _loadTransactions(),
@@ -255,14 +260,14 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
     );
   }
 
-  void _showAdjustPointsSheet(BuildContext context) {
+  void _showAdjustPointsSheet(BuildContext context, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) => _PointsSheet(
-        title: 'Adjust Points',
+        title: l10n.adjust,
         account: _account!,
         isAdjustment: true,
         onComplete: () => _loadTransactions(),
@@ -314,6 +319,8 @@ class _TierBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -325,8 +332,8 @@ class _TierBadge extends StatelessWidget {
         children: [
           Icon(Icons.workspace_premium, size: 14, color: _tierColor),
           const SizedBox(width: 4),
-          Text(
-            tier.name.toUpperCase(),
+          AppText(
+            getLocalizedTierName(tier, l10n),
             style: theme.typography.xs.copyWith(
               fontWeight: FontWeight.w600,
               color: _tierColor,
@@ -342,18 +349,21 @@ class _TransactionsSection extends StatelessWidget {
   final List<PointsTransaction> transactions;
   final bool isLoading;
   final Future<void> Function() onRefresh;
+  final AppLocalizations l10n;
 
   const _TransactionsSection({
     required this.transactions,
     required this.isLoading,
     required this.onRefresh,
+    required this.l10n,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final dateFormat = DateFormat('MMM d');
-    final timeFormat = DateFormat('h:mm a');
+    final locale = Localizations.localeOf(context);
+    final dateFormat = DateFormat('MMM d', locale.languageCode);
+    final timeFormat = DateFormat('h:mm a', locale.languageCode);
     final numberFormat = NumberFormat('#,###');
 
     return Column(
@@ -362,8 +372,8 @@ class _TransactionsSection extends StatelessWidget {
         // Header
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-          child: Text(
-            'History',
+          child: AppText(
+            l10n.history,
             style: theme.typography.sm.copyWith(
               fontWeight: FontWeight.w600,
               color: theme.colors.mutedForeground,
@@ -386,8 +396,8 @@ class _TransactionsSection extends StatelessWidget {
                             color: theme.colors.mutedForeground,
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            'No transactions yet',
+                          AppText(
+                            l10n.noTransactionsYet,
                             style: theme.typography.sm.copyWith(
                               color: theme.colors.mutedForeground,
                             ),
@@ -429,14 +439,14 @@ class _TransactionsSection extends StatelessWidget {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      AppText(
                                         tx.typeDisplay,
                                         style: theme.typography.sm.copyWith(
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
+                                      AppText(
                                         '${dateFormat.format(tx.createdAt.toLocal())} at ${timeFormat.format(tx.createdAt.toLocal())}',
                                         style: theme.typography.xs.copyWith(
                                           color: theme.colors.mutedForeground,
@@ -447,7 +457,7 @@ class _TransactionsSection extends StatelessWidget {
                                 ),
 
                                 // Points
-                                Text(
+                                AppText(
                                   '${isPositive ? '+' : ''}${numberFormat.format(tx.points)}',
                                   style: theme.typography.sm.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -500,6 +510,7 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final numberFormat = NumberFormat('#,###');
 
     return Container(
@@ -529,7 +540,7 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       widget.title,
                       style: theme.typography.lg.copyWith(
                         fontWeight: FontWeight.bold,
@@ -566,14 +577,14 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Current Balance',
+                          AppText(
+                            l10n.currentBalance,
                             style: theme.typography.sm.copyWith(
                               color: theme.colors.mutedForeground,
                             ),
                           ),
-                          Text(
-                            '${numberFormat.format(widget.account.pointsBalance)} pts',
+                          AppText(
+                            '${numberFormat.format(widget.account.pointsBalance)} ${l10n.points}',
                             style: theme.typography.sm.copyWith(
                               fontWeight: FontWeight.w600,
                               color: theme.colors.primary,
@@ -586,8 +597,8 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
 
                     // Adjustment hint
                     if (widget.isAdjustment) ...[
-                      Text(
-                        'Use positive to add, negative to deduct',
+                      AppText(
+                        l10n.usePositiveToAdd,
                         style: theme.typography.xs.copyWith(
                           color: theme.colors.mutedForeground,
                         ),
@@ -596,14 +607,14 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
                     ],
 
                     // Points
-                    Text(
-                      'Points',
+                    AppText(
+                      l10n.points,
                       style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
                     FTextField(
                       control: FTextFieldControl.managed(controller: _pointsController),
-                      hint: widget.isAdjustment ? 'e.g., 100 or -50' : '0',
+                      hint: widget.isAdjustment ? l10n.pointsValueHint : '0',
                       keyboardType: widget.isAdjustment
                           ? const TextInputType.numberWithOptions(signed: true)
                           : TextInputType.number,
@@ -612,14 +623,14 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
                     const SizedBox(height: 16),
 
                     // Description
-                    Text(
-                      widget.isAdjustment ? 'Reason' : 'Description',
+                    AppText(
+                      widget.isAdjustment ? l10n.reason : l10n.description,
                       style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
                     FTextField.multiline(
                       control: FTextFieldControl.managed(controller: _descriptionController),
-                      hint: widget.isAdjustment ? 'e.g., Correction' : 'e.g., Bonus points',
+                      hint: widget.isAdjustment ? l10n.correctionHint : l10n.bonusPointsHint,
                       minLines: 2,
                       maxLines: 3,
                     ),
@@ -643,7 +654,7 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
                     child: FButton(
                       style: FButtonStyle.outline(),
                       onPress: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: AppText(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -656,7 +667,7 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(widget.isAdjustment ? 'Adjust' : 'Add Points'),
+                          : AppText(widget.isAdjustment ? l10n.adjust : l10n.addPoints),
                     ),
                   ),
                 ],
@@ -669,19 +680,20 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     final points = int.tryParse(_pointsController.text);
 
     if (widget.isAdjustment) {
       if (points == null || points == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid points amount')),
+          SnackBar(content: AppText(l10n.pleaseEnterValidPoints)),
         );
         return;
       }
     } else {
       if (points == null || points <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid points amount')),
+          SnackBar(content: AppText(l10n.pleaseEnterValidPoints)),
         );
         return;
       }
@@ -722,13 +734,13 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
         widget.onComplete?.call();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isAdjustment ? 'Points adjusted' : 'Points added'),
+            content: AppText(widget.isAdjustment ? l10n.pointsAdjusted : l10n.pointsAdded),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isAdjustment ? 'Failed to adjust points' : 'Failed to add points'),
+            content: AppText(widget.isAdjustment ? l10n.failedToAdjustPoints : l10n.failedToAddPoints),
           ),
         );
       }

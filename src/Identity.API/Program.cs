@@ -59,13 +59,17 @@ app.MapPost("/api/identity/register", async (RegisterRequest request, IHttpClien
 
     var userPayload = new
     {
-        username = request.Username,
+        username = request.Email,  // Use email as username
         email = request.Email,
         firstName = firstName,
         lastName = lastName,
         enabled = true,
         emailVerified = true,
         requiredActions = Array.Empty<string>(),
+        attributes = new Dictionary<string, string[]>
+        {
+            ["phoneNumber"] = string.IsNullOrEmpty(request.PhoneNumber) ? [] : [request.PhoneNumber]
+        },
         credentials = new[]
         {
             new
@@ -456,7 +460,7 @@ app.MapDelete("/api/identity/delete-account", async (HttpContext httpContext, IH
 
 app.Run();
 
-record RegisterRequest(string? Name, string Username, string Email, string Password);
+record RegisterRequest(string? Name, string Email, string Password, string? PhoneNumber);
 record ChangePasswordRequest(string NewPassword);
 record UpdateEmailRequest(string NewEmail);
 

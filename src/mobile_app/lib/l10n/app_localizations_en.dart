@@ -677,6 +677,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportPhone => '0100 469 8 469';
 
   @override
+  String get tierBronze => 'BRONZE';
+
+  @override
+  String get tierSilver => 'SILVER';
+
+  @override
+  String get tierGold => 'GOLD';
+
+  @override
+  String get tierPlatinum => 'PLATINUM';
+
+  @override
   String get joinedSessionSuccessfully => 'Joined session successfully!';
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -264,7 +265,8 @@ class _OrderTileState extends ConsumerState<OrderTile>
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
-    final dateFormat = DateFormat('MMM d, yyyy h:mm a');
+    final locale = ref.watch(localeProvider);
+    final dateFormat = DateFormat('MMM d, yyyy h:mm a', locale.languageCode);
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
@@ -343,6 +345,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
     final colors = context.theme.colors;
     final orderDetailsAsync = ref.watch(orderProvider(widget.order.id));
     final l10n = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
 
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
@@ -381,7 +384,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                               '${item.units}x ',
                               style: TextStyle(fontSize: 14, color: colors.mutedForeground),
                             ),
-                            Expanded(child: AppText(item.productName, style: TextStyle(fontSize: 14, color: colors.foreground))),
+                            Expanded(child: AppText(item.productName.getText(locale), style: TextStyle(fontSize: 14, color: colors.foreground))),
                             AppText(
                               '£${item.totalPrice.toStringAsFixed(2)}',
                               style: TextStyle(fontSize: 14, color: colors.mutedForeground),
@@ -393,7 +396,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                           Padding(
                             padding: const EdgeInsets.only(left: 24, top: 2),
                             child: AppText(
-                              item.customizationsDescription!,
+                              item.customizationsDescription!.getText(locale),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,

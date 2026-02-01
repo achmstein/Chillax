@@ -43,7 +43,6 @@ class AppConfig {
   static const String appVersion = '1.0.0';
 
   // Refresh intervals
-  static const Duration dashboardRefreshInterval = Duration(seconds: 30);
   static const Duration ordersRefreshInterval = Duration(seconds: 30);
   static const Duration roomsRefreshInterval = Duration(seconds: 10);
 }

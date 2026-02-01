@@ -1,6 +1,6 @@
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
-using Chillax.ServiceDefaults;
+using Chillax.Rooms.Domain.SeedWork;
 using Microsoft.EntityFrameworkCore;
 using Room = Chillax.Rooms.Domain.AggregatesModel.RoomAggregate.Room;
 using RoomsContext = Chillax.Rooms.Infrastructure.RoomsContext;
@@ -19,7 +19,7 @@ public class RoomQueries : IRoomQueries
     public async Task<IEnumerable<RoomViewModel>> GetAllRoomsAsync()
     {
         var rooms = await _context.Rooms
-            .OrderBy(r => r.Name)
+            .OrderBy(r => r.Name.En)
             .ToListAsync();
 
         var today = DateTime.UtcNow.Date;
@@ -102,8 +102,8 @@ public class RoomQueries : IRoomQueries
         return new RoomViewModel
         {
             Id = room.Id,
-            Name = new LocalizedText(room.Name, room.NameAr),
-            Description = room.Description != null ? new LocalizedText(room.Description, room.DescriptionAr) : null,
+            Name = room.Name,
+            Description = room.Description,
             HourlyRate = room.HourlyRate,
             DisplayStatus = displayStatus
         };
@@ -145,10 +145,7 @@ public class RoomQueries : IRoomQueries
         {
             SessionId = reservation.Id,
             RoomId = reservation.RoomId,
-            RoomName = new LocalizedText(
-                reservation.Room?.Name ?? $"Room {reservation.RoomId}",
-                reservation.Room?.NameAr
-            ),
+            RoomName = reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
             StartTime = reservation.ActualStartTime ?? reservation.CreatedAt,
             MemberCount = reservation.SessionMembers.Count
         };
@@ -160,10 +157,7 @@ public class RoomQueries : IRoomQueries
         {
             Id = reservation.Id,
             RoomId = reservation.RoomId,
-            RoomName = new LocalizedText(
-                reservation.Room?.Name ?? $"Room {reservation.RoomId}",
-                reservation.Room?.NameAr
-            ),
+            RoomName = reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
             HourlyRate = reservation.HourlyRate,
             CustomerId = reservation.CustomerId,
             CustomerName = reservation.CustomerName,

@@ -1,3 +1,5 @@
+using Chillax.Catalog.API.Model;
+
 namespace Chillax.Catalog.API.Dtos;
 
 /// <summary>
@@ -6,17 +8,15 @@ namespace Chillax.Catalog.API.Dtos;
 public record CatalogItemDto
 {
     public int Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public string? NameAr { get; init; }
-    public string? Description { get; init; }
-    public string? DescriptionAr { get; init; }
+    public LocalizedText Name { get; init; } = new();
+    public LocalizedText Description { get; init; } = new();
     public decimal Price { get; init; }
     public string? PictureUri { get; init; }
     public int CatalogTypeId { get; init; }
-    public string CatalogTypeName { get; init; } = string.Empty;
-    public string? CatalogTypeNameAr { get; init; }
+    public LocalizedText CatalogTypeName { get; init; } = new();
     public bool IsAvailable { get; init; }
     public int? PreparationTimeMinutes { get; init; }
+    public int DisplayOrder { get; init; }
     public List<ItemCustomizationDto> Customizations { get; init; } = new();
 }
 
@@ -26,8 +26,8 @@ public record CatalogItemDto
 public record CatalogTypeDto
 {
     public int Id { get; init; }
-    public string Type { get; init; } = string.Empty;
-    public string? TypeAr { get; init; }
+    public LocalizedText Name { get; init; } = new();
+    public int DisplayOrder { get; init; }
 }
 
 /// <summary>
@@ -36,8 +36,7 @@ public record CatalogTypeDto
 public record ItemCustomizationDto
 {
     public int Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public string? NameAr { get; init; }
+    public LocalizedText Name { get; init; } = new();
     public bool IsRequired { get; init; }
     public bool AllowMultiple { get; init; }
     public List<CustomizationOptionDto> Options { get; init; } = new();
@@ -49,8 +48,7 @@ public record ItemCustomizationDto
 public record CustomizationOptionDto
 {
     public int Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public string? NameAr { get; init; }
+    public LocalizedText Name { get; init; } = new();
     public decimal PriceAdjustment { get; init; }
     public bool IsDefault { get; init; }
 }

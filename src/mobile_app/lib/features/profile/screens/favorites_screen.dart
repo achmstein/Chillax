@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../menu/models/menu_item.dart';
 import '../../menu/services/menu_service.dart';
@@ -167,6 +168,7 @@ class _FavoriteItemTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.colors;
+    final locale = ref.watch(localeProvider);
     final cart = ref.watch(cartProvider);
     final cartQuantity = _getCartQuantity(cart, item.id);
 
@@ -238,17 +240,17 @@ class _FavoriteItemTile extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppText(
-                    item.name,
+                    item.name.getText(locale),
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: colors.foreground,
                     ),
                   ),
-                  if (item.description.isNotEmpty) ...[
+                  if (item.description.getText(locale).isNotEmpty) ...[
                     const SizedBox(height: 2),
                     AppText(
-                      item.description,
+                      item.description.getText(locale),
                       style: TextStyle(
                         color: colors.mutedForeground,
                         fontSize: 13,

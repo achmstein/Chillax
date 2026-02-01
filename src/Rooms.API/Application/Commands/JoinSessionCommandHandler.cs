@@ -1,5 +1,6 @@
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using Chillax.Rooms.Domain.Exceptions;
+using Chillax.Rooms.Domain.SeedWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -48,7 +49,7 @@ public class JoinSessionCommandHandler : IRequestHandler<JoinSessionCommand, Joi
         return new JoinSessionResult(
             reservation.Id,
             reservation.RoomId,
-            reservation.Room?.Name ?? $"Room {reservation.RoomId}",
+            reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
             isOwner,
             reservation.ActualStartTime ?? DateTime.UtcNow);
     }

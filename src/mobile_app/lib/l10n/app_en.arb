@@ -297,6 +297,11 @@
   "supportEmail": "support@chillax.com",
   "supportPhone": "0100 469 8 469",
 
+  "tierBronze": "BRONZE",
+  "tierSilver": "SILVER",
+  "tierGold": "GOLD",
+  "tierPlatinum": "PLATINUM",
+
   "joinedSessionSuccessfully": "Joined session successfully!",
   "noFavoritesYet": "No favorites yet",
   "noFavoritesDescription": "Items you love will appear here",

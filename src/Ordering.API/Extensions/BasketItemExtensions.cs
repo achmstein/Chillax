@@ -1,4 +1,6 @@
 #nullable enable
+using Chillax.Ordering.Domain.Seedwork;
+
 namespace Chillax.Ordering.API.Extensions;
 
 public static class BasketItemExtensions
@@ -13,12 +15,11 @@ public static class BasketItemExtensions
 
     public static OrderItemDTO ToOrderItemDTO(this BasketItem item)
     {
-        // Build customizations description
-        string? customizationsDescription = null;
+        // Build localized customizations description
+        LocalizedText? customizationsDescription = null;
         if (item.SelectedCustomizations.Count > 0)
         {
-            customizationsDescription = string.Join(", ",
-                item.SelectedCustomizations.Select(c => $"{c.CustomizationName}: {c.OptionName}"));
+            customizationsDescription = BuildLocalizedCustomizations(item.SelectedCustomizations);
         }
 
         return new OrderItemDTO()
@@ -32,5 +33,16 @@ public static class BasketItemExtensions
             SpecialInstructions = item.SpecialInstructions,
             CustomizationsDescription = customizationsDescription
         };
+    }
+
+    private static LocalizedText BuildLocalizedCustomizations(List<BasketItemCustomization> customizations)
+    {
+        var enParts = customizations.Select(c => $"{c.CustomizationName.En}: {c.OptionName.En}");
+        var arParts = customizations.Select(c => $"{c.CustomizationName.Ar ?? c.CustomizationName.En}: {c.OptionName.Ar ?? c.OptionName.En}");
+
+        return new LocalizedText(
+            string.Join(", ", enParts),
+            string.Join(", ", arParts)
+        );
     }
 }

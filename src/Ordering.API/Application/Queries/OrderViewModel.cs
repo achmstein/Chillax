@@ -1,13 +1,15 @@
 #nullable enable
+using Chillax.Ordering.Domain.Seedwork;
+
 namespace Chillax.Ordering.API.Application.Queries;
 
 public record Orderitem
 {
-    public string ProductName { get; init; } = string.Empty;
+    public LocalizedText ProductName { get; init; } = new();
     public int Units { get; init; }
     public double UnitPrice { get; init; }
     public string PictureUrl { get; init; } = string.Empty;
-    public string? CustomizationsDescription { get; init; }
+    public LocalizedText? CustomizationsDescription { get; init; }
     public string? SpecialInstructions { get; init; }
 }
 

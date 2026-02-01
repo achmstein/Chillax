@@ -5,8 +5,11 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../providers/rooms_provider.dart';
 import '../widgets/room_form_sheet.dart';
@@ -51,6 +54,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(roomsProvider);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,12 +64,12 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text('Rooms', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              AppText(l10n.rooms, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.add, size: 22),
                 onPressed: () => _showRoomForm(context),
-                tooltip: 'Add room',
+                tooltip: l10n.addRoom,
               ),
             ],
           ),
@@ -121,21 +125,21 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
   }
 
   Future<void> _endSession(BuildContext context, int sessionId) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('End Session?'),
-        body: const Text(
-            'Are you sure you want to end this session? The customer will be charged for the time used.'),
+        title: AppText(l10n.endSession),
+        body: AppText(l10n.endSessionConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            child: const Text('End Session'),
+            child: AppText(l10n.endSessionButton),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -171,11 +175,12 @@ class _RoomStatusSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (rooms.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.videogame_asset_off,
-        title: 'No rooms configured',
-        subtitle: 'Add a room to get started',
+        title: l10n.noRoomsConfigured,
+        subtitle: l10n.addRoomToGetStarted,
       );
     }
 
@@ -275,6 +280,7 @@ class _RoomTileState extends State<_RoomTile> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final currencyFormat = NumberFormat.currency(symbol: '£');
     final isActive = widget.session?.status == SessionStatus.active;
     final isReserved = widget.session?.status == SessionStatus.reserved;
@@ -310,8 +316,8 @@ class _RoomTileState extends State<_RoomTile> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.room.name.en,
+                  AppText(
+                    widget.room.name.localized(context),
                     style: theme.typography.base.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -319,8 +325,8 @@ class _RoomTileState extends State<_RoomTile> {
                   ),
                   if (widget.room.description != null) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      widget.room.description!.en,
+                    AppText(
+                      widget.room.description!.localized(context),
                       style: theme.typography.sm.copyWith(
                         color: theme.colors.mutedForeground,
                         fontSize: 13,
@@ -332,16 +338,16 @@ class _RoomTileState extends State<_RoomTile> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text(
-                        '${currencyFormat.format(widget.room.hourlyRate)}/hr',
+                      AppText(
+                        '${currencyFormat.format(widget.room.hourlyRate)}${l10n.perHour}',
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '• ${_getStatusLabel()}',
+                      AppText(
+                        '• ${_getStatusLabel(l10n)}',
                         style: theme.typography.sm.copyWith(
                           color: _getStatusColor(theme),
                           fontSize: 13,
@@ -360,7 +366,7 @@ class _RoomTileState extends State<_RoomTile> {
                         ),
                         const SizedBox(width: 4),
                         Expanded(
-                          child: Text(
+                          child: AppText(
                             widget.session!.userName!,
                             style: theme.typography.sm.copyWith(
                               color: theme.colors.foreground,
@@ -432,31 +438,31 @@ class _RoomTileState extends State<_RoomTile> {
     );
   }
 
-  String _getStatusLabel() {
+  String _getStatusLabel(AppLocalizations l10n) {
     if (widget.session?.status == SessionStatus.active) {
-      return 'Active';
+      return l10n.statusActive;
     }
     if (widget.session?.status == SessionStatus.reserved) {
       // Show countdown if expiration time is available
       if (widget.session!.expiresAt != null) {
         final remaining = widget.session!.timeUntilExpiration;
         if (remaining != null && remaining.inSeconds > 0) {
-          return 'Reserved (${widget.session!.formattedCountdown})';
+          return l10n.reservedCountdown(widget.session!.formattedCountdown);
         } else {
-          return 'Expiring...';
+          return l10n.expiring;
         }
       }
-      return 'Reserved';
+      return l10n.statusReserved;
     }
     switch (widget.room.status) {
       case RoomStatus.available:
-        return 'Available';
+        return l10n.statusAvailable;
       case RoomStatus.occupied:
-        return 'Occupied';
+        return l10n.statusOccupied;
       case RoomStatus.reserved:
-        return 'Reserved';
+        return l10n.statusReserved;
       case RoomStatus.maintenance:
-        return 'Maintenance';
+        return l10n.statusMaintenance;
     }
   }
 

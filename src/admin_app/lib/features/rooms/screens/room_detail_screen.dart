@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../providers/rooms_provider.dart';
 import '../widgets/room_form_sheet.dart';
@@ -156,20 +159,21 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
   }
 
   Future<void> _endSession(BuildContext context, int sessionId) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('End Session?'),
-        body: const Text('The customer will be charged for the time used.'),
+        title: AppText(l10n.endSession),
+        body: AppText(l10n.customerWillBeCharged),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            child: const Text('End'),
+            child: AppText(l10n.end),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -184,21 +188,22 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
   }
 
   Future<void> _cancelReservation(BuildContext context, int sessionId) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Cancel Reservation?'),
-        body: const Text('Are you sure you want to cancel this reservation?'),
+        title: AppText(l10n.cancelReservationQuestion),
+        body: AppText(l10n.cancelReservationConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('No'),
+            child: AppText(l10n.no),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
             style: FButtonStyle.destructive(),
-            child: const Text('Cancel Reservation'),
+            child: AppText(l10n.cancelReservation),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -213,21 +218,22 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
   }
 
   Future<void> _deleteRoom(BuildContext context, Room room) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Delete Room?'),
-        body: Text('Delete "${room.name.en}"? This cannot be undone.'),
+        title: AppText(l10n.deleteRoom),
+        body: AppText(l10n.deleteRoomConfirmation(room.name.localized(context))),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
             style: FButtonStyle.destructive(),
-            child: const Text('Delete'),
+            child: AppText(l10n.delete),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -272,6 +278,7 @@ class _CurrentStateSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final currencyFormat = NumberFormat.currency(symbol: '£');
 
     // Get status color
@@ -304,14 +311,14 @@ class _CurrentStateSection extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  room.name.en,
+                child: AppText(
+                  room.name.localized(context),
                   style: theme.typography.xl.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              Text(
+              AppText(
                 '${currencyFormat.format(room.hourlyRate)}/hr',
                 style: theme.typography.sm.copyWith(
                   color: theme.colors.mutedForeground,
@@ -328,7 +335,7 @@ class _CurrentStateSection extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Text(
+                  AppText(
                     session!.formattedDuration,
                     style: TextStyle(
                       fontSize: 56,
@@ -340,7 +347,7 @@ class _CurrentStateSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  AppText(
                     currencyFormat.format(session!.liveCost),
                     style: theme.typography.xl.copyWith(
                       color: theme.colors.primary,
@@ -360,7 +367,7 @@ class _CurrentStateSection extends StatelessWidget {
                 if (session!.userName != null) ...[
                   Icon(Icons.person_outline, size: 16, color: theme.colors.mutedForeground),
                   const SizedBox(width: 4),
-                  Text(
+                  AppText(
                     session!.userName!,
                     style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
                   ),
@@ -368,12 +375,12 @@ class _CurrentStateSection extends StatelessWidget {
                 if (session!.userName != null && session!.accessCode != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('•', style: TextStyle(color: theme.colors.mutedForeground)),
+                    child: AppText('•', style: TextStyle(color: theme.colors.mutedForeground)),
                   ),
                 if (session!.accessCode != null) ...[
                   Icon(Icons.key_outlined, size: 16, color: theme.colors.mutedForeground),
                   const SizedBox(width: 4),
-                  Text(
+                  AppText(
                     session!.accessCode!,
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.mutedForeground,
@@ -392,12 +399,12 @@ class _CurrentStateSection extends StatelessWidget {
               child: FButton(
                 style: FButtonStyle.destructive(),
                 onPress: onEndSession,
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.stop, size: 18),
-                    SizedBox(width: 8),
-                    Text('End Session'),
+                    const Icon(Icons.stop, size: 18),
+                    const SizedBox(width: 8),
+                    AppText(l10n.endSessionButton),
                   ],
                 ),
               ),
@@ -418,22 +425,22 @@ class _CurrentStateSection extends StatelessWidget {
                     child: const Icon(Icons.schedule, size: 32, color: Colors.orange),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Ready to Start',
+                  AppText(
+                    l10n.readyToStart,
                     style: theme.typography.lg.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 8),
                   if (session!.userName != null)
-                    Text(
+                    AppText(
                       session!.userName!,
                       style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
                     ),
                   if (session!.accessCode != null) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      'Code: ${session!.accessCode!}',
+                    AppText(
+                      l10n.codeLabel(session!.accessCode!),
                       style: theme.typography.sm.copyWith(
                         color: theme.colors.mutedForeground,
                         fontFamily: 'monospace',
@@ -457,24 +464,24 @@ class _CurrentStateSection extends StatelessWidget {
                 FButton(
                   style: FButtonStyle.outline(),
                   onPress: onCancelReservation,
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.close, size: 18),
-                      SizedBox(width: 8),
-                      Text('Cancel'),
+                      const Icon(Icons.close, size: 18),
+                      const SizedBox(width: 8),
+                      AppText(l10n.cancel),
                     ],
                   ),
                 ),
                 const SizedBox(width: 12),
                 FButton(
                   onPress: onStartSession,
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.play_arrow, size: 18),
-                      SizedBox(width: 8),
-                      Text('Start Session'),
+                      const Icon(Icons.play_arrow, size: 18),
+                      const SizedBox(width: 8),
+                      AppText(l10n.startSession),
                     ],
                   ),
                 ),
@@ -496,16 +503,16 @@ class _CurrentStateSection extends StatelessWidget {
                     child: const Icon(Icons.check_circle_outline, size: 32, color: Colors.green),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Available',
+                  AppText(
+                    l10n.available,
                     style: theme.typography.lg.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   if (room.description != null && room.description!.en.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(
-                      room.description!.en,
+                    AppText(
+                      room.description!.localized(context),
                       style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
                       textAlign: TextAlign.center,
                     ),
@@ -522,24 +529,24 @@ class _CurrentStateSection extends StatelessWidget {
                 FButton(
                   style: FButtonStyle.outline(),
                   onPress: onReserve,
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.bookmark_outline, size: 18),
-                      SizedBox(width: 8),
-                      Text('Reserve'),
+                      const Icon(Icons.bookmark_outline, size: 18),
+                      const SizedBox(width: 8),
+                      AppText(l10n.reserve),
                     ],
                   ),
                 ),
                 const SizedBox(width: 12),
                 FButton(
                   onPress: onWalkIn,
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.play_arrow, size: 18),
-                      SizedBox(width: 8),
-                      Text('Walk-in'),
+                      const Icon(Icons.play_arrow, size: 18),
+                      const SizedBox(width: 8),
+                      AppText(l10n.walkIn),
                     ],
                   ),
                 ),
@@ -561,7 +568,7 @@ class _CurrentStateSection extends StatelessWidget {
                     child: Icon(Icons.build_outlined, size: 32, color: theme.colors.mutedForeground),
                   ),
                   const SizedBox(height: 16),
-                  Text(
+                  AppText(
                     room.status == RoomStatus.maintenance ? 'Under Maintenance' : 'Unavailable',
                     style: theme.typography.lg.copyWith(
                       fontWeight: FontWeight.w500,
@@ -595,9 +602,10 @@ class _HistorySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final locale = Localizations.localeOf(context);
     final currencyFormat = NumberFormat.currency(symbol: '£');
-    final dateFormat = DateFormat('MMM d');
-    final timeFormat = DateFormat('h:mm a');
+    final dateFormat = DateFormat('MMM d', locale.languageCode);
+    final timeFormat = DateFormat('h:mm a', locale.languageCode);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,7 +613,7 @@ class _HistorySection extends StatelessWidget {
         // Header
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-          child: Text(
+          child: AppText(
             'History',
             style: theme.typography.sm.copyWith(
               fontWeight: FontWeight.w600,
@@ -619,7 +627,7 @@ class _HistorySection extends StatelessWidget {
               ? const Center(child: CircularProgressIndicator())
               : sessions.isEmpty
                   ? Center(
-                      child: Text(
+                      child: AppText(
                         'No sessions yet',
                         style: theme.typography.sm.copyWith(
                           color: theme.colors.mutedForeground,
@@ -643,7 +651,7 @@ class _HistorySection extends StatelessWidget {
                                     )
                                   : GestureDetector(
                                       onTap: onLoadMore,
-                                      child: Text(
+                                      child: AppText(
                                         'Load more',
                                         style: theme.typography.sm.copyWith(
                                           color: theme.colors.primary,
@@ -665,7 +673,7 @@ class _HistorySection extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
+                                    AppText(
                                       session.startTime != null
                                           ? dateFormat.format(session.startTime!.toLocal())
                                           : '-',
@@ -673,7 +681,7 @@ class _HistorySection extends StatelessWidget {
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    Text(
+                                    AppText(
                                       session.startTime != null
                                           ? timeFormat.format(session.startTime!.toLocal())
                                           : '',
@@ -688,12 +696,12 @@ class _HistorySection extends StatelessWidget {
                               // User
                               Expanded(
                                 child: session.userName != null
-                                    ? Text(
+                                    ? AppText(
                                         session.userName!,
                                         style: theme.typography.sm,
                                         overflow: TextOverflow.ellipsis,
                                       )
-                                    : Text(
+                                    : AppText(
                                         'Walk-in',
                                         style: theme.typography.sm.copyWith(
                                           color: theme.colors.mutedForeground,
@@ -702,7 +710,7 @@ class _HistorySection extends StatelessWidget {
                               ),
 
                               // Duration
-                              Text(
+                              AppText(
                                 session.formattedDuration,
                                 style: theme.typography.sm.copyWith(
                                   fontFamily: 'monospace',
@@ -715,7 +723,7 @@ class _HistorySection extends StatelessWidget {
                               // Cost
                               SizedBox(
                                 width: 60,
-                                child: Text(
+                                child: AppText(
                                   currencyFormat.format(session.totalCost ?? session.liveCost),
                                   style: theme.typography.sm.copyWith(
                                     fontWeight: FontWeight.w500,
@@ -784,7 +792,7 @@ class _ExpirationCountdown extends StatelessWidget {
             color: textColor,
           ),
           const SizedBox(width: 6),
-          Text(
+          AppText(
             message,
             style: theme.typography.sm.copyWith(
               color: textColor,

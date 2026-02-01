@@ -1,4 +1,6 @@
 #nullable enable
+using Chillax.Ordering.Domain.Seedwork;
+
 namespace Chillax.Ordering.API.Application.Models;
 
 /// <summary>
@@ -9,7 +11,7 @@ public class BasketItem
 {
     public string Id { get; init; } = string.Empty;
     public int ProductId { get; init; }
-    public string ProductName { get; init; } = string.Empty;
+    public LocalizedText ProductName { get; init; } = new();
     public decimal UnitPrice { get; init; }
     public decimal OldUnitPrice { get; init; }
     public int Quantity { get; init; }
@@ -37,8 +39,8 @@ public class BasketItem
 public class BasketItemCustomization
 {
     public int CustomizationId { get; init; }
-    public string CustomizationName { get; init; } = string.Empty;
+    public LocalizedText CustomizationName { get; init; } = new();
     public int OptionId { get; init; }
-    public string OptionName { get; init; } = string.Empty;
+    public LocalizedText OptionName { get; init; } = new();
     public decimal PriceAdjustment { get; init; }
 }

@@ -1,88 +1,67 @@
-import 'dart:ui';
+import '../../../core/models/localized_text.dart';
 
 /// Menu item model
 class MenuItem {
   final int id;
-  final String name;
-  final String? nameAr;
-  final String description;
-  final String? descriptionAr;
+  final LocalizedText name;
+  final LocalizedText description;
   final double price;
   final String? pictureUri;
   final int catalogTypeId;
-  final String catalogTypeName;
-  final String? catalogTypeNameAr;
+  final LocalizedText catalogTypeName;
   final bool isAvailable;
   final int? preparationTimeMinutes;
+  final int displayOrder;
   final List<ItemCustomization> customizations;
 
   MenuItem({
     required this.id,
     required this.name,
-    this.nameAr,
     required this.description,
-    this.descriptionAr,
     required this.price,
     this.pictureUri,
     required this.catalogTypeId,
     required this.catalogTypeName,
-    this.catalogTypeNameAr,
     this.isAvailable = true,
     this.preparationTimeMinutes,
+    this.displayOrder = 0,
     this.customizations = const [],
   });
-
-  /// Get localized name based on locale
-  String localizedName(Locale locale) {
-    if (locale.languageCode == 'ar' && nameAr != null && nameAr!.isNotEmpty) {
-      return nameAr!;
-    }
-    return name;
-  }
-
-  /// Get localized description based on locale
-  String localizedDescription(Locale locale) {
-    if (locale.languageCode == 'ar' && descriptionAr != null && descriptionAr!.isNotEmpty) {
-      return descriptionAr!;
-    }
-    return description;
-  }
-
-  /// Get localized category name based on locale
-  String localizedCategoryName(Locale locale) {
-    if (locale.languageCode == 'ar' && catalogTypeNameAr != null && catalogTypeNameAr!.isNotEmpty) {
-      return catalogTypeNameAr!;
-    }
-    return catalogTypeName;
-  }
 
   factory MenuItem.fromJson(Map<String, dynamic> json) {
     return MenuItem(
       id: json['id'] as int,
-      name: json['name'] as String,
-      nameAr: json['nameAr'] as String?,
-      description: json['description'] as String? ?? '',
-      descriptionAr: json['descriptionAr'] as String?,
+      name: _parseLocalizedText(json['name'], json['nameAr']),
+      description: _parseLocalizedText(json['description'] ?? '', json['descriptionAr']),
       price: (json['price'] as num).toDouble(),
       pictureUri: json['pictureUri'] as String?,
       catalogTypeId: json['catalogTypeId'] as int,
-      catalogTypeName: json['catalogTypeName'] as String? ?? '',
-      catalogTypeNameAr: json['catalogTypeNameAr'] as String?,
+      catalogTypeName: _parseLocalizedText(json['catalogTypeName'] ?? '', json['catalogTypeNameAr']),
       isAvailable: json['isAvailable'] as bool? ?? true,
       preparationTimeMinutes: json['preparationTimeMinutes'] as int?,
+      displayOrder: json['displayOrder'] as int? ?? 0,
       customizations: (json['customizations'] as List<dynamic>?)
               ?.map((e) => ItemCustomization.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
     );
   }
+
+  /// Parse LocalizedText from JSON - handles both object and separate fields
+  static LocalizedText _parseLocalizedText(dynamic value, [String? arValue]) {
+    if (value is Map<String, dynamic>) {
+      return LocalizedText.fromJson(value);
+    } else if (value is String) {
+      return LocalizedText(en: value, ar: arValue);
+    }
+    return LocalizedText(en: value?.toString() ?? '', ar: arValue);
+  }
 }
 
 /// Customization group (e.g., "Roasting", "Sugar Level")
 class ItemCustomization {
   final int id;
-  final String name;
-  final String? nameAr;
+  final LocalizedText name;
   final bool isRequired;
   final bool allowMultiple;
   final List<CustomizationOption> options;
@@ -90,25 +69,15 @@ class ItemCustomization {
   ItemCustomization({
     required this.id,
     required this.name,
-    this.nameAr,
     this.isRequired = false,
     this.allowMultiple = false,
     this.options = const [],
   });
 
-  /// Get localized name based on locale
-  String localizedName(Locale locale) {
-    if (locale.languageCode == 'ar' && nameAr != null && nameAr!.isNotEmpty) {
-      return nameAr!;
-    }
-    return name;
-  }
-
   factory ItemCustomization.fromJson(Map<String, dynamic> json) {
     return ItemCustomization(
       id: json['id'] as int,
-      name: json['name'] as String,
-      nameAr: json['nameAr'] as String?,
+      name: MenuItem._parseLocalizedText(json['name'], json['nameAr']),
       isRequired: json['isRequired'] as bool? ?? false,
       allowMultiple: json['allowMultiple'] as bool? ?? false,
       options: (json['options'] as List<dynamic>?)
@@ -122,32 +91,21 @@ class ItemCustomization {
 /// Customization option (e.g., "Light Roast", "No Sugar")
 class CustomizationOption {
   final int id;
-  final String name;
-  final String? nameAr;
+  final LocalizedText name;
   final double priceAdjustment;
   final bool isDefault;
 
   CustomizationOption({
     required this.id,
     required this.name,
-    this.nameAr,
     this.priceAdjustment = 0,
     this.isDefault = false,
   });
 
-  /// Get localized name based on locale
-  String localizedName(Locale locale) {
-    if (locale.languageCode == 'ar' && nameAr != null && nameAr!.isNotEmpty) {
-      return nameAr!;
-    }
-    return name;
-  }
-
   factory CustomizationOption.fromJson(Map<String, dynamic> json) {
     return CustomizationOption(
       id: json['id'] as int,
-      name: json['name'] as String,
-      nameAr: json['nameAr'] as String?,
+      name: MenuItem._parseLocalizedText(json['name'], json['nameAr']),
       priceAdjustment: (json['priceAdjustment'] as num?)?.toDouble() ?? 0,
       isDefault: json['isDefault'] as bool? ?? false,
     );
@@ -157,28 +115,25 @@ class CustomizationOption {
 /// Category model
 class MenuCategory {
   final int id;
-  final String name;
-  final String? nameAr;
+  final LocalizedText name;
+  final int displayOrder;
 
   MenuCategory({
     required this.id,
     required this.name,
-    this.nameAr,
+    this.displayOrder = 0,
   });
-
-  /// Get localized name based on locale
-  String localizedName(Locale locale) {
-    if (locale.languageCode == 'ar' && nameAr != null && nameAr!.isNotEmpty) {
-      return nameAr!;
-    }
-    return name;
-  }
 
   factory MenuCategory.fromJson(Map<String, dynamic> json) {
     return MenuCategory(
       id: json['id'] as int,
-      name: json['type'] as String? ?? json['name'] as String? ?? '',
-      nameAr: json['typeAr'] as String? ?? json['nameAr'] as String?,
+      // New format: { "name": { "en": "...", "ar": "..." } }
+      // Old format: { "type": "...", "typeAr": "..." }
+      name: MenuItem._parseLocalizedText(
+        json['name'] ?? json['type'] ?? '',
+        json['typeAr'] ?? json['nameAr'],
+      ),
+      displayOrder: json['displayOrder'] as int? ?? 0,
     );
   }
 }

@@ -108,7 +108,7 @@
   "waiterNotified": "الجرسون عرف",
   "controllerRequestSent": "طلب الدراع اتبعت",
   "billRequestSent": "طلب الفاتورة اتبعت",
-  "reserved": "محجوز",
+  "reserved": "محجوزة",
   "cancelReservation": "الغي الحجز",
   "cancelReservationQuestion": "تلغي الحجز؟",
   "confirmCancelReservation": "متأكد انك عايز تلغي الحجز؟",
@@ -134,7 +134,7 @@
   "occupied": "مشغول",
   "maintenance": "صيانة",
 
-  "statusReserved": "محجوز",
+  "statusReserved": "محجوزة",
   "statusActive": "شغال",
   "statusCompleted": "انتهى",
   "statusCancelled": "ملغي",
@@ -253,5 +253,10 @@
 
   "phoneNumber": "رقم الموبايل",
   "enterPhoneNumber": "ادخل رقم الموبايل",
-  "yourPhoneNumber": "رقمك"
+  "yourPhoneNumber": "رقمك",
+
+  "tierBronze": "برونزي",
+  "tierSilver": "فضي",
+  "tierGold": "ذهبي",
+  "tierPlatinum": "بلاتيني"
 }

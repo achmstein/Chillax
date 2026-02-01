@@ -180,24 +180,9 @@ namespace Rooms.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "roomseq", "rooms");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("DescriptionAr")
-                        .HasColumnType("text");
-
                     b.Property<decimal>("HourlyRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("NameAr")
-                        .HasColumnType("text");
 
                     b.Property<string>("PhysicalStatus")
                         .IsRequired()
@@ -205,8 +190,6 @@ namespace Rooms.Infrastructure.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name");
 
                     b.HasIndex("PhysicalStatus");
 
@@ -248,6 +231,52 @@ namespace Rooms.Infrastructure.Migrations
                         .WithMany("SessionMembers")
                         .HasForeignKey("ReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Chillax.Rooms.Domain.AggregatesModel.RoomAggregate.Room", b =>
+                {
+                    b.OwnsOne("Chillax.Rooms.Domain.SeedWork.LocalizedText", "Description", b1 =>
+                        {
+                            b1.Property<int>("RoomId");
+
+                            b1.Property<string>("Ar");
+
+                            b1.Property<string>("En")
+                                .IsRequired();
+
+                            b1.HasKey("RoomId");
+
+                            b1.ToTable("rooms", "rooms");
+
+                            b1.ToJson("Description");
+
+                            b1.WithOwner()
+                                .HasForeignKey("RoomId");
+                        });
+
+                    b.OwnsOne("Chillax.Rooms.Domain.SeedWork.LocalizedText", "Name", b1 =>
+                        {
+                            b1.Property<int>("RoomId");
+
+                            b1.Property<string>("Ar");
+
+                            b1.Property<string>("En")
+                                .IsRequired();
+
+                            b1.HasKey("RoomId");
+
+                            b1.ToTable("rooms", "rooms");
+
+                            b1.ToJson("Name");
+
+                            b1.WithOwner()
+                                .HasForeignKey("RoomId");
+                        });
+
+                    b.Navigation("Description");
+
+                    b.Navigation("Name")
                         .IsRequired();
                 });
 

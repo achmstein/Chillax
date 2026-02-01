@@ -67,7 +67,7 @@ public class NewOrderRequestHandlerTest
 
     private Order FakeOrder()
     {
-        return new Order("1", "fakeName", tableNumber: 5, customerNote: "Test note");
+        return new Order("1", "fakeName", roomName: "VIP", customerNote: "Test note");
     }
 
     private CreateOrderCommand FakeOrderRequest(Dictionary<string, object>? args = null)
@@ -76,7 +76,7 @@ public class NewOrderRequestHandlerTest
             new List<BasketItem>(),
             userId: args != null && args.ContainsKey("userId") ? (string)args["userId"] : "defaultUser",
             userName: args != null && args.ContainsKey("userName") ? (string)args["userName"] : "Default User",
-            tableNumber: args != null && args.ContainsKey("tableNumber") ? (int?)args["tableNumber"] : null,
+            roomName: args != null && args.ContainsKey("roomName") ? (string?)args["roomName"] : null,
             customerNote: args != null && args.ContainsKey("customerNote") ? (string?)args["customerNote"] : null);
     }
 }

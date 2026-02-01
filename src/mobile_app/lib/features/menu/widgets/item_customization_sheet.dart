@@ -26,6 +26,8 @@ class _ItemCustomizationSheetState
     extends ConsumerState<ItemCustomizationSheet> {
   final Map<int, List<int>> _selectedOptions = {}; // customizationId -> optionIds
   final TextEditingController _instructionsController = TextEditingController();
+  final FocusNode _instructionsFocusNode = FocusNode();
+  final GlobalKey _instructionsKey = GlobalKey();
   int _quantity = 1;
 
   @override
@@ -35,6 +37,23 @@ class _ItemCustomizationSheetState
     _initializeWithDefaults();
     // Then load saved preferences
     _loadSavedPreferences();
+    // Auto-scroll to text field when focused
+    _instructionsFocusNode.addListener(_onInstructionsFocusChange);
+  }
+
+  void _onInstructionsFocusChange() {
+    if (_instructionsFocusNode.hasFocus) {
+      // Wait for keyboard to appear then scroll
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && _instructionsKey.currentContext != null) {
+          Scrollable.ensureVisible(
+            _instructionsKey.currentContext!,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    }
   }
 
   void _initializeWithDefaults() {
@@ -102,6 +121,8 @@ class _ItemCustomizationSheetState
 
   @override
   void dispose() {
+    _instructionsFocusNode.removeListener(_onInstructionsFocusChange);
+    _instructionsFocusNode.dispose();
     _instructionsController.dispose();
     super.dispose();
   }
@@ -189,7 +210,12 @@ class _ItemCustomizationSheetState
             // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -199,7 +225,7 @@ class _ItemCustomizationSheetState
                     children: [
                       Expanded(
                         child: AppText(
-                          widget.item.localizedName(locale),
+                          widget.item.name.getText(locale),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 24,
@@ -213,10 +239,10 @@ class _ItemCustomizationSheetState
                       ),
                     ],
                   ),
-                  if (widget.item.localizedDescription(locale).isNotEmpty) ...[
+                  if (widget.item.description.getText(locale).isNotEmpty) ...[
                     const SizedBox(height: 8),
                     AppText(
-                      widget.item.localizedDescription(locale),
+                      widget.item.description.getText(locale),
                       style: TextStyle(color: colors.mutedForeground),
                     ),
                   ],
@@ -241,9 +267,13 @@ class _ItemCustomizationSheetState
                     ),
                   ),
                   const SizedBox(height: 8),
-                  FTextField.multiline(
-                    control: FTextFieldControl.managed(controller: _instructionsController),
-                    hint: l10n.anySpecialRequestsOptional,
+                  Focus(
+                    focusNode: _instructionsFocusNode,
+                    child: FTextField.multiline(
+                      key: _instructionsKey,
+                      control: FTextFieldControl.managed(controller: _instructionsController),
+                      hint: l10n.anySpecialRequestsOptional,
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -343,7 +373,7 @@ class _ItemCustomizationSheetState
         Row(
           children: [
             AppText(
-              customization.localizedName(locale),
+              customization.name.getText(locale),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -418,7 +448,7 @@ class _ItemCustomizationSheetState
                 const SizedBox(width: 12),
                 Expanded(
                   child: AppText(
-                    option.localizedName(locale),
+                    option.name.getText(locale),
                     style: TextStyle(
                       color: colors.foreground,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
@@ -496,7 +526,7 @@ class _ItemCustomizationSheetState
                 const SizedBox(width: 12),
                 Expanded(
                   child: AppText(
-                    option.localizedName(locale),
+                    option.name.getText(locale),
                     style: TextStyle(
                       color: colors.foreground,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
