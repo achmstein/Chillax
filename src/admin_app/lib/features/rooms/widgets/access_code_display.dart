@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Displays a session access code with copy-to-clipboard functionality
 class AccessCodeDisplay extends StatelessWidget {
@@ -40,7 +42,7 @@ class AccessCodeDisplay extends StatelessWidget {
               color: theme.colors.primary,
             ),
             SizedBox(width: compact ? 6 : 8),
-            Text(
+            AppText(
               code,
               style: (compact ? theme.typography.sm : theme.typography.base).copyWith(
                 fontFamily: 'monospace',
@@ -61,10 +63,11 @@ class AccessCodeDisplay extends StatelessWidget {
   }
 
   void _copyToClipboard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     Clipboard.setData(ClipboardData(text: code));
     showFToast(
       context: context,
-      title: const Text('Access code copied!'),
+      title: AppText(l10n.accessCodeCopied),
     );
   }
 }

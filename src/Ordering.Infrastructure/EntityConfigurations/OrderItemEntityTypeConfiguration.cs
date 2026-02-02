@@ -13,5 +13,11 @@ class OrderItemEntityTypeConfiguration
             .UseHiLo("orderitemseq");
 
         orderItemConfiguration.Property<int>("OrderId");
+
+        // Configure ProductName as JSON column
+        orderItemConfiguration.OwnsOne(oi => oi.ProductName, b => b.ToJson());
+
+        // Configure CustomizationsDescription as JSON column
+        orderItemConfiguration.OwnsOne(oi => oi.CustomizationsDescription, b => b.ToJson());
     }
 }

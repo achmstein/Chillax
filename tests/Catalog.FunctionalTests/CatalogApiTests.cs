@@ -208,7 +208,7 @@ public sealed class CatalogApiTests : IClassFixture<CatalogApiFixture>
         Assert.Equal(4, result.Count);
         Assert.Equal(0, result.PageIndex);
         Assert.Equal(5, result.PageSize);
-        Assert.Contains("Alpine", result.Data.ToList().FirstOrDefault().Name);
+        Assert.Contains("Alpine", result.Data.ToList().FirstOrDefault().Name.En);
     }
 
     [Theory]

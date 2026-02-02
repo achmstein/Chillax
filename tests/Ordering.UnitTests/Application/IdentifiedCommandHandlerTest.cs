@@ -68,7 +68,7 @@ public class IdentifiedCommandHandlerTest
             new List<BasketItem>(),
             userId: args != null && args.ContainsKey("userId") ? (string)args["userId"] : "testUser",
             userName: args != null && args.ContainsKey("userName") ? (string)args["userName"] : "Test User",
-            tableNumber: args != null && args.ContainsKey("tableNumber") ? (int?)args["tableNumber"] : null,
+            roomName: args != null && args.ContainsKey("roomName") ? (string?)args["roomName"] : null,
             customerNote: args != null && args.ContainsKey("customerNote") ? (string?)args["customerNote"] : null);
     }
 }

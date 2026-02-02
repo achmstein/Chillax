@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../models/menu_item.dart';
@@ -26,6 +26,8 @@ class _ItemCustomizationSheetState
     extends ConsumerState<ItemCustomizationSheet> {
   final Map<int, List<int>> _selectedOptions = {}; // customizationId -> optionIds
   final TextEditingController _instructionsController = TextEditingController();
+  final FocusNode _instructionsFocusNode = FocusNode();
+  final GlobalKey _instructionsKey = GlobalKey();
   int _quantity = 1;
 
   @override
@@ -35,6 +37,23 @@ class _ItemCustomizationSheetState
     _initializeWithDefaults();
     // Then load saved preferences
     _loadSavedPreferences();
+    // Auto-scroll to text field when focused
+    _instructionsFocusNode.addListener(_onInstructionsFocusChange);
+  }
+
+  void _onInstructionsFocusChange() {
+    if (_instructionsFocusNode.hasFocus) {
+      // Wait for keyboard to appear then scroll
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && _instructionsKey.currentContext != null) {
+          Scrollable.ensureVisible(
+            _instructionsKey.currentContext!,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    }
   }
 
   void _initializeWithDefaults() {
@@ -102,6 +121,8 @@ class _ItemCustomizationSheetState
 
   @override
   void dispose() {
+    _instructionsFocusNode.removeListener(_onInstructionsFocusChange);
+    _instructionsFocusNode.dispose();
     _instructionsController.dispose();
     super.dispose();
   }
@@ -189,7 +210,12 @@ class _ItemCustomizationSheetState
             // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -198,9 +224,9 @@ class _ItemCustomizationSheetState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Text(
-                          widget.item.localizedName(locale),
-                          style: context.textStyle(
+                        child: AppText(
+                          widget.item.name.getText(locale),
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 24,
                             color: colors.foreground,
@@ -213,17 +239,17 @@ class _ItemCustomizationSheetState
                       ),
                     ],
                   ),
-                  if (widget.item.localizedDescription(locale).isNotEmpty) ...[
+                  if (widget.item.description.getText(locale).isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(
-                      widget.item.localizedDescription(locale),
-                      style: context.textStyle(color: colors.mutedForeground),
+                    AppText(
+                      widget.item.description.getText(locale),
+                      style: TextStyle(color: colors.mutedForeground),
                     ),
                   ],
                   const SizedBox(height: 8),
-                  Text(
+                  AppText(
                     l10n.basePrice(widget.item.price.toStringAsFixed(2)),
-                    style: context.textStyle(fontWeight: FontWeight.bold, color: colors.foreground),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: colors.foreground),
                   ),
                   const SizedBox(height: 24),
 
@@ -232,18 +258,22 @@ class _ItemCustomizationSheetState
                     _buildCustomizationSection(context, customization, locale)),
 
                   // Special instructions
-                  Text(
+                  AppText(
                     l10n.specialInstructions,
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: colors.foreground,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  FTextField.multiline(
-                    control: FTextFieldControl.managed(controller: _instructionsController),
-                    hint: l10n.anySpecialRequestsOptional,
+                  Focus(
+                    focusNode: _instructionsFocusNode,
+                    child: FTextField.multiline(
+                      key: _instructionsKey,
+                      control: FTextFieldControl.managed(controller: _instructionsController),
+                      hint: l10n.anySpecialRequestsOptional,
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -259,9 +289,9 @@ class _ItemCustomizationSheetState
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
+                        child: AppText(
                           '$_quantity',
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: colors.foreground,
@@ -307,16 +337,16 @@ class _ItemCustomizationSheetState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    AppText(
                       l10n.addToCart,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
-                    Text(
+                    AppText(
                       '£${_totalPrice.toStringAsFixed(2)}',
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -342,9 +372,9 @@ class _ItemCustomizationSheetState
       children: [
         Row(
           children: [
-            Text(
-              customization.localizedName(locale),
-              style: context.textStyle(
+            AppText(
+              customization.name.getText(locale),
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: colors.foreground,
@@ -354,7 +384,7 @@ class _ItemCustomizationSheetState
               const Spacer(),
               FBadge(
                 style: FBadgeStyle.destructive(),
-                child: Text(l10n.required, style: context.textStyle(fontSize: 12)),
+                child: AppText(l10n.required, style: TextStyle(fontSize: 12)),
               ),
             ],
           ],
@@ -417,18 +447,18 @@ class _ItemCustomizationSheetState
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    option.localizedName(locale),
-                    style: context.textStyle(
+                  child: AppText(
+                    option.name.getText(locale),
+                    style: TextStyle(
                       color: colors.foreground,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ),
                 if (priceText.isNotEmpty)
-                  Text(
+                  AppText(
                     priceText,
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: option.priceAdjustment > 0
                           ? colors.mutedForeground
                           : AppTheme.successColor,
@@ -495,18 +525,18 @@ class _ItemCustomizationSheetState
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    option.localizedName(locale),
-                    style: context.textStyle(
+                  child: AppText(
+                    option.name.getText(locale),
+                    style: TextStyle(
                       color: colors.foreground,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ),
                 if (priceText.isNotEmpty)
-                  Text(
+                  AppText(
                     priceText,
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: option.priceAdjustment > 0
                           ? colors.mutedForeground
                           : AppTheme.successColor,

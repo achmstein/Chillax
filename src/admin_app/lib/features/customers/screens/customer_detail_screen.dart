@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../accounts/providers/accounts_provider.dart';
 import '../../orders/models/order.dart';
 import '../../orders/providers/orders_provider.dart';
@@ -55,7 +57,9 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     final state = ref.watch(customersProvider);
     final accountsState = ref.watch(accountsProvider);
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context);
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
 
     final customer =
         state.customers.where((c) => c.id == widget.customerId).firstOrNull;
@@ -71,13 +75,13 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(context, theme, null),
+              _buildHeader(context, theme, null, l10n),
               Expanded(
                 child: state.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : Center(
-                        child: Text(
-                          'Customer not found',
+                        child: AppText(
+                          l10n.customerNotFound,
                           style: theme.typography.sm.copyWith(
                             color: theme.colors.mutedForeground,
                           ),
@@ -96,7 +100,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
         child: Column(
           children: [
             // Header with name
-            _buildHeader(context, theme, customer),
+            _buildHeader(context, theme, customer, l10n),
 
             // Info section
             Padding(
@@ -109,7 +113,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       // Balance
                       Expanded(
                         child: _StatItem(
-                          label: 'Balance',
+                          label: l10n.balance,
                           value: currencyFormat.format(account?.balance ?? 0),
                           valueColor: account?.hasBalance == true
                               ? const Color(0xFFEF4444)
@@ -123,15 +127,15 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       if (customer.createdAt != null)
                         Expanded(
                           child: _StatItem(
-                            label: 'Member since',
-                            value: DateFormat('MMM yyyy').format(customer.createdAt!),
+                            label: l10n.memberSince,
+                            value: DateFormat('MMM yyyy', locale.languageCode).format(customer.createdAt!),
                           ),
                         ),
                       // Status
                       Expanded(
                         child: _StatItem(
-                          label: 'Status',
-                          value: customer.enabled ? 'Active' : 'Disabled',
+                          label: l10n.status,
+                          value: customer.enabled ? l10n.active : l10n.disabled,
                           valueColor: customer.enabled
                               ? const Color(0xFF22C55E)
                               : theme.colors.mutedForeground,
@@ -149,12 +153,12 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         child: FButton(
                           style: FButtonStyle.outline(),
                           onPress: () => context.push('/accounts/${customer.id}'),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.account_balance_wallet_outlined, size: 18),
-                              SizedBox(width: 8),
-                              Text('Account'),
+                              const Icon(Icons.account_balance_wallet_outlined, size: 18),
+                              const SizedBox(width: 8),
+                              AppText(l10n.accountTab),
                             ],
                           ),
                         ),
@@ -164,12 +168,12 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         child: FButton(
                           style: FButtonStyle.outline(),
                           onPress: () => context.go('/loyalty'),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.workspace_premium_outlined, size: 18),
-                              SizedBox(width: 8),
-                              Text('Loyalty'),
+                              const Icon(Icons.workspace_premium_outlined, size: 18),
+                              const SizedBox(width: 8),
+                              AppText(l10n.loyaltyTab),
                             ],
                           ),
                         ),
@@ -189,6 +193,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 isLoading: _isLoadingOrders,
                 onRefresh: _refresh,
                 currencyFormat: currencyFormat,
+                l10n: l10n,
               ),
             ),
           ],
@@ -197,7 +202,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, FThemeData theme, Customer? customer) {
+  Widget _buildHeader(BuildContext context, FThemeData theme, Customer? customer, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
@@ -211,15 +216,15 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  customer?.displayName ?? 'Customer',
+                AppText(
+                  customer?.displayName ?? l10n.customer,
                   style: theme.typography.base.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (customer?.email != null)
-                  Text(
+                  AppText(
                     customer!.email!,
                     style: theme.typography.xs.copyWith(
                       color: theme.colors.mutedForeground,
@@ -233,7 +238,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             IconButton(
               icon: const Icon(Icons.add_circle_outline, size: 22),
               onPressed: () => _showChargeSheet(context, customer),
-              tooltip: 'Add Charge',
+              tooltip: l10n.addCharge,
             ),
         ],
       ),
@@ -242,6 +247,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
 
   void _showChargeSheet(BuildContext context, Customer customer) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final amountController = TextEditingController();
     final descriptionController = TextEditingController();
 
@@ -280,13 +286,13 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                Text(
-                  'Add Charge',
+                AppText(
+                  l10n.addCharge,
                   style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
 
-                Text('Amount (EGP)', style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
+                AppText(l10n.amountEgpLabel, style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
                 const SizedBox(height: 8),
                 FTextField(
                   control: FTextFieldControl.managed(controller: amountController),
@@ -295,11 +301,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                Text('Description', style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
+                AppText(l10n.description, style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
                 const SizedBox(height: 8),
                 FTextField.multiline(
                   control: FTextFieldControl.managed(controller: descriptionController),
-                  hint: 'Optional description',
+                  hint: l10n.optionalDescription,
                   minLines: 2,
                   maxLines: 3,
                 ),
@@ -311,7 +317,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       child: FButton(
                         style: FButtonStyle.outline(),
                         onPress: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
+                        child: AppText(l10n.cancel),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -321,7 +327,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                           final amount = double.tryParse(amountController.text);
                           if (amount == null || amount <= 0) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please enter a valid amount')),
+                              SnackBar(content: AppText(l10n.pleaseEnterValidAmount)),
                             );
                             return;
                           }
@@ -339,12 +345,12 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(success ? 'Charge added' : 'Failed to add charge'),
+                                content: AppText(success ? l10n.chargeAdded : l10n.failedToAddCharge),
                               ),
                             );
                           }
                         },
-                        child: const Text('Add Charge'),
+                        child: AppText(l10n.addCharge),
                       ),
                     ),
                   ],
@@ -379,7 +385,7 @@ class _StatItem extends StatelessWidget {
       onTap: onTap,
       child: Column(
         children: [
-          Text(
+          AppText(
             value,
             style: theme.typography.base.copyWith(
               fontWeight: FontWeight.w600,
@@ -387,7 +393,7 @@ class _StatItem extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
+          AppText(
             label,
             style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
           ),
@@ -402,19 +408,22 @@ class _OrderHistorySection extends StatelessWidget {
   final bool isLoading;
   final Future<void> Function() onRefresh;
   final NumberFormat currencyFormat;
+  final AppLocalizations l10n;
 
   const _OrderHistorySection({
     required this.orders,
     required this.isLoading,
     required this.onRefresh,
     required this.currencyFormat,
+    required this.l10n,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final dateFormat = DateFormat('MMM d');
-    final timeFormat = DateFormat('h:mm a');
+    final locale = Localizations.localeOf(context);
+    final dateFormat = DateFormat('MMM d', locale.languageCode);
+    final timeFormat = DateFormat('h:mm a', locale.languageCode);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,8 +431,8 @@ class _OrderHistorySection extends StatelessWidget {
         // Header
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: Text(
-            'Order History',
+          child: AppText(
+            l10n.orderHistory,
             style: theme.typography.sm.copyWith(
               fontWeight: FontWeight.w600,
               color: theme.colors.mutedForeground,
@@ -446,8 +455,8 @@ class _OrderHistorySection extends StatelessWidget {
                             color: theme.colors.mutedForeground,
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            'No orders yet',
+                          AppText(
+                            l10n.noOrdersYet,
                             style: theme.typography.sm.copyWith(
                               color: theme.colors.mutedForeground,
                             ),
@@ -488,14 +497,14 @@ class _OrderHistorySection extends StatelessWidget {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'Order #${order.id}',
+                                      AppText(
+                                        l10n.orderNumber(order.id),
                                         style: theme.typography.sm.copyWith(
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
+                                      AppText(
                                         '${dateFormat.format(order.date.toLocal())} at ${timeFormat.format(order.date.toLocal())}',
                                         style: theme.typography.xs.copyWith(
                                           color: theme.colors.mutedForeground,
@@ -506,7 +515,7 @@ class _OrderHistorySection extends StatelessWidget {
                                 ),
 
                                 // Total
-                                Text(
+                                AppText(
                                   currencyFormat.format(order.total),
                                   style: theme.typography.sm.copyWith(
                                     fontWeight: FontWeight.w600,

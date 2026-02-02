@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
 
@@ -68,7 +68,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           context.pop();
           showFToast(
             context: context,
-            title: Text(l10n.passwordChangedSuccessfully, style: context.textStyle()),
+            title: AppText(l10n.passwordChangedSuccessfully),
             icon: Icon(FIcons.circleCheck, color: Colors.green.shade600),
           );
         } else {
@@ -110,9 +110,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.changePassword,
-                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -131,25 +131,25 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       FAlert(
                         style: FAlertStyle.destructive(),
                         icon: const Icon(FIcons.circleAlert),
-                        title: const Text('Error'),
-                        subtitle: Text(_error!),
+                        title: AppText(l10n.error),
+                        subtitle: AppText(_error!),
                       ),
                       const SizedBox(height: 24),
                     ],
 
                     // Instructions
-                    Text(
-                        'Create a strong password',
-                        style: context.textStyle(
+                    AppText(
+                        l10n.createStrongPassword,
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: colors.foreground,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Your password must be at least 8 characters long. We recommend using a mix of letters, numbers, and symbols.',
-                        style: context.textStyle(
+                      AppText(
+                        l10n.passwordRequirements,
+                        style: TextStyle(
                           fontSize: 14,
                           color: colors.mutedForeground,
                         ),
@@ -159,7 +159,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       // New password field
                       FTextField.password(
                         control: FTextFieldControl.managed(controller: _newPasswordController),
-                        label: Text(l10n.newPassword, style: context.textStyle()),
+                        label: AppText(l10n.newPassword),
                         hint: l10n.enterNewPassword,
                         enabled: !_isLoading,
                       ),
@@ -168,7 +168,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       // Confirm password field
                       FTextField.password(
                         control: FTextFieldControl.managed(controller: _confirmPasswordController),
-                        label: Text(l10n.confirmPassword, style: context.textStyle()),
+                        label: AppText(l10n.confirmPassword),
                         hint: l10n.pleaseConfirmPassword,
                         enabled: !_isLoading,
                         onSubmit: (_) => _handleChangePassword(),
@@ -189,7 +189,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : Text(l10n.changePassword, style: context.textStyle()),
+                            : AppText(l10n.changePassword),
                       ),
                     ),
                   ],

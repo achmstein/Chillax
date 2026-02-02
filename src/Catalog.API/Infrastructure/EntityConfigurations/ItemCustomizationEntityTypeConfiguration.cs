@@ -7,12 +7,8 @@ class ItemCustomizationEntityTypeConfiguration
     {
         builder.ToTable("ItemCustomizations");
 
-        builder.Property(ic => ic.Name)
-            .HasMaxLength(100)
-            .IsRequired();
-
-        builder.Property(ic => ic.NameAr)
-            .HasMaxLength(100);
+        // Configure Name as JSON column
+        builder.OwnsOne(ic => ic.Name, b => b.ToJson());
 
         builder.HasMany(ic => ic.Options)
             .WithOne(o => o.ItemCustomization)

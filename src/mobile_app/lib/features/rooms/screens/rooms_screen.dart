@@ -6,7 +6,7 @@ import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../notifications/services/notification_service.dart';
 import '../../service_request/models/service_request.dart';
@@ -109,7 +109,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         children: [
           // Header
           FHeader(
-            title: Text(l10n.rooms, style: context.textStyle(fontSize: 18)),
+            title: AppText(l10n.rooms, style: TextStyle(fontSize: 18)),
           ),
 
           // Content
@@ -173,7 +173,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   maxLength: 6,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 8,
@@ -183,7 +183,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     hintText: AppLocalizations.of(context)!.enterCode,
-                    hintStyle: context.textStyle(
+                    hintStyle: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.normal,
                       letterSpacing: 0,
@@ -225,9 +225,9 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                           strokeWidth: 2,
                         ),
                       )
-                    : Text(
+                    : AppText(
                         AppLocalizations.of(context)!.join,
-                        style: context.textStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
               ),
             ),
@@ -250,7 +250,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           children: [
             Icon(FIcons.circleAlert, size: 48, color: context.theme.colors.mutedForeground),
             const SizedBox(height: 16),
-            Text(AppLocalizations.of(context)!.failedToLoadRooms),
+            AppText(AppLocalizations.of(context)!.failedToLoadRooms),
             const SizedBox(height: 16),
             FButton(
               onPress: () => ref.refresh(roomsProvider),
@@ -415,9 +415,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                     children: [
                       const Icon(FIcons.gamepad2, color: Colors.white, size: 24),
                       const SizedBox(width: 8),
-                      Text(
+                      AppText(
                         session.roomName.localized(context),
-                        style: context.textStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -432,9 +432,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
+                    child: AppText(
                       AppLocalizations.of(context)!.sessionActive,
-                      style: context.textStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -445,9 +445,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   // Access code display
                   if (session.accessCode != null) ...[
                     const SizedBox(height: 20),
-                    Text(
+                    AppText(
                       AppLocalizations.of(context)!.shareCodeWithFriends,
-                      style: context.textStyle(
+                      style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 12,
                       ),
@@ -473,9 +473,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
+                            AppText(
                               session.accessCode!,
-                              style: context.textStyle(
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -496,9 +496,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   const SizedBox(height: 32),
 
                   // Timer
-                  Text(
+                  AppText(
                     session.formattedDuration,
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
@@ -506,9 +506,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  AppText(
                     AppLocalizations.of(context)!.hourlyRateFormat(session.hourlyRate.toStringAsFixed(0)),
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 14,
                     ),
@@ -520,9 +520,9 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
             const SizedBox(height: 24),
 
             // Quick actions
-            Text(
+            AppText(
               AppLocalizations.of(context)!.needSomething,
-              style: context.textStyle(
+              style: TextStyle(
                 color: AppTheme.textSecondary,
                 fontSize: 14,
               ),
@@ -666,18 +666,18 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
             children: [
               if (_isInCooldown) ...[
                 // Show countdown
-                Text(
+                AppText(
                   '${widget.cooldownSeconds}s',
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textMuted,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                AppText(
                   widget.label,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     color: AppTheme.textMuted,
                   ),
@@ -685,9 +685,9 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
               ] else ...[
                 Icon(widget.icon, size: 24, color: AppTheme.primaryColor),
                 const SizedBox(height: 8),
-                Text(
+                AppText(
                   widget.label,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
@@ -740,9 +740,9 @@ class _ReservedSessionBanner extends ConsumerWidget {
             children: [
               const Icon(FIcons.gamepad2, color: Colors.white, size: 24),
               const SizedBox(width: 8),
-              Text(
+              AppText(
                 session.roomName.localized(context),
-                style: context.textStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -758,9 +758,9 @@ class _ReservedSessionBanner extends ConsumerWidget {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(
+            child: AppText(
               AppLocalizations.of(context)!.reserved,
-              style: context.textStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -769,18 +769,18 @@ class _ReservedSessionBanner extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           // Date and time
-          Text(
+          AppText(
             DateFormat('EEEE, MMM d').format(session.reservationTime),
-            style: context.textStyle(
+            style: TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          AppText(
             DateFormat('h:mm a').format(session.reservationTime),
-            style: context.textStyle(
+            style: TextStyle(
               color: Colors.white.withValues(alpha: 0.8),
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -790,9 +790,9 @@ class _ReservedSessionBanner extends ConsumerWidget {
           // Cancel link
           GestureDetector(
             onTap: () => _cancelReservation(context, ref),
-            child: Text(
+            child: AppText(
               AppLocalizations.of(context)!.cancelReservation,
-              style: context.textStyle(
+              style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 13,
                 decoration: TextDecoration.underline,
@@ -879,9 +879,9 @@ class NotifyMeBanner extends ConsumerWidget {
               Icon(FIcons.bell, size: 20, color: AppTheme.primaryColor),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
+                child: AppText(
                   l10n.allRoomsBusy,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -890,9 +890,9 @@ class NotifyMeBanner extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             l10n.getNotifiedWhenAvailable,
-            style: context.textStyle(
+            style: TextStyle(
               color: AppTheme.textSecondary,
               fontSize: 13,
             ),
@@ -916,9 +916,9 @@ class NotifyMeBanner extends ConsumerWidget {
                       Icon(FIcons.check, size: 16, color: AppTheme.successColor),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
+                        child: AppText(
                           l10n.willBeNotifiedWhenAvailable,
-                          style: context.textStyle(
+                          style: TextStyle(
                             color: AppTheme.successColor,
                             fontSize: 13,
                           ),
@@ -970,7 +970,7 @@ class NotifyMeBanner extends ConsumerWidget {
                         children: [
                           const Icon(FIcons.bell, size: 16),
                           const SizedBox(width: 8),
-                          Text(l10n.notifyMe),
+                          AppText(l10n.notifyMe),
                         ],
                       ),
                     ),
@@ -1032,9 +1032,9 @@ class RoomListItem extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     room.name.localized(context),
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: colors.foreground,
@@ -1042,9 +1042,9 @@ class RoomListItem extends ConsumerWidget {
                   ),
                   if (room.description != null) ...[
                     const SizedBox(height: 4),
-                    Text(
+                    AppText(
                       room.description!.localized(context),
-                      style: context.textStyle(
+                      style: TextStyle(
                         color: colors.mutedForeground,
                         fontSize: 13,
                       ),
@@ -1055,18 +1055,18 @@ class RoomListItem extends ConsumerWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text(
+                      AppText(
                         '£${room.hourlyRate.toStringAsFixed(0)}${AppLocalizations.of(context)!.perHour}',
-                        style: context.textStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                           color: colors.foreground,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
+                      AppText(
                         '• ${_getLocalizedStatus(context, room.displayStatus)}',
-                        style: context.textStyle(
+                        style: TextStyle(
                           color: statusColor,
                           fontSize: 13,
                         ),
@@ -1099,9 +1099,9 @@ class RoomListItem extends ConsumerWidget {
                   color: colors.mutedForeground.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
+                child: AppText(
                   AppLocalizations.of(context)!.available,
-                  style: context.textStyle(
+                  style: TextStyle(
                     color: colors.mutedForeground,
                     fontSize: 12,
                   ),
@@ -1197,9 +1197,9 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.reserveRoomName(widget.room.name.localized(context)),
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: colors.foreground,
@@ -1213,9 +1213,9 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
+              AppText(
                 '£${widget.room.hourlyRate.toStringAsFixed(0)}${l10n.perHour}',
-                style: context.textStyle(
+                style: TextStyle(
                   color: colors.mutedForeground,
                   fontSize: 15,
                 ),
@@ -1239,18 +1239,18 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          AppText(
                             l10n.fifteenMinutesToArrive,
-                            style: context.textStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                               color: colors.foreground,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
+                          AppText(
                             l10n.reservationCancelledIfNoCheckIn,
-                            style: context.textStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               color: colors.mutedForeground,
                             ),
@@ -1283,9 +1283,9 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Text(
+                      : AppText(
                           l10n.reserveNow,
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),

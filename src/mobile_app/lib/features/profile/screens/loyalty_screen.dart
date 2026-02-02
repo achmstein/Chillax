@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/loyalty_info.dart';
 import '../providers/loyalty_provider.dart';
+import '../widgets/loyalty_card.dart' show getLocalizedTierName;
 
 /// Loyalty history screen
 class LoyaltyScreen extends ConsumerStatefulWidget {
@@ -45,9 +46,9 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       AppLocalizations.of(context)!.loyaltyRewards,
-                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -74,9 +75,9 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                             const SizedBox(height: 24),
 
                             // Recent Activity header
-                            Text(
+                            AppText(
                               AppLocalizations.of(context)!.recentActivity,
-                              style: context.textStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: colors.foreground,
@@ -116,18 +117,18 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
             color: colors.mutedForeground,
           ),
           const SizedBox(height: 16),
-          Text(
+          AppText(
             AppLocalizations.of(context)!.noLoyaltyAccountYet,
-            style: context.textStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: colors.foreground,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             AppLocalizations.of(context)!.makePurchaseToEarn,
-            style: context.textStyle(color: colors.mutedForeground),
+            style: TextStyle(color: colors.mutedForeground),
           ),
         ],
       ),
@@ -164,9 +165,9 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                Text(
+                AppText(
                   AppLocalizations.of(context)!.loyaltyRewards,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                     color: colors.foreground,
@@ -192,9 +193,9 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                       ),
                     ],
                   ),
-                  child: Text(
-                    info.currentTier.name.toUpperCase(),
-                    style: context.textStyle(
+                  child: AppText(
+                    getLocalizedTierName(info.currentTier, AppLocalizations.of(context)!),
+                    style: TextStyle(
                       color: textColor,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -216,18 +217,18 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
-                      child: Text(
-                        '${numberFormat.format(info.pointsBalance)} pts',
-                        style: context.textStyle(
+                      child: AppText(
+                        '${numberFormat.format(info.pointsBalance)} ${AppLocalizations.of(context)!.pts}',
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: colors.foreground,
                         ),
                       ),
                     ),
-                    Text(
+                    AppText(
                       AppLocalizations.of(context)!.lifetimePoints(numberFormat.format(info.lifetimePoints)),
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         color: colors.mutedForeground,
                       ),
@@ -248,9 +249,9 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    AppLocalizations.of(context)!.pointsToNextTier(numberFormat.format(info.pointsToNextTier), '${info.nextTier!.name[0].toUpperCase()}${info.nextTier!.name.substring(1)}'),
-                    style: context.textStyle(
+                  AppText(
+                    AppLocalizations.of(context)!.pointsToNextTier(numberFormat.format(info.pointsToNextTier), getLocalizedTierName(info.nextTier!, AppLocalizations.of(context)!)),
+                    style: TextStyle(
                       fontSize: 13,
                       color: colors.mutedForeground,
                     ),
@@ -275,9 +276,9 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
             color: colors.mutedForeground,
           ),
           const SizedBox(height: 12),
-          Text(
+          AppText(
             AppLocalizations.of(context)!.noTransactionsYet,
-            style: context.textStyle(color: colors.mutedForeground),
+            style: TextStyle(color: colors.mutedForeground),
           ),
         ],
       ),
@@ -322,10 +323,10 @@ class _TransactionTile extends StatelessWidget {
                     : AppTheme.errorColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Text(
+              child: AppText(
                 '${isEarned ? '+' : '-'}${numberFormat.format(transaction.points.abs())}',
                 textAlign: TextAlign.center,
-                style: context.textStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: isEarned ? AppTheme.successColor : AppTheme.errorColor,
@@ -343,17 +344,17 @@ class _TransactionTile extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    AppText(
                       transaction.typeDisplay,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                         color: colors.foreground,
                       ),
                     ),
-                    Text(
+                    AppText(
                       _formatDate(transaction.createdAt),
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: colors.mutedForeground,
                       ),
@@ -361,9 +362,9 @@ class _TransactionTile extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 2),
-                Text(
+                AppText(
                   transaction.description,
-                  style: context.textStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     color: colors.mutedForeground,
                   ),

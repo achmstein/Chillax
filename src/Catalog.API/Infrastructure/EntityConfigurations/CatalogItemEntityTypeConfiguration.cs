@@ -7,17 +7,11 @@ class CatalogItemEntityTypeConfiguration
     {
         builder.ToTable("Catalog");
 
-        builder.Property(ci => ci.Name)
-            .HasMaxLength(100);
+        // Configure Name as JSON column
+        builder.OwnsOne(ci => ci.Name, b => b.ToJson());
 
-        builder.Property(ci => ci.NameAr)
-            .HasMaxLength(100);
-
-        builder.Property(ci => ci.Description)
-            .HasMaxLength(500);
-
-        builder.Property(ci => ci.DescriptionAr)
-            .HasMaxLength(500);
+        // Configure Description as JSON column
+        builder.OwnsOne(ci => ci.Description, b => b.ToJson());
 
         builder.Property(ci => ci.Price)
             .HasPrecision(18, 2);
@@ -31,7 +25,6 @@ class CatalogItemEntityTypeConfiguration
             .HasForeignKey(c => c.CatalogItemId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(ci => ci.Name);
         builder.HasIndex(ci => ci.IsAvailable);
     }
 }

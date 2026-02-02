@@ -1,3 +1,5 @@
+import '../../../core/models/localized_text.dart';
+
 /// Order status - values must match backend OrderStatus enum
 /// Note: Backend returns status as string, not int
 enum OrderStatus {
@@ -30,11 +32,11 @@ enum OrderStatus {
 /// Order item
 class OrderItem {
   final int? productId;
-  final String productName;
+  final LocalizedText productName;
   final double unitPrice;
   final int units;
   final String? pictureUrl;
-  final String? customizationsDescription;
+  final LocalizedText? customizationsDescription;
   final String? specialInstructions;
 
   OrderItem({
@@ -51,13 +53,17 @@ class OrderItem {
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     // Handle both camelCase and PascalCase property names
+    // ProductName can be either a string or LocalizedText object
+    final productNameValue = json['productName'] ?? json['ProductName'];
+    final customizationsValue = json['customizationsDescription'] ?? json['CustomizationsDescription'];
+
     return OrderItem(
       productId: json['productId'] ?? json['ProductId'] as int?,
-      productName: (json['productName'] ?? json['ProductName']) as String,
+      productName: LocalizedText.parse(productNameValue),
       unitPrice: ((json['unitPrice'] ?? json['UnitPrice']) as num).toDouble(),
       units: (json['units'] ?? json['Units']) as int,
       pictureUrl: json['pictureUrl'] ?? json['PictureUrl'] as String?,
-      customizationsDescription: json['customizationsDescription'] ?? json['CustomizationsDescription'] as String?,
+      customizationsDescription: LocalizedText.parseNullable(customizationsValue),
       specialInstructions: json['specialInstructions'] ?? json['SpecialInstructions'] as String?,
     );
   }
@@ -71,7 +77,7 @@ class Order {
   final DateTime date;
   final OrderStatus status;
   final String? description;
-  final String? roomName;
+  final LocalizedText? roomName;
   final String? customerNote;
   final double total;
   final List<OrderItem> items;
@@ -98,6 +104,7 @@ class Order {
 
     // Handle both camelCase and PascalCase property names
     final orderItems = json['orderItems'] ?? json['OrderItems'];
+    final roomNameValue = json['roomName'] ?? json['RoomName'];
 
     return Order(
       id: json['orderNumber'] ?? json['OrderNumber'] ?? json['orderId'] ?? json['id'] as int,
@@ -106,7 +113,7 @@ class Order {
       date: DateTime.parse((json['date'] ?? json['Date']) as String),
       status: status,
       description: json['description'] ?? json['Description'] as String?,
-      roomName: json['roomName'] ?? json['RoomName'] as String?,
+      roomName: LocalizedText.parseNullable(roomNameValue),
       customerNote: json['customerNote'] ?? json['CustomerNote'] as String?,
       total: ((json['total'] ?? json['Total']) as num).toDouble(),
       items: (orderItems as List<dynamic>?)

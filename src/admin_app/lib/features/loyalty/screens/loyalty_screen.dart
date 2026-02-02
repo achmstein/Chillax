@@ -4,10 +4,42 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/admin_scaffold.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/loyalty_account.dart';
 import '../models/loyalty_stats.dart';
 import '../providers/loyalty_provider.dart';
+
+/// Helper function to get localized tier name
+String getLocalizedTierName(LoyaltyTier tier, AppLocalizations l10n) {
+  switch (tier) {
+    case LoyaltyTier.bronze:
+      return l10n.tierBronze;
+    case LoyaltyTier.silver:
+      return l10n.tierSilver;
+    case LoyaltyTier.gold:
+      return l10n.tierGold;
+    case LoyaltyTier.platinum:
+      return l10n.tierPlatinum;
+  }
+}
+
+/// Helper function to get localized tier name from string
+String getLocalizedTierNameFromString(String tierName, AppLocalizations l10n) {
+  switch (tierName.toLowerCase()) {
+    case 'bronze':
+      return l10n.tierBronze;
+    case 'silver':
+      return l10n.tierSilver;
+    case 'gold':
+      return l10n.tierGold;
+    case 'platinum':
+      return l10n.tierPlatinum;
+    default:
+      return tierName;
+  }
+}
 
 class LoyaltyScreen extends ConsumerStatefulWidget {
   const LoyaltyScreen({super.key});
@@ -36,6 +68,7 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(loyaltyProvider);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
@@ -44,7 +77,7 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text('Loyalty', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              AppText(l10n.loyalty, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -73,16 +106,16 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
 
                   // Accounts section
                   SectionHeader(
-                    title: 'Accounts',
+                    title: l10n.accountsLabel,
                     count: state.accounts.length,
                   ),
                   const SizedBox(height: 8),
 
                   // Accounts list
                   if (state.accounts.isEmpty)
-                    const EmptyState(
+                    EmptyState(
                       icon: Icons.card_giftcard_outlined,
-                      title: 'No loyalty accounts yet',
+                      title: l10n.noLoyaltyAccounts,
                     )
                   else
                     ListView.separated(
@@ -123,22 +156,23 @@ class _StatsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final numberFormat = NumberFormat.compact();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Overview',
+        AppText(
+          l10n.overview,
           style: theme.typography.base.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            _StatItem(label: 'Accounts', value: numberFormat.format(stats.totalAccounts)),
-            _StatItem(label: 'Today', value: numberFormat.format(stats.pointsIssuedToday)),
-            _StatItem(label: 'Week', value: numberFormat.format(stats.pointsIssuedThisWeek)),
-            _StatItem(label: 'Month', value: numberFormat.format(stats.pointsIssuedThisMonth)),
+            _StatItem(label: l10n.accountsLabel, value: numberFormat.format(stats.totalAccounts)),
+            _StatItem(label: l10n.todayLabel, value: numberFormat.format(stats.pointsIssuedToday)),
+            _StatItem(label: l10n.weekLabel, value: numberFormat.format(stats.pointsIssuedThisWeek)),
+            _StatItem(label: l10n.monthLabel, value: numberFormat.format(stats.pointsIssuedThisMonth)),
           ],
         ),
       ],
@@ -159,11 +193,11 @@ class _StatItem extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(
+          AppText(
             value,
             style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
           ),
-          Text(
+          AppText(
             label,
             style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
           ),
@@ -182,12 +216,13 @@ class _TierSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Tiers',
+        AppText(
+          l10n.tiers,
           style: theme.typography.base.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
@@ -228,16 +263,17 @@ class _TierItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
         Icon(Icons.workspace_premium, size: 24, color: _tierColor),
         const SizedBox(height: 4),
-        Text(
-          tier.name,
+        AppText(
+          getLocalizedTierNameFromString(tier.name, l10n),
           style: theme.typography.xs.copyWith(fontWeight: FontWeight.w600),
         ),
-        Text(
+        AppText(
           '$count',
           style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
         ),
@@ -268,6 +304,7 @@ class _AccountTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final numberFormat = NumberFormat('#,###');
 
     return FTappable(
@@ -295,7 +332,7 @@ class _AccountTile extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
+                        child: AppText(
                           account.displayName,
                           style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
                           overflow: TextOverflow.ellipsis,
@@ -307,16 +344,16 @@ class _AccountTile extends StatelessWidget {
                           color: theme.colors.secondary,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(
-                          account.currentTier.name.toUpperCase(),
+                        child: AppText(
+                          getLocalizedTierName(account.currentTier, l10n),
                           style: theme.typography.xs,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    '${numberFormat.format(account.pointsBalance)} pts • ${numberFormat.format(account.lifetimePoints)} lifetime',
+                  AppText(
+                    '${numberFormat.format(account.pointsBalance)} ${l10n.points} • ${numberFormat.format(account.lifetimePoints)} ${l10n.lifetime}',
                     style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                   ),
                 ],

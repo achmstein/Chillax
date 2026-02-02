@@ -82,7 +82,7 @@ public class Order
     /// <summary>
     /// Add item to the order
     /// </summary>
-    public void AddOrderItem(int productId, string productName, decimal unitPrice, decimal discount, string pictureUrl, int units = 1, string? customizationsDescription = null, string? specialInstructions = null)
+    public void AddOrderItem(int productId, LocalizedText productName, decimal unitPrice, decimal discount, string pictureUrl, int units = 1, LocalizedText? customizationsDescription = null, string? specialInstructions = null)
     {
         // When items have customizations, treat them as unique items (don't combine)
         var existingOrderForProduct = customizationsDescription == null

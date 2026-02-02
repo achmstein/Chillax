@@ -108,7 +108,7 @@
   "waiterNotified": "الجرسون عرف",
   "controllerRequestSent": "طلب الدراع اتبعت",
   "billRequestSent": "طلب الفاتورة اتبعت",
-  "reserved": "محجوز",
+  "reserved": "محجوزة",
   "cancelReservation": "الغي الحجز",
   "cancelReservationQuestion": "تلغي الحجز؟",
   "confirmCancelReservation": "متأكد انك عايز تلغي الحجز؟",
@@ -134,7 +134,7 @@
   "occupied": "مشغول",
   "maintenance": "صيانة",
 
-  "statusReserved": "محجوز",
+  "statusReserved": "محجوزة",
   "statusActive": "شغال",
   "statusCompleted": "انتهى",
   "statusCancelled": "ملغي",
@@ -238,5 +238,25 @@
 
   "joinedSessionSuccessfully": "دخلت الجلسة!",
   "noFavoritesYet": "مفيش مفضلة لسه",
-  "noFavoritesDescription": "الحاجات اللي بتحبها هتظهر هنا"
+  "noFavoritesDescription": "الحاجات اللي بتحبها هتظهر هنا",
+
+  "createStrongPassword": "اعمل باسورد قوي",
+  "passwordRequirements": "الباسورد لازم يكون 8 حروف على الأقل. نفضل خلط حروف وأرقام ورموز.",
+  "currentEmail": "الايميل الحالي",
+  "enterNewEmailAddress": "ادخل الايميل الجديد",
+  "emailUpdateInstructions": "هنحدث حسابك بالايميل الجديد. تأكد إنك تقدر تدخل عليه.",
+
+  "failedToLoadSessions": "الجلسات مش بتحمل",
+  "noSessionsYet": "مفيش جلسات لسه",
+  "reserveRoomToStart": "احجز اوضة عشان تبدأ",
+  "durationLabel": "المدة: {duration}",
+
+  "phoneNumber": "رقم الموبايل",
+  "enterPhoneNumber": "ادخل رقم الموبايل",
+  "yourPhoneNumber": "رقمك",
+
+  "tierBronze": "برونزي",
+  "tierSilver": "فضي",
+  "tierGold": "ذهبي",
+  "tierPlatinum": "بلاتيني"
 }

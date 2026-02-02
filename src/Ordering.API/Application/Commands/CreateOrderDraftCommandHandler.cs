@@ -3,6 +3,7 @@ namespace Chillax.Ordering.API.Application.Commands;
 
 using Chillax.Ordering.API.Extensions;
 using Chillax.Ordering.Domain.AggregatesModel.OrderAggregate;
+using Chillax.Ordering.Domain.Seedwork;
 
 // Regular CommandHandler
 public class CreateOrderDraftCommandHandler
@@ -48,7 +49,7 @@ public record OrderItemDTO
 {
     public int ProductId { get; init; }
 
-    public string ProductName { get; init; } = string.Empty;
+    public LocalizedText ProductName { get; init; } = new();
 
     public decimal UnitPrice { get; init; }
 
@@ -64,7 +65,7 @@ public record OrderItemDTO
     public string? SpecialInstructions { get; init; }
 
     /// <summary>
-    /// Description of selected customizations for display
+    /// Localized description of selected customizations for display
     /// </summary>
-    public string? CustomizationsDescription { get; init; }
+    public LocalizedText? CustomizationsDescription { get; init; }
 }

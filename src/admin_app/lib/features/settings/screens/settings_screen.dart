@@ -4,6 +4,9 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -11,14 +14,16 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authServiceProvider);
+    final locale = ref.watch(localeProvider);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header
-        const FHeader(
-          title: Text('Settings', style: TextStyle(fontSize: 18)),
+        FHeader(
+          title: AppText(l10n.settings, style: const TextStyle(fontSize: 18)),
         ),
 
         // Content
@@ -29,8 +34,8 @@ class SettingsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Profile section
-                Text(
-                  'Profile',
+                AppText(
+                  l10n.profile,
                   style: theme.typography.lg.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -43,7 +48,7 @@ class SettingsScreen extends ConsumerWidget {
                       children: [
                         FAvatar(
                           image: const AssetImage('assets/images/avatar.png'),
-                          fallback: Text(
+                          fallback: AppText(
                             (authState.name ?? 'A').substring(0, 1).toUpperCase(),
                           ),
                           size: 64,
@@ -53,14 +58,14 @@ class SettingsScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                authState.name ?? 'Admin User',
+                              AppText(
+                                authState.name ?? l10n.adminUser,
                                 style: theme.typography.lg.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
+                              AppText(
                                 authState.email ?? '',
                                 style: theme.typography.base.copyWith(
                                   color: theme.colors.mutedForeground,
@@ -72,10 +77,10 @@ class SettingsScreen extends ConsumerWidget {
                                 children: authState.roles.map((role) {
                                   return role == 'Admin'
                                       ? FBadge(
-                                          child: Text(role),
+                                          child: AppText(role),
                                         )
-                                      : FBadge(style: FBadgeStyle.secondary(), 
-                                          child: Text(role),
+                                      : FBadge(style: FBadgeStyle.secondary(),
+                                          child: AppText(role),
                                         );
                                 }).toList(),
                               ),
@@ -89,9 +94,39 @@ class SettingsScreen extends ConsumerWidget {
 
                 const SizedBox(height: 32),
 
+                // Language section
+                AppText(
+                  l10n.language,
+                  style: theme.typography.lg.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                FCard(
+                  child: Column(
+                    children: [
+                      _LanguageItem(
+                        title: l10n.english,
+                        subtitle: 'English',
+                        isSelected: locale.languageCode == 'en',
+                        onTap: () => ref.read(localeProvider.notifier).setLocale(const Locale('en')),
+                      ),
+                      const FDivider(),
+                      _LanguageItem(
+                        title: l10n.arabic,
+                        subtitle: 'العربية',
+                        isSelected: locale.languageCode == 'ar',
+                        onTap: () => ref.read(localeProvider.notifier).setLocale(const Locale('ar')),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
                 // App info section
-                Text(
-                  'About',
+                AppText(
+                  l10n.about,
                   style: theme.typography.lg.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -102,31 +137,31 @@ class SettingsScreen extends ConsumerWidget {
                     children: [
                       _SettingsItem(
                         icon: Icons.info,
-                        title: 'App Version',
+                        title: l10n.appVersion,
                         subtitle: AppConfig.appVersion,
                       ),
                       const FDivider(),
                       _SettingsItem(
                         icon: Icons.dns,
-                        title: 'Identity Provider',
+                        title: l10n.identityProvider,
                         subtitle: AppConfig.keycloakUrl,
                       ),
                       const FDivider(),
                       _SettingsItem(
                         icon: Icons.public,
-                        title: 'Orders API',
+                        title: l10n.ordersApi,
                         subtitle: AppConfig.ordersApiUrl,
                       ),
                       const FDivider(),
                       _SettingsItem(
                         icon: Icons.videogame_asset,
-                        title: 'Rooms API',
+                        title: l10n.roomsApi,
                         subtitle: AppConfig.roomsApiUrl,
                       ),
                       const FDivider(),
                       _SettingsItem(
                         icon: Icons.restaurant,
-                        title: 'Catalog API',
+                        title: l10n.catalogApi,
                         subtitle: AppConfig.catalogApiUrl,
                       ),
                     ],
@@ -140,12 +175,12 @@ class SettingsScreen extends ConsumerWidget {
                   width: double.infinity,
                   child: FButton(
                     style: FButtonStyle.destructive(),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.logout),
-                        SizedBox(width: 8),
-                        Text('Sign Out'),
+                        const Icon(Icons.logout),
+                        const SizedBox(width: 8),
+                        AppText(l10n.signOut),
                       ],
                     ),
                     onPress: () => _signOut(context, ref),
@@ -160,20 +195,21 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Sign Out?'),
-        body: const Text('Are you sure you want to sign out?'),
+        title: AppText(l10n.signOutQuestion),
+        body: AppText(l10n.signOutConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            child: const Text('Sign Out'),
+            child: AppText(l10n.signOut),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -186,6 +222,69 @@ class SettingsScreen extends ConsumerWidget {
         context.go('/login');
       }
     }
+  }
+}
+
+class _LanguageItem extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LanguageItem({
+    required this.title,
+    required this.subtitle,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.language,
+              size: 20,
+              color: isSelected ? theme.colors.primary : theme.colors.mutedForeground,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    title,
+                    style: theme.typography.sm.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: isSelected ? theme.colors.primary : null,
+                    ),
+                  ),
+                  AppText(
+                    subtitle,
+                    style: theme.typography.xs.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check,
+                size: 20,
+                color: theme.colors.primary,
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -218,13 +317,13 @@ class _SettingsItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   title,
                   style: theme.typography.sm.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Text(
+                AppText(
                   subtitle,
                   style: theme.typography.xs.copyWith(
                     color: theme.colors.mutedForeground,

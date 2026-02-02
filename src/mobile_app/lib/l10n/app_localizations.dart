@@ -1352,6 +1352,30 @@ abstract class AppLocalizations {
   /// **'0100 469 8 469'**
   String get supportPhone;
 
+  /// No description provided for @tierBronze.
+  ///
+  /// In en, this message translates to:
+  /// **'BRONZE'**
+  String get tierBronze;
+
+  /// No description provided for @tierSilver.
+  ///
+  /// In en, this message translates to:
+  /// **'SILVER'**
+  String get tierSilver;
+
+  /// No description provided for @tierGold.
+  ///
+  /// In en, this message translates to:
+  /// **'GOLD'**
+  String get tierGold;
+
+  /// No description provided for @tierPlatinum.
+  ///
+  /// In en, this message translates to:
+  /// **'PLATINUM'**
+  String get tierPlatinum;
+
   /// No description provided for @joinedSessionSuccessfully.
   ///
   /// In en, this message translates to:
@@ -1369,6 +1393,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Items you love will appear here'**
   String get noFavoritesDescription;
+
+  /// No description provided for @createStrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a strong password'**
+  String get createStrongPassword;
+
+  /// No description provided for @passwordRequirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password must be at least 8 characters long. We recommend using a mix of letters, numbers, and symbols.'**
+  String get passwordRequirements;
+
+  /// No description provided for @currentEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Email'**
+  String get currentEmail;
+
+  /// No description provided for @enterNewEmailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new email address'**
+  String get enterNewEmailAddress;
+
+  /// No description provided for @emailUpdateInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll update your account with the new email address. Make sure you have access to this email.'**
+  String get emailUpdateInstructions;
+
+  /// No description provided for @failedToLoadSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load sessions'**
+  String get failedToLoadSessions;
+
+  /// No description provided for @noSessionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions yet'**
+  String get noSessionsYet;
+
+  /// No description provided for @reserveRoomToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve a room to get started'**
+  String get reserveRoomToStart;
+
+  /// No description provided for @durationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration: {duration}'**
+  String durationLabel(String duration);
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get phoneNumber;
+
+  /// No description provided for @enterPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number'**
+  String get enterPhoneNumber;
+
+  /// No description provided for @yourPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone number'**
+  String get yourPhoneNumber;
 }
 
 class _AppLocalizationsDelegate

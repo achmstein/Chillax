@@ -34,7 +34,7 @@ public class RoomRepository : IRoomRepository
     public async Task<List<Room>> GetAllAsync()
     {
         return await _context.Rooms
-            .OrderBy(r => r.Name)
+            .OrderBy(r => r.Name.En)
             .ToListAsync();
     }
 
@@ -42,7 +42,7 @@ public class RoomRepository : IRoomRepository
     {
         return await _context.Rooms
             .Where(r => r.PhysicalStatus == status)
-            .OrderBy(r => r.Name)
+            .OrderBy(r => r.Name.En)
             .ToListAsync();
     }
 

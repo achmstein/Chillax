@@ -1,6 +1,7 @@
 using Chillax.EventBus.Abstractions;
 using Chillax.Rooms.API.Application.IntegrationEvents.Events;
 using Chillax.Rooms.Domain.Events;
+using Chillax.Rooms.Domain.SeedWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -29,7 +30,7 @@ public class SessionEndedDomainEventHandler : INotificationHandler<SessionEndedD
         // Publish room available event for notifications
         var roomAvailableEvent = new RoomBecameAvailableIntegrationEvent(
             reservation.RoomId,
-            reservation.Room?.Name ?? $"Room {reservation.RoomId}");
+            reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"));
 
         await _eventBus.PublishAsync(roomAvailableEvent);
 
@@ -42,7 +43,7 @@ public class SessionEndedDomainEventHandler : INotificationHandler<SessionEndedD
                 reservation.Id,
                 reservation.CustomerId,
                 reservation.RoomId,
-                reservation.Room?.Name ?? $"Room {reservation.RoomId}",
+                reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
                 reservation.TotalCost ?? 0,
                 reservation.ActualStartTime.Value,
                 reservation.EndTime.Value,

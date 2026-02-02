@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
 
@@ -53,6 +55,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(menuProvider);
 
     return Container(
@@ -72,8 +75,8 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    widget.isEditing ? 'Edit Menu Item' : 'Add Menu Item',
+                  AppText(
+                    widget.isEditing ? l10n.editMenuItem : l10n.addMenuItem,
                     style: theme.typography.lg.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -93,8 +96,8 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Name field
-                      Text(
-                        'Name *',
+                      AppText(
+                        l10n.nameRequired,
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -102,13 +105,13 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       const SizedBox(height: 8),
                       FTextField(
                         control: FTextFieldControl.managed(controller: _nameController),
-                        hint: 'Enter item name',
+                        hint: l10n.enterItemName,
                       ),
                       const SizedBox(height: 16),
 
                       // Description field
-                      Text(
-                        'Description',
+                      AppText(
+                        l10n.description,
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -116,14 +119,14 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       const SizedBox(height: 8),
                       FTextField.multiline(
                         control: FTextFieldControl.managed(controller: _descriptionController),
-                        hint: 'Enter item description',
+                        hint: l10n.enterItemDescription,
                         maxLines: 3,
                       ),
                       const SizedBox(height: 16),
 
                       // Price field
-                      Text(
-                        'Price *',
+                      AppText(
+                        '${l10n.price} *',
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -142,8 +145,8 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       const SizedBox(height: 16),
 
                       // Category dropdown
-                      Text(
-                        'Category *',
+                      AppText(
+                        l10n.categoryRequired,
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -151,8 +154,8 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       const SizedBox(height: 8),
                       DropdownButton<int>(
                         value: _selectedCategoryId,
-                        hint: Text(
-                          'Select category',
+                        hint: AppText(
+                          l10n.selectCategory,
                           style: theme.typography.sm.copyWith(
                             color: theme.colors.mutedForeground,
                           ),
@@ -161,7 +164,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                         items: state.categories.map((category) {
                           return DropdownMenuItem<int>(
                             value: category.id,
-                            child: Text(category.name),
+                            child: AppText(category.name),
                           );
                         }).toList(),
                         onChanged: (value) {
@@ -173,8 +176,8 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       const SizedBox(height: 16),
 
                       // Preparation time field
-                      Text(
-                        'Preparation Time (minutes)',
+                      AppText(
+                        l10n.preparationTime,
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -182,7 +185,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       const SizedBox(height: 8),
                       FTextField(
                         control: FTextFieldControl.managed(controller: _prepTimeController),
-                        hint: 'e.g. 10',
+                        hint: l10n.prepTimeHint,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -194,8 +197,8 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Available',
+                          AppText(
+                            l10n.availableLabel,
                             style: theme.typography.sm.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
@@ -226,7 +229,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                     child: FButton(
                       style: FButtonStyle.outline(),
                       onPress: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: AppText(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -239,7 +242,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(widget.isEditing ? 'Update' : 'Create'),
+                          : AppText(widget.isEditing ? l10n.update : l10n.create),
                     ),
                   ),
                 ],
@@ -254,9 +257,10 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!;
     if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category')),
+        SnackBar(content: AppText(l10n.pleaseSelectCategory)),
       );
       return;
     }

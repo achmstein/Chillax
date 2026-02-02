@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Chillax.Catalog.API.Model;
 
 /// <summary>
@@ -9,20 +7,15 @@ public class CatalogItem
 {
     public int Id { get; set; }
 
-    [Required]
-    public string Name { get; set; }
+    /// <summary>
+    /// Localized name of the menu item
+    /// </summary>
+    public LocalizedText Name { get; set; } = new();
 
     /// <summary>
-    /// Arabic name for the menu item
+    /// Localized description of the menu item
     /// </summary>
-    public string? NameAr { get; set; }
-
-    public string? Description { get; set; }
-
-    /// <summary>
-    /// Arabic description for the menu item
-    /// </summary>
-    public string? DescriptionAr { get; set; }
+    public LocalizedText Description { get; set; } = new();
 
     public decimal Price { get; set; }
 
@@ -43,12 +36,29 @@ public class CatalogItem
     public int? PreparationTimeMinutes { get; set; }
 
     /// <summary>
+    /// Display order within the category (lower numbers appear first)
+    /// </summary>
+    public int DisplayOrder { get; set; }
+
+    /// <summary>
     /// Available customization options for this item (e.g., size, sugar level, roasting)
     /// </summary>
     public ICollection<ItemCustomization> Customizations { get; set; } = new List<ItemCustomization>();
 
-    public CatalogItem(string name)
+    /// <summary>
+    /// Required for EF Core
+    /// </summary>
+    private CatalogItem() { }
+
+    public CatalogItem(string name, string? description = null)
+    {
+        Name = new LocalizedText(name);
+        Description = new LocalizedText(description ?? string.Empty);
+    }
+
+    public CatalogItem(LocalizedText name, LocalizedText? description = null)
     {
         Name = name;
+        Description = description ?? new LocalizedText(string.Empty);
     }
 }

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
 
@@ -47,6 +50,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
   Widget build(BuildContext context) {
     final state = ref.watch(ordersProvider);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
@@ -55,10 +59,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text('Orders', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              AppText(l10n.orders, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               if (state.orders.isNotEmpty) ...[
                 const SizedBox(width: 8),
-                Text(
+                AppText(
                   '${state.orders.length}',
                   style: theme.typography.sm.copyWith(
                     color: theme.colors.destructive,
@@ -79,11 +83,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
               onRefresh: () => ref.read(ordersProvider.notifier).loadOrders(),
               child: state.orders.isEmpty
                   ? ListView(
-                      children: const [
-                        SizedBox(height: 100),
+                      children: [
+                        const SizedBox(height: 100),
                         EmptyState(
                           icon: Icons.check_circle_outline,
-                          title: 'No pending orders',
+                          title: l10n.noPendingOrders,
                         ),
                       ],
                     )
@@ -117,21 +121,22 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
   }
 
   Future<void> _cancelOrder(BuildContext context, int orderId) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Cancel Order?'),
-        body: const Text('Are you sure you want to cancel this order?'),
+        title: AppText(l10n.cancelOrder),
+        body: AppText(l10n.cancelOrderConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Keep'),
+            child: AppText(l10n.keep),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
             style: FButtonStyle.destructive(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -162,18 +167,19 @@ class _OrderTile extends ConsumerStatefulWidget {
 class _OrderTileState extends ConsumerState<_OrderTile> {
   bool _expanded = true; // Expanded by default for pending orders
 
-  String _getTimeAgo(DateTime date) {
+  String _getTimeAgo(DateTime date, AppLocalizations l10n) {
     final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 1) return 'now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
-    if (diff.inHours < 24) return '${diff.inHours}h';
-    return '${diff.inDays}d';
+    if (diff.inMinutes < 1) return l10n.justNow;
+    if (diff.inMinutes < 60) return l10n.minutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.hoursAgo(diff.inHours);
+    return l10n.daysAgo(diff.inDays);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
+    final l10n = AppLocalizations.of(context)!;
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final orderDetailsAsync = ref.watch(orderDetailsProvider(widget.order.id));
 
     // Get items count from details if loaded, otherwise show nothing
@@ -190,7 +196,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
             // Main row
             Row(
               children: [
-                // Left: Room/Order indicator
+                // Left: Order indicator
                 Container(
                   width: 44,
                   height: 44,
@@ -199,15 +205,10 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
-                    child: widget.order.roomName != null
-                        ? Text(
-                            widget.order.roomName!.replaceAll('Room ', '').replaceAll('Table ', ''),
-                            style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
-                          )
-                        : Text(
-                            '#${widget.order.id}',
-                            style: theme.typography.xs.copyWith(fontWeight: FontWeight.w500),
-                          ),
+                    child: AppText(
+                      '#${widget.order.id}',
+                      style: theme.typography.xs.copyWith(fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -220,14 +221,22 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              widget.order.userName ?? 'Order #${widget.order.id}',
+                            child: AppText(
+                              widget.order.userName ?? l10n.orderNumber(widget.order.id),
                               style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Text(
-                            _getTimeAgo(widget.order.date),
+                          if (widget.order.roomName != null) ...[
+                            const SizedBox(width: 8),
+                            FBadge(
+                              style: FBadgeStyle.secondary(),
+                              child: AppText(widget.order.roomName!.localized(context)),
+                            ),
+                          ],
+                          const SizedBox(width: 8),
+                          AppText(
+                            _getTimeAgo(widget.order.date, l10n),
                             style: theme.typography.xs.copyWith(
                               color: theme.colors.mutedForeground,
                             ),
@@ -235,9 +244,9 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
+                      AppText(
                         itemsCount != null
-                            ? '$itemsCount ${itemsCount == 1 ? 'item' : 'items'} • ${currencyFormat.format(widget.order.total)}'
+                            ? '${l10n.itemCount(itemsCount)} • ${currencyFormat.format(widget.order.total)}'
                             : currencyFormat.format(widget.order.total),
                         style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                       ),
@@ -309,8 +318,8 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
-        error: (error, _) => Text(
-          'Failed to load',
+        error: (error, _) => AppText(
+          AppLocalizations.of(context)!.failedToLoad,
           style: theme.typography.xs.copyWith(color: theme.colors.destructive),
         ),
         data: (orderDetails) => Column(
@@ -324,17 +333,17 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                 children: [
                   Row(
                     children: [
-                      Text(
+                      AppText(
                         '${item.units}× ',
                         style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                       ),
                       Expanded(
-                        child: Text(
-                          item.productName,
+                        child: AppText(
+                          item.productName.localized(context),
                           style: theme.typography.sm,
                         ),
                       ),
-                      Text(
+                      AppText(
                         currencyFormat.format(item.totalPrice),
                         style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                       ),
@@ -343,15 +352,15 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                   if (item.customizationsDescription != null)
                     Padding(
                       padding: const EdgeInsets.only(left: 20, top: 2),
-                      child: Text(
-                        item.customizationsDescription!,
+                      child: AppText(
+                        item.customizationsDescription!.localized(context),
                         style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                       ),
                     ),
                   if (item.specialInstructions != null)
                     Padding(
                       padding: const EdgeInsets.only(left: 20, top: 2),
-                      child: Text(
+                      child: AppText(
                         '"${item.specialInstructions}"',
                         style: theme.typography.xs.copyWith(
                           color: theme.colors.mutedForeground,
@@ -366,7 +375,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
             // Customer note
             if (orderDetails.customerNote != null) ...[
               const SizedBox(height: 4),
-              Text(
+              AppText(
                 'Note: ${orderDetails.customerNote}',
                 style: theme.typography.xs.copyWith(
                   color: theme.colors.mutedForeground,

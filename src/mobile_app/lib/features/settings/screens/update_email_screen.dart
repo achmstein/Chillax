@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
 
@@ -60,7 +60,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
           context.pop();
           showFToast(
             context: context,
-            title: Text(l10n.emailUpdatedSuccessfully, style: context.textStyle()),
+            title: AppText(l10n.emailUpdatedSuccessfully),
             icon: Icon(FIcons.circleCheck, color: Colors.green.shade600),
           );
         } else {
@@ -103,9 +103,9 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       l10n.updateEmail,
-                      style: context.textStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -124,17 +124,17 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                       FAlert(
                         style: FAlertStyle.destructive(),
                         icon: const Icon(FIcons.circleAlert),
-                        title: const Text('Error'),
-                        subtitle: Text(_error!),
+                        title: AppText(l10n.error),
+                        subtitle: AppText(_error!),
                       ),
                       const SizedBox(height: 24),
                     ],
 
                     // Current email display
                     if (authState.email != null) ...[
-                      Text(
-                        'Current Email',
-                        style: context.textStyle(
+                      AppText(
+                        l10n.currentEmail,
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: colors.mutedForeground,
@@ -148,9 +148,9 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                           color: colors.muted,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
+                        child: AppText(
                           authState.email!,
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             color: colors.foreground,
                           ),
@@ -160,18 +160,18 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                     ],
 
                     // Instructions
-                    Text(
-                        'Enter your new email address',
-                        style: context.textStyle(
+                    AppText(
+                        l10n.enterNewEmailAddress,
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: colors.foreground,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'We\'ll update your account with the new email address. Make sure you have access to this email.',
-                        style: context.textStyle(
+                      AppText(
+                        l10n.emailUpdateInstructions,
+                        style: TextStyle(
                           fontSize: 14,
                           color: colors.mutedForeground,
                         ),
@@ -181,7 +181,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                       // Email field
                       FTextField.email(
                         control: FTextFieldControl.managed(controller: _emailController),
-                        label: Text(l10n.newEmail, style: context.textStyle()),
+                        label: AppText(l10n.newEmail),
                         hint: l10n.pleaseEnterEmail,
                         enabled: !_isLoading,
                         onSubmit: (_) => _handleUpdateEmail(),
@@ -202,7 +202,7 @@ class _UpdateEmailScreenState extends ConsumerState<UpdateEmailScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : Text(l10n.updateEmail, style: context.textStyle()),
+                            : AppText(l10n.updateEmail),
                       ),
                     ),
                   ],

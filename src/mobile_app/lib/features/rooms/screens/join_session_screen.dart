@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
 
@@ -125,9 +125,9 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
           icon: const Icon(FIcons.arrowLeft, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: AppText(
           'Join Session',
-          style: context.textStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -156,19 +156,19 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
               const SizedBox(height: 24),
 
               // Instructions
-              Text(
+              AppText(
                 'Enter Access Code',
-                style: context.textStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              AppText(
                 'Ask the session owner or staff for the 6-digit code',
                 textAlign: TextAlign.center,
-                style: context.textStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.textSecondary,
                 ),
@@ -183,9 +183,9 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
+                  child: AppText(
                     _error!,
-                    style: context.textStyle(
+                    style: TextStyle(
                       color: AppTheme.errorColor,
                       fontSize: 14,
                     ),
@@ -225,9 +225,9 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Text(
+                      : AppText(
                           'Join Session',
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -258,7 +258,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
         maxLength: 6,
-        style: context.textStyle(
+        style: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           letterSpacing: 12,
@@ -268,7 +268,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           hintText: '000000',
-          hintStyle: context.textStyle(
+          hintStyle: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
             letterSpacing: 12,
@@ -322,9 +322,9 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
             children: [
               Icon(FIcons.check, size: 18, color: AppTheme.successColor),
               const SizedBox(width: 8),
-              Text(
+              AppText(
                 'Session Found',
-                style: context.textStyle(
+                style: TextStyle(
                   color: AppTheme.successColor,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -355,9 +355,9 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AppText(
                       preview.roomName.localized(context),
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -367,9 +367,9 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                       children: [
                         Icon(FIcons.users, size: 14, color: AppTheme.textSecondary),
                         const SizedBox(width: 4),
-                        Text(
+                        AppText(
                           '${preview.memberCount} ${preview.memberCount == 1 ? 'member' : 'members'}',
-                          style: context.textStyle(
+                          style: TextStyle(
                             color: AppTheme.textSecondary,
                             fontSize: 13,
                           ),

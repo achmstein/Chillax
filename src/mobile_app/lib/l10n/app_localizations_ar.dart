@@ -300,7 +300,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get billRequestSent => 'طلب الفاتورة اتبعت';
 
   @override
-  String get reserved => 'محجوز';
+  String get reserved => 'محجوزة';
 
   @override
   String get cancelReservation => 'الغي الحجز';
@@ -378,7 +378,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maintenance => 'صيانة';
 
   @override
-  String get statusReserved => 'محجوز';
+  String get statusReserved => 'محجوزة';
 
   @override
   String get statusActive => 'شغال';
@@ -665,6 +665,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supportPhone => '0100 469 8 469';
 
   @override
+  String get tierBronze => 'برونزي';
+
+  @override
+  String get tierSilver => 'فضي';
+
+  @override
+  String get tierGold => 'ذهبي';
+
+  @override
+  String get tierPlatinum => 'بلاتيني';
+
+  @override
   String get joinedSessionSuccessfully => 'دخلت الجلسة!';
 
   @override
@@ -672,4 +684,44 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noFavoritesDescription => 'الحاجات اللي بتحبها هتظهر هنا';
+
+  @override
+  String get createStrongPassword => 'اعمل باسورد قوي';
+
+  @override
+  String get passwordRequirements =>
+      'الباسورد لازم يكون 8 حروف على الأقل. نفضل خلط حروف وأرقام ورموز.';
+
+  @override
+  String get currentEmail => 'الايميل الحالي';
+
+  @override
+  String get enterNewEmailAddress => 'ادخل الايميل الجديد';
+
+  @override
+  String get emailUpdateInstructions =>
+      'هنحدث حسابك بالايميل الجديد. تأكد إنك تقدر تدخل عليه.';
+
+  @override
+  String get failedToLoadSessions => 'الجلسات مش بتحمل';
+
+  @override
+  String get noSessionsYet => 'مفيش جلسات لسه';
+
+  @override
+  String get reserveRoomToStart => 'احجز اوضة عشان تبدأ';
+
+  @override
+  String durationLabel(String duration) {
+    return 'المدة: $duration';
+  }
+
+  @override
+  String get phoneNumber => 'رقم الموبايل';
+
+  @override
+  String get enterPhoneNumber => 'ادخل رقم الموبايل';
+
+  @override
+  String get yourPhoneNumber => 'رقمك';
 }

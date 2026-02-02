@@ -57,8 +57,6 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     final themeState = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 
-    final fontFamily = getFontFamily(locale);
-
     return MaterialApp.router(
       title: 'Chillax',
       debugShowCheckedModeBanner: false,
@@ -67,16 +65,12 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
-        fontFamily: fontFamily,
-        textTheme: getLocalizedTextTheme(locale, isDark: false),
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppTheme.primaryColor,
           brightness: Brightness.light,
         ),
       ),
       darkTheme: ThemeData(
-        fontFamily: fontFamily,
-        textTheme: getLocalizedTextTheme(locale, isDark: true),
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppTheme.primaryColor,
           brightness: Brightness.dark,
@@ -88,20 +82,10 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
               ? ThemeMode.dark
               : ThemeMode.system,
       builder: (context, child) {
-        final brightness = Theme.of(context).brightness;
-        final textColor = brightness == Brightness.dark ? Colors.white : Colors.black;
-
         return FTheme(
           data: themeState.getForuiTheme(context, locale: locale),
-          child: DefaultTextStyle(
-            style: TextStyle(
-              fontFamily: fontFamily,
-              color: textColor,
-              fontSize: 14,
-            ),
-            child: FToaster(
-              child: child ?? const SizedBox.shrink(),
-            ),
+          child: FToaster(
+            child: child ?? const SizedBox.shrink(),
           ),
         );
       },

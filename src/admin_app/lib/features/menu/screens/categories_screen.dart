@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/admin_scaffold.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
 
@@ -34,6 +36,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(menuProvider);
     final notifier = ref.read(menuProvider.notifier);
+    final l10n = AppLocalizations.of(context)!;
 
     final theme = context.theme;
 
@@ -48,15 +51,15 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               IconButton(
                 icon: const Icon(Icons.arrow_back, size: 22),
                 onPressed: () => context.go('/menu'),
-                tooltip: 'Back to menu',
+                tooltip: l10n.backToMenu,
               ),
               const SizedBox(width: 8),
-              Text('Categories', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              AppText(l10n.categories, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.add, size: 22),
                 onPressed: () => _showCategoryForm(context),
-                tooltip: 'Add category',
+                tooltip: l10n.addCategory,
               ),
             ],
           ),
@@ -71,11 +74,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
               child: state.categories.isEmpty
                   ? ListView(
-                      children: const [
+                      children: [
                         EmptyState(
                           icon: Icons.category,
-                          title: 'No categories found',
-                          subtitle: 'Click the + button above to create one',
+                          title: l10n.noCategoriesFound,
+                          subtitle: l10n.clickAddCategoryHint,
                         ),
                       ],
                     )
@@ -102,6 +105,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 
   void _showCategoryForm(BuildContext context, {MenuCategory? category}) {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: category?.name ?? '');
     final isEditing = category != null;
 
@@ -109,15 +113,15 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       context: context,
       builder: (context) => FDialog(
         direction: Axis.vertical,
-        title: Text(isEditing ? 'Edit Category' : 'Add Category'),
+        title: AppText(isEditing ? l10n.editCategory : l10n.addCategory),
         body: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: TextField(
             controller: controller,
-            decoration: const InputDecoration(
-              labelText: 'Category Name',
-              hintText: 'e.g., Drinks, Food, Desserts',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.categoryName,
+              hintText: l10n.categoryNameHint,
+              border: const OutlineInputBorder(),
             ),
             autofocus: true,
             textCapitalization: TextCapitalization.words,
@@ -126,11 +130,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(),
           ),
           FButton(
-            child: Text(isEditing ? 'Update' : 'Create'),
+            child: AppText(isEditing ? l10n.update : l10n.create),
             onPress: () async {
               final name = controller.text.trim();
               if (name.isEmpty) return;
@@ -149,9 +153,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               if (mounted && success) {
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text(isEditing
-                        ? 'Category updated successfully'
-                        : 'Category created successfully'),
+                    content: AppText(isEditing
+                        ? l10n.categoryUpdatedSuccess
+                        : l10n.categoryCreatedSuccess),
                   ),
                 );
               }
@@ -167,19 +171,17 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     MenuCategory category,
     int itemCount,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     if (itemCount > 0) {
       showAdaptiveDialog(
         context: context,
         builder: (context) => FDialog(
           direction: Axis.vertical,
-          title: const Text('Cannot Delete Category'),
-          body: Text(
-            'This category has $itemCount item${itemCount > 1 ? 's' : ''}. '
-            'Move or delete the items before deleting the category.',
-          ),
+          title: AppText(l10n.cannotDeleteCategory),
+          body: AppText(l10n.categoryHasItems(itemCount)),
           actions: [
             FButton(
-              child: const Text('OK'),
+              child: AppText(l10n.ok),
               onPress: () => Navigator.of(context).pop(),
             ),
           ],
@@ -193,17 +195,17 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Delete Category?'),
-        body: Text('Are you sure you want to delete "${category.name}"?'),
+        title: AppText(l10n.deleteCategory),
+        body: AppText(l10n.deleteCategoryConfirmation(category.name)),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
             style: FButtonStyle.destructive(),
-            child: const Text('Delete'),
+            child: AppText(l10n.delete),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -214,7 +216,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       final success = await ref.read(menuProvider.notifier).deleteCategory(category.id);
       if (mounted && success) {
         messenger.showSnackBar(
-          const SnackBar(content: Text('Category deleted successfully')),
+          SnackBar(content: AppText(l10n.categoryDeletedSuccess)),
         );
       }
     }
@@ -261,14 +263,14 @@ class _CategoryListItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   category.name,
                   style: theme.typography.base.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                AppText(
                   '$itemCount item${itemCount != 1 ? 's' : ''}',
                   style: theme.typography.sm.copyWith(
                     color: theme.colors.mutedForeground,

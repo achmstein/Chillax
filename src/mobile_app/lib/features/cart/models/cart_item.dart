@@ -1,11 +1,12 @@
+import '../../../core/models/localized_text.dart';
 import '../../menu/models/menu_item.dart';
 
 /// Selected customization in cart
 class SelectedCustomization {
   final int customizationId;
-  final String customizationName;
+  final LocalizedText customizationName;
   final int optionId;
-  final String optionName;
+  final LocalizedText optionName;
   final double priceAdjustment;
 
   SelectedCustomization({
@@ -19,9 +20,9 @@ class SelectedCustomization {
   Map<String, dynamic> toJson() {
     return {
       'customizationId': customizationId,
-      'customizationName': customizationName,
+      'customizationName': customizationName.toJson(),
       'optionId': optionId,
-      'optionName': optionName,
+      'optionName': optionName.toJson(),
       'priceAdjustment': priceAdjustment,
     };
   }
@@ -30,7 +31,7 @@ class SelectedCustomization {
 /// Cart item with customizations
 class CartItem {
   final int productId;
-  final String productName;
+  final LocalizedText productName;
   final double unitPrice;
   final String? pictureUri;
   int quantity;
@@ -73,7 +74,7 @@ class CartItem {
   Map<String, dynamic> toJson() {
     return {
       'productId': productId,
-      'productName': productName,
+      'productName': productName.toJson(),
       'unitPrice': unitPrice,
       'pictureUrl': pictureUri,
       'quantity': quantity,

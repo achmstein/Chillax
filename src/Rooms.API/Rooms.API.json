@@ -978,7 +978,7 @@
             "format": "int32"
           },
           "roomName": {
-            "type": "string"
+            "$ref": "#/components/schemas/LocalizedText"
           },
           "isOwner": {
             "type": "boolean"

@@ -1,3 +1,4 @@
+import '../../../core/models/localized_text.dart';
 import 'rating.dart';
 
 /// Order status - values must match backend OrderStatus enum
@@ -32,11 +33,11 @@ enum OrderStatus {
 /// Order item
 class OrderItem {
   final int? productId;
-  final String productName;
+  final LocalizedText productName;
   final double unitPrice;
   final int units;
   final String? pictureUrl;
-  final String? customizationsDescription;
+  final LocalizedText? customizationsDescription;
   final String? specialInstructions;
 
   OrderItem({
@@ -54,13 +55,25 @@ class OrderItem {
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
       productId: json['productId'] as int?,
-      productName: json['productName'] as String,
+      productName: _parseLocalizedText(json['productName']),
       unitPrice: (json['unitPrice'] as num).toDouble(),
       units: json['units'] as int,
       pictureUrl: json['pictureUrl'] as String?,
-      customizationsDescription: json['customizationsDescription'] as String?,
+      customizationsDescription: json['customizationsDescription'] != null
+          ? _parseLocalizedText(json['customizationsDescription'])
+          : null,
       specialInstructions: json['specialInstructions'] as String?,
     );
+  }
+
+  /// Parse LocalizedText from JSON - handles both object and string
+  static LocalizedText _parseLocalizedText(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return LocalizedText.fromJson(value);
+    } else if (value is String) {
+      return LocalizedText(en: value);
+    }
+    return LocalizedText(en: value?.toString() ?? '');
   }
 }
 

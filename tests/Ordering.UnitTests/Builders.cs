@@ -1,4 +1,5 @@
 using Chillax.Ordering.Domain.AggregatesModel.OrderAggregate;
+using Chillax.Ordering.Domain.Seedwork;
 
 namespace Chillax.Ordering.UnitTests.Domain;
 
@@ -15,16 +16,16 @@ public class OrderBuilder
         order = new Order(
             "userId",
             "fakeName",
-            tableNumber: 1,
+            roomName: "Room 1",
             customerNote: "Test note");
     }
 
-    public OrderBuilder(int? tableNumber = null, string? customerNote = null)
+    public OrderBuilder(string? roomName = null, string? customerNote = null)
     {
         order = new Order(
             "userId",
             "fakeName",
-            tableNumber: tableNumber,
+            roomName: roomName,
             customerNote: customerNote);
     }
 
@@ -36,7 +37,7 @@ public class OrderBuilder
         string pictureUrl,
         int units = 1)
     {
-        order.AddOrderItem(productId, productName, unitPrice, discount, pictureUrl, units);
+        order.AddOrderItem(productId, new LocalizedText(productName), unitPrice, discount, pictureUrl, units);
         return this;
     }
 

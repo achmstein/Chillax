@@ -1,14 +1,17 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'core/providers/locale_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/auth/auth_service.dart';
 import 'features/service_requests/providers/service_requests_provider.dart';
 import 'features/orders/providers/orders_provider.dart';
+import 'l10n/app_localizations.dart';
 
 class ChillaxAdminApp extends ConsumerStatefulWidget {
   const ChillaxAdminApp({super.key});
@@ -74,10 +77,20 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    final locale = ref.watch(localeProvider);
+    final themeState = ref.watch(themeProvider);
 
     return MaterialApp.router(
       title: 'Chillax Admin',
       debugShowCheckedModeBanner: false,
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       themeMode: ThemeMode.light,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -95,7 +108,7 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
       routerConfig: router,
       builder: (context, child) {
         return FTheme(
-          data: AppTheme.light,
+          data: themeState.getForuiTheme(context, locale: locale),
           child: child ?? const SizedBox.shrink(),
         );
       },

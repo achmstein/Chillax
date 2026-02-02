@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/models/localized_text.dart';
+import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../providers/rooms_provider.dart';
 
@@ -46,10 +48,11 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return FDialog(
       direction: Axis.vertical,
-      title: Text(widget.isEditing ? 'Edit Room' : 'Add Room'),
+      title: AppText(widget.isEditing ? l10n.editRoom : l10n.addRoom),
       body: Form(
         key: _formKey,
         child: Column(
@@ -57,8 +60,8 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Name field
-            Text(
-              'Name *',
+            AppText(
+              l10n.nameRequired,
               style: theme.typography.sm.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -66,13 +69,13 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
             const SizedBox(height: 8),
             FTextField(
               control: FTextFieldControl.managed(controller: _nameController),
-              hint: 'e.g. PlayStation Room 1',
+              hint: l10n.roomNameHint,
             ),
             const SizedBox(height: 16),
 
             // Description field
-            Text(
-              'Description',
+            AppText(
+              l10n.description,
               style: theme.typography.sm.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -80,14 +83,14 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
             const SizedBox(height: 8),
             FTextField.multiline(
               control: FTextFieldControl.managed(controller: _descriptionController),
-              hint: 'Optional description',
+              hint: l10n.optionalDescription,
               maxLines: 2,
             ),
             const SizedBox(height: 16),
 
             // Hourly rate field
-            Text(
-              'Hourly Rate (\$) *',
+            AppText(
+              l10n.hourlyRate,
               style: theme.typography.sm.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -109,7 +112,7 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
         FButton(
           style: FButtonStyle.outline(),
           onPress: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: AppText(l10n.cancel),
         ),
         FButton(
           onPress: _isSubmitting ? null : _submit,
@@ -119,7 +122,7 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(widget.isEditing ? 'Update' : 'Create'),
+              : AppText(widget.isEditing ? l10n.update : l10n.create),
         ),
       ],
     );

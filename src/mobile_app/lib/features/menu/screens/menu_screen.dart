@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../models/menu_item.dart';
@@ -144,7 +144,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
       children: [
         // Header
         FHeader(
-          title: Text(l10n.menu, style: context.textStyle(fontSize: 18)),
+          title: AppText(l10n.menu, style: TextStyle(fontSize: 18)),
         ),
 
         // Content
@@ -157,7 +157,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 children: [
                   Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
                   const SizedBox(height: 16),
-                  Text(l10n.failedToLoadMenu(error.toString()), style: context.textStyle(color: colors.foreground)),
+                  AppText(l10n.failedToLoadMenu(error.toString()), style: TextStyle(color: colors.foreground)),
                   const SizedBox(height: 16),
                   FButton(
                     onPress: () => ref.refresh(groupedMenuItemsProvider(locale)),
@@ -168,17 +168,17 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
             ),
             data: (groupedItems) {
               if (groupedItems.isEmpty) {
-                return Center(child: Text(l10n.noItemsAvailable));
+                return Center(child: AppText(l10n.noItemsAvailable));
               }
 
               // Initialize category keys using localized names
               for (final category in groupedItems.keys) {
-                final localizedName = category.localizedName(locale);
+                final localizedName = category.name.getText(locale);
                 _categoryKeys.putIfAbsent(localizedName, () => GlobalKey());
               }
 
               // Set initial selected category
-              _selectedCategory ??= groupedItems.keys.first.localizedName(locale);
+              _selectedCategory ??= groupedItems.keys.first.name.getText(locale);
 
               // Filter items based on search
               final filteredItems = _filterItemsWithLocale(groupedItems, locale);
@@ -234,7 +234,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
                   // Sticky category menu
                   _CategoryMenu(
-                    categories: groupedItems.keys.map((c) => c.localizedName(locale)).toList(),
+                    categories: groupedItems.keys.map((c) => c.name.getText(locale)).toList(),
                     selectedCategory: _selectedCategory,
                     onCategoryTap: _scrollToCategory,
                   ),
@@ -252,7 +252,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                         itemCount: filteredItems.length,
                         itemBuilder: (context, index) {
                           final entry = filteredItems.entries.elementAt(index);
-                          final categoryName = entry.key.localizedName(locale);
+                          final categoryName = entry.key.name.getText(locale);
                           final items = entry.value;
                           return _CategorySection(
                             key: _categoryKeys[categoryName],
@@ -297,16 +297,16 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    AppText(
                       btnL10n.viewCart,
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
-                    Text(
+                    AppText(
                       '£${cart.totalPrice.toStringAsFixed(2)}',
-                      style: context.textStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -331,10 +331,10 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     for (final entry in items.entries) {
       final matchingItems = entry.value
           .where((item) =>
-              item.localizedName(locale).toLowerCase().contains(query) ||
-              item.localizedDescription(locale).toLowerCase().contains(query) ||
-              item.name.toLowerCase().contains(query) ||
-              item.description.toLowerCase().contains(query))
+              item.name.getText(locale).toLowerCase().contains(query) ||
+              item.description.getText(locale).toLowerCase().contains(query) ||
+              item.name.en.toLowerCase().contains(query) ||
+              item.description.en.toLowerCase().contains(query))
           .toList();
       if (matchingItems.isNotEmpty) {
         filtered[entry.key] = matchingItems;
@@ -425,9 +425,9 @@ class _CategoryMenuState extends State<_CategoryMenu> {
                 ),
               ),
               alignment: Alignment.center,
-              child: Text(
+              child: AppText(
                 category,
-                style: context.textStyle(
+                style: TextStyle(
                   color: isSelected ? colors.primary : colors.mutedForeground,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 14,
@@ -463,9 +463,9 @@ class _CategorySection extends StatelessWidget {
         // Category header
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
+          child: AppText(
             categoryName,
-            style: context.textStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
               color: colors.foreground,
@@ -573,19 +573,19 @@ class MenuItemTile extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.localizedName(locale),
-                    style: context.textStyle(
+                  AppText(
+                    item.name.getText(locale),
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                       color: colors.foreground,
                     ),
                   ),
-                  if (item.localizedDescription(locale).isNotEmpty) ...[
+                  if (item.description.getText(locale).isNotEmpty) ...[
                     const SizedBox(height: 2),
-                    Text(
-                      item.localizedDescription(locale),
-                      style: context.textStyle(
+                    AppText(
+                      item.description.getText(locale),
+                      style: TextStyle(
                         color: colors.mutedForeground,
                         fontSize: 13,
                       ),
@@ -594,9 +594,9 @@ class MenuItemTile extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: 4),
-                  Text(
+                  AppText(
                     '£${item.price.toStringAsFixed(2)}',
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: colors.foreground,
@@ -724,9 +724,9 @@ class _QuantityStepper extends StatelessWidget {
           Container(
             constraints: const BoxConstraints(minWidth: 24),
             alignment: Alignment.center,
-            child: Text(
+            child: AppText(
               '$quantity',
-              style: context.textStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
                 color: colors.foreground,

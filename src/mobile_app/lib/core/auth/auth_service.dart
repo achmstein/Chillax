@@ -258,15 +258,15 @@ class AuthService extends Notifier<AuthState> {
   }
 
   /// Register a new user
-  Future<bool> register(String name, String username, String email, String password) async {
+  Future<bool> register(String name, String email, String phone, String password) async {
     try {
       // Call the BFF registration endpoint which handles Keycloak user creation
       final response = await _dio.post(
         '${AppConfig.bffBaseUrl}/api/identity/register',
         data: {
           'name': name,
-          'username': username,
           'email': email,
+          'phone': phone,
           'password': password,
         },
         options: Options(

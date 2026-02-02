@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/loyalty_info.dart';
 
@@ -48,9 +48,9 @@ class LoyaltyCard extends StatelessWidget {
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  Text(
+                  AppText(
                     l10n.loyaltyRewards,
-                    style: context.textStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                       color: colors.foreground,
@@ -75,9 +75,9 @@ class LoyaltyCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '${numberFormat.format(loyaltyInfo.pointsBalance)} pts',
-                              style: context.textStyle(
+                            AppText(
+                              '${numberFormat.format(loyaltyInfo.pointsBalance)} ${l10n.pts}',
+                              style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
                                 color: colors.foreground,
@@ -86,9 +86,9 @@ class LoyaltyCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Text(
+                      AppText(
                         l10n.lifetimePoints(numberFormat.format(loyaltyInfo.lifetimePoints)),
-                        style: context.textStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           color: colors.mutedForeground,
                         ),
@@ -112,9 +112,9 @@ class LoyaltyCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          l10n.pointsToNextTier(numberFormat.format(loyaltyInfo.pointsToNextTier), '${loyaltyInfo.nextTier!.name[0].toUpperCase()}${loyaltyInfo.nextTier!.name.substring(1)}'),
-                          style: context.textStyle(
+                        AppText(
+                          l10n.pointsToNextTier(numberFormat.format(loyaltyInfo.pointsToNextTier), getLocalizedTierName(loyaltyInfo.nextTier!, l10n)),
+                          style: TextStyle(
                             fontSize: 13,
                             color: colors.mutedForeground,
                           ),
@@ -132,9 +132,9 @@ class LoyaltyCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text(
+                        AppText(
                           l10n.viewHistory,
-                          style: context.textStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             color: colors.mutedForeground,
                           ),
@@ -158,6 +158,20 @@ class LoyaltyCard extends StatelessWidget {
   }
 }
 
+/// Helper function to get localized tier name
+String getLocalizedTierName(LoyaltyTier tier, AppLocalizations l10n) {
+  switch (tier) {
+    case LoyaltyTier.bronze:
+      return l10n.tierBronze;
+    case LoyaltyTier.silver:
+      return l10n.tierSilver;
+    case LoyaltyTier.gold:
+      return l10n.tierGold;
+    case LoyaltyTier.platinum:
+      return l10n.tierPlatinum;
+  }
+}
+
 /// Tier badge widget with metallic gradient
 class _TierBadge extends StatelessWidget {
   final LoyaltyTier tier;
@@ -166,6 +180,7 @@ class _TierBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final gradientColors = tier.gradientColors.map((c) => Color(c)).toList();
     // Use dark text for light tier colors (silver, gold), white for darker (bronze, platinum)
     final textColor = (tier == LoyaltyTier.bronze || tier == LoyaltyTier.platinum)
@@ -189,9 +204,9 @@ class _TierBadge extends StatelessWidget {
           ),
         ],
       ),
-      child: Text(
-        tier.name.toUpperCase(),
-        style: context.textStyle(
+      child: AppText(
+        getLocalizedTierName(tier, l10n),
+        style: TextStyle(
           color: textColor,
           fontSize: 11,
           fontWeight: FontWeight.bold,
@@ -233,19 +248,19 @@ class LoyaltyEmptyCard extends StatelessWidget {
             color: colors.mutedForeground,
           ),
           const SizedBox(height: 12),
-          Text(
+          AppText(
             l10n.joinOurLoyaltyProgram,
-            style: context.textStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
               color: colors.foreground,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             l10n.earnPointsDescription,
             textAlign: TextAlign.center,
-            style: context.textStyle(
+            style: TextStyle(
               fontSize: 14,
               color: colors.mutedForeground,
             ),
@@ -265,7 +280,7 @@ class LoyaltyEmptyCard extends StatelessWidget {
                           strokeWidth: 2,
                         ),
                       )
-                    : Text(l10n.joinNow, style: context.textStyle()),
+                    : AppText(l10n.joinNow),
               ),
             ),
           ],

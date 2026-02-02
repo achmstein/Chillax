@@ -1,5 +1,5 @@
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
-using Chillax.ServiceDefaults;
+using Chillax.Rooms.Domain.SeedWork;
 
 namespace Chillax.Rooms.API.Application.Queries;
 

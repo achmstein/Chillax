@@ -6,6 +6,7 @@ using Asp.Versioning.Http;
 using Chillax.Ordering.API.Application.Commands;
 using Chillax.Ordering.API.Application.Models;
 using Chillax.Ordering.API.Application.Queries;
+using Chillax.Ordering.Domain.Seedwork;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Chillax.Ordering.FunctionalTests;
@@ -128,14 +129,14 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFixture>
         {
             Id = "1",
             ProductId = 12,
-            ProductName = "Test",
+            ProductName = new LocalizedText("Test"),
             UnitPrice = 10,
             OldUnitPrice = 9,
             Quantity = 1,
             PictureUrl = null
         };
-        // Simplified CreateOrderRequest for cafe: UserId, UserName, TableNumber, CustomerNote, Items
-        var OrderRequest = new CreateOrderRequest("1", "TestUser", 5, "No ice please", new List<BasketItem> { item });
+        // Simplified CreateOrderRequest for cafe: UserId, UserName, RoomName, CustomerNote, PointsToRedeem, Items
+        var OrderRequest = new CreateOrderRequest("1", "TestUser", "VIP", "No ice please", 0, new List<BasketItem> { item });
         var content = new StringContent(JsonSerializer.Serialize(OrderRequest), UTF8Encoding.UTF8, "application/json")
         {
             Headers = { { "x-requestid", Guid.NewGuid().ToString() } }
@@ -155,7 +156,7 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFixture>
         {
             Id = "1",
             ProductId = 12,
-            ProductName = "Test",
+            ProductName = new LocalizedText("Test"),
             UnitPrice = 10,
             OldUnitPrice = 9,
             Quantity = 1,
@@ -202,7 +203,7 @@ public sealed class OrderingApiTests : IClassFixture<OrderingApiFixture>
                 {
                     Id = Guid.NewGuid().ToString(),
                     ProductId = 1,
-                    ProductName = "Test Product 1",
+                    ProductName = new LocalizedText("Test Product 1"),
                     UnitPrice = 10.2m,
                     OldUnitPrice = 9.8m,
                     Quantity = 2,

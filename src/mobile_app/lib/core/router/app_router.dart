@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../auth/auth_service.dart';
-import '../theme/theme_provider.dart';
+import '../widgets/app_text.dart';
+import '../../l10n/app_localizations.dart';
 import '../../features/menu/screens/menu_screen.dart';
 import '../../features/cart/screens/cart_screen.dart';
 import '../../features/orders/screens/orders_screen.dart';
@@ -27,45 +28,63 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: Center(
+      body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Cup icon
-            Image.asset(
-              'assets/images/cup.png',
-              width: 120,
-              height: 120,
-              color: colors.foreground,
-              filterQuality: FilterQuality.high,
-            ),
-            const SizedBox(height: 24),
-            // Text logo
-            Image.asset(
-              'assets/images/logo.png',
-              width: 200,
-              filterQuality: FilterQuality.high,
-              color: colors.foreground,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Cafe & Gaming',
-              style: context.textStyle(
-                fontSize: 16,
-                color: colors.mutedForeground,
-                letterSpacing: 2,
+            // Main content - centered cup icon
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Cup icon as main element
+                    Image.asset(
+                      'assets/images/cup.png',
+                      width: 160,
+                      height: 160,
+                      color: colors.foreground,
+                      filterQuality: FilterQuality.high,
+                    ),
+                    const SizedBox(height: 32),
+                    // Loading spinner
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: colors.primary,
+                        strokeWidth: 2.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 48),
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                color: colors.primary,
-                strokeWidth: 2.5,
+            // Bottom branding
+            Padding(
+              padding: const EdgeInsets.only(bottom: 48),
+              child: Column(
+                children: [
+                  // Full logo
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 140,
+                    filterQuality: FilterQuality.high,
+                    color: colors.foreground,
+                  ),
+                  const SizedBox(height: 4),
+                  AppText(
+                    l10n?.cafeAndGaming ?? 'Cafe & Gaming',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colors.mutedForeground,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

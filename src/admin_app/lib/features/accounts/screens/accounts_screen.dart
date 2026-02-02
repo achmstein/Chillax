@@ -4,7 +4,9 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/admin_scaffold.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../customers/models/customer.dart';
 import '../models/customer_account.dart';
 import '../providers/accounts_provider.dart';
@@ -51,8 +53,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final state = ref.watch(accountsProvider);
     final notifier = ref.read(accountsProvider.notifier);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final filteredAccounts = notifier.filteredAccounts;
-    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final totalBalance = state.accounts.fold<double>(0, (sum, a) => sum + a.balance);
 
     return Column(
@@ -62,12 +65,12 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text('Accounts', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              AppText(l10n.accounts, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.add, size: 22),
                 onPressed: () => _showAddChargeDialog(context),
-                tooltip: 'Add charge',
+                tooltip: l10n.addCharge,
               ),
             ],
           ),
@@ -80,14 +83,14 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Total Outstanding',
+                AppText(
+                  l10n.totalOutstanding,
                   style: theme.typography.xs.copyWith(
                     color: theme.colors.mutedForeground,
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                AppText(
                   currencyFormat.format(totalBalance),
                   style: theme.typography.xl.copyWith(
                     fontWeight: FontWeight.bold,
@@ -103,7 +106,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: FTextField(
             control: FTextFieldControl.managed(controller: _searchController),
-            hint: 'Search by name...',
+            hint: l10n.searchByName,
           ),
         ),
 
@@ -115,10 +118,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             isLoading: state.isLoading && state.accounts.isEmpty,
             shimmer: const ShimmerLoadingList(),
             child: filteredAccounts.isEmpty
-                ? const EmptyState(
+                ? EmptyState(
                     icon: Icons.account_balance_wallet_outlined,
-                    title: 'No accounts found',
-                    subtitle: 'Add a charge to create an account',
+                    title: l10n.noAccountsFound,
+                    subtitle: l10n.addChargeToCreate,
                   )
                 : RefreshIndicator(
                     onRefresh: () => notifier.loadAccounts(),
@@ -164,7 +167,7 @@ class _AccountTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
 
     return GestureDetector(
       onTap: onTap,
@@ -182,7 +185,7 @@ class _AccountTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Center(
-                child: Text(
+                child: AppText(
                   account.displayName.isNotEmpty
                       ? account.displayName[0].toUpperCase()
                       : '?',
@@ -198,21 +201,21 @@ class _AccountTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     account.displayName,
                     style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    _formatDate(account.updatedAt),
+                  AppText(
+                    _formatDate(account.updatedAt, AppLocalizations.of(context)!, Localizations.localeOf(context).languageCode),
                     style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                   ),
                 ],
               ),
             ),
             // Balance
-            Text(
+            AppText(
               currencyFormat.format(account.balance),
               style: theme.typography.sm.copyWith(
                 fontWeight: FontWeight.w600,
@@ -225,18 +228,18 @@ class _AccountTile extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, AppLocalizations l10n, String locale) {
     final now = DateTime.now();
     final diff = now.difference(date);
 
     if (diff.inDays == 0) {
-      return 'Today';
+      return l10n.today;
     } else if (diff.inDays == 1) {
-      return 'Yesterday';
+      return l10n.yesterday;
     } else if (diff.inDays < 7) {
-      return '${diff.inDays}d ago';
+      return l10n.daysAgo(diff.inDays);
     } else {
-      return DateFormat('MMM d').format(date);
+      return DateFormat('MMM d', locale).format(date);
     }
   }
 }
@@ -269,6 +272,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
   Widget build(BuildContext context) {
     final state = ref.watch(accountsProvider);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -297,8 +301,8 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      'Add Charge',
+                    child: AppText(
+                      l10n.addCharge,
                       style: theme.typography.lg.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -325,8 +329,8 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Customer selection
-                    Text(
-                      'Customer *',
+                    AppText(
+                      l10n.customerRequired,
                       style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
@@ -335,7 +339,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                       // Search field
                       FTextField(
                         control: FTextFieldControl.managed(controller: _searchController),
-                        hint: 'Search customer by name...',
+                        hint: l10n.searchCustomerByName,
                       ),
                       const SizedBox(height: 8),
 
@@ -363,14 +367,14 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                                 leading: CircleAvatar(
                                   radius: 16,
                                   backgroundColor: theme.colors.secondary,
-                                  child: Text(
+                                  child: AppText(
                                     customer.initials,
                                     style: theme.typography.xs.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ),
-                                title: Text(customer.displayName, style: theme.typography.sm),
+                                title: AppText(customer.displayName, style: theme.typography.sm),
                                 subtitle: customer.email != null
-                                    ? Text(customer.email!,
+                                    ? AppText(customer.email!,
                                         style: theme.typography.xs
                                             .copyWith(color: theme.colors.mutedForeground))
                                     : null,
@@ -398,7 +402,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                             CircleAvatar(
                               radius: 16,
                               backgroundColor: theme.colors.primary.withValues(alpha: 0.1),
-                              child: Text(
+                              child: AppText(
                                 _selectedCustomer!.initials,
                                 style: theme.typography.xs.copyWith(
                                   fontWeight: FontWeight.w600,
@@ -411,12 +415,12 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  AppText(
                                     _selectedCustomer!.displayName,
                                     style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                   if (_selectedCustomer!.email != null)
-                                    Text(
+                                    AppText(
                                       _selectedCustomer!.email!,
                                       style: theme.typography.xs
                                           .copyWith(color: theme.colors.mutedForeground),
@@ -440,8 +444,8 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                     const SizedBox(height: 16),
 
                     // Amount
-                    Text(
-                      'Amount (EGP) *',
+                    AppText(
+                      l10n.amountEgp,
                       style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
@@ -454,14 +458,14 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                     const SizedBox(height: 16),
 
                     // Description
-                    Text(
-                      'Description',
+                    AppText(
+                      l10n.descriptionOptional,
                       style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
                     FTextField.multiline(
                       control: FTextFieldControl.managed(controller: _descriptionController),
-                      hint: 'e.g., Remaining from session - Room 3',
+                      hint: l10n.chargeDescriptionHint,
                       minLines: 2,
                       maxLines: 3,
                     ),
@@ -485,7 +489,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                     child: FButton(
                       style: FButtonStyle.outline(),
                       onPress: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      child: AppText(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -500,7 +504,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Add Charge'),
+                          : AppText(l10n.addCharge),
                     ),
                   ),
                 ],
@@ -523,12 +527,13 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
   }
 
   Future<void> _submitCharge() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_selectedCustomer == null) return;
 
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid amount')),
+        SnackBar(content: AppText(l10n.pleaseEnterValidAmount)),
       );
       return;
     }
@@ -550,11 +555,11 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
       if (success) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Charge added successfully')),
+          SnackBar(content: AppText(l10n.chargeAddedSuccess)),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add charge')),
+          SnackBar(content: AppText(l10n.failedToAddCharge)),
         );
       }
     }

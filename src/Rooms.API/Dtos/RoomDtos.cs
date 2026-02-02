@@ -1,4 +1,5 @@
 using Chillax.Rooms.API.Model;
+using Chillax.Rooms.Domain.SeedWork;
 
 namespace Chillax.Rooms.API.Dtos;
 
@@ -8,8 +9,8 @@ namespace Chillax.Rooms.API.Dtos;
 public record RoomDto
 {
     public int Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public string? Description { get; init; }
+    public LocalizedText Name { get; init; } = new();
+    public LocalizedText? Description { get; init; }
     public RoomStatus Status { get; init; }
     public decimal HourlyRate { get; init; }
     public string? PictureFileName { get; init; }
@@ -22,7 +23,7 @@ public record RoomSessionDto
 {
     public int Id { get; init; }
     public int RoomId { get; init; }
-    public string? RoomName { get; init; }
+    public LocalizedText? RoomName { get; init; }
     public decimal HourlyRate { get; init; }
     public string CustomerId { get; init; } = string.Empty;
     public string? CustomerName { get; init; }

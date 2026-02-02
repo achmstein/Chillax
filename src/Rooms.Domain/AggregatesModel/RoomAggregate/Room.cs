@@ -1,5 +1,4 @@
 using Chillax.Rooms.Domain.Exceptions;
-using Chillax.Rooms.Domain.SeedWork;
 
 namespace Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
 
@@ -9,10 +8,8 @@ namespace Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
 /// </summary>
 public class Room : Entity, IAggregateRoot
 {
-    public string Name { get; private set; }
-    public string? NameAr { get; private set; }
-    public string? Description { get; private set; }
-    public string? DescriptionAr { get; private set; }
+    public LocalizedText Name { get; private set; } = new();
+    public LocalizedText? Description { get; private set; }
     public decimal HourlyRate { get; private set; }
 
     /// <summary>
@@ -20,43 +17,53 @@ public class Room : Entity, IAggregateRoot
     /// </summary>
     public RoomPhysicalStatus PhysicalStatus { get; private set; }
 
-    protected Room()
-    {
-        Name = string.Empty;
-    }
+    protected Room() { }
 
-    public Room(string name, decimal hourlyRate, string? description = null, string? nameAr = null, string? descriptionAr = null) : this()
+    public Room(LocalizedText name, decimal hourlyRate, LocalizedText? description = null) : this()
     {
-        if (string.IsNullOrWhiteSpace(name))
+        if (string.IsNullOrWhiteSpace(name.En))
             throw new RoomsDomainException("Room name is required");
 
         if (hourlyRate <= 0)
             throw new RoomsDomainException("Hourly rate must be greater than zero");
 
         Name = name;
-        NameAr = nameAr;
         HourlyRate = hourlyRate;
         Description = description;
-        DescriptionAr = descriptionAr;
         PhysicalStatus = RoomPhysicalStatus.Available;
+    }
+
+    public Room(string name, decimal hourlyRate, string? description = null, string? nameAr = null, string? descriptionAr = null)
+        : this(new LocalizedText(name, nameAr), hourlyRate, description != null ? new LocalizedText(description, descriptionAr) : null)
+    {
     }
 
     /// <summary>
     /// Update room details
     /// </summary>
-    public void UpdateDetails(string name, string? description, decimal hourlyRate, string? nameAr = null, string? descriptionAr = null)
+    public void UpdateDetails(LocalizedText name, LocalizedText? description, decimal hourlyRate)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        if (string.IsNullOrWhiteSpace(name.En))
             throw new RoomsDomainException("Room name is required");
 
         if (hourlyRate <= 0)
             throw new RoomsDomainException("Hourly rate must be greater than zero");
 
         Name = name;
-        NameAr = nameAr;
         Description = description;
-        DescriptionAr = descriptionAr;
         HourlyRate = hourlyRate;
+    }
+
+    /// <summary>
+    /// Update room details (string overload for convenience)
+    /// </summary>
+    public void UpdateDetails(string name, string? description, decimal hourlyRate, string? nameAr = null, string? descriptionAr = null)
+    {
+        UpdateDetails(
+            new LocalizedText(name, nameAr),
+            description != null ? new LocalizedText(description, descriptionAr) : null,
+            hourlyRate
+        );
     }
 
     /// <summary>

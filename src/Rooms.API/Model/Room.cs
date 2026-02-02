@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Chillax.Rooms.Domain.SeedWork;
 
 namespace Chillax.Rooms.API.Model;
 
@@ -10,15 +11,15 @@ public class Room
     public int Id { get; set; }
 
     /// <summary>
-    /// Name of the room (e.g., "PlayStation Room 1", "Party Room A")
+    /// Localized name of the room (e.g., "PlayStation Room 1", "Party Room A")
     /// </summary>
     [Required]
-    public string Name { get; set; }
+    public LocalizedText Name { get; set; } = new();
 
     /// <summary>
-    /// Description of the room and its features
+    /// Localized description of the room and its features
     /// </summary>
-    public string? Description { get; set; }
+    public LocalizedText? Description { get; set; }
 
     /// <summary>
     /// Current status of the room
@@ -40,9 +41,16 @@ public class Room
     /// </summary>
     public ICollection<RoomSession> Sessions { get; set; } = new List<RoomSession>();
 
-    public Room(string name)
+    protected Room() { }
+
+    public Room(LocalizedText name)
     {
         Name = name;
+    }
+
+    public Room(string name, string? nameAr = null)
+    {
+        Name = new LocalizedText(name, nameAr);
     }
 }
 

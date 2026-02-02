@@ -6,6 +6,8 @@ import '../../features/orders/providers/orders_provider.dart';
 import '../../features/rooms/providers/rooms_provider.dart';
 import '../../features/rooms/models/room.dart';
 import '../../features/service_requests/providers/service_requests_provider.dart';
+import '../../l10n/app_localizations.dart';
+import 'app_text.dart';
 
 /// Notifier to track current route for triggering refreshes when navigating
 class CurrentRouteNotifier extends Notifier<String> {
@@ -24,30 +26,32 @@ final currentRouteProvider = NotifierProvider<CurrentRouteNotifier, String>(
 /// Navigation item model
 class NavItem {
   final String route;
-  final String label;
+  final String Function(AppLocalizations l10n) labelBuilder;
   final IconData icon;
 
   const NavItem({
     required this.route,
-    required this.label,
+    required this.labelBuilder,
     required this.icon,
   });
+
+  String getLabel(AppLocalizations l10n) => labelBuilder(l10n);
 }
 
 /// Main navigation items (shown in bottom nav on mobile)
-const List<NavItem> mainNavItems = [
-  NavItem(route: '/orders', label: 'Orders', icon: Icons.receipt_long_outlined),
-  NavItem(route: '/rooms', label: 'Rooms', icon: Icons.videogame_asset_outlined),
-  NavItem(route: '/service-requests', label: 'Requests', icon: Icons.notifications_outlined),
-  NavItem(route: '/accounts', label: 'Accounts', icon: Icons.account_balance_wallet_outlined),
+List<NavItem> mainNavItems = [
+  NavItem(route: '/orders', labelBuilder: (l10n) => l10n.orders, icon: Icons.receipt_long_outlined),
+  NavItem(route: '/rooms', labelBuilder: (l10n) => l10n.rooms, icon: Icons.videogame_asset_outlined),
+  NavItem(route: '/service-requests', labelBuilder: (l10n) => l10n.requests, icon: Icons.notifications_outlined),
+  NavItem(route: '/accounts', labelBuilder: (l10n) => l10n.accounts, icon: Icons.account_balance_wallet_outlined),
 ];
 
 /// Secondary nav items (shown in More menu on mobile, sidebar on tablet)
-const List<NavItem> secondaryNavItems = [
-  NavItem(route: '/menu', label: 'Menu', icon: Icons.restaurant_menu_outlined),
-  NavItem(route: '/loyalty', label: 'Loyalty', icon: Icons.card_giftcard_outlined),
-  NavItem(route: '/customers', label: 'Customers', icon: Icons.people_outline),
-  NavItem(route: '/profile', label: 'Profile', icon: Icons.person_outline),
+List<NavItem> secondaryNavItems = [
+  NavItem(route: '/menu', labelBuilder: (l10n) => l10n.menu, icon: Icons.restaurant_menu_outlined),
+  NavItem(route: '/loyalty', labelBuilder: (l10n) => l10n.loyalty, icon: Icons.card_giftcard_outlined),
+  NavItem(route: '/customers', labelBuilder: (l10n) => l10n.customers, icon: Icons.people_outline),
+  NavItem(route: '/profile', labelBuilder: (l10n) => l10n.profile, icon: Icons.person_outline),
 ];
 
 /// Admin scaffold with bottom navigation
@@ -114,6 +118,7 @@ class _MobileLayout extends ConsumerWidget {
 
   void _showMoreMenu(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     showModalBottomSheet(
       context: context,
@@ -149,8 +154,8 @@ class _MobileLayout extends ConsumerWidget {
                     size: 20,
                     color: isSelected ? theme.colors.primary : theme.colors.foreground,
                   ),
-                  title: Text(
-                    item.label,
+                  title: AppText(
+                    item.getLabel(l10n),
                     style: theme.typography.sm.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                       color: isSelected ? theme.colors.primary : theme.colors.foreground,
@@ -173,6 +178,7 @@ class _MobileLayout extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final selectedIndex = _getSelectedIndex();
     final isProfileSelected = selectedIndex == mainNavItems.length;
     final ordersState = ref.watch(ordersProvider);
@@ -202,7 +208,7 @@ class _MobileLayout extends ConsumerWidget {
                 for (int i = 0; i < mainNavItems.length; i++)
                   _NavBarItem(
                     icon: mainNavItems[i].icon,
-                    label: mainNavItems[i].label,
+                    label: mainNavItems[i].getLabel(l10n),
                     isSelected: selectedIndex == i,
                     onTap: () => context.go(mainNavItems[i].route),
                     badgeCount: mainNavItems[i].route == '/orders'
@@ -218,6 +224,7 @@ class _MobileLayout extends ConsumerWidget {
                 _MoreNavItem(
                   isSelected: isProfileSelected,
                   onTap: () => _showMoreMenu(context, ref),
+                  label: l10n.more,
                 ),
               ],
             ),
@@ -274,7 +281,7 @@ class _NavBarItem extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       constraints: const BoxConstraints(minWidth: 16),
-                      child: Text(
+                      child: AppText(
                         badgeCount > 99 ? '99+' : '$badgeCount',
                         style: const TextStyle(
                           color: Colors.white,
@@ -288,7 +295,7 @@ class _NavBarItem extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 2),
-            Text(
+            AppText(
               label,
               style: theme.typography.xs.copyWith(
                 color: color,
@@ -306,10 +313,12 @@ class _NavBarItem extends StatelessWidget {
 class _MoreNavItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
+  final String label;
 
   const _MoreNavItem({
     required this.isSelected,
     required this.onTap,
+    required this.label,
   });
 
   @override
@@ -327,8 +336,8 @@ class _MoreNavItem extends StatelessWidget {
           children: [
             Icon(Icons.more_horiz, size: 22, color: color),
             const SizedBox(height: 2),
-            Text(
-              'More',
+            AppText(
+              label,
               style: theme.typography.xs.copyWith(
                 color: color,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,

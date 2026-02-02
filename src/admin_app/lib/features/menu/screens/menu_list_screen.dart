@@ -4,7 +4,9 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/admin_scaffold.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
 import '../widgets/menu_item_form_sheet.dart';
@@ -35,7 +37,8 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(menuProvider);
-    final currencyFormat = NumberFormat.currency(symbol: '\$');
+    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
+    final l10n = AppLocalizations.of(context)!;
 
     final theme = context.theme;
 
@@ -47,17 +50,17 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text('Menu', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              AppText(l10n.menu, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.category, size: 22),
                 onPressed: () => context.go('/categories'),
-                tooltip: 'Categories',
+                tooltip: l10n.categories,
               ),
               IconButton(
                 icon: const Icon(Icons.add, size: 22),
                 onPressed: () => _showItemForm(context),
-                tooltip: 'Add item',
+                tooltip: l10n.addItem,
               ),
             ],
           ),
@@ -81,7 +84,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                             child: Row(
                               children: [
                                 _CategoryChip(
-                                  label: 'All',
+                                  label: l10n.all,
                                   isSelected: state.selectedCategoryId == null,
                                   onTap: () {
                                     ref.read(menuProvider.notifier).selectCategory(null);
@@ -108,10 +111,10 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
 
                       // Items grid
                       if (state.filteredItems.isEmpty)
-                        const SliverFillRemaining(
+                        SliverFillRemaining(
                           child: EmptyState(
                             icon: Icons.restaurant,
-                            title: 'No items found',
+                            title: l10n.noItemsFound,
                           ),
                         )
                       else
@@ -160,21 +163,22 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
   }
 
   Future<void> _deleteItem(BuildContext context, MenuItem item) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: const Text('Delete Item?'),
-        body: Text('Are you sure you want to delete "${item.name}"?'),
+        title: AppText(l10n.deleteItem),
+        body: AppText(l10n.deleteItemConfirmation(item.name)),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
-            child: const Text('Cancel'),
+            child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
             style: FButtonStyle.destructive(),
-            child: const Text('Delete'),
+            child: AppText(l10n.delete),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -210,7 +214,7 @@ class _CategoryChip extends StatelessWidget {
           color: isSelected ? theme.colors.primary : theme.colors.secondary,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Text(
+        child: AppText(
           label,
           style: theme.typography.sm.copyWith(
             color: isSelected
@@ -273,7 +277,7 @@ class _MenuItemCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AppText(
                       item.name,
                       style: theme.typography.base.copyWith(
                         fontWeight: FontWeight.w600,
@@ -283,7 +287,7 @@ class _MenuItemCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     FBadge(style: FBadgeStyle.secondary(),
-                      child: Text(item.catalogTypeName),
+                      child: AppText(item.catalogTypeName),
                     ),
                   ],
                 ),
@@ -321,7 +325,7 @@ class _MenuItemCard extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Text(
+          AppText(
             item.description,
             style: theme.typography.sm.copyWith(
               color: theme.colors.mutedForeground,
@@ -333,7 +337,7 @@ class _MenuItemCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              AppText(
                 currencyFormat.format(item.price),
                 style: theme.typography.lg.copyWith(
                   fontWeight: FontWeight.bold,
@@ -342,8 +346,10 @@ class _MenuItemCard extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Text(
-                    item.isAvailable ? 'Available' : 'Unavailable',
+                  AppText(
+                    item.isAvailable
+                        ? AppLocalizations.of(context)!.availableLabel
+                        : AppLocalizations.of(context)!.unavailable,
                     style: theme.typography.xs.copyWith(
                       color: theme.colors.mutedForeground,
                     ),

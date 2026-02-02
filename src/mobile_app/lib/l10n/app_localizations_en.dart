@@ -677,6 +677,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportPhone => '0100 469 8 469';
 
   @override
+  String get tierBronze => 'BRONZE';
+
+  @override
+  String get tierSilver => 'SILVER';
+
+  @override
+  String get tierGold => 'GOLD';
+
+  @override
+  String get tierPlatinum => 'PLATINUM';
+
+  @override
   String get joinedSessionSuccessfully => 'Joined session successfully!';
 
   @override
@@ -684,4 +696,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noFavoritesDescription => 'Items you love will appear here';
+
+  @override
+  String get createStrongPassword => 'Create a strong password';
+
+  @override
+  String get passwordRequirements =>
+      'Your password must be at least 8 characters long. We recommend using a mix of letters, numbers, and symbols.';
+
+  @override
+  String get currentEmail => 'Current Email';
+
+  @override
+  String get enterNewEmailAddress => 'Enter your new email address';
+
+  @override
+  String get emailUpdateInstructions =>
+      'We\'ll update your account with the new email address. Make sure you have access to this email.';
+
+  @override
+  String get failedToLoadSessions => 'Failed to load sessions';
+
+  @override
+  String get noSessionsYet => 'No sessions yet';
+
+  @override
+  String get reserveRoomToStart => 'Reserve a room to get started';
+
+  @override
+  String durationLabel(String duration) {
+    return 'Duration: $duration';
+  }
+
+  @override
+  String get phoneNumber => 'Phone Number';
+
+  @override
+  String get enterPhoneNumber => 'Enter your phone number';
+
+  @override
+  String get yourPhoneNumber => 'Your phone number';
 }

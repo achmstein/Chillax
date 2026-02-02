@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using Chillax.Rooms.Domain.SeedWork;
 using MediatR;
 
 namespace Chillax.Rooms.API.Application.Commands;
@@ -29,6 +30,6 @@ public class JoinSessionCommand : IRequest<JoinSessionResult>
 public record JoinSessionResult(
     int ReservationId,
     int RoomId,
-    string RoomName,
+    LocalizedText RoomName,
     bool IsOwner,
     DateTime StartTime);

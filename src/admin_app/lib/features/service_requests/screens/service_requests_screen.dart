@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/admin_scaffold.dart';
+import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/service_request.dart';
 import '../providers/service_requests_provider.dart';
 
@@ -34,6 +36,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(serviceRequestsProvider);
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +46,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Text('Requests', style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              AppText(l10n.requests, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               if (state.pendingRequests.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 Container(
@@ -52,7 +55,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                     color: theme.colors.destructive,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
+                  child: AppText(
                     '${state.pendingRequests.length}',
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.destructiveForeground,
@@ -85,13 +88,14 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
     ServiceRequestsState state,
     FThemeData theme,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (state.requests.isEmpty) {
       return ListView(
-        children: const [
+        children: [
           EmptyState(
             icon: Icons.check_circle_outline,
-            title: 'All clear',
-            subtitle: 'No pending requests',
+            title: l10n.allClear,
+            subtitle: l10n.noPendingRequests,
           ),
         ],
       );
@@ -121,7 +125,9 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
 
   void _showDetails(BuildContext context, ServiceRequest request) {
     final theme = context.theme;
-    final dateFormat = DateFormat('MMM d, h:mm a');
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context);
+    final dateFormat = DateFormat('MMM d, h:mm a', locale.languageCode);
 
     showModalBottomSheet(
       context: context,
@@ -157,21 +163,21 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                     _getTypeIcon(request.requestType, theme),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
+                      child: AppText(
                         request.requestType.label,
                         style: theme.typography.lg.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
-                    _buildStatusIndicator(request.status, theme),
+                    _buildStatusIndicator(request.status, theme, l10n),
                   ],
                 ),
                 const SizedBox(height: 16),
                 // Details
-                _DetailRow(icon: Icons.meeting_room, label: 'Room', value: request.roomName),
+                _DetailRow(icon: Icons.meeting_room, label: l10n.room, value: request.roomName),
                 const SizedBox(height: 8),
-                _DetailRow(icon: Icons.person_outline, label: 'Customer', value: request.userName),
+                _DetailRow(icon: Icons.person_outline, label: l10n.customer, value: request.userName),
                 const SizedBox(height: 8),
-                _DetailRow(icon: Icons.access_time, label: 'Time', value: dateFormat.format(request.createdAt.toLocal())),
+                _DetailRow(icon: Icons.access_time, label: l10n.time, value: dateFormat.format(request.createdAt.toLocal())),
                 const SizedBox(height: 20),
                 // Action button
                 SizedBox(
@@ -181,10 +187,10 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                       Navigator.pop(context);
                       _handleTap(request);
                     },
-                    child: Text(
+                    child: AppText(
                       request.status == ServiceRequestStatus.pending
-                          ? 'Acknowledge'
-                          : 'Mark Complete',
+                          ? l10n.acknowledge
+                          : l10n.markComplete,
                     ),
                   ),
                 ),
@@ -234,22 +240,22 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
     );
   }
 
-  Widget _buildStatusIndicator(ServiceRequestStatus status, FThemeData theme) {
+  Widget _buildStatusIndicator(ServiceRequestStatus status, FThemeData theme, AppLocalizations l10n) {
     Color color;
     String label;
 
     switch (status) {
       case ServiceRequestStatus.pending:
         color = theme.colors.destructive;
-        label = 'Pending';
+        label = l10n.pendingStatus;
         break;
       case ServiceRequestStatus.acknowledged:
         color = Colors.orange;
-        label = 'In Progress';
+        label = l10n.inProgress;
         break;
       case ServiceRequestStatus.completed:
         color = const Color(0xFF16A34A);
-        label = 'Done';
+        label = l10n.done;
         break;
     }
 
@@ -265,7 +271,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
           ),
         ),
         const SizedBox(width: 6),
-        Text(
+        AppText(
           label,
           style: theme.typography.sm.copyWith(
             color: color,
@@ -292,6 +298,7 @@ class _RequestTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final isPending = request.status == ServiceRequestStatus.pending;
     final isAcknowledged = request.status == ServiceRequestStatus.acknowledged;
 
@@ -304,7 +311,7 @@ class _RequestTile extends StatelessWidget {
     }
 
     // Time ago
-    final timeAgo = _getTimeAgo(request.createdAt);
+    final timeAgo = _getTimeAgo(request.createdAt, l10n);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -354,19 +361,19 @@ class _RequestTile extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Text(
+                          AppText(
                             request.requestType.label,
                             style: theme.typography.sm.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
+                          AppText(
                             '•',
                             style: TextStyle(color: theme.colors.mutedForeground),
                           ),
                           const SizedBox(width: 8),
-                          Text(
+                          AppText(
                             request.roomName,
                             style: theme.typography.sm.copyWith(
                               color: theme.colors.primary,
@@ -376,7 +383,7 @@ class _RequestTile extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text(
+                      AppText(
                         '${request.userName} • $timeAgo',
                         style: theme.typography.xs.copyWith(
                           color: theme.colors.mutedForeground,
@@ -387,7 +394,7 @@ class _RequestTile extends StatelessWidget {
                 ),
 
                 // Action hint
-                Text(
+                AppText(
                   isPending ? 'TAP' : isAcknowledged ? 'DONE' : '',
                   style: theme.typography.xs.copyWith(
                     color: isPending
@@ -438,18 +445,18 @@ class _RequestTile extends StatelessWidget {
     return Icon(icon, color: color, size: 20);
   }
 
-  String _getTimeAgo(DateTime dateTime) {
+  String _getTimeAgo(DateTime dateTime, AppLocalizations l10n) {
     final now = DateTime.now();
     final diff = now.difference(dateTime.toLocal());
 
     if (diff.inMinutes < 1) {
-      return 'Just now';
+      return l10n.justNow;
     } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m ago';
+      return l10n.minutesAgo(diff.inMinutes);
     } else if (diff.inHours < 24) {
-      return '${diff.inHours}h ago';
+      return l10n.hoursAgo(diff.inHours);
     } else {
-      return '${diff.inDays}d ago';
+      return l10n.daysAgo(diff.inDays);
     }
   }
 }
@@ -473,12 +480,12 @@ class _DetailRow extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: theme.colors.mutedForeground),
         const SizedBox(width: 8),
-        Text(
+        AppText(
           '$label:',
           style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
         ),
         const SizedBox(width: 8),
-        Text(
+        AppText(
           value,
           style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
         ),
