@@ -4,6 +4,12 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddForwardedHeaders();
 
+// Docker Compose deployment configuration
+builder.AddDockerComposeEnvironment("chillax");
+
+// Container registry prefix for GHCR images
+const string ImageRegistry = "ghcr.io/achmstein/chillax";
+
 var rabbitMq = builder.AddRabbitMQ("eventbus")
     .WithLifetime(ContainerLifetime.Persistent);
 var postgres = builder.AddPostgres("postgres")
@@ -79,6 +85,49 @@ var accountsApi = builder.AddProject<Projects.Accounts_API>("accounts-api")
     .WithReference(keycloak)
     .WithEnvironment("Identity__Url", keycloakRealmUrl)
     .WithEnvironment("Keycloak__Realm", "chillax");
+
+// Configure services for Docker Compose deployment with GHCR images
+catalogApi.PublishAsDockerComposeService((resource, service) =>
+{
+    service.Image = $"{ImageRegistry}-catalog:latest";
+    service.Restart = "unless-stopped";
+});
+
+orderingApi.PublishAsDockerComposeService((resource, service) =>
+{
+    service.Image = $"{ImageRegistry}-ordering:latest";
+    service.Restart = "unless-stopped";
+});
+
+roomsApi.PublishAsDockerComposeService((resource, service) =>
+{
+    service.Image = $"{ImageRegistry}-rooms:latest";
+    service.Restart = "unless-stopped";
+});
+
+identityApi.PublishAsDockerComposeService((resource, service) =>
+{
+    service.Image = $"{ImageRegistry}-identity:latest";
+    service.Restart = "unless-stopped";
+});
+
+loyaltyApi.PublishAsDockerComposeService((resource, service) =>
+{
+    service.Image = $"{ImageRegistry}-loyalty:latest";
+    service.Restart = "unless-stopped";
+});
+
+notificationApi.PublishAsDockerComposeService((resource, service) =>
+{
+    service.Image = $"{ImageRegistry}-notification:latest";
+    service.Restart = "unless-stopped";
+});
+
+accountsApi.PublishAsDockerComposeService((resource, service) =>
+{
+    service.Image = $"{ImageRegistry}-accounts:latest";
+    service.Restart = "unless-stopped";
+});
 
 // Reverse proxy - BFF for Flutter apps (fixed port 27748 for adb reverse)
 // Used by both mobile app and admin app

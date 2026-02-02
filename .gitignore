@@ -5,6 +5,10 @@
 
 # dotenv files
 .env
+deploy/.env
+
+# Aspire deployment artifacts
+deploy-artifacts/
 
 # Firebase credentials
 firebase-credentials.json

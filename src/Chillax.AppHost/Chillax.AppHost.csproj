@@ -15,6 +15,7 @@
     <PackageReference Include="Aspire.Hosting.Yarp" />
     <PackageReference Include="Aspire.Hosting.Keycloak" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.Ollama" />
+    <PackageReference Include="Aspire.Hosting.Docker" />
   </ItemGroup>
 
   <ItemGroup>
