@@ -3,6 +3,30 @@ using System.ComponentModel.DataAnnotations;
 namespace Chillax.Loyalty.API.Model;
 
 /// <summary>
+/// Transaction type for points transactions
+/// </summary>
+public enum TransactionType
+{
+    /// <summary>Points earned from an order purchase</summary>
+    Purchase = 1,
+
+    /// <summary>Points redeemed for a discount</summary>
+    Redemption = 2,
+
+    /// <summary>Bonus points (sign-up, special offers)</summary>
+    Bonus = 3,
+
+    /// <summary>Points from referring someone</summary>
+    Referral = 4,
+
+    /// <summary>Special promotion points</summary>
+    Promotion = 5,
+
+    /// <summary>Manual adjustment by admin</summary>
+    Adjustment = 6
+}
+
+/// <summary>
 /// Represents a points transaction (earn or redeem)
 /// </summary>
 public class PointsTransaction
@@ -25,10 +49,9 @@ public class PointsTransaction
     public int Points { get; set; }
 
     /// <summary>
-    /// Transaction type (order, redemption, bonus, adjustment)
+    /// Transaction type
     /// </summary>
-    [Required]
-    public string Type { get; set; } = "";
+    public TransactionType Type { get; set; }
 
     /// <summary>
     /// Optional reference ID (e.g., Order ID)
@@ -36,10 +59,9 @@ public class PointsTransaction
     public string? ReferenceId { get; set; }
 
     /// <summary>
-    /// Description of the transaction
+    /// Optional description (only used for Adjustment type - admin's reason)
     /// </summary>
-    [Required]
-    public string Description { get; set; } = "";
+    public string? Description { get; set; }
 
     /// <summary>
     /// When the transaction occurred

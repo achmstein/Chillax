@@ -94,6 +94,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                                   transaction: transaction,
                                   isLast: transaction ==
                                       loyaltyState.recentTransactions.last,
+                                  l10n: AppLocalizations.of(context)!,
+                                  locale: Localizations.localeOf(context),
                                 ),
                               ),
                           ],
@@ -290,10 +292,14 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
 class _TransactionTile extends StatelessWidget {
   final PointsTransaction transaction;
   final bool isLast;
+  final AppLocalizations l10n;
+  final Locale locale;
 
   const _TransactionTile({
     required this.transaction,
     this.isLast = false,
+    required this.l10n,
+    required this.locale,
   });
 
   @override
@@ -345,7 +351,7 @@ class _TransactionTile extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     AppText(
-                      transaction.typeDisplay,
+                      _getLocalizedTypeDisplay(transaction.type),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -363,7 +369,7 @@ class _TransactionTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 AppText(
-                  transaction.description,
+                  _getLocalizedDescription(transaction),
                   style: TextStyle(
                     fontSize: 13,
                     color: colors.mutedForeground,
@@ -382,13 +388,59 @@ class _TransactionTile extends StatelessWidget {
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'Today';
+      return l10n.today;
     } else if (difference.inDays == 1) {
-      return 'Yesterday';
+      return l10n.yesterday;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return l10n.daysAgo(difference.inDays);
     } else {
-      return DateFormat('MMM d').format(date);
+      return DateFormat('MMM d', locale.languageCode).format(date);
+    }
+  }
+
+  String _getLocalizedTypeDisplay(TransactionType type) {
+    switch (type) {
+      case TransactionType.purchase:
+        return l10n.transactionTypePurchase;
+      case TransactionType.bonus:
+        return l10n.transactionTypeBonus;
+      case TransactionType.referral:
+        return l10n.transactionTypeReferral;
+      case TransactionType.promotion:
+        return l10n.transactionTypePromotion;
+      case TransactionType.redemption:
+        return l10n.transactionTypeRedemption;
+      case TransactionType.adjustment:
+        return l10n.transactionTypeAdjustment;
+    }
+  }
+
+  String _getLocalizedDescription(PointsTransaction transaction) {
+    // If description is provided (from admin), use it
+    if (transaction.description != null && transaction.description!.isNotEmpty) {
+      return transaction.description!;
+    }
+
+    // Otherwise, construct message based on type and referenceId
+    final referenceId = transaction.referenceId;
+
+    switch (transaction.type) {
+      case TransactionType.purchase:
+        return referenceId != null
+            ? l10n.pointsEarnedFromOrder(referenceId)
+            : l10n.transactionTypePurchase;
+      case TransactionType.redemption:
+        return referenceId != null
+            ? l10n.pointsRedeemedForOrder(referenceId)
+            : l10n.transactionTypeRedemption;
+      case TransactionType.bonus:
+        return l10n.transactionTypeBonus;
+      case TransactionType.referral:
+        return l10n.transactionTypeReferral;
+      case TransactionType.promotion:
+        return l10n.transactionTypePromotion;
+      case TransactionType.adjustment:
+        return l10n.transactionTypeAdjustment;
     }
   }
 }

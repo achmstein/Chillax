@@ -15,6 +15,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cafeAndGaming => 'كافيه وجيمنج';
 
   @override
+  String get done => 'تم';
+
+  @override
   String get signIn => 'دخول';
 
   @override
@@ -391,7 +394,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String hourlyRateFormat(String rate) {
-    return '£$rate/ساعة';
+    return '$rate ج.م/ساعة';
   }
 
   @override
@@ -518,8 +521,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String priceAdjustmentPlus(String price) {
+    return '(+$price ج.م)';
+  }
+
+  @override
+  String priceAdjustmentMinus(String price) {
+    return '(-$price ج.م)';
+  }
+
+  @override
+  String discountFormat(String price) {
+    return '-$price ج.م';
+  }
+
+  @override
   String basePrice(String price) {
-    return 'السعر: £$price';
+    return 'السعر: $price ج.م';
   }
 
   @override
@@ -545,6 +563,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noTransactionsYet => 'مفيش معاملات لسه';
+
+  @override
+  String get charge => 'رسوم';
+
+  @override
+  String get payment => 'دفع';
+
+  @override
+  String byPerson(String name) {
+    return 'بواسطة $name';
+  }
+
+  @override
+  String get today => 'النهاردة';
+
+  @override
+  String get yesterday => 'إمبارح';
+
+  @override
+  String daysAgo(int days) {
+    return 'من $days يوم';
+  }
 
   @override
   String get amountDue => 'مبلغ مستحق';
@@ -724,4 +764,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get yourPhoneNumber => 'رقمك';
+
+  @override
+  String get transactionTypePurchase => 'شراء';
+
+  @override
+  String get transactionTypeBonus => 'مكافأة';
+
+  @override
+  String get transactionTypeReferral => 'إحالة';
+
+  @override
+  String get transactionTypePromotion => 'عرض';
+
+  @override
+  String get transactionTypeRedemption => 'استبدال';
+
+  @override
+  String get transactionTypeAdjustment => 'تعديل';
+
+  @override
+  String pointsEarnedFromOrder(String orderId) {
+    return 'نقط مكتسبة من طلب #$orderId';
+  }
+
+  @override
+  String pointsRedeemedForOrder(String orderId) {
+    return 'نقط مستخدمة في طلب #$orderId';
+  }
+
+  @override
+  String balanceAmount(String amount, String currency) {
+    return '$amount $currency';
+  }
+
+  @override
+  String get customizable => 'قابل للتخصيص';
 }

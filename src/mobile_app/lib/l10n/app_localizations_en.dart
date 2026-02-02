@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cafeAndGaming => 'Cafe & Gaming';
 
   @override
+  String get done => 'Done';
+
+  @override
   String get signIn => 'Sign In';
 
   @override
@@ -524,7 +527,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String priceFormat(String price) {
-    return '$price EGP';
+    return '£$price';
+  }
+
+  @override
+  String priceAdjustmentPlus(String price) {
+    return '(+£$price)';
+  }
+
+  @override
+  String priceAdjustmentMinus(String price) {
+    return '(-£$price)';
+  }
+
+  @override
+  String discountFormat(String price) {
+    return '-£$price';
   }
 
   @override
@@ -555,6 +573,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noTransactionsYet => 'No transactions yet';
+
+  @override
+  String get charge => 'Charge';
+
+  @override
+  String get payment => 'Payment';
+
+  @override
+  String byPerson(String name) {
+    return 'by $name';
+  }
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String daysAgo(int days) {
+    return '${days}d ago';
+  }
 
   @override
   String get amountDue => 'Amount Due';
@@ -736,4 +776,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yourPhoneNumber => 'Your phone number';
+
+  @override
+  String get transactionTypePurchase => 'Purchase';
+
+  @override
+  String get transactionTypeBonus => 'Bonus';
+
+  @override
+  String get transactionTypeReferral => 'Referral';
+
+  @override
+  String get transactionTypePromotion => 'Promotion';
+
+  @override
+  String get transactionTypeRedemption => 'Redemption';
+
+  @override
+  String get transactionTypeAdjustment => 'Adjustment';
+
+  @override
+  String pointsEarnedFromOrder(String orderId) {
+    return 'Points earned from order #$orderId';
+  }
+
+  @override
+  String pointsRedeemedForOrder(String orderId) {
+    return 'Points redeemed for order #$orderId';
+  }
+
+  @override
+  String balanceAmount(String amount, String currency) {
+    return '$amount $currency';
+  }
+
+  @override
+  String get customizable => 'Customizable';
 }

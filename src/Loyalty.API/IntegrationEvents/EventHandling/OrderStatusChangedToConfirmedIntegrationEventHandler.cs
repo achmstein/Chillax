@@ -22,26 +22,17 @@ public class OrderStatusChangedToConfirmedIntegrationEventHandler(
             "Handling OrderStatusChangedToConfirmedIntegrationEvent: OrderId={OrderId}, UserId={UserId}, Total={Total}, PointsToRedeem={PointsToRedeem}",
             @event.OrderId, @event.BuyerIdentityGuid, @event.OrderTotal, @event.PointsToRedeem);
 
-        // Get or create loyalty account for user
+        // Get loyalty account for user (must already exist - user joins manually)
         var account = await context.Accounts
             .FirstOrDefaultAsync(a => a.UserId == @event.BuyerIdentityGuid);
 
         if (account == null)
         {
-            // Create new account for this user
-            account = new LoyaltyAccount
-            {
-                UserId = @event.BuyerIdentityGuid,
-                PointsBalance = 0,
-                LifetimePoints = 0,
-                CurrentTier = LoyaltyTier.Bronze,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            context.Accounts.Add(account);
-            await context.SaveChangesAsync();
-
-            logger.LogInformation("Created new loyalty account for user {UserId}", @event.BuyerIdentityGuid);
+            // User hasn't joined loyalty program - skip awarding points
+            logger.LogInformation(
+                "User {UserId} has no loyalty account, skipping points for order {OrderId}",
+                @event.BuyerIdentityGuid, @event.OrderId);
+            return;
         }
 
         // Redeem points if any (do this first, before awarding new points)
@@ -49,7 +40,6 @@ public class OrderStatusChangedToConfirmedIntegrationEventHandler(
         {
             account.RedeemPoints(
                 @event.PointsToRedeem,
-                $"Discount on order #{@event.OrderId}",
                 @event.OrderId.ToString());
 
             logger.LogInformation(
@@ -65,8 +55,7 @@ public class OrderStatusChangedToConfirmedIntegrationEventHandler(
             // Award points
             account.AddPoints(
                 pointsToAward,
-                "purchase",
-                $"Points earned from order #{@event.OrderId}",
+                TransactionType.Purchase,
                 @event.OrderId.ToString());
 
             logger.LogInformation(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -112,6 +113,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                             (transaction) => _TransactionTile(
                               transaction: transaction,
                               isLast: transaction == transactions.last,
+                              l10n: AppLocalizations.of(context)!,
+                              locale: Localizations.localeOf(context),
                             ),
                           ),
                       ],
@@ -187,7 +190,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           ),
           const SizedBox(height: 8),
           AppText(
-            '${account.balance.abs().toStringAsFixed(2)} EGP',
+            AppLocalizations.of(context)!.balanceAmount(account.balance.abs().toStringAsFixed(2), AppLocalizations.of(context)!.currency),
             style: TextStyle(
               color: Colors.white,
               fontSize: 28,
@@ -265,10 +268,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 class _TransactionTile extends StatelessWidget {
   final AccountTransaction transaction;
   final bool isLast;
+  final AppLocalizations l10n;
+  final Locale locale;
 
   const _TransactionTile({
     required this.transaction,
     this.isLast = false,
+    required this.l10n,
+    required this.locale,
   });
 
   @override
@@ -320,7 +327,7 @@ class _TransactionTile extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     AppText(
-                      transaction.typeDisplay,
+                      isCharge ? l10n.charge : l10n.payment,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -328,7 +335,7 @@ class _TransactionTile extends StatelessWidget {
                       ),
                     ),
                     AppText(
-                      _formatDate(transaction.createdAt),
+                      _formatDate(transaction.createdAt, l10n, locale),
                       style: TextStyle(
                         fontSize: 12,
                         color: colors.mutedForeground,
@@ -349,7 +356,7 @@ class _TransactionTile extends StatelessWidget {
                   )
                 else
                   AppText(
-                    'by ${transaction.recordedBy}',
+                    l10n.byPerson(transaction.recordedBy),
                     style: TextStyle(
                       fontSize: 13,
                       color: colors.mutedForeground,
@@ -363,18 +370,18 @@ class _TransactionTile extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, AppLocalizations l10n, Locale locale) {
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'Today';
+      return l10n.today;
     } else if (difference.inDays == 1) {
-      return 'Yesterday';
+      return l10n.yesterday;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return l10n.daysAgo(difference.inDays);
     } else {
-      return DateFormat('MMM d').format(date);
+      return DateFormat('MMM d', locale.languageCode).format(date);
     }
   }
 }

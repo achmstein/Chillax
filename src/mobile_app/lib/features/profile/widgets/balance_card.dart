@@ -74,7 +74,7 @@ class BalanceCard extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             AppText(
-              '${account.balance.abs().toStringAsFixed(2)} EGP',
+              l10n.balanceAmount(account.balance.abs().toStringAsFixed(2), l10n.currency),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,

@@ -245,29 +245,17 @@ class _TierItem extends StatelessWidget {
 
   const _TierItem({required this.tier, required this.count});
 
-  Color get _tierColor {
-    switch (tier.name.toLowerCase()) {
-      case 'bronze':
-        return const Color(0xFFCD7F32);
-      case 'silver':
-        return const Color(0xFFC0C0C0);
-      case 'gold':
-        return const Color(0xFFFFD700);
-      case 'platinum':
-        return const Color(0xFFE5E4E2);
-      default:
-        return Colors.grey;
-    }
-  }
+  LoyaltyTier get _loyaltyTier => LoyaltyTier.fromString(tier.name);
 
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
+    final tierColor = Color(_loyaltyTier.colorValue);
 
     return Column(
       children: [
-        Icon(Icons.workspace_premium, size: 24, color: _tierColor),
+        Icon(Icons.workspace_premium, size: 24, color: tierColor),
         const SizedBox(height: 4),
         AppText(
           getLocalizedTierNameFromString(tier.name, l10n),
@@ -288,24 +276,17 @@ class _AccountTile extends StatelessWidget {
 
   const _AccountTile({required this.account, required this.onTap});
 
-  Color get _tierColor {
-    switch (account.currentTier) {
-      case LoyaltyTier.bronze:
-        return const Color(0xFFCD7F32);
-      case LoyaltyTier.silver:
-        return const Color(0xFFC0C0C0);
-      case LoyaltyTier.gold:
-        return const Color(0xFFFFD700);
-      case LoyaltyTier.platinum:
-        return const Color(0xFFE5E4E2);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
     final numberFormat = NumberFormat('#,###');
+    final gradientColors = account.currentTier.gradientColors.map((c) => Color(c)).toList();
+    final tierColor = Color(account.currentTier.colorValue);
+    // Use white icon for darker tiers, dark icon for lighter tiers
+    final iconColor = (account.currentTier == LoyaltyTier.bronze || account.currentTier == LoyaltyTier.platinum)
+        ? Colors.white
+        : Colors.black87;
 
     return FTappable(
       onPress: onTap,
@@ -313,15 +294,26 @@ class _AccountTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            // Tier icon
+            // Tier icon with gradient
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: _tierColor.withValues(alpha: 0.2),
+                gradient: LinearGradient(
+                  colors: gradientColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: tierColor.withValues(alpha: 0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(Icons.workspace_premium, color: _tierColor, size: 22),
+              child: Icon(Icons.workspace_premium, color: iconColor, size: 22),
             ),
             const SizedBox(width: 12),
             // Info
@@ -341,12 +333,19 @@ class _AccountTile extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: theme.colors.secondary,
+                          gradient: LinearGradient(
+                            colors: gradientColors,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: AppText(
                           getLocalizedTierName(account.currentTier, l10n),
-                          style: theme.typography.xs,
+                          style: theme.typography.xs.copyWith(
+                            color: iconColor,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],

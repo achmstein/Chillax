@@ -770,7 +770,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
           const SizedBox(height: 16),
           // Date and time
           AppText(
-            DateFormat('EEEE, MMM d').format(session.reservationTime),
+            DateFormat('EEEE, MMM d', Localizations.localeOf(context).languageCode).format(session.reservationTime),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -779,7 +779,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           AppText(
-            DateFormat('h:mm a').format(session.reservationTime),
+            DateFormat('h:mm a', Localizations.localeOf(context).languageCode).format(session.reservationTime),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.8),
               fontSize: 24,
@@ -1056,7 +1056,7 @@ class RoomListItem extends ConsumerWidget {
                   Row(
                     children: [
                       AppText(
-                        '£${room.hourlyRate.toStringAsFixed(0)}${AppLocalizations.of(context)!.perHour}',
+                        AppLocalizations.of(context)!.hourlyRateFormat(room.hourlyRate.toStringAsFixed(0)),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -1214,12 +1214,23 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
               ),
               const SizedBox(height: 8),
               AppText(
-                '£${widget.room.hourlyRate.toStringAsFixed(0)}${l10n.perHour}',
+                l10n.hourlyRateFormat(widget.room.hourlyRate.toStringAsFixed(0)),
                 style: TextStyle(
                   color: colors.mutedForeground,
                   fontSize: 15,
                 ),
               ),
+              // Room description
+              if (widget.room.description != null) ...[
+                const SizedBox(height: 12),
+                AppText(
+                  widget.room.description!.localized(context),
+                  style: TextStyle(
+                    color: colors.foreground,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
 
               // Info box

@@ -110,6 +110,12 @@ abstract class AppLocalizations {
   /// **'Cafe & Gaming'**
   String get cafeAndGaming;
 
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
   /// No description provided for @signIn.
   ///
   /// In en, this message translates to:
@@ -1073,8 +1079,26 @@ abstract class AppLocalizations {
   /// No description provided for @priceFormat.
   ///
   /// In en, this message translates to:
-  /// **'{price} EGP'**
+  /// **'£{price}'**
   String priceFormat(String price);
+
+  /// No description provided for @priceAdjustmentPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'(+£{price})'**
+  String priceAdjustmentPlus(String price);
+
+  /// No description provided for @priceAdjustmentMinus.
+  ///
+  /// In en, this message translates to:
+  /// **'(-£{price})'**
+  String priceAdjustmentMinus(String price);
+
+  /// No description provided for @discountFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'-£{price}'**
+  String discountFormat(String price);
 
   /// No description provided for @basePrice.
   ///
@@ -1129,6 +1153,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No transactions yet'**
   String get noTransactionsYet;
+
+  /// No description provided for @charge.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge'**
+  String get charge;
+
+  /// No description provided for @payment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get payment;
+
+  /// No description provided for @byPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'by {name}'**
+  String byPerson(String name);
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String daysAgo(int days);
 
   /// No description provided for @amountDue.
   ///
@@ -1465,6 +1525,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your phone number'**
   String get yourPhoneNumber;
+
+  /// No description provided for @transactionTypePurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase'**
+  String get transactionTypePurchase;
+
+  /// No description provided for @transactionTypeBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus'**
+  String get transactionTypeBonus;
+
+  /// No description provided for @transactionTypeReferral.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral'**
+  String get transactionTypeReferral;
+
+  /// No description provided for @transactionTypePromotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotion'**
+  String get transactionTypePromotion;
+
+  /// No description provided for @transactionTypeRedemption.
+  ///
+  /// In en, this message translates to:
+  /// **'Redemption'**
+  String get transactionTypeRedemption;
+
+  /// No description provided for @transactionTypeAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustment'**
+  String get transactionTypeAdjustment;
+
+  /// No description provided for @pointsEarnedFromOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Points earned from order #{orderId}'**
+  String pointsEarnedFromOrder(String orderId);
+
+  /// No description provided for @pointsRedeemedForOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Points redeemed for order #{orderId}'**
+  String pointsRedeemedForOrder(String orderId);
+
+  /// No description provided for @balanceAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} {currency}'**
+  String balanceAmount(String amount, String currency);
+
+  /// No description provided for @customizable.
+  ///
+  /// In en, this message translates to:
+  /// **'Customizable'**
+  String get customizable;
 }
 
 class _AppLocalizationsDelegate

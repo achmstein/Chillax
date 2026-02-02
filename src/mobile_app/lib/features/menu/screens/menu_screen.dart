@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -39,96 +40,85 @@ class MenuScreen extends ConsumerStatefulWidget {
 }
 
 class _MenuScreenState extends ConsumerState<MenuScreen> {
-  final ScrollController _scrollController = ScrollController();
+  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
   final TextEditingController _searchController = TextEditingController();
-  final Map<String, GlobalKey> _categoryKeys = {};
 
   String? _selectedCategory;
   bool _showSearch = false;
-  double _lastScrollOffset = 0;
+  int _lastFirstVisibleIndex = 0;
   String _searchQuery = '';
+  List<String> _categoryNames = [];
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    _itemPositionsListener.itemPositions.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    _itemPositionsListener.itemPositions.removeListener(_onScroll);
     _searchController.dispose();
     super.dispose();
   }
 
   void _onScroll() {
-    final offset = _scrollController.offset;
-    final isScrollingDown = offset > _lastScrollOffset;
+    final positions = _itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+
+    // Find first visible item (the one with smallest leading edge that's visible)
+    final sortedPositions = positions.toList()
+      ..sort((a, b) => a.itemLeadingEdge.compareTo(b.itemLeadingEdge));
+
+    // Get the first item that's at least partially visible
+    final firstVisible = sortedPositions.firstWhere(
+      (p) => p.itemTrailingEdge > 0,
+      orElse: () => sortedPositions.first,
+    );
+
+    final currentIndex = firstVisible.index;
+    final isScrollingDown = currentIndex > _lastFirstVisibleIndex;
 
     // Don't show search during programmatic scroll (category tap)
     if (!_isProgrammaticScroll) {
-      // Show search when scrolling down past threshold, hide when scrolling up
-      if (offset > 50 && isScrollingDown && !_showSearch) {
+      // Show search when scrolling down, hide when at top
+      if (currentIndex > 0 && isScrollingDown && !_showSearch) {
         setState(() => _showSearch = true);
-      } else if (offset < 50 || (!isScrollingDown && offset < _lastScrollOffset - 30)) {
+      } else if (currentIndex == 0 && firstVisible.itemLeadingEdge > -0.1) {
         if (_showSearch && _searchQuery.isEmpty) {
           setState(() => _showSearch = false);
         }
       }
     }
 
-    _lastScrollOffset = offset;
+    _lastFirstVisibleIndex = currentIndex;
 
     // Update selected category based on scroll position (skip during programmatic scroll)
-    if (!_isProgrammaticScroll) {
-      _updateSelectedCategory();
-    }
-  }
-
-  void _updateSelectedCategory() {
-    if (_categoryKeys.isEmpty) return;
-
-    String? visibleCategory;
-    double minDistance = double.infinity;
-
-    for (final entry in _categoryKeys.entries) {
-      final key = entry.value;
-      final context = key.currentContext;
-      if (context != null) {
-        final box = context.findRenderObject() as RenderBox?;
-        if (box != null) {
-          final position = box.localToGlobal(Offset.zero);
-          final distance = (position.dy - 150).abs(); // 150 is approximate header height
-          if (distance < minDistance && position.dy < 200) {
-            minDistance = distance;
-            visibleCategory = entry.key;
-          }
-        }
+    if (!_isProgrammaticScroll && _categoryNames.isNotEmpty && currentIndex < _categoryNames.length) {
+      final newCategory = _categoryNames[currentIndex];
+      if (newCategory != _selectedCategory) {
+        setState(() => _selectedCategory = newCategory);
       }
-    }
-
-    if (visibleCategory != null && visibleCategory != _selectedCategory) {
-      setState(() => _selectedCategory = visibleCategory);
     }
   }
 
   bool _isProgrammaticScroll = false;
 
   void _scrollToCategory(String category) {
-    final key = _categoryKeys[category];
-    if (key?.currentContext != null) {
-      _isProgrammaticScroll = true;
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
-      ).then((_) {
-        _isProgrammaticScroll = false;
-      });
-      setState(() => _selectedCategory = category);
-    }
+    final index = _categoryNames.indexOf(category);
+    if (index == -1) return;
+
+    setState(() => _selectedCategory = category);
+
+    _isProgrammaticScroll = true;
+    _itemScrollController.scrollTo(
+      index: index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      _isProgrammaticScroll = false;
+    });
   }
 
   @override
@@ -171,17 +161,14 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 return Center(child: AppText(l10n.noItemsAvailable));
               }
 
-              // Initialize category keys using localized names
-              for (final category in groupedItems.keys) {
-                final localizedName = category.name.getText(locale);
-                _categoryKeys.putIfAbsent(localizedName, () => GlobalKey());
-              }
-
-              // Set initial selected category
-              _selectedCategory ??= groupedItems.keys.first.name.getText(locale);
-
               // Filter items based on search
               final filteredItems = _filterItemsWithLocale(groupedItems, locale);
+
+              // Store category names for scroll tracking
+              _categoryNames = filteredItems.keys.map((c) => c.name.getText(locale)).toList();
+
+              // Set initial selected category
+              _selectedCategory ??= _categoryNames.isNotEmpty ? _categoryNames.first : null;
 
               return Column(
                 children: [
@@ -234,7 +221,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
                   // Sticky category menu
                   _CategoryMenu(
-                    categories: groupedItems.keys.map((c) => c.name.getText(locale)).toList(),
+                    categories: _categoryNames,
                     selectedCategory: _selectedCategory,
                     onCategoryTap: _scrollToCategory,
                   ),
@@ -245,17 +232,16 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                       color: colors.primary,
                       backgroundColor: colors.background,
                       onRefresh: () async => ref.refresh(groupedMenuItemsProvider(locale)),
-                      child: ListView.builder(
-                        controller: _scrollController,
+                      child: ScrollablePositionedList.builder(
+                        itemScrollController: _itemScrollController,
+                        itemPositionsListener: _itemPositionsListener,
                         padding: const EdgeInsets.only(bottom: 16),
-                        cacheExtent: 2000, // Pre-render off-screen items for category scrolling
                         itemCount: filteredItems.length,
                         itemBuilder: (context, index) {
                           final entry = filteredItems.entries.elementAt(index);
                           final categoryName = entry.key.name.getText(locale);
                           final items = entry.value;
                           return _CategorySection(
-                            key: _categoryKeys[categoryName],
                             categoryName: categoryName,
                             items: items,
                             locale: locale,
@@ -305,7 +291,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                       ),
                     ),
                     AppText(
-                      '£${cart.totalPrice.toStringAsFixed(2)}',
+                      btnL10n.priceFormat(cart.totalPrice.toStringAsFixed(2)),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -362,15 +348,6 @@ class _CategoryMenu extends StatefulWidget {
 
 class _CategoryMenuState extends State<_CategoryMenu> {
   final ScrollController _scrollController = ScrollController();
-  final Map<String, GlobalKey> _chipKeys = {};
-
-  @override
-  void initState() {
-    super.initState();
-    for (final category in widget.categories) {
-      _chipKeys[category] = GlobalKey();
-    }
-  }
 
   @override
   void didUpdateWidget(_CategoryMenu oldWidget) {
@@ -382,14 +359,18 @@ class _CategoryMenuState extends State<_CategoryMenu> {
 
   void _scrollToSelectedCategory() {
     if (widget.selectedCategory == null) return;
-    final key = _chipKeys[widget.selectedCategory];
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 200),
-        alignment: 0.5,
-      );
-    }
+    final index = widget.categories.indexOf(widget.selectedCategory!);
+    if (index == -1) return;
+
+    // Estimate position: each chip is roughly 80px wide
+    const chipWidth = 80.0;
+    final targetOffset = (index * chipWidth) - 100; // Center it a bit
+
+    _scrollController.animateTo(
+      targetOffset.clamp(0, _scrollController.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -412,7 +393,6 @@ class _CategoryMenuState extends State<_CategoryMenu> {
           final category = widget.categories[index];
           final isSelected = category == widget.selectedCategory;
           return GestureDetector(
-            key: _chipKeys[category],
             onTap: () => widget.onCategoryTap(category),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -494,6 +474,7 @@ class MenuItemTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
     final cart = ref.watch(cartProvider);
     final cartQuantity = _getCartQuantity(cart, item.id);
     final favoritesState = ref.watch(favoritesProvider);
@@ -548,10 +529,10 @@ class MenuItemTile extends ConsumerWidget {
                           ),
                   ),
                 ),
-                // Heart icon overlay
-                Positioned(
+                // Heart icon overlay - positioned based on text direction
+                PositionedDirectional(
                   top: 4,
-                  right: 4,
+                  start: 4,
                   child: GestureDetector(
                     onTap: () => ref.read(favoritesProvider.notifier).toggleFavorite(item.id),
                     child: Icon(
@@ -595,7 +576,7 @@ class MenuItemTile extends ConsumerWidget {
                   ],
                   const SizedBox(height: 4),
                   AppText(
-                    '£${item.price.toStringAsFixed(2)}',
+                    l10n.priceFormat(item.price.toStringAsFixed(2)),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -613,20 +594,37 @@ class MenuItemTile extends ConsumerWidget {
                     onIncrement: () => _addToCart(ref),
                     onDecrement: () => _decrementFromCart(ref, cart, item.id),
                   )
-                : GestureDetector(
-                    onTap: () => _handleAddTap(context, ref),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: colors.primary,
-                        borderRadius: BorderRadius.circular(20),
+                : Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.topCenter,
+                    children: [
+                      GestureDetector(
+                        onTap: () => _handleAddTap(context, ref),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: colors.primary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(
+                            item.customizations.isNotEmpty ? FIcons.chevronRight : FIcons.plus,
+                            color: colors.primaryForeground,
+                            size: 18,
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        FIcons.plus,
-                        color: colors.primaryForeground,
-                        size: 18,
-                      ),
-                    ),
+                      if (item.customizations.isNotEmpty)
+                        Positioned(
+                          top: 36,
+                          child: AppText(
+                            l10n.customizable,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colors.mutedForeground,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
           ],
         ),
@@ -701,50 +699,57 @@ class _QuantityStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
-    return Container(
-      height: 34,
-      decoration: BoxDecoration(
-        border: Border.all(color: colors.primary),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: onDecrement,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                quantity == 1 ? FIcons.trash2 : FIcons.minus,
-                color: quantity == 1 ? AppTheme.errorColor : colors.primary,
-                size: 18,
+    // Wrap in GestureDetector with opaque behavior to prevent taps from propagating to parent
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {}, // Absorb taps to prevent parent from receiving them
+      child: Container(
+        height: 34,
+        decoration: BoxDecoration(
+          border: Border.all(color: colors.primary),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onDecrement,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  quantity == 1 ? FIcons.trash2 : FIcons.minus,
+                  color: quantity == 1 ? AppTheme.errorColor : colors.primary,
+                  size: 18,
+                ),
               ),
             ),
-          ),
-          Container(
-            constraints: const BoxConstraints(minWidth: 24),
-            alignment: Alignment.center,
-            child: AppText(
-              '$quantity',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: colors.foreground,
+            Container(
+              constraints: const BoxConstraints(minWidth: 24),
+              alignment: Alignment.center,
+              child: AppText(
+                '$quantity',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: colors.foreground,
+                ),
               ),
             ),
-          ),
-          GestureDetector(
-            onTap: onIncrement,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                FIcons.plus,
-                color: colors.primary,
-                size: 18,
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onIncrement,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  FIcons.plus,
+                  color: colors.primary,
+                  size: 18,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

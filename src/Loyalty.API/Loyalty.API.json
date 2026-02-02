@@ -654,12 +654,6 @@
         "properties": {
           "userId": {
             "type": "string"
-          },
-          "userDisplayName": {
-            "type": [
-              "null",
-              "string"
-            ]
           }
         }
       },
@@ -667,8 +661,7 @@
         "required": [
           "userId",
           "points",
-          "type",
-          "description"
+          "type"
         ],
         "type": "object",
         "properties": {
@@ -686,10 +679,13 @@
           "type": {
             "type": "string"
           },
-          "description": {
-            "type": "string"
-          },
           "referenceId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
             "type": [
               "null",
               "string"
@@ -849,7 +845,10 @@
             ]
           },
           "description": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "createdAt": {
             "type": "string",

@@ -116,19 +116,38 @@ class LoyaltyInfo {
   }
 }
 
+/// Transaction type enumeration
+enum TransactionType {
+  purchase,
+  redemption,
+  bonus,
+  referral,
+  promotion,
+  adjustment;
+
+  static TransactionType fromString(String value) {
+    return TransactionType.values.firstWhere(
+      (e) => e.name.toLowerCase() == value.toLowerCase(),
+      orElse: () => TransactionType.purchase,
+    );
+  }
+}
+
 /// Points transaction for history
 class PointsTransaction {
   final int id;
   final int points;
-  final String type;
-  final String description;
+  final TransactionType type;
+  final String? referenceId;
+  final String? description; // Only used for Adjustment type
   final DateTime createdAt;
 
   const PointsTransaction({
     required this.id,
     required this.points,
     required this.type,
-    required this.description,
+    this.referenceId,
+    this.description,
     required this.createdAt,
   });
 
@@ -136,30 +155,12 @@ class PointsTransaction {
     return PointsTransaction(
       id: json['id'] as int,
       points: json['points'] as int,
-      type: json['type'] as String,
-      description: json['description'] as String,
+      type: TransactionType.fromString(json['type'] as String),
+      referenceId: json['referenceId'] as String?,
+      description: json['description'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
   bool get isEarned => points > 0;
-
-  String get typeDisplay {
-    switch (type.toLowerCase()) {
-      case 'purchase':
-        return 'Purchase';
-      case 'bonus':
-        return 'Bonus';
-      case 'referral':
-        return 'Referral';
-      case 'promotion':
-        return 'Promotion';
-      case 'redemption':
-        return 'Redemption';
-      case 'adjustment':
-        return 'Adjustment';
-      default:
-        return type;
-    }
-  }
 }

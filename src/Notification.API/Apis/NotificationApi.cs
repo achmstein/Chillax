@@ -45,6 +45,19 @@ public static class NotificationApi
             .WithDescription("Unregister admin device from order notifications (typically on logout)")
             .WithTags("Admin Subscriptions");
 
+        // Admin reservation notification endpoints
+        api.MapPost("/subscriptions/admin-reservations", SubscribeToAdminReservationNotifications)
+            .WithName("SubscribeToAdminReservationNotifications")
+            .WithSummary("Subscribe to admin reservation notifications")
+            .WithDescription("Register admin device to receive FCM notifications when rooms are reserved")
+            .WithTags("Admin Subscriptions");
+
+        api.MapDelete("/subscriptions/admin-reservations", UnsubscribeFromAdminReservationNotifications)
+            .WithName("UnsubscribeFromAdminReservationNotifications")
+            .WithSummary("Unsubscribe from admin reservation notifications")
+            .WithDescription("Unregister admin device from reservation notifications (typically on logout)")
+            .WithTags("Admin Subscriptions");
+
         // Service request subscription (for staff)
         api.MapPost("/subscriptions/service-requests", SubscribeToServiceRequests)
             .WithName("SubscribeToServiceRequests")
@@ -222,6 +235,65 @@ public static class NotificationApi
 
         var subscription = await context.Subscriptions
             .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.AdminOrderNotification);
+
+        if (subscription == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        context.Subscriptions.Remove(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.NoContent();
+    }
+
+    // Admin reservation notification handlers
+    public static async Task<Results<Ok<SubscriptionResponse>, Created<SubscriptionResponse>>> SubscribeToAdminReservationNotifications(
+        NotificationContext context,
+        ClaimsPrincipal user,
+        SubscribeRequest request)
+    {
+        var userId = user.GetUserId()!;
+
+        // Check if already subscribed (update token if so)
+        var existing = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.AdminReservationNotification);
+
+        if (existing != null)
+        {
+            // Update FCM token if it changed
+            if (existing.FcmToken != request.FcmToken)
+            {
+                existing.FcmToken = request.FcmToken;
+                await context.SaveChangesAsync();
+            }
+            return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
+        }
+
+        var subscription = new NotificationSubscription
+        {
+            UserId = userId,
+            FcmToken = request.FcmToken,
+            Type = SubscriptionType.AdminReservationNotification,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.Subscriptions.Add(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.Created(
+            $"/api/notifications/subscriptions/admin-reservations",
+            new SubscriptionResponse(subscription.Id, subscription.Type, subscription.CreatedAt));
+    }
+
+    public static async Task<Results<NoContent, NotFound>> UnsubscribeFromAdminReservationNotifications(
+        NotificationContext context,
+        ClaimsPrincipal user)
+    {
+        var userId = user.GetUserId()!;
+
+        var subscription = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.AdminReservationNotification);
 
         if (subscription == null)
         {

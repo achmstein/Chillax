@@ -158,6 +158,7 @@ class AuthService extends Notifier<AuthState> {
 
         // Auto-register for admin notifications
         await _registerForAdminNotifications();
+        await _registerForAdminReservationNotifications();
         await _registerForServiceRequestNotifications();
 
         return SignInResult.success;
@@ -180,6 +181,7 @@ class AuthService extends Notifier<AuthState> {
     try {
       // Unregister from notifications first
       await _unregisterFromAdminNotifications();
+      await _unregisterFromAdminReservationNotifications();
       await _unregisterFromServiceRequestNotifications();
 
       if (state.refreshToken != null) {
@@ -374,6 +376,58 @@ class AuthService extends Notifier<AuthState> {
       debugPrint('Unregistered from service request notifications');
     } catch (e) {
       debugPrint('Error unregistering from service request notifications: $e');
+      // Don't fail logout if notification unregistration fails
+    }
+  }
+
+  /// Register for admin reservation notifications
+  Future<void> _registerForAdminReservationNotifications() async {
+    try {
+      // Request notification permission
+      final hasPermission = await _firebaseService.requestPermission();
+      if (!hasPermission) {
+        debugPrint('Notification permission not granted');
+        return;
+      }
+
+      // Get FCM token
+      final fcmToken = await _firebaseService.getToken();
+      if (fcmToken == null) {
+        debugPrint('Failed to get FCM token');
+        return;
+      }
+
+      // Register with backend
+      final response = await _dio.post(
+        '${AppConfig.notificationsApiUrl}subscriptions/admin-reservations',
+        data: {'fcmToken': fcmToken},
+        options: Options(
+          headers: {'Authorization': 'Bearer ${state.accessToken}'},
+          contentType: Headers.jsonContentType,
+        ),
+      );
+
+      debugPrint('Admin reservation notification registration: ${response.statusCode == 200 || response.statusCode == 201 ? 'success' : 'failed'}');
+    } catch (e) {
+      debugPrint('Error registering for admin reservation notifications: $e');
+      // Don't fail login if notification registration fails
+    }
+  }
+
+  /// Unregister from admin reservation notifications
+  Future<void> _unregisterFromAdminReservationNotifications() async {
+    if (state.accessToken == null) return;
+
+    try {
+      await _dio.delete(
+        '${AppConfig.notificationsApiUrl}subscriptions/admin-reservations',
+        options: Options(
+          headers: {'Authorization': 'Bearer ${state.accessToken}'},
+        ),
+      );
+      debugPrint('Unregistered from admin reservation notifications');
+    } catch (e) {
+      debugPrint('Error unregistering from admin reservation notifications: $e');
       // Don't fail logout if notification unregistration fails
     }
   }

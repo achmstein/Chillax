@@ -53,7 +53,7 @@ public class LoyaltyAccount
     /// <summary>
     /// Add points to the account
     /// </summary>
-    public void AddPoints(int points, string type, string description, string? referenceId = null)
+    public void AddPoints(int points, TransactionType type, string? referenceId = null, string? description = null)
     {
         if (points <= 0) throw new ArgumentException("Points must be positive", nameof(points));
 
@@ -66,8 +66,8 @@ public class LoyaltyAccount
             AccountId = Id,
             Points = points,
             Type = type,
-            Description = description,
-            ReferenceId = referenceId
+            ReferenceId = referenceId,
+            Description = description
         });
 
         UpdateTier();
@@ -76,7 +76,7 @@ public class LoyaltyAccount
     /// <summary>
     /// Redeem points from the account
     /// </summary>
-    public void RedeemPoints(int points, string description, string? referenceId = null)
+    public void RedeemPoints(int points, string? referenceId = null)
     {
         if (points <= 0) throw new ArgumentException("Points must be positive", nameof(points));
         if (points > PointsBalance) throw new InvalidOperationException("Insufficient points balance");
@@ -88,8 +88,7 @@ public class LoyaltyAccount
         {
             AccountId = Id,
             Points = -points,
-            Type = "redemption",
-            Description = description,
+            Type = TransactionType.Redemption,
             ReferenceId = referenceId
         });
     }

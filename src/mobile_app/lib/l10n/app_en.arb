@@ -4,6 +4,8 @@
   "appTitle": "Chillax",
   "cafeAndGaming": "Cafe & Gaming",
 
+  "done": "Done",
+
   "signIn": "Sign In",
   "signUp": "Sign Up",
   "register": "Register",
@@ -217,8 +219,26 @@
   "arabic": "Arabic",
 
   "currency": "EGP",
-  "priceFormat": "{price} EGP",
+  "priceFormat": "£{price}",
   "@priceFormat": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "priceAdjustmentPlus": "(+£{price})",
+  "@priceAdjustmentPlus": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "priceAdjustmentMinus": "(-£{price})",
+  "@priceAdjustmentMinus": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "discountFormat": "-£{price}",
+  "@discountFormat": {
     "placeholders": {
       "price": {"type": "String"}
     }
@@ -239,6 +259,22 @@
   "noLoyaltyAccountYet": "No loyalty account yet",
   "makePurchaseToEarn": "Make a purchase to start earning points!",
   "noTransactionsYet": "No transactions yet",
+  "charge": "Charge",
+  "payment": "Payment",
+  "byPerson": "by {name}",
+  "@byPerson": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "daysAgo": "{days}d ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
   "amountDue": "Amount Due",
   "creditBalance": "Credit Balance",
   "pleasePayAtCounter": "Please pay at the counter",
@@ -324,5 +360,34 @@
 
   "phoneNumber": "Phone Number",
   "enterPhoneNumber": "Enter your phone number",
-  "yourPhoneNumber": "Your phone number"
+  "yourPhoneNumber": "Your phone number",
+
+  "transactionTypePurchase": "Purchase",
+  "transactionTypeBonus": "Bonus",
+  "transactionTypeReferral": "Referral",
+  "transactionTypePromotion": "Promotion",
+  "transactionTypeRedemption": "Redemption",
+  "transactionTypeAdjustment": "Adjustment",
+
+  "pointsEarnedFromOrder": "Points earned from order #{orderId}",
+  "@pointsEarnedFromOrder": {
+    "placeholders": {
+      "orderId": {"type": "String"}
+    }
+  },
+  "pointsRedeemedForOrder": "Points redeemed for order #{orderId}",
+  "@pointsRedeemedForOrder": {
+    "placeholders": {
+      "orderId": {"type": "String"}
+    }
+  },
+  "balanceAmount": "{amount} {currency}",
+  "@balanceAmount": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  },
+
+  "customizable": "Customizable"
 }

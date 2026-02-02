@@ -11,6 +11,7 @@ import 'core/theme/app_theme.dart';
 import 'core/auth/auth_service.dart';
 import 'features/service_requests/providers/service_requests_provider.dart';
 import 'features/orders/providers/orders_provider.dart';
+import 'features/rooms/providers/rooms_provider.dart';
 import 'l10n/app_localizations.dart';
 
 class ChillaxAdminApp extends ConsumerStatefulWidget {
@@ -69,6 +70,10 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
         // Refresh orders list
         ref.read(ordersProvider.notifier).loadOrders();
         break;
+      case 'new_reservation':
+        // Refresh rooms list
+        ref.read(roomsProvider.notifier).loadRooms();
+        break;
       default:
         debugPrint('Unknown FCM message type: $type');
     }
@@ -97,6 +102,7 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
           seedColor: const Color(0xFF18181B), // zinc-900 (black)
         ),
         useMaterial3: true,
+        fontFamily: getFontFamily(locale),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -104,6 +110,7 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
+        fontFamily: getFontFamily(locale),
       ),
       routerConfig: router,
       builder: (context, child) {

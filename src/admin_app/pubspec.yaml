@@ -81,22 +81,25 @@ flutter:
           weight: 700
 
 # App icon configuration
+# NOTE: You need to create cup_padded_white.png (inverted colors of cup_padded.png)
+# Use an image editor to invert cup_padded.png colors (white cup with black buttons)
 flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/images/cup.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/images/cup.png"
-  adaptive_icon_margin: 16
+  image_path: "assets/images/cup_ios_inverted.png"  # Create this: inverted cup_ios.png
+  adaptive_icon_background: "#18181B"  # zinc-900 (dark)
+  adaptive_icon_foreground: "assets/images/cup_padded_white.png"  # Create this: inverted cup_padded.png
   min_sdk_android: 21
-  ios_content_mode: center
 
 # Splash screen configuration
 flutter_native_splash:
-  color: "#FFFFFF"
+  # Light mode - dark background for admin
+  color: "#18181B"
   image: assets/images/logo.png
+
   fullscreen: false
+
   android_12:
-    color: "#FFFFFF"
-    branding: assets/images/logo.png
+    color: "#18181B"
+    image: assets/images/logo.png

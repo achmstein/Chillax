@@ -159,7 +159,8 @@ class _SessionTileState extends State<SessionTile> {
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
     final session = widget.session;
-    final dateFormat = DateFormat('MMM d, yyyy h:mm a');
+    final locale = Localizations.localeOf(context).languageCode;
+    final dateFormat = DateFormat('MMM d, yyyy h:mm a', locale);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
