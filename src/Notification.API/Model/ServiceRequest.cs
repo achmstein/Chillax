@@ -7,7 +7,7 @@ public class ServiceRequest
     public string UserName { get; set; } = string.Empty;
     public int SessionId { get; set; }
     public int RoomId { get; set; }
-    public string RoomName { get; set; } = string.Empty;
+    public LocalizedText RoomName { get; set; } = new LocalizedText(string.Empty);
     public ServiceRequestType RequestType { get; set; }
     public ServiceRequestStatus Status { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

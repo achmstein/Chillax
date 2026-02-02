@@ -295,7 +295,7 @@ public static class RoomsApi
 
         var customerName = httpContext.User.GetUserName() ?? request?.CustomerName;
         var roles = httpContext.User.GetRoles().ToList();
-        var isAdmin = httpContext.User.IsInRole("admin");
+        var isAdmin = roles.Contains("Admin", StringComparer.OrdinalIgnoreCase);
 
         logger.LogInformation("CreateReservation API: CustomerId={CustomerId}, Roles=[{Roles}], IsAdmin={IsAdmin}",
             customerId, string.Join(", ", roles), isAdmin);

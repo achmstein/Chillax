@@ -126,10 +126,20 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token if it changed
+            // Update FCM token and language if changed
+            var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
                 existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
                 await context.SaveChangesAsync();
             }
             return TypedResults.Conflict("Already subscribed to room availability notifications");
@@ -140,6 +150,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.RoomAvailability,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -202,10 +213,20 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token if it changed
+            // Update FCM token and language if changed
+            var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
                 existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
                 await context.SaveChangesAsync();
             }
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
@@ -216,6 +237,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.AdminOrderNotification,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -261,10 +283,20 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token if it changed
+            // Update FCM token and language if changed
+            var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
                 existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
                 await context.SaveChangesAsync();
             }
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
@@ -275,6 +307,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.AdminReservationNotification,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -319,9 +352,19 @@ public static class NotificationApi
 
         if (existing != null)
         {
+            var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
                 existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
                 await context.SaveChangesAsync();
             }
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
@@ -332,6 +375,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.ServiceRequests,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -559,7 +603,8 @@ public static class NotificationApi
 }
 
 public record SubscribeRequest(
-    [property: Description("The FCM token from the mobile device")] string FcmToken
+    [property: Description("The FCM token from the mobile device")] string FcmToken,
+    [property: Description("Preferred language for notifications (en or ar)")] string? PreferredLanguage = "en"
 );
 
 public record SubscriptionResponse(
@@ -571,7 +616,7 @@ public record SubscriptionResponse(
 public record CreateServiceRequestDto(
     [property: Description("The user's active session ID")] int SessionId,
     [property: Description("The room ID")] int RoomId,
-    [property: Description("The room name")] string RoomName,
+    [property: Description("The room name (localized)")] LocalizedText RoomName,
     [property: Description("The type of request")] ServiceRequestType RequestType
 );
 
@@ -579,7 +624,7 @@ public record ServiceRequestResponse(
     int Id,
     string UserName,
     int RoomId,
-    string RoomName,
+    LocalizedText RoomName,
     ServiceRequestType RequestType,
     ServiceRequestStatus Status,
     DateTime CreatedAt

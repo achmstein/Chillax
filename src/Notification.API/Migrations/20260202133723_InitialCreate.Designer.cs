@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillax.Notification.API.Migrations
 {
     [DbContext(typeof(NotificationContext))]
-    [Migration("20260201132407_InitialCreate")]
+    [Migration("20260202133723_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -76,6 +76,13 @@ namespace Chillax.Notification.API.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("PreferredLanguage")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasDefaultValue("en");
+
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
@@ -119,11 +126,6 @@ namespace Chillax.Notification.API.Migrations
                     b.Property<int>("RoomId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("RoomName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
                     b.Property<int>("SessionId")
                         .HasColumnType("integer");
 
@@ -151,6 +153,31 @@ namespace Chillax.Notification.API.Migrations
                     b.HasIndex("UserId", "Status");
 
                     b.ToTable("ServiceRequests");
+                });
+
+            modelBuilder.Entity("Chillax.Notification.API.Model.ServiceRequest", b =>
+                {
+                    b.OwnsOne("Chillax.Notification.API.Model.LocalizedText", "RoomName", b1 =>
+                        {
+                            b1.Property<int>("ServiceRequestId");
+
+                            b1.Property<string>("Ar");
+
+                            b1.Property<string>("En")
+                                .IsRequired();
+
+                            b1.HasKey("ServiceRequestId");
+
+                            b1.ToTable("ServiceRequests");
+
+                            b1.ToJson("RoomName");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ServiceRequestId");
+                        });
+
+                    b.Navigation("RoomName")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

@@ -6,6 +6,7 @@ public class NotificationSubscription
     public required string UserId { get; set; }
     public required string FcmToken { get; set; }
     public SubscriptionType Type { get; set; }
+    public string PreferredLanguage { get; set; } = "en";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 

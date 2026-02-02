@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/localized_text.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -262,6 +263,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
       data: (rooms) {
         final allUnavailable = rooms.isNotEmpty &&
             rooms.every((r) => !r.canBookNow);
+        // Only show notify banner if all rooms unavailable AND user has no reservation
+        final showNotifyBanner = allUnavailable && reservedSession == null;
 
         return RefreshIndicator(
           color: AppTheme.primaryColor,
@@ -272,7 +275,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           },
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: _getItemCount(rooms, reservedSession, allUnavailable),
+            itemCount: _getItemCount(rooms, reservedSession, showNotifyBanner),
             itemBuilder: (context, index) {
               int currentIndex = index;
 
@@ -285,14 +288,14 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
               }
               if (reservedSession != null) currentIndex--;
 
-              // Notify me banner (if all rooms unavailable)
-              if (allUnavailable && currentIndex == 0) {
+              // Notify me banner (if all rooms unavailable and no reservation)
+              if (showNotifyBanner && currentIndex == 0) {
                 return const Padding(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
                   child: NotifyMeBanner(),
                 );
               }
-              if (allUnavailable) currentIndex--;
+              if (showNotifyBanner) currentIndex--;
 
               // Room items
               final room = rooms[currentIndex];
@@ -318,10 +321,10 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     );
   }
 
-  int _getItemCount(List<Room> rooms, RoomSession? reservedSession, bool allUnavailable) {
+  int _getItemCount(List<Room> rooms, RoomSession? reservedSession, bool showNotifyBanner) {
     int count = rooms.length;
     if (reservedSession != null) count++;
-    if (allUnavailable) count++;
+    if (showNotifyBanner) count++;
     return count;
   }
 }
@@ -860,6 +863,8 @@ class NotifyMeBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subscriptionAsync = ref.watch(roomAvailabilitySubscriptionProvider);
+    final locale = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -868,117 +873,81 @@ class NotifyMeBanner extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
       ),
-      child: Builder(
-        builder: (context) {
-        final l10n = AppLocalizations.of(context)!;
-        return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(FIcons.bell, size: 20, color: AppTheme.primaryColor),
-              const SizedBox(width: 8),
-              Expanded(
-                child: AppText(
+          Icon(FIcons.bell, size: 24, color: AppTheme.primaryColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
                   l10n.allRoomsBusy,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          AppText(
-            l10n.getNotifiedWhenAvailable,
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 12),
-          subscriptionAsync.when(
-            loading: () => const Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-            error: (_, _) => FButton(
-              onPress: () => ref.refresh(roomAvailabilitySubscriptionProvider),
-              child: Text(l10n.retry),
-            ),
-            data: (isSubscribed) => isSubscribed
-                ? Row(
-                    children: [
-                      Icon(FIcons.check, size: 16, color: AppTheme.successColor),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: AppText(
-                          l10n.willBeNotifiedWhenAvailable,
-                          style: TextStyle(
-                            color: AppTheme.successColor,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      FButton(
-                        style: FButtonStyle.outline(),
-                        onPress: () async {
-                          final success = await ref
-                              .read(roomAvailabilitySubscriptionProvider.notifier)
-                              .unsubscribe();
-                          if (success && context.mounted) {
-                            showFToast(
-                              context: context,
-                              title: Text(l10n.unsubscribedFromNotifications),
-                              icon: Icon(FIcons.check, color: AppTheme.textMuted),
-                            );
-                          }
-                        },
-                        child: Text(l10n.cancel),
-                      ),
-                    ],
-                  )
-                : SizedBox(
-                    width: double.infinity,
-                    child: FButton(
-                      onPress: () async {
-                        final success = await ref
-                            .read(roomAvailabilitySubscriptionProvider.notifier)
-                            .subscribe();
-                        if (context.mounted) {
-                          if (success) {
-                            showFToast(
-                              context: context,
-                              title: Text(l10n.youWillBeNotified),
-                              icon: Icon(FIcons.bell, color: AppTheme.successColor),
-                            );
-                          } else {
-                            showFToast(
-                              context: context,
-                              title: Text(l10n.failedToSubscribe),
-                              icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
-                            );
-                          }
-                        }
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(FIcons.bell, size: 16),
-                          const SizedBox(width: 8),
-                          AppText(l10n.notifyMe),
-                        ],
-                      ),
-                    ),
+                const SizedBox(height: 2),
+                AppText(
+                  l10n.getNotifiedWhenAvailable,
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
                   ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          subscriptionAsync.when(
+            loading: () => const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            error: (_, st) => IconButton(
+              onPressed: () => ref.refresh(roomAvailabilitySubscriptionProvider),
+              icon: Icon(FIcons.refreshCw, color: AppTheme.errorColor),
+            ),
+            data: (isSubscribed) => FSwitch(
+              value: isSubscribed,
+              onChange: (value) async {
+                if (value) {
+                  final success = await ref
+                      .read(roomAvailabilitySubscriptionProvider.notifier)
+                      .subscribe(preferredLanguage: locale.languageCode);
+                  if (context.mounted) {
+                    if (success) {
+                      showFToast(
+                        context: context,
+                        title: Text(l10n.youWillBeNotified),
+                        icon: Icon(FIcons.bell, color: AppTheme.successColor),
+                      );
+                    } else {
+                      showFToast(
+                        context: context,
+                        title: Text(l10n.failedToSubscribe),
+                        icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+                      );
+                    }
+                  }
+                } else {
+                  final success = await ref
+                      .read(roomAvailabilitySubscriptionProvider.notifier)
+                      .unsubscribe();
+                  if (success && context.mounted) {
+                    showFToast(
+                      context: context,
+                      title: Text(l10n.unsubscribedFromNotifications),
+                      icon: Icon(FIcons.check, color: AppTheme.textMuted),
+                    );
+                  }
+                }
+              },
+            ),
           ),
         ],
-      );
-      },
       ),
     );
   }

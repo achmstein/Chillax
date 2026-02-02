@@ -38,7 +38,7 @@ class NotificationService {
   NotificationService(this._apiClient, this._firebaseService);
 
   /// Subscribe to room availability notifications
-  Future<bool> subscribeToRoomAvailability() async {
+  Future<bool> subscribeToRoomAvailability({String preferredLanguage = 'en'}) async {
     try {
       final fcmToken = await _firebaseService.getToken();
       if (fcmToken == null) {
@@ -48,7 +48,10 @@ class NotificationService {
 
       final response = await _apiClient.post(
         'subscriptions/room-availability',
-        data: {'fcmToken': fcmToken},
+        data: {
+          'fcmToken': fcmToken,
+          'preferredLanguage': preferredLanguage,
+        },
       );
 
       if (response.statusCode == 201) {
@@ -126,11 +129,13 @@ class RoomAvailabilityNotifier extends Notifier<AsyncValue<bool>> {
     }
   }
 
-  Future<bool> subscribe() async {
+  Future<bool> subscribe({String preferredLanguage = 'en'}) async {
     final previousState = state;
     state = const AsyncValue.loading();
     try {
-      final success = await _notificationService.subscribeToRoomAvailability();
+      final success = await _notificationService.subscribeToRoomAvailability(
+        preferredLanguage: preferredLanguage,
+      );
       if (success) {
         state = const AsyncValue.data(true);
       } else {

@@ -1,4 +1,5 @@
 using Chillax.EventBus.Events;
+using Chillax.Notification.API.Model;
 
 namespace Chillax.Notification.API.IntegrationEvents.Events;
 
@@ -8,7 +9,7 @@ namespace Chillax.Notification.API.IntegrationEvents.Events;
 public record RoomReservedIntegrationEvent(
     int ReservationId,
     int RoomId,
-    string RoomName,
+    LocalizedText RoomName,
     string? CustomerId,
     string? CustomerName,
     DateTime ExpiresAt) : IntegrationEvent;

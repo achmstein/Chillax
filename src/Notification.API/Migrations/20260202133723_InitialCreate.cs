@@ -40,12 +40,12 @@ namespace Chillax.Notification.API.Migrations
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     SessionId = table.Column<int>(type: "integer", nullable: false),
                     RoomId = table.Column<int>(type: "integer", nullable: false),
-                    RoomName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     RequestType = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     AcknowledgedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    AcknowledgedBy = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
+                    AcknowledgedBy = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    RoomName = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -61,6 +61,7 @@ namespace Chillax.Notification.API.Migrations
                     UserId = table.Column<string>(type: "text", nullable: false),
                     FcmToken = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
+                    PreferredLanguage = table.Column<string>(type: "character varying(5)", maxLength: 5, nullable: false, defaultValue: "en"),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>

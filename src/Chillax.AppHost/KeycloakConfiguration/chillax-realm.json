@@ -532,32 +532,32 @@
   ],
   "users": [
     {
-      "username": "alice",
-      "email": "AliceSmith@email.com",
+      "username": "saico@chillax.com",
+      "email": "saico@chillax.com",
       "emailVerified": true,
       "enabled": true,
-      "firstName": "Alice",
-      "lastName": "Smith",
+      "firstName": "Ahmed",
+      "lastName": "Elhady",
       "credentials": [
         {
           "type": "password",
-          "value": "Pass123$",
+          "value": "Admin123$",
           "temporary": false
         }
       ],
-      "realmRoles": ["Customer"],
+      "realmRoles": [ "Customer" ],
       "attributes": {
-        "card_holder": ["Alice Smith"],
-        "card_number": ["XXXXXXXXXXXX1881"],
-        "card_type": ["1"],
-        "card_expiration": ["12/24"],
-        "card_security_number": ["123"],
-        "address_city": ["Redmond"],
-        "address_country": ["U.S."],
-        "address_state": ["WA"],
-        "address_street": ["15703 NE 61st Ct"],
-        "address_zip_code": ["98052"],
-        "phone_number": ["1234567890"]
+        "card_holder": [ "Ahmed Elhady" ],
+        "card_number": [ "XXXXXXXXXXXX1881" ],
+        "card_type": [ "1" ],
+        "card_expiration": [ "12/24" ],
+        "card_security_number": [ "123" ],
+        "address_city": [ "Redmond" ],
+        "address_country": [ "U.S." ],
+        "address_state": [ "WA" ],
+        "address_street": [ "15703 NE 61st Ct" ],
+        "address_zip_code": [ "98052" ],
+        "phone_number": [ "1234567890" ]
       }
     },
     {

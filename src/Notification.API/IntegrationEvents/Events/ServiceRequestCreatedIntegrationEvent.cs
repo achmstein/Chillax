@@ -6,6 +6,6 @@ public record ServiceRequestCreatedIntegrationEvent(
     int RequestId,
     string UserName,
     int RoomId,
-    string RoomName,
+    LocalizedText RoomName,
     ServiceRequestType RequestType,
     DateTime CreatedAt) : IntegrationEvent;

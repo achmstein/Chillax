@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../services/firebase_service.dart';
 
@@ -156,10 +157,12 @@ class AuthService extends Notifier<AuthState> {
           return SignInResult.notAdmin;
         }
 
-        // Auto-register for admin notifications
-        await _registerForAdminNotifications();
-        await _registerForAdminReservationNotifications();
-        await _registerForServiceRequestNotifications();
+        // Auto-register for admin notifications with current language preference
+        final prefs = await SharedPreferences.getInstance();
+        final preferredLanguage = prefs.getString('app_locale') ?? 'en';
+        await _registerForAdminNotifications(preferredLanguage: preferredLanguage);
+        await _registerForAdminReservationNotifications(preferredLanguage: preferredLanguage);
+        await _registerForServiceRequestNotifications(preferredLanguage: preferredLanguage);
 
         return SignInResult.success;
       }
@@ -277,7 +280,7 @@ class AuthService extends Notifier<AuthState> {
   }
 
   /// Register for admin order notifications
-  Future<void> _registerForAdminNotifications() async {
+  Future<void> _registerForAdminNotifications({String preferredLanguage = 'en'}) async {
     try {
       // Request notification permission
       final hasPermission = await _firebaseService.requestPermission();
@@ -296,7 +299,10 @@ class AuthService extends Notifier<AuthState> {
       // Register with backend
       final response = await _dio.post(
         '${AppConfig.notificationsApiUrl}subscriptions/admin-orders',
-        data: {'fcmToken': fcmToken},
+        data: {
+          'fcmToken': fcmToken,
+          'preferredLanguage': preferredLanguage,
+        },
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
           contentType: Headers.jsonContentType,
@@ -329,7 +335,7 @@ class AuthService extends Notifier<AuthState> {
   }
 
   /// Register for service request notifications
-  Future<void> _registerForServiceRequestNotifications() async {
+  Future<void> _registerForServiceRequestNotifications({String preferredLanguage = 'en'}) async {
     try {
       // Request notification permission
       final hasPermission = await _firebaseService.requestPermission();
@@ -348,7 +354,10 @@ class AuthService extends Notifier<AuthState> {
       // Register with backend
       final response = await _dio.post(
         '${AppConfig.notificationsApiUrl}subscriptions/service-requests',
-        data: {'fcmToken': fcmToken},
+        data: {
+          'fcmToken': fcmToken,
+          'preferredLanguage': preferredLanguage,
+        },
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
           contentType: Headers.jsonContentType,
@@ -381,7 +390,7 @@ class AuthService extends Notifier<AuthState> {
   }
 
   /// Register for admin reservation notifications
-  Future<void> _registerForAdminReservationNotifications() async {
+  Future<void> _registerForAdminReservationNotifications({String preferredLanguage = 'en'}) async {
     try {
       // Request notification permission
       final hasPermission = await _firebaseService.requestPermission();
@@ -400,7 +409,10 @@ class AuthService extends Notifier<AuthState> {
       // Register with backend
       final response = await _dio.post(
         '${AppConfig.notificationsApiUrl}subscriptions/admin-reservations',
-        data: {'fcmToken': fcmToken},
+        data: {
+          'fcmToken': fcmToken,
+          'preferredLanguage': preferredLanguage,
+        },
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
           contentType: Headers.jsonContentType,
@@ -430,6 +442,20 @@ class AuthService extends Notifier<AuthState> {
       debugPrint('Error unregistering from admin reservation notifications: $e');
       // Don't fail logout if notification unregistration fails
     }
+  }
+
+  /// Update notification language preference for all subscriptions
+  /// Call this when the user changes their language setting
+  Future<void> updateNotificationLanguage(String preferredLanguage) async {
+    if (!state.isAuthenticated) return;
+
+    debugPrint('Updating notification language to: $preferredLanguage');
+
+    // Re-register all subscriptions with the new language preference
+    // The backend will update the existing subscription's language
+    await _registerForAdminNotifications(preferredLanguage: preferredLanguage);
+    await _registerForAdminReservationNotifications(preferredLanguage: preferredLanguage);
+    await _registerForServiceRequestNotifications(preferredLanguage: preferredLanguage);
   }
 
   Future<void> _clearTokens() async {

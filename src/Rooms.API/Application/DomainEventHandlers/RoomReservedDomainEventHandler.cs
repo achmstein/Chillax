@@ -28,10 +28,11 @@ public class RoomReservedDomainEventHandler : INotificationHandler<RoomReservedD
             reservation.Id, reservation.RoomId, reservation.CustomerName ?? "Unknown");
 
         // Publish integration event to notify admin/staff
+        var roomName = reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}");
         var roomReservedEvent = new RoomReservedIntegrationEvent(
             reservation.Id,
             reservation.RoomId,
-            reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
+            roomName,
             reservation.CustomerId,
             reservation.CustomerName,
             reservation.CreatedAt.AddMinutes(15)); // 15 min expiration

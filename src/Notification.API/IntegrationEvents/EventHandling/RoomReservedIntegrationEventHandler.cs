@@ -1,5 +1,6 @@
 using Chillax.EventBus.Abstractions;
 using Chillax.Notification.API.IntegrationEvents.Events;
+using Chillax.Notification.API.Localization;
 using Chillax.Notification.API.Model;
 using Chillax.Notification.API.Services;
 
@@ -13,7 +14,7 @@ public class RoomReservedIntegrationEventHandler(
     public async Task Handle(RoomReservedIntegrationEvent @event)
     {
         logger.LogInformation("Handling RoomReservedIntegrationEvent: ReservationId={ReservationId}, Room={RoomName}, Customer={CustomerName}",
-            @event.ReservationId, @event.RoomName, @event.CustomerName);
+            @event.ReservationId, @event.RoomName.En, @event.CustomerName);
 
         // Get all admin reservation notification subscriptions
         var subscriptions = await context.Subscriptions
@@ -28,26 +29,38 @@ public class RoomReservedIntegrationEventHandler(
 
         logger.LogInformation("Found {Count} admin subscriptions to notify about reservation", subscriptions.Count);
 
-        // Send notifications to all admin subscribers
-        var fcmTokens = subscriptions.Select(s => s.FcmToken).ToList();
         var customerDisplay = @event.CustomerName ?? "Customer";
+        var totalSuccess = 0;
 
-        var successCount = await fcmService.SendBatchNotificationsAsync(
-            fcmTokens,
-            "New Reservation!",
-            $"{customerDisplay} reserved {@event.RoomName}",
-            new Dictionary<string, string>
-            {
-                { "type", "new_reservation" },
-                { "reservationId", @event.ReservationId.ToString() },
-                { "roomId", @event.RoomId.ToString() },
-                { "roomName", @event.RoomName },
-                { "customerName", @event.CustomerName ?? "" },
-                { "customerId", @event.CustomerId ?? "" }
-            });
+        // Group by language and send localized notifications
+        foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
+        {
+            var lang = group.Key;
+            var tokens = group.Select(s => s.FcmToken).ToList();
+            var title = NotificationMessages.NewReservationTitle.GetText(lang);
+            var body = NotificationMessages.NewReservationBody(customerDisplay, @event.RoomName, lang).GetText(lang);
+
+            var successCount = await fcmService.SendBatchNotificationsAsync(
+                tokens,
+                title,
+                body,
+                new Dictionary<string, string>
+                {
+                    { "type", "new_reservation" },
+                    { "reservationId", @event.ReservationId.ToString() },
+                    { "roomId", @event.RoomId.ToString() },
+                    { "roomName", @event.RoomName.GetText(lang) },
+                    { "customerName", @event.CustomerName ?? "" },
+                    { "customerId", @event.CustomerId ?? "" }
+                });
+
+            totalSuccess += successCount;
+            logger.LogInformation("Sent {SuccessCount}/{TotalCount} notifications in {Lang}",
+                successCount, tokens.Count, lang);
+        }
 
         logger.LogInformation("Sent {SuccessCount}/{TotalCount} admin reservation notifications successfully",
-            successCount, subscriptions.Count);
+            totalSuccess, subscriptions.Count);
 
         // Note: Admin subscriptions are persistent - do NOT delete them
     }
