@@ -471,6 +471,7 @@ public static class NotificationApi
         NotificationContext context)
     {
         var requests = await context.ServiceRequests
+            .AsNoTracking()
             .Where(r => r.Status == ServiceRequestStatus.Pending || r.Status == ServiceRequestStatus.Acknowledged)
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new ServiceRequestResponse(

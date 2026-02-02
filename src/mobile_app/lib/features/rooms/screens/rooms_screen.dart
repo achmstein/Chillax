@@ -577,7 +577,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
     final request = CreateServiceRequest(
       sessionId: session.id,
       roomId: session.roomId,
-      roomName: session.roomName.en,
+      roomName: session.roomName,
       requestType: type,
     );
 
@@ -1046,7 +1046,7 @@ class RoomListItem extends ConsumerWidget {
               ),
             ),
 
-            // Action
+            // Action - only show calendar button if room is available and user can reserve
             if (isAvailable)
               Container(
                 padding: const EdgeInsets.all(8),
@@ -1058,22 +1058,6 @@ class RoomListItem extends ConsumerWidget {
                   FIcons.calendarPlus,
                   color: colors.primaryForeground,
                   size: 18,
-                ),
-              )
-            else if (room.canBookNow && !canReserve)
-              // Room is available but user already has reservation
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: colors.mutedForeground.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: AppText(
-                  AppLocalizations.of(context)!.available,
-                  style: TextStyle(
-                    color: colors.mutedForeground,
-                    fontSize: 12,
-                  ),
                 ),
               ),
           ],

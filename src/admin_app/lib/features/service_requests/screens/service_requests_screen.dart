@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
@@ -173,7 +174,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                 ),
                 const SizedBox(height: 16),
                 // Details
-                _DetailRow(icon: Icons.meeting_room, label: l10n.room, value: request.roomName),
+                _DetailRow(icon: Icons.meeting_room, label: l10n.room, value: request.roomName.localized(context)),
                 const SizedBox(height: 8),
                 _DetailRow(icon: Icons.person_outline, label: l10n.customer, value: request.userName),
                 const SizedBox(height: 8),
@@ -374,7 +375,7 @@ class _RequestTile extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           AppText(
-                            request.roomName,
+                            request.roomName.localized(context),
                             style: theme.typography.sm.copyWith(
                               color: theme.colors.primary,
                               fontWeight: FontWeight.w500,

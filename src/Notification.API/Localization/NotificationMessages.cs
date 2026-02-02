@@ -1,4 +1,4 @@
-using Chillax.Notification.API.Model;
+﻿using Chillax.Notification.API.Model;
 
 namespace Chillax.Notification.API.Localization;
 
@@ -27,15 +27,15 @@ public static class NotificationMessages
             $"أوردر #{orderId} من {buyerName}");
 
     // Service Requests
-    public static readonly LocalizedText WaiterNeededTitle = new("Waiter Needed", "محتاج جرسون");
+    public static readonly LocalizedText WaiterNeededTitle = new("Waiter Needed", "محتاج ويتر");
     public static LocalizedText WaiterNeededBody(LocalizedText roomName, string userName) =>
         new($"{roomName.GetText("en")} - {userName} is calling for a waiter",
-            $"{roomName.GetText("ar")} - {userName} عايز جرسون");
+            $"{roomName.GetText("ar")} - {userName} عايز ويتر");
 
-    public static readonly LocalizedText ControllerRequestTitle = new("Controller Request", "عايز كنترولر تاني");
+    public static readonly LocalizedText ControllerRequestTitle = new("Controller Request", "عايز دراع تاني");
     public static LocalizedText ControllerRequestBody(LocalizedText roomName, string userName) =>
         new($"{roomName.GetText("en")} - {userName} needs a different controller",
-            $"{roomName.GetText("ar")} - {userName} عايز كنترولر تاني");
+            $"{roomName.GetText("ar")} - {userName} عايز دراع تاني");
 
     public static readonly LocalizedText BillRequestedTitle = new("Bill Requested", "عايز الحساب");
     public static LocalizedText BillRequestedBody(LocalizedText roomName, string userName) =>
@@ -46,4 +46,10 @@ public static class NotificationMessages
     public static LocalizedText ServiceRequestBody(LocalizedText roomName, string userName) =>
         new($"{roomName.GetText("en")} - {userName} needs assistance",
             $"{roomName.GetText("ar")} - {userName} محتاج مساعدة");
+
+    // Reservation Cancelled
+    public static readonly LocalizedText ReservationCancelledTitle = new("Reservation Cancelled", "الحجز اتلغى");
+    public static LocalizedText ReservationCancelledBody(string customerName, LocalizedText roomName, string lang) =>
+        new($"{customerName} cancelled {roomName.GetText("en")}",
+            $"{customerName} لغى حجز {roomName.GetText("ar")}");
 }

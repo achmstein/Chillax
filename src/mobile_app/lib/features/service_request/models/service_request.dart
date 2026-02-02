@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 
+import '../../../core/models/localized_text.dart';
+
 /// Types of service requests users can make
 enum ServiceRequestType {
   callWaiter(1, 'Call Waiter', FIcons.user),
@@ -36,7 +38,7 @@ enum ServiceRequestStatus {
 class CreateServiceRequest {
   final int sessionId;
   final int roomId;
-  final String roomName;
+  final LocalizedText roomName;
   final ServiceRequestType requestType;
 
   CreateServiceRequest({
@@ -50,7 +52,7 @@ class CreateServiceRequest {
     return {
       'sessionId': sessionId,
       'roomId': roomId,
-      'roomName': roomName,
+      'roomName': roomName.toJson(),
       'requestType': requestType.value,
     };
   }
@@ -61,7 +63,7 @@ class ServiceRequestResponse {
   final int id;
   final String userName;
   final int roomId;
-  final String roomName;
+  final LocalizedText roomName;
   final ServiceRequestType requestType;
   final ServiceRequestStatus status;
   final DateTime createdAt;
@@ -81,7 +83,7 @@ class ServiceRequestResponse {
       id: json['id'] as int,
       userName: json['userName'] as String,
       roomId: json['roomId'] as int,
-      roomName: json['roomName'] as String,
+      roomName: LocalizedText.fromJson(json['roomName'] as Map<String, dynamic>),
       requestType: ServiceRequestType.fromValue(json['requestType'] as int)!,
       status: ServiceRequestStatus.values.firstWhere(
         (e) => e.value == json['status'],
