@@ -91,9 +91,9 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
                       ],
                     ),
                   ),
-                  FButton(
-                    onPress: _save,
-                    child: AppText(l10n.save),
+                  IconButton(
+                    onPressed: _save,
+                    icon: const Icon(Icons.check),
                   ),
                 ],
               ),

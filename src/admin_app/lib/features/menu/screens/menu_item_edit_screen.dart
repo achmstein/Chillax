@@ -125,15 +125,15 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
                       style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  FButton(
-                    onPress: _isSubmitting ? null : _save,
-                    child: _isSubmitting
+                  IconButton(
+                    onPressed: _isSubmitting ? null : _save,
+                    icon: _isSubmitting
                         ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : AppText(l10n.save),
+                        : const Icon(Icons.check),
                   ),
                 ],
               ),
