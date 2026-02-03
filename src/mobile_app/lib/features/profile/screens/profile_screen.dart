@@ -25,8 +25,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Use silent refresh if data already exists (e.g., navigating back)
-      final hasExistingData = ref.read(loyaltyProvider).loyaltyInfo != null ||
-          ref.read(accountProvider).account != null;
+      bool hasExistingData = false;
+      try {
+        hasExistingData = ref.read(loyaltyProvider).loyaltyInfo != null ||
+            ref.read(accountProvider).account != null;
+      } catch (_) {
+        // Provider may be in error state, proceed with full load
+      }
       _loadData(silent: hasExistingData);
     });
   }

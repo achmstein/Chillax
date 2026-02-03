@@ -1705,6 +1705,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your destination for relaxation, gaming, and great food.'**
   String get aboutDescription;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get light;
+
+  /// No description provided for @dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get dark;
+
+  /// No description provided for @systemDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'System Default'**
+  String get systemDefault;
+
+  /// No description provided for @selectTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Theme'**
+  String get selectTheme;
+
+  /// No description provided for @lightThemeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Always use light theme'**
+  String get lightThemeDescription;
+
+  /// No description provided for @darkThemeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Always use dark theme'**
+  String get darkThemeDescription;
+
+  /// No description provided for @systemDefaultDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow your device settings'**
+  String get systemDefaultDescription;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// No description provided for @transactionTypePurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase'**
+  String get transactionTypePurchase;
+
+  /// No description provided for @transactionTypeBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus'**
+  String get transactionTypeBonus;
+
+  /// No description provided for @transactionTypeReferral.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral'**
+  String get transactionTypeReferral;
+
+  /// No description provided for @transactionTypePromotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotion'**
+  String get transactionTypePromotion;
+
+  /// No description provided for @transactionTypeRedemption.
+  ///
+  /// In en, this message translates to:
+  /// **'Redemption'**
+  String get transactionTypeRedemption;
+
+  /// No description provided for @transactionTypeAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustment'**
+  String get transactionTypeAdjustment;
+
+  /// No description provided for @pointsEarnedFromOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Points earned from Order #{orderId}'**
+  String pointsEarnedFromOrder(String orderId);
+
+  /// No description provided for @pointsRedeemedForOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Points redeemed for Order #{orderId}'**
+  String pointsRedeemedForOrder(String orderId);
 }
 
 class _AppLocalizationsDelegate

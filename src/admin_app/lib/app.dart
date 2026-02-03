@@ -96,7 +96,7 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      themeMode: ThemeMode.light,
+      themeMode: themeState.materialThemeMode,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF18181B), // zinc-900 (black)

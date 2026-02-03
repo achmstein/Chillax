@@ -132,8 +132,8 @@
   "reserveNow": "احجز دلوقتي",
   "roomReservedSuccess": "الحجز تم! عندك 15 دقيقة توصل.",
   "failedToReserveRoom": "الحجز فشل",
-  "available": "متاح",
-  "occupied": "مشغول",
+  "available": "متاحة",
+  "occupied": "مشغولة",
   "maintenance": "صيانة",
 
   "statusReserved": "محجوزة",

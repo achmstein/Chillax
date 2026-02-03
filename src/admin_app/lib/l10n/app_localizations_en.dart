@@ -866,4 +866,62 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get aboutDescription =>
       'Your destination for relaxation, gaming, and great food.';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get light => 'Light';
+
+  @override
+  String get dark => 'Dark';
+
+  @override
+  String get systemDefault => 'System Default';
+
+  @override
+  String get selectTheme => 'Select Theme';
+
+  @override
+  String get lightThemeDescription => 'Always use light theme';
+
+  @override
+  String get darkThemeDescription => 'Always use dark theme';
+
+  @override
+  String get systemDefaultDescription => 'Follow your device settings';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get transactionTypePurchase => 'Purchase';
+
+  @override
+  String get transactionTypeBonus => 'Bonus';
+
+  @override
+  String get transactionTypeReferral => 'Referral';
+
+  @override
+  String get transactionTypePromotion => 'Promotion';
+
+  @override
+  String get transactionTypeRedemption => 'Redemption';
+
+  @override
+  String get transactionTypeAdjustment => 'Adjustment';
+
+  @override
+  String pointsEarnedFromOrder(String orderId) {
+    return 'Points earned from Order #$orderId';
+  }
+
+  @override
+  String pointsRedeemedForOrder(String orderId) {
+    return 'Points redeemed for Order #$orderId';
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/network/api_client.dart';
 import '../models/menu_item.dart';
 
@@ -147,9 +148,11 @@ class MenuNotifier extends Notifier<MenuState> {
   }
 
   // Category CRUD operations
-  Future<bool> createCategory(String name) async {
+  Future<bool> createCategory(LocalizedText name) async {
     try {
-      await _api.post('categories', data: {'type': name});
+      await _api.post('categories', data: {
+        'name': name.toJson(),
+      });
       await loadMenu();
       return true;
     } catch (e) {
@@ -158,9 +161,11 @@ class MenuNotifier extends Notifier<MenuState> {
     }
   }
 
-  Future<bool> updateCategory(int id, String name) async {
+  Future<bool> updateCategory(int id, LocalizedText name) async {
     try {
-      await _api.put('categories/$id', data: {'type': name});
+      await _api.put('categories/$id', data: {
+        'name': name.toJson(),
+      });
       await loadMenu();
       return true;
     } catch (e) {

@@ -60,9 +60,9 @@ class RoomService {
         .toList();
   }
 
-  /// Cancel reservation
+  /// Cancel reservation (customer can only cancel their own reservations)
   Future<void> cancelReservation(int sessionId) async {
-    await _apiClient.post('sessions/$sessionId/cancel');
+    await _apiClient.post('sessions/my/$sessionId/cancel');
   }
 
   /// Get session preview by access code

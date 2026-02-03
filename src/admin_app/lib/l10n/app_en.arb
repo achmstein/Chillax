@@ -408,5 +408,35 @@
   "supportPhone": "+20 123 456 7890",
   "supportHours": "Available 24/7",
   "cafeAndGaming": "CAFE & GAMING",
-  "aboutDescription": "Your destination for relaxation, gaming, and great food."
+  "aboutDescription": "Your destination for relaxation, gaming, and great food.",
+
+  "appearance": "Appearance",
+  "theme": "Theme",
+  "light": "Light",
+  "dark": "Dark",
+  "systemDefault": "System Default",
+  "selectTheme": "Select Theme",
+  "lightThemeDescription": "Always use light theme",
+  "darkThemeDescription": "Always use dark theme",
+  "systemDefaultDescription": "Follow your device settings",
+  "selectLanguage": "Select Language",
+
+  "transactionTypePurchase": "Purchase",
+  "transactionTypeBonus": "Bonus",
+  "transactionTypeReferral": "Referral",
+  "transactionTypePromotion": "Promotion",
+  "transactionTypeRedemption": "Redemption",
+  "transactionTypeAdjustment": "Adjustment",
+  "pointsEarnedFromOrder": "Points earned from Order #{orderId}",
+  "@pointsEarnedFromOrder": {
+    "placeholders": {
+      "orderId": {"type": "String"}
+    }
+  },
+  "pointsRedeemedForOrder": "Points redeemed for Order #{orderId}",
+  "@pointsRedeemedForOrder": {
+    "placeholders": {
+      "orderId": {"type": "String"}
+    }
+  }
 }

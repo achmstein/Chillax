@@ -35,13 +35,19 @@ class LoyaltyState {
 
 /// Loyalty notifier for mobile app
 class LoyaltyNotifier extends Notifier<LoyaltyState> {
-  late final ApiClient _api;
-  late final AuthState _authState;
+  ApiClient? _api;
+
+  ApiClient get _apiClient {
+    _api ??= ref.read(loyaltyApiProvider);
+    return _api!;
+  }
+
+  AuthState get _authState => ref.read(authServiceProvider);
 
   @override
   LoyaltyState build() {
-    _api = ref.read(loyaltyApiProvider);
-    _authState = ref.watch(authServiceProvider);
+    // Watch auth state to rebuild when it changes
+    ref.watch(authServiceProvider);
     return const LoyaltyState();
   }
 
@@ -53,7 +59,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final response = await _api.get(
+      final response = await _apiClient.get(
         '/accounts/${_authState.userId}',
         queryParameters: {'api-version': '1.0'},
       );
@@ -82,7 +88,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     }
 
     try {
-      final response = await _api.get(
+      final response = await _apiClient.get(
         '/transactions/${_authState.userId}',
         queryParameters: {'api-version': '1.0', 'max': 10},
       );
@@ -112,7 +118,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      await _api.post(
+      await _apiClient.post(
         '/accounts',
         data: {'userId': _authState.userId},
       );

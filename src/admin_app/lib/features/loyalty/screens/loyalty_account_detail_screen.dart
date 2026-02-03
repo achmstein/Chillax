@@ -10,6 +10,44 @@ import '../models/points_transaction.dart';
 import '../providers/loyalty_provider.dart';
 import 'loyalty_screen.dart' show getLocalizedTierName;
 
+/// Get localized transaction type name
+String getLocalizedTransactionType(String type, AppLocalizations l10n) {
+  switch (type.toLowerCase()) {
+    case 'purchase':
+      return l10n.transactionTypePurchase;
+    case 'bonus':
+      return l10n.transactionTypeBonus;
+    case 'referral':
+      return l10n.transactionTypeReferral;
+    case 'promotion':
+      return l10n.transactionTypePromotion;
+    case 'redemption':
+      return l10n.transactionTypeRedemption;
+    case 'adjustment':
+      return l10n.transactionTypeAdjustment;
+    default:
+      return type;
+  }
+}
+
+/// Get localized transaction description
+String? getLocalizedTransactionDescription(PointsTransaction tx, AppLocalizations l10n) {
+  // If description is provided, show it
+  if (tx.description != null && tx.description!.isNotEmpty) {
+    return tx.description;
+  }
+
+  // Otherwise, construct localized description from type + referenceId
+  switch (tx.type.toLowerCase()) {
+    case 'purchase':
+      return tx.referenceId != null ? l10n.pointsEarnedFromOrder(tx.referenceId!) : null;
+    case 'redemption':
+      return tx.referenceId != null ? l10n.pointsRedeemedForOrder(tx.referenceId!) : null;
+    default:
+      return null;
+  }
+}
+
 /// Wrapper for loyalty account detail as a full page
 class LoyaltyAccountDetailPageWrapper extends ConsumerStatefulWidget {
   final String userId;
@@ -420,6 +458,7 @@ class _TransactionsSection extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final tx = transactions[index];
                           final isPositive = tx.isEarned;
+                          final localizedDescription = getLocalizedTransactionDescription(tx, l10n);
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -447,15 +486,15 @@ class _TransactionsSection extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       AppText(
-                                        tx.typeName,
+                                        getLocalizedTransactionType(tx.type, l10n),
                                         style: theme.typography.sm.copyWith(
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                      if (tx.descriptionDisplay != null) ...[
+                                      if (localizedDescription != null) ...[
                                         const SizedBox(height: 2),
                                         AppText(
-                                          tx.descriptionDisplay!,
+                                          localizedDescription,
                                           style: theme.typography.xs.copyWith(
                                             color: theme.colors.mutedForeground,
                                           ),

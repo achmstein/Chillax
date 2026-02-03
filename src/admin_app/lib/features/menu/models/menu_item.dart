@@ -1,12 +1,14 @@
+import '../../../core/models/localized_text.dart';
+
 /// Menu item model
 class MenuItem {
   final int id;
-  final String name;
-  final String description;
+  final LocalizedText name;
+  final LocalizedText description;
   final double price;
   final String? pictureUri;
   final int catalogTypeId;
-  final String catalogTypeName;
+  final LocalizedText catalogTypeName;
   final bool isAvailable;
   final int? preparationTimeMinutes;
   final List<ItemCustomization> customizations;
@@ -26,12 +28,12 @@ class MenuItem {
 
   MenuItem copyWith({
     int? id,
-    String? name,
-    String? description,
+    LocalizedText? name,
+    LocalizedText? description,
     double? price,
     String? pictureUri,
     int? catalogTypeId,
-    String? catalogTypeName,
+    LocalizedText? catalogTypeName,
     bool? isAvailable,
     int? preparationTimeMinutes,
     List<ItemCustomization>? customizations,
@@ -53,12 +55,12 @@ class MenuItem {
   factory MenuItem.fromJson(Map<String, dynamic> json) {
     return MenuItem(
       id: json['id'] as int,
-      name: json['name'] as String,
-      description: json['description'] as String? ?? '',
+      name: LocalizedText.parse(json['name']),
+      description: LocalizedText.parse(json['description'] ?? ''),
       price: (json['price'] as num).toDouble(),
       pictureUri: json['pictureUri'] as String?,
       catalogTypeId: json['catalogTypeId'] as int,
-      catalogTypeName: json['catalogTypeName'] as String? ?? '',
+      catalogTypeName: LocalizedText.parse(json['catalogTypeName'] ?? ''),
       isAvailable: json['isAvailable'] as bool? ?? true,
       preparationTimeMinutes: json['preparationTimeMinutes'] as int?,
       customizations: (json['customizations'] as List<dynamic>?)
@@ -71,12 +73,12 @@ class MenuItem {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
-      'description': description,
+      'name': name.toJson(),
+      'description': description.toJson(),
       'price': price,
       'pictureUri': pictureUri,
       'catalogTypeId': catalogTypeId,
-      'catalogTypeName': catalogTypeName,
+      'catalogTypeName': catalogTypeName.toJson(),
       'isAvailable': isAvailable,
       'preparationTimeMinutes': preparationTimeMinutes,
       'customizations': customizations.map((e) => e.toJson()).toList(),
@@ -87,7 +89,7 @@ class MenuItem {
 /// Customization group (e.g., "Roasting", "Sugar Level")
 class ItemCustomization {
   final int id;
-  final String name;
+  final LocalizedText name;
   final bool isRequired;
   final bool allowMultiple;
   final List<CustomizationOption> options;
@@ -103,7 +105,7 @@ class ItemCustomization {
   factory ItemCustomization.fromJson(Map<String, dynamic> json) {
     return ItemCustomization(
       id: json['id'] as int,
-      name: json['name'] as String,
+      name: LocalizedText.parse(json['name']),
       isRequired: json['isRequired'] as bool? ?? false,
       allowMultiple: json['allowMultiple'] as bool? ?? false,
       options: (json['options'] as List<dynamic>?)
@@ -116,7 +118,7 @@ class ItemCustomization {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'name': name.toJson(),
       'isRequired': isRequired,
       'allowMultiple': allowMultiple,
       'options': options.map((e) => e.toJson()).toList(),
@@ -127,7 +129,7 @@ class ItemCustomization {
 /// Customization option (e.g., "Light Roast", "No Sugar")
 class CustomizationOption {
   final int id;
-  final String name;
+  final LocalizedText name;
   final double priceAdjustment;
   final bool isDefault;
 
@@ -141,7 +143,7 @@ class CustomizationOption {
   factory CustomizationOption.fromJson(Map<String, dynamic> json) {
     return CustomizationOption(
       id: json['id'] as int,
-      name: json['name'] as String,
+      name: LocalizedText.parse(json['name']),
       priceAdjustment: (json['priceAdjustment'] as num?)?.toDouble() ?? 0,
       isDefault: json['isDefault'] as bool? ?? false,
     );
@@ -150,7 +152,7 @@ class CustomizationOption {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'name': name.toJson(),
       'priceAdjustment': priceAdjustment,
       'isDefault': isDefault,
     };
@@ -160,7 +162,7 @@ class CustomizationOption {
 /// Category model
 class MenuCategory {
   final int id;
-  final String name;
+  final LocalizedText name;
 
   MenuCategory({
     required this.id,
@@ -168,9 +170,11 @@ class MenuCategory {
   });
 
   factory MenuCategory.fromJson(Map<String, dynamic> json) {
+    // Handle both 'type' and 'name' field names for category name
+    final nameValue = json['type'] ?? json['name'];
     return MenuCategory(
       id: json['id'] as int,
-      name: (json['type'] ?? json['name']) as String,
+      name: LocalizedText.parse(nameValue ?? ''),
     );
   }
 }

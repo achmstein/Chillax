@@ -372,10 +372,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToReserveRoom => 'الحجز فشل';
 
   @override
-  String get available => 'متاح';
+  String get available => 'متاحة';
 
   @override
-  String get occupied => 'مشغول';
+  String get occupied => 'مشغولة';
 
   @override
   String get maintenance => 'صيانة';

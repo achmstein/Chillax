@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/localized_text_field.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
@@ -21,8 +23,10 @@ class MenuItemFormSheet extends ConsumerStatefulWidget {
 
 class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
+  late TextEditingController _nameEnController;
+  late TextEditingController _nameArController;
+  late TextEditingController _descriptionEnController;
+  late TextEditingController _descriptionArController;
   late TextEditingController _priceController;
   late TextEditingController _prepTimeController;
   int? _selectedCategoryId;
@@ -32,9 +36,12 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.item?.name ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.item?.description ?? '');
+    _nameEnController = TextEditingController(text: widget.item?.name.en ?? '');
+    _nameArController = TextEditingController(text: widget.item?.name.ar ?? '');
+    _descriptionEnController =
+        TextEditingController(text: widget.item?.description.en ?? '');
+    _descriptionArController =
+        TextEditingController(text: widget.item?.description.ar ?? '');
     _priceController = TextEditingController(
         text: widget.item?.price.toStringAsFixed(2) ?? '');
     _prepTimeController = TextEditingController(
@@ -45,8 +52,10 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _descriptionController.dispose();
+    _nameEnController.dispose();
+    _nameArController.dispose();
+    _descriptionEnController.dispose();
+    _descriptionArController.dispose();
     _priceController.dispose();
     _prepTimeController.dispose();
     super.dispose();
@@ -95,31 +104,25 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Name field
-                      AppText(
-                        l10n.nameRequired,
-                        style: theme.typography.sm.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FTextField(
-                        control: FTextFieldControl.managed(controller: _nameController),
-                        hint: l10n.enterItemName,
+                      // Name field (bilingual)
+                      LocalizedTextField(
+                        label: l10n.name,
+                        isRequired: true,
+                        enController: _nameEnController,
+                        arController: _nameArController,
+                        enHint: l10n.enterItemName,
+                        arHint: 'اكتب اسم المنتج',
                       ),
                       const SizedBox(height: 16),
 
-                      // Description field
-                      AppText(
-                        l10n.description,
-                        style: theme.typography.sm.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FTextField.multiline(
-                        control: FTextFieldControl.managed(controller: _descriptionController),
-                        hint: l10n.enterItemDescription,
+                      // Description field (bilingual)
+                      LocalizedTextField(
+                        label: l10n.description,
+                        enController: _descriptionEnController,
+                        arController: _descriptionArController,
+                        enHint: l10n.enterItemDescription,
+                        arHint: 'اكتب وصف المنتج',
+                        isMultiline: true,
                         maxLines: 3,
                       ),
                       const SizedBox(height: 16),
@@ -164,7 +167,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                         items: state.categories.map((category) {
                           return DropdownMenuItem<int>(
                             value: category.id,
-                            child: AppText(category.name),
+                            child: AppText(category.name.localized(context)),
                           );
                         }).toList(),
                         onChanged: (value) {
@@ -265,20 +268,24 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
       return;
     }
 
+    if (_nameEnController.text.trim().isEmpty) {
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     final state = ref.read(menuProvider);
-    final categoryName = state.categories
-        .firstWhere((c) => c.id == _selectedCategoryId)
-        .name;
+    final category = state.categories
+        .firstWhere((c) => c.id == _selectedCategoryId);
 
     final item = MenuItem(
       id: widget.item?.id ?? 0,
-      name: _nameController.text.trim(),
-      description: _descriptionController.text.trim(),
+      name: LocalizedTextControllers.getValue(_nameEnController, _nameArController),
+      description: LocalizedTextControllers.getValue(
+          _descriptionEnController, _descriptionArController),
       price: double.parse(_priceController.text),
       catalogTypeId: _selectedCategoryId!,
-      catalogTypeName: categoryName,
+      catalogTypeName: category.name,
       isAvailable: _isAvailable,
       preparationTimeMinutes: _prepTimeController.text.isNotEmpty
           ? int.parse(_prepTimeController.text)

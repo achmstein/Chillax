@@ -213,10 +213,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statusReserved => 'محجوزة';
 
   @override
-  String get statusAvailable => 'متاح';
+  String get statusAvailable => 'متاحة';
 
   @override
-  String get statusOccupied => 'مشغول';
+  String get statusOccupied => 'مشغولة';
 
   @override
   String get statusMaintenance => 'صيانة';
@@ -861,4 +861,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutDescription => 'وجهتك للاسترخاء والجيمنج والأكل الحلو.';
+
+  @override
+  String get appearance => 'المظهر';
+
+  @override
+  String get theme => 'الثيم';
+
+  @override
+  String get light => 'فاتح';
+
+  @override
+  String get dark => 'غامق';
+
+  @override
+  String get systemDefault => 'زي الجهاز';
+
+  @override
+  String get selectTheme => 'اختار الثيم';
+
+  @override
+  String get lightThemeDescription => 'الثيم الفاتح دايماً';
+
+  @override
+  String get darkThemeDescription => 'الثيم الغامق دايماً';
+
+  @override
+  String get systemDefaultDescription => 'زي إعدادات الجهاز';
+
+  @override
+  String get selectLanguage => 'اختار اللغة';
+
+  @override
+  String get transactionTypePurchase => 'شراء';
+
+  @override
+  String get transactionTypeBonus => 'مكافأة';
+
+  @override
+  String get transactionTypeReferral => 'إحالة';
+
+  @override
+  String get transactionTypePromotion => 'عرض';
+
+  @override
+  String get transactionTypeRedemption => 'استبدال';
+
+  @override
+  String get transactionTypeAdjustment => 'تعديل';
+
+  @override
+  String pointsEarnedFromOrder(String orderId) {
+    return 'نقط مكتسبة من طلب #$orderId';
+  }
+
+  @override
+  String pointsRedeemedForOrder(String orderId) {
+    return 'نقط مستخدمة في طلب #$orderId';
+  }
 }

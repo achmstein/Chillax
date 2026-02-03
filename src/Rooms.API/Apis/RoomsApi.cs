@@ -121,6 +121,13 @@ public static class RoomsApi
             .WithTags("Sessions")
             .RequireAuthorization();
 
+        api.MapPost("/sessions/my/{sessionId:int}/cancel", CancelMyReservation)
+            .WithName("CancelMyReservation")
+            .WithSummary("Cancel my reservation")
+            .WithDescription("Cancel your own reservation (only if still in Reserved status)")
+            .WithTags("Sessions")
+            .RequireAuthorization();
+
         api.MapGet("/sessions/by-code/{code}", GetSessionByCode)
             .WithName("GetSessionByCode")
             .WithSummary("Preview session by access code")
@@ -366,6 +373,42 @@ public static class RoomsApi
         }
     }
 
+    public static async Task<Results<Ok, NotFound, ForbidHttpResult, BadRequest<ProblemDetails>>> CancelMyReservation(
+        [FromServices] IReservationRepository reservationRepository,
+        [FromServices] IRoomRepository roomRepository,
+        HttpContext httpContext,
+        [Description("The session ID")] int sessionId)
+    {
+        var customerId = httpContext.User.GetUserId();
+        if (string.IsNullOrEmpty(customerId))
+            return TypedResults.Forbid();
+
+        try
+        {
+            var reservation = await reservationRepository.GetWithRoomAsync(sessionId);
+            if (reservation == null)
+                return TypedResults.NotFound();
+
+            // Verify the customer owns this reservation
+            if (reservation.CustomerId != customerId)
+                return TypedResults.Forbid();
+
+            // Only allow cancelling reservations that are still in Reserved status
+            if (reservation.Status != ReservationStatus.Reserved)
+                return TypedResults.BadRequest<ProblemDetails>(new() { Detail = "Can only cancel reservations that are still pending. Active sessions cannot be cancelled by customers." });
+
+            reservation.Cancel();
+            reservationRepository.Update(reservation);
+            await reservationRepository.UnitOfWork.SaveEntitiesAsync();
+
+            return TypedResults.Ok();
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
     public static async Task<Ok<IEnumerable<ReservationViewModel>>> GetMySessions(
         [FromServices] IRoomQueries queries,
         HttpContext httpContext)
@@ -498,6 +541,12 @@ public record WalkInSessionRequest(string? Notes = null);
 
 public record JoinSessionRequest(string AccessCode);
 
-public record CreateRoomRequest(string Name, string? Description, decimal HourlyRate);
+public record CreateRoomRequest(
+    LocalizedText Name,
+    LocalizedText? Description,
+    decimal HourlyRate);
 
-public record UpdateRoomRequest(string Name, string? Description, decimal HourlyRate);
+public record UpdateRoomRequest(
+    LocalizedText Name,
+    LocalizedText? Description,
+    decimal HourlyRate);
