@@ -74,45 +74,52 @@ public static class CatalogApi
         api.MapPost("/categories", CreateCategory)
             .WithName("CreateCategory")
             .WithSummary("Create a menu category")
-            .WithDescription("Create a new menu category")
-            .WithTags("Categories");
+            .WithDescription("Create a new menu category (Admin only)")
+            .WithTags("Categories")
+            .RequireAuthorization("Admin");
 
         api.MapPut("/categories/{id:int}", UpdateCategory)
             .WithName("UpdateCategory")
             .WithSummary("Update a menu category")
-            .WithDescription("Update an existing menu category")
-            .WithTags("Categories");
+            .WithDescription("Update an existing menu category (Admin only)")
+            .WithTags("Categories")
+            .RequireAuthorization("Admin");
 
         api.MapDelete("/categories/{id:int}", DeleteCategory)
             .WithName("DeleteCategory")
             .WithSummary("Delete menu category")
-            .WithDescription("Delete the specified menu category")
-            .WithTags("Categories");
+            .WithDescription("Delete the specified menu category (Admin only)")
+            .WithTags("Categories")
+            .RequireAuthorization("Admin");
 
         // CRUD endpoints
         api.MapPost("/items", CreateItem)
             .WithName("CreateItem")
             .WithSummary("Create a menu item")
-            .WithDescription("Create a new menu item")
-            .WithTags("Items");
+            .WithDescription("Create a new menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         api.MapPut("/items/{id:int}", UpdateItem)
             .WithName("UpdateItem")
             .WithSummary("Update a menu item")
-            .WithDescription("Update an existing menu item")
-            .WithTags("Items");
+            .WithDescription("Update an existing menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         api.MapDelete("/items/{id:int}", DeleteItemById)
             .WithName("DeleteItem")
             .WithSummary("Delete menu item")
-            .WithDescription("Delete the specified menu item")
-            .WithTags("Items");
+            .WithDescription("Delete the specified menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         api.MapPatch("/items/{id:int}/availability", ToggleItemAvailability)
             .WithName("ToggleItemAvailability")
             .WithSummary("Toggle item availability")
-            .WithDescription("Toggle the availability of a menu item")
-            .WithTags("Items");
+            .WithDescription("Toggle the availability of a menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         // Customization endpoints
         api.MapGet("/items/{id:int}/customizations", GetItemCustomizations)

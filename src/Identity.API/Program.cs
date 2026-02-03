@@ -215,7 +215,7 @@ app.MapPost("/api/identity/register-admin", async (RegisterAdminRequest request,
     }
 
     return Results.Ok(new { message = "Admin registered successfully" });
-}).RequireAuthorization();
+}).RequireAuthorization("Admin");
 
 // List users endpoint (admin only)
 // Supports filtering: role=Admin (only admins), excludeRole=Admin (exclude admins, i.e. customers only)
@@ -318,7 +318,7 @@ app.MapGet("/api/identity/users", async (IHttpClientFactory httpClientFactory, I
         .ToList();
 
     return Results.Ok(result);
-}).RequireAuthorization();
+}).RequireAuthorization("Admin");
 
 // Get user by ID endpoint (admin only)
 app.MapGet("/api/identity/users/{userId}", async (string userId, IHttpClientFactory httpClientFactory, IConfiguration config) =>
@@ -392,7 +392,7 @@ app.MapGet("/api/identity/users/{userId}", async (string userId, IHttpClientFact
         user.CreatedTimestamp,
         realmRoles
     ));
-}).RequireAuthorization();
+}).RequireAuthorization("Admin");
 
 // Get user count endpoint
 app.MapGet("/api/identity/users/count", async (IHttpClientFactory httpClientFactory, IConfiguration config) =>
@@ -436,7 +436,7 @@ app.MapGet("/api/identity/users/count", async (IHttpClientFactory httpClientFact
 
     var count = await countResponse.Content.ReadFromJsonAsync<int>();
     return Results.Ok(new { count });
-}).RequireAuthorization();
+}).RequireAuthorization("Admin");
 
 // Change password endpoint (authenticated user)
 app.MapPost("/api/identity/change-password", async (ChangePasswordRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>

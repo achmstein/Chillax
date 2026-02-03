@@ -474,7 +474,7 @@
           "Sessions"
         ],
         "summary": "Cancel a session",
-        "description": "Cancel a reservation or active session",
+        "description": "Cancel a reservation or active session (Admin only)",
         "operationId": "CancelSession",
         "parameters": [
           {
@@ -524,7 +524,7 @@
           "Sessions"
         ],
         "summary": "Start a walk-in session",
-        "description": "Start a walk-in session without an assigned customer. Returns access code for customers to join.",
+        "description": "Start a walk-in session without an assigned customer. Returns access code for customers to join. (Admin only)",
         "operationId": "StartWalkInSession",
         "parameters": [
           {
@@ -855,7 +855,7 @@
           "Sessions"
         ],
         "summary": "Get room session history",
-        "description": "Get completed sessions history for a specific room",
+        "description": "Get completed sessions history for a specific room (Admin only)",
         "operationId": "GetRoomSessionHistory",
         "parameters": [
           {

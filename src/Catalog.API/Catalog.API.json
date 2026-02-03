@@ -69,7 +69,7 @@
           "Items"
         ],
         "summary": "Create a menu item",
-        "description": "Create a new menu item",
+        "description": "Create a new menu item (Admin only)",
         "operationId": "CreateItem",
         "parameters": [
           {
@@ -105,8 +105,17 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/by": {
@@ -233,7 +242,7 @@
           "Items"
         ],
         "summary": "Update a menu item",
-        "description": "Update an existing menu item",
+        "description": "Update an existing menu item (Admin only)",
         "operationId": "UpdateItem",
         "parameters": [
           {
@@ -280,15 +289,24 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       },
       "delete": {
         "tags": [
           "Items"
         ],
         "summary": "Delete menu item",
-        "description": "Delete the specified menu item",
+        "description": "Delete the specified menu item (Admin only)",
         "operationId": "DeleteItem",
         "parameters": [
           {
@@ -318,8 +336,17 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/by/{name}": {
@@ -689,7 +716,7 @@
           "Categories"
         ],
         "summary": "Create a menu category",
-        "description": "Create a new menu category",
+        "description": "Create a new menu category (Admin only)",
         "operationId": "CreateCategory",
         "parameters": [
           {
@@ -722,8 +749,17 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/categories/{id}": {
@@ -777,7 +813,7 @@
           "Categories"
         ],
         "summary": "Update a menu category",
-        "description": "Update an existing menu category",
+        "description": "Update an existing menu category (Admin only)",
         "operationId": "UpdateCategory",
         "parameters": [
           {
@@ -824,15 +860,24 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       },
       "delete": {
         "tags": [
           "Categories"
         ],
         "summary": "Delete menu category",
-        "description": "Delete the specified menu category",
+        "description": "Delete the specified menu category (Admin only)",
         "operationId": "DeleteCategory",
         "parameters": [
           {
@@ -872,8 +917,17 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/{id}/availability": {
@@ -882,7 +936,7 @@
           "Items"
         ],
         "summary": "Toggle item availability",
-        "description": "Toggle the availability of a menu item",
+        "description": "Toggle the availability of a menu item (Admin only)",
         "operationId": "ToggleItemAvailability",
         "parameters": [
           {
@@ -919,8 +973,17 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/{id}/customizations": {

@@ -45,28 +45,28 @@ public static class RoomsApi
             .WithSummary("Create a new room")
             .WithDescription("Create a new PlayStation room (Admin only)")
             .WithTags("Rooms")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPut("/{id:int}", UpdateRoom)
             .WithName("UpdateRoom")
             .WithSummary("Update room details")
             .WithDescription("Update room name, description, and hourly rate (Admin only)")
             .WithTags("Rooms")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapDelete("/{id:int}", DeleteRoom)
             .WithName("DeleteRoom")
             .WithSummary("Delete a room")
             .WithDescription("Delete a room (Admin only)")
             .WithTags("Rooms")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPut("/{id:int}/status", UpdateRoomStatus)
             .WithName("UpdateRoomStatus")
             .WithSummary("Update room physical status")
             .WithDescription("Update the physical status of a room (Admin only)")
             .WithTags("Rooms")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         // Reservation endpoints (commands)
         api.MapPost("/{roomId:int}/reserve", CreateReservation)
@@ -82,29 +82,29 @@ public static class RoomsApi
             .WithSummary("Start a session")
             .WithDescription("Start the timer for a reserved session (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPost("/sessions/{sessionId:int}/end", EndSession)
             .WithName("EndSession")
             .WithSummary("End a session")
             .WithDescription("End the session and calculate cost (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPost("/sessions/{sessionId:int}/cancel", CancelSession)
             .WithName("CancelSession")
             .WithSummary("Cancel a session")
-            .WithDescription("Cancel a reservation or active session")
+            .WithDescription("Cancel a reservation or active session (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         // Walk-in session endpoints (Admin)
         api.MapPost("/sessions/walk-in/{roomId:int}", StartWalkInSession)
             .WithName("StartWalkInSession")
             .WithSummary("Start a walk-in session")
-            .WithDescription("Start a walk-in session without an assigned customer. Returns access code for customers to join.")
+            .WithDescription("Start a walk-in session without an assigned customer. Returns access code for customers to join. (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         // Session membership endpoints (Customer)
         api.MapPost("/sessions/join", JoinSession)
@@ -141,7 +141,7 @@ public static class RoomsApi
             .WithSummary("Get active sessions")
             .WithDescription("Get all currently active sessions (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapGet("/sessions/{sessionId:int}", GetSessionById)
             .WithName("GetSession")
@@ -153,9 +153,9 @@ public static class RoomsApi
         api.MapGet("/{roomId:int}/sessions/history", GetRoomSessionHistory)
             .WithName("GetRoomSessionHistory")
             .WithSummary("Get room session history")
-            .WithDescription("Get completed sessions history for a specific room")
+            .WithDescription("Get completed sessions history for a specific room (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         return app;
     }

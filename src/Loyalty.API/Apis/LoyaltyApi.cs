@@ -22,7 +22,7 @@ public static class LoyaltyApi
             .WithSummary("List all loyalty accounts")
             .WithDescription("Get all loyalty accounts (Admin only)")
             .WithTags("Accounts")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapGet("/accounts/{userId}", GetAccountByUserId)
             .WithName("GetAccount")
@@ -65,7 +65,7 @@ public static class LoyaltyApi
             .WithSummary("Adjust points")
             .WithDescription("Manual adjustment of points (Admin only)")
             .WithTags("Transactions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         // Tier endpoints
         api.MapGet("/tiers", GetTierInfo)
@@ -80,7 +80,7 @@ public static class LoyaltyApi
             .WithSummary("Get loyalty stats")
             .WithDescription("Get loyalty program statistics (Admin only)")
             .WithTags("Stats")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         return app;
     }
