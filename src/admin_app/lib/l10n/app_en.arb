@@ -438,5 +438,42 @@
     "placeholders": {
       "orderId": {"type": "String"}
     }
+  },
+
+  "addMenuItemPage": "Add Menu Item",
+  "editMenuItemPage": "Edit Menu Item",
+  "customizations": "Customizations",
+  "addCustomization": "Add Customization",
+  "editCustomization": "Edit Customization",
+  "customizationName": "Customization Name",
+  "customizationNameHint": "e.g., Size, Extras, Sugar Level",
+  "required": "Required",
+  "allowMultiple": "Allow Multiple",
+  "options": "Options",
+  "addOption": "Add Option",
+  "optionName": "Option Name",
+  "optionNameHint": "e.g., Small, Medium, Large",
+  "priceAdjustment": "Price Adjustment",
+  "priceAdjustmentHint": "e.g., 10 or -5",
+  "defaultOption": "Default",
+  "takePhoto": "Take Photo",
+  "chooseFromGallery": "Choose from Gallery",
+  "changeImage": "Change Image",
+  "removeImage": "Remove Image",
+  "itemImage": "Item Image",
+  "tapToAddImage": "Tap to add image",
+  "noCustomizations": "No customizations",
+  "addCustomizationsHint": "Add customizations like size or extras",
+  "optionRequired": "At least one option is required",
+  "savingItem": "Saving...",
+  "itemSaved": "Item saved successfully",
+  "failedToSaveItem": "Failed to save item",
+  "deleteCustomizationConfirm": "Delete this customization?",
+  "deleteOptionConfirm": "Delete this option?",
+  "optionsCount": "{count} {count, plural, =1{option} other{options}}",
+  "@optionsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
   }
 }

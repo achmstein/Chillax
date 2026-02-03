@@ -1813,6 +1813,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Points redeemed for Order #{orderId}'**
   String pointsRedeemedForOrder(String orderId);
+
+  /// No description provided for @addMenuItemPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Menu Item'**
+  String get addMenuItemPage;
+
+  /// No description provided for @editMenuItemPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Menu Item'**
+  String get editMenuItemPage;
+
+  /// No description provided for @customizations.
+  ///
+  /// In en, this message translates to:
+  /// **'Customizations'**
+  String get customizations;
+
+  /// No description provided for @addCustomization.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Customization'**
+  String get addCustomization;
+
+  /// No description provided for @editCustomization.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Customization'**
+  String get editCustomization;
+
+  /// No description provided for @customizationName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customization Name'**
+  String get customizationName;
+
+  /// No description provided for @customizationNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Size, Extras, Sugar Level'**
+  String get customizationNameHint;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @allowMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Multiple'**
+  String get allowMultiple;
+
+  /// No description provided for @options.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get options;
+
+  /// No description provided for @addOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Option'**
+  String get addOption;
+
+  /// No description provided for @optionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Option Name'**
+  String get optionName;
+
+  /// No description provided for @optionNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Small, Medium, Large'**
+  String get optionNameHint;
+
+  /// No description provided for @priceAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Adjustment'**
+  String get priceAdjustment;
+
+  /// No description provided for @priceAdjustmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 10 or -5'**
+  String get priceAdjustmentHint;
+
+  /// No description provided for @defaultOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get defaultOption;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @changeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Image'**
+  String get changeImage;
+
+  /// No description provided for @removeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Image'**
+  String get removeImage;
+
+  /// No description provided for @itemImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Image'**
+  String get itemImage;
+
+  /// No description provided for @tapToAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add image'**
+  String get tapToAddImage;
+
+  /// No description provided for @noCustomizations.
+  ///
+  /// In en, this message translates to:
+  /// **'No customizations'**
+  String get noCustomizations;
+
+  /// No description provided for @addCustomizationsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add customizations like size or extras'**
+  String get addCustomizationsHint;
+
+  /// No description provided for @optionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one option is required'**
+  String get optionRequired;
+
+  /// No description provided for @savingItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get savingItem;
+
+  /// No description provided for @itemSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Item saved successfully'**
+  String get itemSaved;
+
+  /// No description provided for @failedToSaveItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save item'**
+  String get failedToSaveItem;
+
+  /// No description provided for @deleteCustomizationConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this customization?'**
+  String get deleteCustomizationConfirm;
+
+  /// No description provided for @deleteOptionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this option?'**
+  String get deleteOptionConfirm;
+
+  /// No description provided for @optionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, =1{option} other{options}}'**
+  String optionsCount(int count);
 }
 
 class _AppLocalizationsDelegate

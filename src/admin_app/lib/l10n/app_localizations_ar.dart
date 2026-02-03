@@ -919,4 +919,105 @@ class AppLocalizationsAr extends AppLocalizations {
   String pointsRedeemedForOrder(String orderId) {
     return 'نقط مستخدمة في طلب #$orderId';
   }
+
+  @override
+  String get addMenuItemPage => 'إضافة صنف';
+
+  @override
+  String get editMenuItemPage => 'تعديل صنف';
+
+  @override
+  String get customizations => 'التخصيصات';
+
+  @override
+  String get addCustomization => 'إضافة تخصيص';
+
+  @override
+  String get editCustomization => 'تعديل تخصيص';
+
+  @override
+  String get customizationName => 'اسم التخصيص';
+
+  @override
+  String get customizationNameHint => 'مثلاً: الحجم، الإضافات، مستوى السكر';
+
+  @override
+  String get required => 'مطلوب';
+
+  @override
+  String get allowMultiple => 'سماح باختيار متعدد';
+
+  @override
+  String get options => 'الخيارات';
+
+  @override
+  String get addOption => 'إضافة خيار';
+
+  @override
+  String get optionName => 'اسم الخيار';
+
+  @override
+  String get optionNameHint => 'مثلاً: صغير، وسط، كبير';
+
+  @override
+  String get priceAdjustment => 'تعديل السعر';
+
+  @override
+  String get priceAdjustmentHint => 'مثلاً: 10 أو -5';
+
+  @override
+  String get defaultOption => 'افتراضي';
+
+  @override
+  String get takePhoto => 'التقاط صورة';
+
+  @override
+  String get chooseFromGallery => 'اختيار من المعرض';
+
+  @override
+  String get changeImage => 'تغيير الصورة';
+
+  @override
+  String get removeImage => 'إزالة الصورة';
+
+  @override
+  String get itemImage => 'صورة الصنف';
+
+  @override
+  String get tapToAddImage => 'اضغط لإضافة صورة';
+
+  @override
+  String get noCustomizations => 'مفيش تخصيصات';
+
+  @override
+  String get addCustomizationsHint => 'ضيف تخصيصات زي الحجم أو الإضافات';
+
+  @override
+  String get optionRequired => 'لازم خيار واحد على الأقل';
+
+  @override
+  String get savingItem => 'جاري الحفظ...';
+
+  @override
+  String get itemSaved => 'تم حفظ الصنف';
+
+  @override
+  String get failedToSaveItem => 'فشل حفظ الصنف';
+
+  @override
+  String get deleteCustomizationConfirm => 'مسح التخصيص ده؟';
+
+  @override
+  String get deleteOptionConfirm => 'مسح الخيار ده؟';
+
+  @override
+  String optionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خيارات',
+      one: 'خيار',
+    );
+    return '$count $_temp0';
+  }
 }

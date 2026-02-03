@@ -92,6 +92,7 @@ class ItemCustomization {
   final LocalizedText name;
   final bool isRequired;
   final bool allowMultiple;
+  final int displayOrder;
   final List<CustomizationOption> options;
 
   ItemCustomization({
@@ -99,8 +100,27 @@ class ItemCustomization {
     required this.name,
     this.isRequired = false,
     this.allowMultiple = false,
+    this.displayOrder = 0,
     this.options = const [],
   });
+
+  ItemCustomization copyWith({
+    int? id,
+    LocalizedText? name,
+    bool? isRequired,
+    bool? allowMultiple,
+    int? displayOrder,
+    List<CustomizationOption>? options,
+  }) {
+    return ItemCustomization(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      isRequired: isRequired ?? this.isRequired,
+      allowMultiple: allowMultiple ?? this.allowMultiple,
+      displayOrder: displayOrder ?? this.displayOrder,
+      options: options ?? this.options,
+    );
+  }
 
   factory ItemCustomization.fromJson(Map<String, dynamic> json) {
     return ItemCustomization(
@@ -108,6 +128,7 @@ class ItemCustomization {
       name: LocalizedText.parse(json['name']),
       isRequired: json['isRequired'] as bool? ?? false,
       allowMultiple: json['allowMultiple'] as bool? ?? false,
+      displayOrder: json['displayOrder'] as int? ?? 0,
       options: (json['options'] as List<dynamic>?)
               ?.map((e) => CustomizationOption.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -121,6 +142,7 @@ class ItemCustomization {
       'name': name.toJson(),
       'isRequired': isRequired,
       'allowMultiple': allowMultiple,
+      'displayOrder': displayOrder,
       'options': options.map((e) => e.toJson()).toList(),
     };
   }
@@ -132,13 +154,31 @@ class CustomizationOption {
   final LocalizedText name;
   final double priceAdjustment;
   final bool isDefault;
+  final int displayOrder;
 
   CustomizationOption({
     required this.id,
     required this.name,
     this.priceAdjustment = 0,
     this.isDefault = false,
+    this.displayOrder = 0,
   });
+
+  CustomizationOption copyWith({
+    int? id,
+    LocalizedText? name,
+    double? priceAdjustment,
+    bool? isDefault,
+    int? displayOrder,
+  }) {
+    return CustomizationOption(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      priceAdjustment: priceAdjustment ?? this.priceAdjustment,
+      isDefault: isDefault ?? this.isDefault,
+      displayOrder: displayOrder ?? this.displayOrder,
+    );
+  }
 
   factory CustomizationOption.fromJson(Map<String, dynamic> json) {
     return CustomizationOption(
@@ -146,6 +186,7 @@ class CustomizationOption {
       name: LocalizedText.parse(json['name']),
       priceAdjustment: (json['priceAdjustment'] as num?)?.toDouble() ?? 0,
       isDefault: json['isDefault'] as bool? ?? false,
+      displayOrder: json['displayOrder'] as int? ?? 0,
     );
   }
 
@@ -155,6 +196,7 @@ class CustomizationOption {
       'name': name.toJson(),
       'priceAdjustment': priceAdjustment,
       'isDefault': isDefault,
+      'displayOrder': displayOrder,
     };
   }
 }

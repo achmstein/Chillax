@@ -924,4 +924,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String pointsRedeemedForOrder(String orderId) {
     return 'Points redeemed for Order #$orderId';
   }
+
+  @override
+  String get addMenuItemPage => 'Add Menu Item';
+
+  @override
+  String get editMenuItemPage => 'Edit Menu Item';
+
+  @override
+  String get customizations => 'Customizations';
+
+  @override
+  String get addCustomization => 'Add Customization';
+
+  @override
+  String get editCustomization => 'Edit Customization';
+
+  @override
+  String get customizationName => 'Customization Name';
+
+  @override
+  String get customizationNameHint => 'e.g., Size, Extras, Sugar Level';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get allowMultiple => 'Allow Multiple';
+
+  @override
+  String get options => 'Options';
+
+  @override
+  String get addOption => 'Add Option';
+
+  @override
+  String get optionName => 'Option Name';
+
+  @override
+  String get optionNameHint => 'e.g., Small, Medium, Large';
+
+  @override
+  String get priceAdjustment => 'Price Adjustment';
+
+  @override
+  String get priceAdjustmentHint => 'e.g., 10 or -5';
+
+  @override
+  String get defaultOption => 'Default';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get chooseFromGallery => 'Choose from Gallery';
+
+  @override
+  String get changeImage => 'Change Image';
+
+  @override
+  String get removeImage => 'Remove Image';
+
+  @override
+  String get itemImage => 'Item Image';
+
+  @override
+  String get tapToAddImage => 'Tap to add image';
+
+  @override
+  String get noCustomizations => 'No customizations';
+
+  @override
+  String get addCustomizationsHint => 'Add customizations like size or extras';
+
+  @override
+  String get optionRequired => 'At least one option is required';
+
+  @override
+  String get savingItem => 'Saving...';
+
+  @override
+  String get itemSaved => 'Item saved successfully';
+
+  @override
+  String get failedToSaveItem => 'Failed to save item';
+
+  @override
+  String get deleteCustomizationConfirm => 'Delete this customization?';
+
+  @override
+  String get deleteOptionConfirm => 'Delete this option?';
+
+  @override
+  String optionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'options',
+      one: 'option',
+    );
+    return '$count $_temp0';
+  }
 }

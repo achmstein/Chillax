@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -9,7 +10,6 @@ import '../../../core/widgets/ui_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
-import '../widgets/menu_item_form_sheet.dart';
 
 class MenuListScreen extends ConsumerStatefulWidget {
   const MenuListScreen({super.key});
@@ -66,7 +66,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.add, size: 22),
-                onPressed: () => _showItemForm(context),
+                onPressed: () => context.push('/menu/items/new'),
                 tooltip: l10n.addItem,
               ),
             ],
@@ -130,7 +130,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                           onToggleAvailability: (value) {
                             ref.read(menuProvider.notifier).updateItemAvailability(item.id, value);
                           },
-                          onEdit: () => _showItemForm(context, item: item),
+                          onEdit: () => context.push('/menu/items/${item.id}'),
                           onDelete: () => _deleteItem(context, item),
                         );
                       },
@@ -139,14 +139,6 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showItemForm(BuildContext context, {MenuItem? item}) {
-    showFSheet(
-      context: context,
-      side: FLayout.rtl,
-      builder: (context) => MenuItemFormSheet(item: item),
     );
   }
 
@@ -235,70 +227,91 @@ class _MenuItemTile extends StatelessWidget {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Icon
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: item.isAvailable
-                  ? theme.colors.primary.withValues(alpha: 0.1)
-                  : theme.colors.mutedForeground.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+    return FTappable(
+      onPress: onEdit,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Image or icon
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: item.isAvailable
+                    ? theme.colors.primary.withValues(alpha: 0.1)
+                    : theme.colors.mutedForeground.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: item.pictureUri != null
+                  ? CachedNetworkImage(
+                      imageUrl: item.pictureUri!,
+                      fit: BoxFit.cover,
+                      width: 48,
+                      height: 48,
+                      placeholder: (context, url) => Icon(
+                        Icons.restaurant,
+                        size: 24,
+                        color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
+                      ),
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.restaurant,
+                        size: 24,
+                        color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
+                      ),
+                    )
+                  : Icon(
+                      Icons.restaurant,
+                      size: 24,
+                      color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
+                    ),
             ),
-            child: Icon(
-              Icons.restaurant,
-              size: 24,
-              color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
-            ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
 
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  item.name.localized(context),
-                  style: theme.typography.base.copyWith(
-                    fontWeight: FontWeight.w600,
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    item.name.localized(context),
+                    style: theme.typography.base.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    AppText(
-                      l10n.priceFormat(item.price.toStringAsFixed(0)),
-                      style: theme.typography.sm.copyWith(
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      AppText(
+                        l10n.priceFormat(item.price.toStringAsFixed(0)),
+                        style: theme.typography.sm.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    AppText(
-                      '• ${item.catalogTypeName.localized(context)}',
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
+                      const SizedBox(width: 8),
+                      AppText(
+                        '• ${item.catalogTypeName.localized(context)}',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.mutedForeground,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // Availability toggle
-          FSwitch(
-            value: item.isAvailable,
-            onChange: onToggleAvailability,
-          ),
-        ],
+            // Availability toggle
+            FSwitch(
+              value: item.isAvailable,
+              onChange: onToggleAvailability,
+            ),
+          ],
+        ),
       ),
     );
   }
