@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -18,7 +18,6 @@ class OrderDetailSheet extends ConsumerWidget {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final dateFormat = DateFormat.yMd(locale.languageCode).add_Hm();
 
     return SizedBox(
@@ -115,7 +114,7 @@ class OrderDetailSheet extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...order.items.map((item) => _buildOrderItem(context, theme, item, currencyFormat, l10n)),
+                  ...order.items.map((item) => _buildOrderItem(context, theme, item, l10n)),
 
                   const SizedBox(height: 16),
                   const FDivider(),
@@ -132,7 +131,7 @@ class OrderDetailSheet extends ConsumerWidget {
                         ),
                       ),
                       AppText(
-                        currencyFormat.format(order.total),
+                        l10n.priceFormat(order.total.toStringAsFixed(0)),
                         style: theme.typography.lg.copyWith(
                           fontWeight: FontWeight.bold,
                           color: theme.colors.primary,
@@ -214,7 +213,7 @@ class OrderDetailSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildOrderItem(BuildContext context, FThemeData theme, OrderItem item, NumberFormat format, AppLocalizations l10n) {
+  Widget _buildOrderItem(BuildContext context, FThemeData theme, OrderItem item, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -247,7 +246,7 @@ class OrderDetailSheet extends ConsumerWidget {
                   ),
                 ),
                 AppText(
-                  '${format.format(item.unitPrice)} ${l10n.each}',
+                  '${l10n.priceFormat(item.unitPrice.toStringAsFixed(0))} ${l10n.each}',
                   style: theme.typography.xs.copyWith(
                     color: theme.colors.mutedForeground,
                   ),
@@ -256,7 +255,7 @@ class OrderDetailSheet extends ConsumerWidget {
             ),
           ),
           AppText(
-            format.format(item.totalPrice),
+            l10n.priceFormat(item.totalPrice.toStringAsFixed(0)),
             style: theme.typography.sm.copyWith(
               fontWeight: FontWeight.w500,
             ),

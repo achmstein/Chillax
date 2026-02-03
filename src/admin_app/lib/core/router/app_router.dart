@@ -17,6 +17,7 @@ import '../../features/accounts/screens/accounts_screen.dart';
 import '../../features/accounts/screens/account_detail_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/users/screens/users_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 
 /// Splash screen shown while checking authentication
@@ -216,6 +217,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/profile',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: ProfileScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/users',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: UsersScreen(),
             ),
           ),
         ],

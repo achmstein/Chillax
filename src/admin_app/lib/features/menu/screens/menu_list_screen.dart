@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
@@ -37,7 +36,6 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(menuProvider);
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final l10n = AppLocalizations.of(context)!;
 
     final theme = context.theme;
@@ -132,7 +130,6 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                                 final item = state.filteredItems[index];
                                 return _MenuItemCard(
                                   item: item,
-                                  currencyFormat: currencyFormat,
                                   onToggleAvailability: (value) {
                                     ref.read(menuProvider.notifier)
                                         .updateItemAvailability(item.id, value);
@@ -230,14 +227,12 @@ class _CategoryChip extends StatelessWidget {
 
 class _MenuItemCard extends StatelessWidget {
   final MenuItem item;
-  final NumberFormat currencyFormat;
   final ValueChanged<bool> onToggleAvailability;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _MenuItemCard({
     required this.item,
-    required this.currencyFormat,
     required this.onToggleAvailability,
     required this.onEdit,
     required this.onDelete,
@@ -246,6 +241,7 @@ class _MenuItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       padding: kScreenPadding,
@@ -338,7 +334,7 @@ class _MenuItemCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               AppText(
-                currencyFormat.format(item.price),
+                l10n.priceFormat(item.price.toStringAsFixed(0)),
                 style: theme.typography.lg.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colors.primary,
@@ -348,8 +344,8 @@ class _MenuItemCard extends StatelessWidget {
                 children: [
                   AppText(
                     item.isAvailable
-                        ? AppLocalizations.of(context)!.availableLabel
-                        : AppLocalizations.of(context)!.unavailable,
+                        ? l10n.availableLabel
+                        : l10n.unavailable,
                     style: theme.typography.xs.copyWith(
                       color: theme.colors.mutedForeground,
                     ),

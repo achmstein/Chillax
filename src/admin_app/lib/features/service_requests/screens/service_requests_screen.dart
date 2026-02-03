@@ -10,6 +10,20 @@ import '../../../l10n/app_localizations.dart';
 import '../models/service_request.dart';
 import '../providers/service_requests_provider.dart';
 
+/// Extension to get localized labels for service request types
+extension ServiceRequestTypeLocalization on ServiceRequestType {
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case ServiceRequestType.callWaiter:
+        return l10n.callWaiter;
+      case ServiceRequestType.controllerChange:
+        return l10n.controllerChange;
+      case ServiceRequestType.receiptToPay:
+        return l10n.receiptToPay;
+    }
+  }
+}
+
 class ServiceRequestsScreen extends ConsumerStatefulWidget {
   const ServiceRequestsScreen({super.key});
 
@@ -165,7 +179,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: AppText(
-                        request.requestType.label,
+                        request.requestType.localizedLabel(l10n),
                         style: theme.typography.lg.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -363,7 +377,7 @@ class _RequestTile extends StatelessWidget {
                       Row(
                         children: [
                           AppText(
-                            request.requestType.label,
+                            request.requestType.localizedLabel(l10n),
                             style: theme.typography.sm.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -396,7 +410,7 @@ class _RequestTile extends StatelessWidget {
 
                 // Action hint
                 AppText(
-                  isPending ? 'TAP' : isAcknowledged ? 'DONE' : '',
+                  isPending ? l10n.tap : isAcknowledged ? l10n.doneLabel : '',
                   style: theme.typography.xs.copyWith(
                     color: isPending
                         ? theme.colors.destructive

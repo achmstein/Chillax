@@ -88,22 +88,41 @@ class AuthService extends Notifier<AuthState> {
       final idToken = await _storage.read(key: _idTokenKey);
 
       if (accessToken != null && refreshTokenValue != null) {
-        // Temporarily set tokens to allow refresh
+        // Parse stored token to get user info
+        final claims = _parseJwt(accessToken);
+        final roles = _extractRoles(claims);
+        final isAdmin = roles.contains(AppConfig.adminRole);
+
+        // Set initial state from stored tokens
         state = state.copyWith(
           accessToken: accessToken,
           refreshToken: refreshTokenValue,
           idToken: idToken,
+          isAuthenticated: true,
+          isAdmin: isAdmin,
+          userId: claims['sub'] as String?,
+          email: claims['email'] as String?,
+          name: claims['name'] as String?,
+          roles: roles,
         );
 
-        // Validate tokens by attempting refresh
+        // Try to refresh tokens in background
         final refreshed = await refreshToken();
         if (refreshed) {
           state = state.copyWith(isInitializing: false);
           return;
         }
+
+        // Refresh failed - check if tokens were cleared (auth error) or preserved (network error)
+        if (state.accessToken != null) {
+          // Tokens preserved (network error) - use existing tokens
+          debugPrint('Auth: Using existing tokens (refresh failed, likely network issue)');
+          state = state.copyWith(isInitializing: false);
+          return;
+        }
       }
 
-      // No valid tokens or refresh failed
+      // No valid tokens or tokens were cleared due to auth error
       state = state.copyWith(
         isInitializing: false,
         isAuthenticated: false,
@@ -235,11 +254,16 @@ class AuthService extends Notifier<AuthState> {
       return false;
     } on DioException catch (e) {
       debugPrint('Token refresh error: ${e.response?.data ?? e.message}');
-      await _clearTokens();
+      // Only clear tokens if server explicitly rejected them (auth errors)
+      // Don't clear on network errors - user might just be offline
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+        await _clearTokens();
+      }
       return false;
     } catch (e) {
       debugPrint('Token refresh error: $e');
-      await _clearTokens();
+      // Don't clear tokens on unknown errors - preserve session
       return false;
     }
   }
@@ -463,7 +487,8 @@ class AuthService extends Notifier<AuthState> {
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _idTokenKey);
 
-    state = const AuthState();
+    // Set isInitializing to false so router redirects to login instead of staying on splash
+    state = const AuthState(isInitializing: false);
   }
 
   Map<String, dynamic> _parseJwt(String token) {

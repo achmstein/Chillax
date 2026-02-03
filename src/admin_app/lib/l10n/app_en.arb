@@ -338,5 +338,75 @@
   "tierBronze": "BRONZE",
   "tierSilver": "SILVER",
   "tierGold": "GOLD",
-  "tierPlatinum": "PLATINUM"
+  "tierPlatinum": "PLATINUM",
+
+  "noSessionsYet": "No sessions yet",
+  "loadMore": "Load more",
+  "sessions": "Sessions",
+
+  "expiredAutoCancelling": "Expired - Auto-cancelling...",
+  "autoCancelIn": "Auto-cancel in {countdown}",
+  "@autoCancelIn": {
+    "placeholders": {
+      "countdown": {"type": "String"}
+    }
+  },
+  "expiresIn": "Expires in {countdown}",
+  "@expiresIn": {
+    "placeholders": {
+      "countdown": {"type": "String"}
+    }
+  },
+
+  "currency": "EGP",
+  "priceFormat": "£{price}",
+  "@priceFormat": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "hourlyRateFormat": "£{rate}/hr",
+  "@hourlyRateFormat": {
+    "placeholders": {
+      "rate": {"type": "String"}
+    }
+  },
+  "balanceFormat": "{amount} {currency}",
+  "@balanceFormat": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "currency": {"type": "String"}
+    }
+  },
+
+  "changePassword": "Change Password",
+  "usersManagement": "Users",
+  "helpAndSupport": "Help & Support",
+  "newPassword": "New Password",
+  "confirmPassword": "Confirm Password",
+  "passwordsDoNotMatch": "Passwords don't match",
+  "passwordChangedSuccess": "Password changed successfully",
+  "passwordMinLength": "Password must be at least 8 characters",
+  "addAdmin": "Add Admin",
+  "noUsersFound": "No users found",
+  "adminRole": "Admin",
+  "customerRole": "Customer",
+  "adminCreatedSuccess": "Admin created successfully",
+  "enabled": "Enabled",
+  "enterNewPassword": "Enter new password",
+  "email": "Email",
+  "enterEmail": "Enter email address",
+  "enterName": "Enter name",
+  "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "needHelpContactUs": "Need help? Contact us:",
+  "supportEmail": "support@chillax.com",
+  "supportPhone": "+20 123 456 7890",
+  "supportHours": "Available 24/7",
+  "cafeAndGaming": "CAFE & GAMING",
+  "aboutDescription": "Your destination for relaxation, gaming, and great food."
 }

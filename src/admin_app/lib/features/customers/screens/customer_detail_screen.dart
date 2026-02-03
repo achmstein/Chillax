@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../accounts/providers/accounts_provider.dart';
@@ -59,7 +59,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
 
     final customer =
         state.customers.where((c) => c.id == widget.customerId).firstOrNull;
@@ -114,7 +113,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       Expanded(
                         child: _StatItem(
                           label: l10n.balance,
-                          value: currencyFormat.format(account?.balance ?? 0),
+                          value: l10n.priceFormat((account?.balance ?? 0).toStringAsFixed(0)),
                           valueColor: account?.hasBalance == true
                               ? const Color(0xFFEF4444)
                               : null,
@@ -192,7 +191,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 orders: _orders,
                 isLoading: _isLoadingOrders,
                 onRefresh: _refresh,
-                currencyFormat: currencyFormat,
                 l10n: l10n,
               ),
             ),
@@ -407,14 +405,12 @@ class _OrderHistorySection extends StatelessWidget {
   final List<Order> orders;
   final bool isLoading;
   final Future<void> Function() onRefresh;
-  final NumberFormat currencyFormat;
   final AppLocalizations l10n;
 
   const _OrderHistorySection({
     required this.orders,
     required this.isLoading,
     required this.onRefresh,
-    required this.currencyFormat,
     required this.l10n,
   });
 
@@ -516,7 +512,7 @@ class _OrderHistorySection extends StatelessWidget {
 
                                 // Total
                                 AppText(
-                                  currencyFormat.format(order.total),
+                                  l10n.priceFormat(order.total.toStringAsFixed(0)),
                                   style: theme.typography.sm.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),

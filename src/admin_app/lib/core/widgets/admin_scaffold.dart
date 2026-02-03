@@ -51,6 +51,7 @@ List<NavItem> secondaryNavItems = [
   NavItem(route: '/menu', labelBuilder: (l10n) => l10n.menu, icon: Icons.restaurant_menu_outlined),
   NavItem(route: '/loyalty', labelBuilder: (l10n) => l10n.loyalty, icon: Icons.card_giftcard_outlined),
   NavItem(route: '/customers', labelBuilder: (l10n) => l10n.customers, icon: Icons.people_outline),
+  NavItem(route: '/users', labelBuilder: (l10n) => l10n.usersManagement, icon: Icons.admin_panel_settings_outlined),
   NavItem(route: '/profile', labelBuilder: (l10n) => l10n.profile, icon: Icons.person_outline),
 ];
 
@@ -271,8 +272,8 @@ class _NavBarItem extends StatelessWidget {
               children: [
                 Icon(icon, size: 22, color: color),
                 if (badgeCount > 0)
-                  Positioned(
-                    right: -8,
+                  PositionedDirectional(
+                    end: -8,
                     top: -4,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),

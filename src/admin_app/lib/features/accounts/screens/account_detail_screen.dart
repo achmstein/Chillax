@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/customer_account.dart';
@@ -73,7 +73,6 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
       );
     }
 
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final hasBalance = account.hasBalance;
 
     return Scaffold(
@@ -99,7 +98,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                   const SizedBox(height: 4),
                   // Balance amount
                   AppText(
-                    currencyFormat.format(account.balance),
+                    l10n.priceFormat(account.balance.toStringAsFixed(0)),
                     style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.w600,
@@ -243,7 +242,6 @@ class _TransactionHistorySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final locale = Localizations.localeOf(context);
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final dateFormat = DateFormat('MMM d', locale.languageCode);
     final timeFormat = DateFormat('h:mm a', locale.languageCode);
 
@@ -332,7 +330,7 @@ class _TransactionHistorySection extends StatelessWidget {
 
                                 // Amount
                                 AppText(
-                                  '${isCharge ? '+' : '-'}${currencyFormat.format(tx.amount)}',
+                                  '${isCharge ? '+' : '-'}${l10n.priceFormat(tx.amount.toStringAsFixed(0))}',
                                   style: theme.typography.sm.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: isCharge
@@ -385,7 +383,6 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
 
     return Container(
       decoration: BoxDecoration(
@@ -459,7 +456,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                               ),
                             ),
                             AppText(
-                              currencyFormat.format(widget.account.balance),
+                              l10n.priceFormat(widget.account.balance.toStringAsFixed(0)),
                               style: theme.typography.sm.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFFEF4444),

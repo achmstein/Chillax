@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -279,7 +279,6 @@ class _CurrentStateSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(symbol: '£');
 
     // Get status color
     Color statusColor;
@@ -319,7 +318,7 @@ class _CurrentStateSection extends StatelessWidget {
                 ),
               ),
               AppText(
-                '${currencyFormat.format(room.hourlyRate)}/hr',
+                l10n.hourlyRateFormat(room.hourlyRate.toStringAsFixed(0)),
                 style: theme.typography.sm.copyWith(
                   color: theme.colors.mutedForeground,
                 ),
@@ -348,7 +347,7 @@ class _CurrentStateSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   AppText(
-                    currencyFormat.format(session!.liveCost),
+                    l10n.priceFormat(session!.liveCost.toStringAsFixed(0)),
                     style: theme.typography.xl.copyWith(
                       color: theme.colors.primary,
                       fontWeight: FontWeight.w600,
@@ -479,7 +478,10 @@ class _CurrentStateSection extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.play_arrow, size: 18),
+                      Transform.scale(
+                        scaleX: Directionality.of(context) == TextDirection.rtl ? -1 : 1,
+                        child: const Icon(Icons.play_arrow, size: 18),
+                      ),
                       const SizedBox(width: 8),
                       AppText(l10n.startSession),
                     ],
@@ -544,7 +546,10 @@ class _CurrentStateSection extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.play_arrow, size: 18),
+                      Transform.scale(
+                        scaleX: Directionality.of(context) == TextDirection.rtl ? -1 : 1,
+                        child: const Icon(Icons.play_arrow, size: 18),
+                      ),
                       const SizedBox(width: 8),
                       AppText(l10n.walkIn),
                     ],
@@ -603,7 +608,7 @@ class _HistorySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final locale = Localizations.localeOf(context);
-    final currencyFormat = NumberFormat.currency(symbol: '£');
+    final l10n = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('MMM d', locale.languageCode);
     final timeFormat = DateFormat('h:mm a', locale.languageCode);
 
@@ -614,7 +619,7 @@ class _HistorySection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
           child: AppText(
-            'History',
+            l10n.history,
             style: theme.typography.sm.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -628,7 +633,7 @@ class _HistorySection extends StatelessWidget {
               : sessions.isEmpty
                   ? Center(
                       child: AppText(
-                        'No sessions yet',
+                        l10n.noSessionsYet,
                         style: theme.typography.sm.copyWith(
                           color: theme.colors.mutedForeground,
                         ),
@@ -652,7 +657,7 @@ class _HistorySection extends StatelessWidget {
                                   : GestureDetector(
                                       onTap: onLoadMore,
                                       child: AppText(
-                                        'Load more',
+                                        l10n.loadMore,
                                         style: theme.typography.sm.copyWith(
                                           color: theme.colors.primary,
                                         ),
@@ -702,7 +707,7 @@ class _HistorySection extends StatelessWidget {
                                         overflow: TextOverflow.ellipsis,
                                       )
                                     : AppText(
-                                        'Walk-in',
+                                        l10n.walkIn,
                                         style: theme.typography.sm.copyWith(
                                           color: theme.colors.mutedForeground,
                                         ),
@@ -724,7 +729,7 @@ class _HistorySection extends StatelessWidget {
                               SizedBox(
                                 width: 60,
                                 child: AppText(
-                                  currencyFormat.format(session.totalCost ?? session.liveCost),
+                                  l10n.priceFormat((session.totalCost ?? session.liveCost).toStringAsFixed(0)),
                                   style: theme.typography.sm.copyWith(
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -751,6 +756,7 @@ class _ExpirationCountdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
     final remaining = session.timeUntilExpiration;
 
     if (remaining == null) return const SizedBox.shrink();
@@ -766,15 +772,15 @@ class _ExpirationCountdown extends StatelessWidget {
     if (isExpired) {
       bgColor = theme.colors.destructive.withValues(alpha: 0.15);
       textColor = theme.colors.destructive;
-      message = 'Expired - Auto-cancelling...';
+      message = l10n.expiredAutoCancelling;
     } else if (isUrgent) {
       bgColor = theme.colors.destructive.withValues(alpha: 0.1);
       textColor = theme.colors.destructive;
-      message = 'Auto-cancel in ${session.formattedCountdown}';
+      message = l10n.autoCancelIn(session.formattedCountdown);
     } else {
       bgColor = Colors.orange.withValues(alpha: 0.1);
       textColor = Colors.orange.shade700;
-      message = 'Expires in ${session.formattedCountdown}';
+      message = l10n.expiresIn(session.formattedCountdown);
     }
 
     return Container(

@@ -748,4 +748,122 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tierPlatinum => 'PLATINUM';
+
+  @override
+  String get noSessionsYet => 'No sessions yet';
+
+  @override
+  String get loadMore => 'Load more';
+
+  @override
+  String get sessions => 'Sessions';
+
+  @override
+  String get expiredAutoCancelling => 'Expired - Auto-cancelling...';
+
+  @override
+  String autoCancelIn(String countdown) {
+    return 'Auto-cancel in $countdown';
+  }
+
+  @override
+  String expiresIn(String countdown) {
+    return 'Expires in $countdown';
+  }
+
+  @override
+  String get currency => 'EGP';
+
+  @override
+  String priceFormat(String price) {
+    return '£$price';
+  }
+
+  @override
+  String hourlyRateFormat(String rate) {
+    return '£$rate/hr';
+  }
+
+  @override
+  String balanceFormat(String amount, String currency) {
+    return '$amount $currency';
+  }
+
+  @override
+  String get changePassword => 'Change Password';
+
+  @override
+  String get usersManagement => 'Users';
+
+  @override
+  String get helpAndSupport => 'Help & Support';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords don\'t match';
+
+  @override
+  String get passwordChangedSuccess => 'Password changed successfully';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 8 characters';
+
+  @override
+  String get addAdmin => 'Add Admin';
+
+  @override
+  String get noUsersFound => 'No users found';
+
+  @override
+  String get adminRole => 'Admin';
+
+  @override
+  String get customerRole => 'Customer';
+
+  @override
+  String get adminCreatedSuccess => 'Admin created successfully';
+
+  @override
+  String get enabled => 'Enabled';
+
+  @override
+  String get enterNewPassword => 'Enter new password';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get enterEmail => 'Enter email address';
+
+  @override
+  String get enterName => 'Enter name';
+
+  @override
+  String version(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get needHelpContactUs => 'Need help? Contact us:';
+
+  @override
+  String get supportEmail => 'support@chillax.com';
+
+  @override
+  String get supportPhone => '+20 123 456 7890';
+
+  @override
+  String get supportHours => 'Available 24/7';
+
+  @override
+  String get cafeAndGaming => 'CAFE & GAMING';
+
+  @override
+  String get aboutDescription =>
+      'Your destination for relaxation, gaming, and great food.';
 }

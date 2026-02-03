@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
-import 'package:intl/intl.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
@@ -179,7 +178,6 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final orderDetailsAsync = ref.watch(orderDetailsProvider(widget.order.id));
 
     // Get items count from details if loaded, otherwise show nothing
@@ -246,8 +244,8 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                       const SizedBox(height: 4),
                       AppText(
                         itemsCount != null
-                            ? '${l10n.itemCount(itemsCount)} • ${currencyFormat.format(widget.order.total)}'
-                            : currencyFormat.format(widget.order.total),
+                            ? '${l10n.itemCount(itemsCount)} • ${l10n.priceFormat(widget.order.total.toStringAsFixed(0))}'
+                            : l10n.priceFormat(widget.order.total.toStringAsFixed(0)),
                         style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                       ),
                     ],
@@ -299,14 +297,14 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
             ),
 
             // Expanded details
-            if (_expanded) _buildExpandedContent(theme, currencyFormat, orderDetailsAsync),
+            if (_expanded) _buildExpandedContent(theme, l10n, orderDetailsAsync),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildExpandedContent(FThemeData theme, NumberFormat currencyFormat, AsyncValue<Order> orderDetailsAsync) {
+  Widget _buildExpandedContent(FThemeData theme, AppLocalizations l10n, AsyncValue<Order> orderDetailsAsync) {
     return Padding(
       padding: const EdgeInsets.only(top: 12, left: 56),
       child: orderDetailsAsync.when(
@@ -319,7 +317,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
           ),
         ),
         error: (error, _) => AppText(
-          AppLocalizations.of(context)!.failedToLoad,
+          l10n.failedToLoad,
           style: theme.typography.xs.copyWith(color: theme.colors.destructive),
         ),
         data: (orderDetails) => Column(
@@ -344,7 +342,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                         ),
                       ),
                       AppText(
-                        currencyFormat.format(item.totalPrice),
+                        l10n.priceFormat(item.totalPrice.toStringAsFixed(0)),
                         style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                       ),
                     ],

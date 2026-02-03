@@ -1495,6 +1495,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PLATINUM'**
   String get tierPlatinum;
+
+  /// No description provided for @noSessionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions yet'**
+  String get noSessionsYet;
+
+  /// No description provided for @loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get loadMore;
+
+  /// No description provided for @sessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions'**
+  String get sessions;
+
+  /// No description provided for @expiredAutoCancelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired - Auto-cancelling...'**
+  String get expiredAutoCancelling;
+
+  /// No description provided for @autoCancelIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-cancel in {countdown}'**
+  String autoCancelIn(String countdown);
+
+  /// No description provided for @expiresIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {countdown}'**
+  String expiresIn(String countdown);
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'EGP'**
+  String get currency;
+
+  /// No description provided for @priceFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'£{price}'**
+  String priceFormat(String price);
+
+  /// No description provided for @hourlyRateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'£{rate}/hr'**
+  String hourlyRateFormat(String rate);
+
+  /// No description provided for @balanceFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} {currency}'**
+  String balanceFormat(String amount, String currency);
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get changePassword;
+
+  /// No description provided for @usersManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get usersManagement;
+
+  /// No description provided for @helpAndSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Support'**
+  String get helpAndSupport;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get newPassword;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords don\'t match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @passwordChangedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed successfully'**
+  String get passwordChangedSuccess;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get passwordMinLength;
+
+  /// No description provided for @addAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Admin'**
+  String get addAdmin;
+
+  /// No description provided for @noUsersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get noUsersFound;
+
+  /// No description provided for @adminRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get adminRole;
+
+  /// No description provided for @customerRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customerRole;
+
+  /// No description provided for @adminCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin created successfully'**
+  String get adminCreatedSuccess;
+
+  /// No description provided for @enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get enabled;
+
+  /// No description provided for @enterNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter new password'**
+  String get enterNewPassword;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @enterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter email address'**
+  String get enterEmail;
+
+  /// No description provided for @enterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter name'**
+  String get enterName;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String version(String version);
+
+  /// No description provided for @needHelpContactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Need help? Contact us:'**
+  String get needHelpContactUs;
+
+  /// No description provided for @supportEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'support@chillax.com'**
+  String get supportEmail;
+
+  /// No description provided for @supportPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'+20 123 456 7890'**
+  String get supportPhone;
+
+  /// No description provided for @supportHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Available 24/7'**
+  String get supportHours;
+
+  /// No description provided for @cafeAndGaming.
+  ///
+  /// In en, this message translates to:
+  /// **'CAFE & GAMING'**
+  String get cafeAndGaming;
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your destination for relaxation, gaming, and great food.'**
+  String get aboutDescription;
 }
 
 class _AppLocalizationsDelegate
