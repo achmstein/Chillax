@@ -1,0 +1,110 @@
+name: Setup Server (First-Time)
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_host:
+        description: 'Server hostname or IP (uses SERVER_HOST secret if empty)'
+        required: false
+
+env:
+  DEPLOY_DIR: /opt/chillax
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Docker on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ inputs.server_host || secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Install Docker if not present
+            if ! command -v docker &> /dev/null; then
+              echo "Installing Docker..."
+              curl -fsSL https://get.docker.com | sh
+              sudo usermod -aG docker $USER
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              echo "Docker installed successfully."
+            else
+              echo "Docker already installed: $(docker --version)"
+            fi
+
+            # Verify Docker Compose (included with Docker Engine)
+            docker compose version
+
+      - name: Create deploy directory
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ inputs.server_host || secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sudo mkdir -p ${{ env.DEPLOY_DIR }}
+            sudo chown $USER:$USER ${{ env.DEPLOY_DIR }}
+
+      - name: Copy deployment files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ inputs.server_host || secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "deploy/docker-compose.yml,deploy/docker-compose.caddy.yml,deploy/Caddyfile,deploy/.env.example,deploy/init-multiple-databases.sh"
+          target: ${{ env.DEPLOY_DIR }}
+          strip_components: 1
+
+      - name: Copy Keycloak config
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ inputs.server_host || secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "src/Chillax.AppHost/KeycloakConfiguration/"
+          target: ${{ env.DEPLOY_DIR }}/keycloak
+          strip_components: 3
+
+      - name: Configure firewall
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ inputs.server_host || secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Allow SSH, HTTP, HTTPS only
+            if command -v ufw &> /dev/null; then
+              sudo ufw allow 22/tcp
+              sudo ufw allow 80/tcp
+              sudo ufw allow 443/tcp
+              sudo ufw --force enable
+              echo "UFW firewall configured."
+            else
+              echo "UFW not found. Please configure your firewall manually to allow ports 22, 80, 443."
+            fi
+
+      - name: Print next steps
+        run: |
+          echo "============================================"
+          echo "  Server setup complete!"
+          echo "============================================"
+          echo ""
+          echo "Next steps:"
+          echo "  1. SSH into the server"
+          echo "  2. cd ${{ env.DEPLOY_DIR }}"
+          echo "  3. cp .env.example .env"
+          echo "  4. Edit .env with your actual passwords and domain"
+          echo "  5. Run the Deploy workflow to start services"
+          echo ""
+          echo "Required secrets in GitHub:"
+          echo "  - SERVER_HOST: server IP or hostname"
+          echo "  - SERVER_USER: SSH username"
+          echo "  - SERVER_SSH_KEY: SSH private key"
+          echo "  - DEPLOY_PATH: ${{ env.DEPLOY_DIR }}"
+          echo "  - GHCR_TOKEN: GitHub token for pulling images"
+          echo "============================================"
