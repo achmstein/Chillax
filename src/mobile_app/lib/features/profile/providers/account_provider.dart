@@ -32,19 +32,26 @@ class AccountState {
 
 /// Account notifier for mobile app
 class AccountNotifier extends Notifier<AccountState> {
-  late final AccountService _accountService;
-  late final AuthState _authState;
+  AccountService? _service;
+
+  AccountService get _accountService {
+    _service ??= ref.read(accountServiceProvider);
+    return _service!;
+  }
+
+  AuthState get _authState => ref.read(authServiceProvider);
 
   @override
   AccountState build() {
-    _accountService = ref.read(accountServiceProvider);
-    _authState = ref.watch(authServiceProvider);
+    // Watch auth state to rebuild when it changes
+    ref.watch(authServiceProvider);
     return const AccountState();
   }
 
   /// Load account balance
   Future<void> loadAccount() async {
-    if (!_authState.isAuthenticated || _authState.userId == null) {
+    final authState = _authState;
+    if (!authState.isAuthenticated || authState.userId == null) {
       state = state.copyWith(clearAccount: true);
       return;
     }
@@ -68,7 +75,8 @@ class AccountNotifier extends Notifier<AccountState> {
 
   /// Refresh account (silent - no loading indicator)
   Future<void> refresh() async {
-    if (!_authState.isAuthenticated || _authState.userId == null) {
+    final authState = _authState;
+    if (!authState.isAuthenticated || authState.userId == null) {
       state = state.copyWith(clearAccount: true);
       return;
     }

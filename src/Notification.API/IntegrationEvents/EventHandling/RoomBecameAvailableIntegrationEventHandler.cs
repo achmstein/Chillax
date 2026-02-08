@@ -1,5 +1,6 @@
 using Chillax.EventBus.Abstractions;
 using Chillax.Notification.API.IntegrationEvents.Events;
+using Chillax.Notification.API.Localization;
 using Chillax.Notification.API.Model;
 using Chillax.Notification.API.Services;
 
@@ -13,7 +14,7 @@ public class RoomBecameAvailableIntegrationEventHandler(
     public async Task Handle(RoomBecameAvailableIntegrationEvent @event)
     {
         logger.LogInformation("Handling RoomBecameAvailableIntegrationEvent for room {RoomId}: {RoomName}",
-            @event.RoomId, @event.RoomName);
+            @event.RoomId, @event.RoomName.En);
 
         // Get all room availability subscriptions
         var subscriptions = await context.Subscriptions
@@ -28,21 +29,33 @@ public class RoomBecameAvailableIntegrationEventHandler(
 
         logger.LogInformation("Found {Count} subscriptions to notify", subscriptions.Count);
 
-        // Send notifications to all subscribers
-        var fcmTokens = subscriptions.Select(s => s.FcmToken).ToList();
-        var successCount = await fcmService.SendBatchNotificationsAsync(
-            fcmTokens,
-            "Room Available!",
-            $"{@event.RoomName} is now available. Book now!",
-            new Dictionary<string, string>
-            {
-                { "type", "room_available" },
-                { "roomId", @event.RoomId.ToString() },
-                { "roomName", @event.RoomName }
-            });
+        // Group by language and send localized notifications
+        var totalSuccess = 0;
+        foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
+        {
+            var lang = group.Key;
+            var tokens = group.Select(s => s.FcmToken).ToList();
+            var title = NotificationMessages.RoomAvailableTitle.GetText(lang);
+            var body = NotificationMessages.RoomAvailableBody(@event.RoomName, lang).GetText(lang);
 
-        logger.LogInformation("Sent {SuccessCount}/{TotalCount} notifications successfully",
-            successCount, subscriptions.Count);
+            var successCount = await fcmService.SendBatchNotificationsAsync(
+                tokens,
+                title,
+                body,
+                new Dictionary<string, string>
+                {
+                    { "type", "room_available" },
+                    { "roomId", @event.RoomId.ToString() },
+                    { "roomName", @event.RoomName.GetText(lang) }
+                });
+
+            totalSuccess += successCount;
+            logger.LogInformation("Sent {SuccessCount}/{TotalCount} notifications in {Lang}",
+                successCount, tokens.Count, lang);
+        }
+
+        logger.LogInformation("Sent {SuccessCount}/{TotalCount} total notifications successfully",
+            totalSuccess, subscriptions.Count);
 
         // Delete all subscriptions (one-time notification)
         context.Subscriptions.RemoveRange(subscriptions);

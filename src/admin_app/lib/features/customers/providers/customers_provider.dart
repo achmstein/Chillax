@@ -54,19 +54,15 @@ class CustomersNotifier extends Notifier<CustomersState> {
       final queryParams = <String, dynamic>{
         'first': first,
         'max': max,
+        'excludeRole': 'Admin', // Exclude admin users, show only customers
       };
 
       if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
         queryParams['search'] = state.searchQuery;
       }
 
-      final results = await Future.wait([
-        _api.get('/users', queryParameters: queryParams),
-        _api.get('/users/count'),
-      ]);
-
-      final customersData = results[0].data as List<dynamic>;
-      final countData = results[1].data as Map<String, dynamic>;
+      final response = await _api.get('/users', queryParameters: queryParams);
+      final customersData = response.data as List<dynamic>;
 
       final customers = customersData
           .map((e) => Customer.fromJson(e as Map<String, dynamic>))
@@ -75,7 +71,7 @@ class CustomersNotifier extends Notifier<CustomersState> {
       state = state.copyWith(
         isLoading: false,
         customers: customers,
-        totalCount: countData['count'] as int? ?? customers.length,
+        totalCount: customers.length,
       );
     } catch (e) {
       debugPrint('Failed to load customers: $e');

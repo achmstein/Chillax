@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
@@ -106,7 +107,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
   void _showCategoryForm(BuildContext context, {MenuCategory? category}) {
     final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController(text: category?.name ?? '');
+    final theme = context.theme;
+    final enController = TextEditingController(text: category?.name.en ?? '');
+    final arController = TextEditingController(text: category?.name.ar ?? '');
     final isEditing = category != null;
 
     showAdaptiveDialog(
@@ -116,15 +119,88 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         title: AppText(isEditing ? l10n.editCategory : l10n.addCategory),
         body: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          child: TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              labelText: l10n.categoryName,
-              hintText: l10n.categoryNameHint,
-              border: const OutlineInputBorder(),
-            ),
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // English field
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: theme.colors.secondary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Center(
+                      child: AppText(
+                        'EN',
+                        style: theme.typography.xs.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colors.secondaryForeground,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: enController,
+                      decoration: InputDecoration(
+                        hintText: l10n.categoryNameHint,
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Arabic field
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: theme.colors.secondary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Center(
+                      child: AppText(
+                        'AR',
+                        style: theme.typography.xs.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colors.secondaryForeground,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: arController,
+                      decoration: const InputDecoration(
+                        hintText: 'اسم الفئة',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                      textDirection: TextDirection.rtl,
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
         actions: [
@@ -136,8 +212,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
           FButton(
             child: AppText(isEditing ? l10n.update : l10n.create),
             onPress: () async {
-              final name = controller.text.trim();
-              if (name.isEmpty) return;
+              final nameEn = enController.text.trim();
+              if (nameEn.isEmpty) return;
+
+              final nameAr = arController.text.trim();
+              final name = LocalizedText(
+                en: nameEn,
+                ar: nameAr.isNotEmpty ? nameAr : null,
+              );
 
               final messenger = ScaffoldMessenger.of(context);
               Navigator.of(context).pop();
@@ -196,7 +278,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       builder: (context) => FDialog(
         direction: Axis.horizontal,
         title: AppText(l10n.deleteCategory),
-        body: AppText(l10n.deleteCategoryConfirmation(category.name)),
+        body: AppText(l10n.deleteCategoryConfirmation(category.name.localized(context))),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
@@ -264,7 +346,7 @@ class _CategoryListItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppText(
-                  category.name,
+                  category.name.localized(context),
                   style: theme.typography.base.copyWith(
                     fontWeight: FontWeight.w600,
                   ),

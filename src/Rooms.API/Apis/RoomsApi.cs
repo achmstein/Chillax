@@ -45,28 +45,28 @@ public static class RoomsApi
             .WithSummary("Create a new room")
             .WithDescription("Create a new PlayStation room (Admin only)")
             .WithTags("Rooms")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPut("/{id:int}", UpdateRoom)
             .WithName("UpdateRoom")
             .WithSummary("Update room details")
             .WithDescription("Update room name, description, and hourly rate (Admin only)")
             .WithTags("Rooms")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapDelete("/{id:int}", DeleteRoom)
             .WithName("DeleteRoom")
             .WithSummary("Delete a room")
             .WithDescription("Delete a room (Admin only)")
             .WithTags("Rooms")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPut("/{id:int}/status", UpdateRoomStatus)
             .WithName("UpdateRoomStatus")
             .WithSummary("Update room physical status")
             .WithDescription("Update the physical status of a room (Admin only)")
             .WithTags("Rooms")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         // Reservation endpoints (commands)
         api.MapPost("/{roomId:int}/reserve", CreateReservation)
@@ -82,29 +82,29 @@ public static class RoomsApi
             .WithSummary("Start a session")
             .WithDescription("Start the timer for a reserved session (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPost("/sessions/{sessionId:int}/end", EndSession)
             .WithName("EndSession")
             .WithSummary("End a session")
             .WithDescription("End the session and calculate cost (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPost("/sessions/{sessionId:int}/cancel", CancelSession)
             .WithName("CancelSession")
             .WithSummary("Cancel a session")
-            .WithDescription("Cancel a reservation or active session")
+            .WithDescription("Cancel a reservation or active session (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         // Walk-in session endpoints (Admin)
         api.MapPost("/sessions/walk-in/{roomId:int}", StartWalkInSession)
             .WithName("StartWalkInSession")
             .WithSummary("Start a walk-in session")
-            .WithDescription("Start a walk-in session without an assigned customer. Returns access code for customers to join.")
+            .WithDescription("Start a walk-in session without an assigned customer. Returns access code for customers to join. (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         // Session membership endpoints (Customer)
         api.MapPost("/sessions/join", JoinSession)
@@ -118,6 +118,13 @@ public static class RoomsApi
             .WithName("LeaveSession")
             .WithSummary("Leave a session")
             .WithDescription("Leave a session you've joined (cannot leave if you're the owner)")
+            .WithTags("Sessions")
+            .RequireAuthorization();
+
+        api.MapPost("/sessions/my/{sessionId:int}/cancel", CancelMyReservation)
+            .WithName("CancelMyReservation")
+            .WithSummary("Cancel my reservation")
+            .WithDescription("Cancel your own reservation (only if still in Reserved status)")
             .WithTags("Sessions")
             .RequireAuthorization();
 
@@ -141,7 +148,7 @@ public static class RoomsApi
             .WithSummary("Get active sessions")
             .WithDescription("Get all currently active sessions (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapGet("/sessions/{sessionId:int}", GetSessionById)
             .WithName("GetSession")
@@ -153,9 +160,9 @@ public static class RoomsApi
         api.MapGet("/{roomId:int}/sessions/history", GetRoomSessionHistory)
             .WithName("GetRoomSessionHistory")
             .WithSummary("Get room session history")
-            .WithDescription("Get completed sessions history for a specific room")
+            .WithDescription("Get completed sessions history for a specific room (Admin only)")
             .WithTags("Sessions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         return app;
     }
@@ -295,7 +302,7 @@ public static class RoomsApi
 
         var customerName = httpContext.User.GetUserName() ?? request?.CustomerName;
         var roles = httpContext.User.GetRoles().ToList();
-        var isAdmin = httpContext.User.IsInRole("admin");
+        var isAdmin = roles.Contains("Admin", StringComparer.OrdinalIgnoreCase);
 
         logger.LogInformation("CreateReservation API: CustomerId={CustomerId}, Roles=[{Roles}], IsAdmin={IsAdmin}",
             customerId, string.Join(", ", roles), isAdmin);
@@ -359,6 +366,42 @@ public static class RoomsApi
             var command = new CancelReservationCommand(sessionId);
             var result = await mediator.Send(command);
             return result ? TypedResults.Ok() : TypedResults.NotFound();
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
+    public static async Task<Results<Ok, NotFound, ForbidHttpResult, BadRequest<ProblemDetails>>> CancelMyReservation(
+        [FromServices] IReservationRepository reservationRepository,
+        [FromServices] IRoomRepository roomRepository,
+        HttpContext httpContext,
+        [Description("The session ID")] int sessionId)
+    {
+        var customerId = httpContext.User.GetUserId();
+        if (string.IsNullOrEmpty(customerId))
+            return TypedResults.Forbid();
+
+        try
+        {
+            var reservation = await reservationRepository.GetWithRoomAsync(sessionId);
+            if (reservation == null)
+                return TypedResults.NotFound();
+
+            // Verify the customer owns this reservation
+            if (reservation.CustomerId != customerId)
+                return TypedResults.Forbid();
+
+            // Only allow cancelling reservations that are still in Reserved status
+            if (reservation.Status != ReservationStatus.Reserved)
+                return TypedResults.BadRequest<ProblemDetails>(new() { Detail = "Can only cancel reservations that are still pending. Active sessions cannot be cancelled by customers." });
+
+            reservation.Cancel();
+            reservationRepository.Update(reservation);
+            await reservationRepository.UnitOfWork.SaveEntitiesAsync();
+
+            return TypedResults.Ok();
         }
         catch (RoomsDomainException ex)
         {
@@ -498,6 +541,12 @@ public record WalkInSessionRequest(string? Notes = null);
 
 public record JoinSessionRequest(string AccessCode);
 
-public record CreateRoomRequest(string Name, string? Description, decimal HourlyRate);
+public record CreateRoomRequest(
+    LocalizedText Name,
+    LocalizedText? Description,
+    decimal HourlyRate);
 
-public record UpdateRoomRequest(string Name, string? Description, decimal HourlyRate);
+public record UpdateRoomRequest(
+    LocalizedText Name,
+    LocalizedText? Description,
+    decimal HourlyRate);

@@ -1,3 +1,5 @@
+import '../../../core/models/localized_text.dart';
+
 /// Types of service requests
 enum ServiceRequestType {
   callWaiter(1, 'Call Waiter'),
@@ -41,7 +43,7 @@ class ServiceRequest {
   final int id;
   final String userName;
   final int roomId;
-  final String roomName;
+  final LocalizedText roomName;
   final ServiceRequestType requestType;
   final ServiceRequestStatus status;
   final DateTime createdAt;
@@ -61,7 +63,7 @@ class ServiceRequest {
       id: json['id'] as int,
       userName: json['userName'] as String,
       roomId: json['roomId'] as int,
-      roomName: json['roomName'] as String,
+      roomName: LocalizedText.fromJson(json['roomName'] as Map<String, dynamic>),
       requestType: ServiceRequestType.fromValue(json['requestType'] as int),
       status: ServiceRequestStatus.fromValue(json['status'] as int),
       createdAt: DateTime.parse(json['createdAt'] as String),

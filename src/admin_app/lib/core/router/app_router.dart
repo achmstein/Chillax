@@ -8,6 +8,7 @@ import '../../features/service_requests/screens/service_requests_screen.dart';
 import '../../features/rooms/screens/rooms_screen.dart';
 import '../../features/rooms/screens/room_detail_screen.dart';
 import '../../features/menu/screens/menu_list_screen.dart';
+import '../../features/menu/screens/menu_item_edit_screen.dart';
 import '../../features/menu/screens/categories_screen.dart';
 import '../../features/customers/screens/customers_screen.dart';
 import '../../features/customers/screens/customer_detail_screen.dart';
@@ -17,6 +18,7 @@ import '../../features/accounts/screens/accounts_screen.dart';
 import '../../features/accounts/screens/account_detail_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/users/screens/users_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 
 /// Splash screen shown while checking authentication
@@ -150,6 +152,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: MenuListScreen(),
             ),
+            routes: [
+              GoRoute(
+                path: 'items/new',
+                builder: (context, state) => const MenuItemEditScreen(),
+              ),
+              GoRoute(
+                path: 'items/:id',
+                builder: (context, state) {
+                  final id = int.parse(state.pathParameters['id']!);
+                  return MenuItemEditScreen(itemId: id);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/categories',
@@ -216,6 +231,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/profile',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: ProfileScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/users',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: UsersScreen(),
             ),
           ),
         ],

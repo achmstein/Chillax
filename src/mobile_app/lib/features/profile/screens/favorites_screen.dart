@@ -215,9 +215,9 @@ class _FavoriteItemTile extends ConsumerWidget {
                   ),
                 ),
                 // Heart icon overlay (always filled for favorites)
-                Positioned(
+                PositionedDirectional(
                   top: 4,
-                  right: 4,
+                  end: 4,
                   child: GestureDetector(
                     onTap: () => ref.read(favoritesProvider.notifier).toggleFavorite(item.id),
                     child: const Icon(

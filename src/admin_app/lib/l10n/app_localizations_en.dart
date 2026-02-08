@@ -748,4 +748,281 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tierPlatinum => 'PLATINUM';
+
+  @override
+  String get noSessionsYet => 'No sessions yet';
+
+  @override
+  String get loadMore => 'Load more';
+
+  @override
+  String get sessions => 'Sessions';
+
+  @override
+  String get expiredAutoCancelling => 'Expired - Auto-cancelling...';
+
+  @override
+  String autoCancelIn(String countdown) {
+    return 'Auto-cancel in $countdown';
+  }
+
+  @override
+  String expiresIn(String countdown) {
+    return 'Expires in $countdown';
+  }
+
+  @override
+  String get currency => 'EGP';
+
+  @override
+  String priceFormat(String price) {
+    return '£$price';
+  }
+
+  @override
+  String hourlyRateFormat(String rate) {
+    return '£$rate/hr';
+  }
+
+  @override
+  String balanceFormat(String amount, String currency) {
+    return '$amount $currency';
+  }
+
+  @override
+  String get changePassword => 'Change Password';
+
+  @override
+  String get usersManagement => 'Users';
+
+  @override
+  String get helpAndSupport => 'Help & Support';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords don\'t match';
+
+  @override
+  String get passwordChangedSuccess => 'Password changed successfully';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 8 characters';
+
+  @override
+  String get addAdmin => 'Add Admin';
+
+  @override
+  String get noUsersFound => 'No users found';
+
+  @override
+  String get adminRole => 'Admin';
+
+  @override
+  String get customerRole => 'Customer';
+
+  @override
+  String get adminCreatedSuccess => 'Admin created successfully';
+
+  @override
+  String get enabled => 'Enabled';
+
+  @override
+  String get enterNewPassword => 'Enter new password';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get enterEmail => 'Enter email address';
+
+  @override
+  String get enterName => 'Enter name';
+
+  @override
+  String version(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get needHelpContactUs => 'Need help? Contact us:';
+
+  @override
+  String get supportEmail => 'support@chillax.com';
+
+  @override
+  String get supportPhone => '+20 123 456 7890';
+
+  @override
+  String get supportHours => 'Available 24/7';
+
+  @override
+  String get cafeAndGaming => 'CAFE & GAMING';
+
+  @override
+  String get aboutDescription =>
+      'Your destination for relaxation, gaming, and great food.';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get light => 'Light';
+
+  @override
+  String get dark => 'Dark';
+
+  @override
+  String get systemDefault => 'System Default';
+
+  @override
+  String get selectTheme => 'Select Theme';
+
+  @override
+  String get lightThemeDescription => 'Always use light theme';
+
+  @override
+  String get darkThemeDescription => 'Always use dark theme';
+
+  @override
+  String get systemDefaultDescription => 'Follow your device settings';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get transactionTypePurchase => 'Purchase';
+
+  @override
+  String get transactionTypeBonus => 'Bonus';
+
+  @override
+  String get transactionTypeReferral => 'Referral';
+
+  @override
+  String get transactionTypePromotion => 'Promotion';
+
+  @override
+  String get transactionTypeRedemption => 'Redemption';
+
+  @override
+  String get transactionTypeAdjustment => 'Adjustment';
+
+  @override
+  String pointsEarnedFromOrder(String orderId) {
+    return 'Points earned from Order #$orderId';
+  }
+
+  @override
+  String pointsRedeemedForOrder(String orderId) {
+    return 'Points redeemed for Order #$orderId';
+  }
+
+  @override
+  String get addMenuItemPage => 'Add Menu Item';
+
+  @override
+  String get editMenuItemPage => 'Edit Menu Item';
+
+  @override
+  String get customizations => 'Customizations';
+
+  @override
+  String get addCustomization => 'Add Customization';
+
+  @override
+  String get editCustomization => 'Edit Customization';
+
+  @override
+  String get customizationName => 'Customization Name';
+
+  @override
+  String get customizationNameHint => 'e.g., Size, Extras, Sugar Level';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get allowMultiple => 'Allow Multiple';
+
+  @override
+  String get options => 'Options';
+
+  @override
+  String get addOption => 'Add Option';
+
+  @override
+  String get optionName => 'Option Name';
+
+  @override
+  String get optionNameHint => 'e.g., Small, Medium, Large';
+
+  @override
+  String get priceAdjustment => 'Price Adjustment';
+
+  @override
+  String get priceAdjustmentHint => 'e.g., 10 or -5';
+
+  @override
+  String get defaultOption => 'Default';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get chooseFromGallery => 'Choose from Gallery';
+
+  @override
+  String get changeImage => 'Change Image';
+
+  @override
+  String get removeImage => 'Remove Image';
+
+  @override
+  String get itemImage => 'Item Image';
+
+  @override
+  String get tapToAddImage => 'Tap to add image';
+
+  @override
+  String get noCustomizations => 'No customizations';
+
+  @override
+  String get addCustomizationsHint => 'Add customizations like size or extras';
+
+  @override
+  String get optionRequired => 'At least one option is required';
+
+  @override
+  String get savingItem => 'Saving...';
+
+  @override
+  String get itemSaved => 'Item saved successfully';
+
+  @override
+  String get failedToSaveItem => 'Failed to save item';
+
+  @override
+  String get deleteCustomizationConfirm => 'Delete this customization?';
+
+  @override
+  String get deleteOptionConfirm => 'Delete this option?';
+
+  @override
+  String optionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'options',
+      one: 'option',
+    );
+    return '$count $_temp0';
+  }
 }

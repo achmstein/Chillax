@@ -26,8 +26,6 @@ class _ItemCustomizationSheetState
     extends ConsumerState<ItemCustomizationSheet> {
   final Map<int, List<int>> _selectedOptions = {}; // customizationId -> optionIds
   final TextEditingController _instructionsController = TextEditingController();
-  final FocusNode _instructionsFocusNode = FocusNode();
-  final GlobalKey _instructionsKey = GlobalKey();
   int _quantity = 1;
 
   @override
@@ -37,23 +35,6 @@ class _ItemCustomizationSheetState
     _initializeWithDefaults();
     // Then load saved preferences
     _loadSavedPreferences();
-    // Auto-scroll to text field when focused
-    _instructionsFocusNode.addListener(_onInstructionsFocusChange);
-  }
-
-  void _onInstructionsFocusChange() {
-    if (_instructionsFocusNode.hasFocus) {
-      // Wait for keyboard to appear then scroll
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted && _instructionsKey.currentContext != null) {
-          Scrollable.ensureVisible(
-            _instructionsKey.currentContext!,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-          );
-        }
-      });
-    }
   }
 
   void _initializeWithDefaults() {
@@ -121,10 +102,96 @@ class _ItemCustomizationSheetState
 
   @override
   void dispose() {
-    _instructionsFocusNode.removeListener(_onInstructionsFocusChange);
-    _instructionsFocusNode.dispose();
     _instructionsController.dispose();
     super.dispose();
+  }
+
+  void _showNoteSheet(BuildContext context, AppLocalizations l10n) {
+    final colors = context.theme.colors;
+    final tempController = TextEditingController(text: _instructionsController.text);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colors.background,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: colors.mutedForeground,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                AppText(
+                  l10n.specialInstructions,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colors.border),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TextField(
+                    controller: tempController,
+                    autofocus: true,
+                    minLines: 4,
+                    maxLines: 6,
+                    decoration: InputDecoration(
+                      hintText: l10n.anySpecialRequestsOptional,
+                      hintStyle: TextStyle(
+                        color: colors.mutedForeground,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
+                    style: TextStyle(
+                      color: colors.foreground,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FButton(
+                    onPress: () {
+                      setState(() {
+                        _instructionsController.text = tempController.text;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: AppText(l10n.done),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   double get _totalPrice {
@@ -210,12 +277,7 @@ class _ItemCustomizationSheetState
             // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -267,12 +329,29 @@ class _ItemCustomizationSheetState
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Focus(
-                    focusNode: _instructionsFocusNode,
-                    child: FTextField.multiline(
-                      key: _instructionsKey,
-                      control: FTextFieldControl.managed(controller: _instructionsController),
-                      hint: l10n.anySpecialRequestsOptional,
+                  GestureDetector(
+                    onTap: () => _showNoteSheet(context, l10n),
+                    child: Container(
+                      width: double.infinity,
+                      constraints: const BoxConstraints(minHeight: 80),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: colors.border),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: AlignmentDirectional.topStart,
+                      child: AppText(
+                        _instructionsController.text.isNotEmpty
+                            ? _instructionsController.text
+                            : l10n.anySpecialRequestsOptional,
+                        style: TextStyle(
+                          color: _instructionsController.text.isNotEmpty
+                              ? colors.foreground
+                              : colors.mutedForeground,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -345,7 +424,7 @@ class _ItemCustomizationSheetState
                       ),
                     ),
                     AppText(
-                      '£${_totalPrice.toStringAsFixed(2)}',
+                      l10n.priceFormat(_totalPrice.toStringAsFixed(2)),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -392,15 +471,15 @@ class _ItemCustomizationSheetState
         const SizedBox(height: 8),
         // Use radio buttons for single selection, checkboxes for multiple
         if (customization.allowMultiple)
-          _buildCheckboxOptions(context, customization, selectedIds, locale)
+          _buildCheckboxOptions(context, customization, selectedIds, locale, l10n)
         else
-          _buildRadioOptions(context, customization, selectedIds, locale),
+          _buildRadioOptions(context, customization, selectedIds, locale, l10n),
         const SizedBox(height: 16),
       ],
     );
   }
 
-  Widget _buildRadioOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds, Locale locale) {
+  Widget _buildRadioOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds, Locale locale, AppLocalizations l10n) {
     final colors = context.theme.colors;
     final selectedId = selectedIds.isNotEmpty ? selectedIds.first : null;
 
@@ -408,9 +487,9 @@ class _ItemCustomizationSheetState
       children: customization.options.map((option) {
         final isSelected = selectedId == option.id;
         final priceText = option.priceAdjustment > 0
-            ? ' (+£${option.priceAdjustment.toStringAsFixed(2)})'
+            ? ' ${l10n.priceAdjustmentPlus(option.priceAdjustment.toStringAsFixed(2))}'
             : option.priceAdjustment < 0
-                ? ' (-£${option.priceAdjustment.abs().toStringAsFixed(2)})'
+                ? ' ${l10n.priceAdjustmentMinus(option.priceAdjustment.abs().toStringAsFixed(2))}'
                 : '';
 
         return InkWell(
@@ -473,16 +552,16 @@ class _ItemCustomizationSheetState
     );
   }
 
-  Widget _buildCheckboxOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds, Locale locale) {
+  Widget _buildCheckboxOptions(BuildContext context, ItemCustomization customization, List<int> selectedIds, Locale locale, AppLocalizations l10n) {
     final colors = context.theme.colors;
 
     return Column(
       children: customization.options.map((option) {
         final isSelected = selectedIds.contains(option.id);
         final priceText = option.priceAdjustment > 0
-            ? ' (+£${option.priceAdjustment.toStringAsFixed(2)})'
+            ? ' ${l10n.priceAdjustmentPlus(option.priceAdjustment.toStringAsFixed(2))}'
             : option.priceAdjustment < 0
-                ? ' (-£${option.priceAdjustment.abs().toStringAsFixed(2)})'
+                ? ' ${l10n.priceAdjustmentMinus(option.priceAdjustment.abs().toStringAsFixed(2))}'
                 : '';
 
         return InkWell(

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../services/firebase_service.dart';
 
@@ -87,22 +88,41 @@ class AuthService extends Notifier<AuthState> {
       final idToken = await _storage.read(key: _idTokenKey);
 
       if (accessToken != null && refreshTokenValue != null) {
-        // Temporarily set tokens to allow refresh
+        // Parse stored token to get user info
+        final claims = _parseJwt(accessToken);
+        final roles = _extractRoles(claims);
+        final isAdmin = roles.contains(AppConfig.adminRole);
+
+        // Set initial state from stored tokens
         state = state.copyWith(
           accessToken: accessToken,
           refreshToken: refreshTokenValue,
           idToken: idToken,
+          isAuthenticated: true,
+          isAdmin: isAdmin,
+          userId: claims['sub'] as String?,
+          email: claims['email'] as String?,
+          name: claims['name'] as String?,
+          roles: roles,
         );
 
-        // Validate tokens by attempting refresh
+        // Try to refresh tokens in background
         final refreshed = await refreshToken();
         if (refreshed) {
           state = state.copyWith(isInitializing: false);
           return;
         }
+
+        // Refresh failed - check if tokens were cleared (auth error) or preserved (network error)
+        if (state.accessToken != null) {
+          // Tokens preserved (network error) - use existing tokens
+          debugPrint('Auth: Using existing tokens (refresh failed, likely network issue)');
+          state = state.copyWith(isInitializing: false);
+          return;
+        }
       }
 
-      // No valid tokens or refresh failed
+      // No valid tokens or tokens were cleared due to auth error
       state = state.copyWith(
         isInitializing: false,
         isAuthenticated: false,
@@ -156,9 +176,12 @@ class AuthService extends Notifier<AuthState> {
           return SignInResult.notAdmin;
         }
 
-        // Auto-register for admin notifications
-        await _registerForAdminNotifications();
-        await _registerForServiceRequestNotifications();
+        // Auto-register for admin notifications with current language preference
+        final prefs = await SharedPreferences.getInstance();
+        final preferredLanguage = prefs.getString('app_locale') ?? 'en';
+        await _registerForAdminNotifications(preferredLanguage: preferredLanguage);
+        await _registerForAdminReservationNotifications(preferredLanguage: preferredLanguage);
+        await _registerForServiceRequestNotifications(preferredLanguage: preferredLanguage);
 
         return SignInResult.success;
       }
@@ -180,6 +203,7 @@ class AuthService extends Notifier<AuthState> {
     try {
       // Unregister from notifications first
       await _unregisterFromAdminNotifications();
+      await _unregisterFromAdminReservationNotifications();
       await _unregisterFromServiceRequestNotifications();
 
       if (state.refreshToken != null) {
@@ -230,11 +254,16 @@ class AuthService extends Notifier<AuthState> {
       return false;
     } on DioException catch (e) {
       debugPrint('Token refresh error: ${e.response?.data ?? e.message}');
-      await _clearTokens();
+      // Only clear tokens if server explicitly rejected them (auth errors)
+      // Don't clear on network errors - user might just be offline
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+        await _clearTokens();
+      }
       return false;
     } catch (e) {
       debugPrint('Token refresh error: $e');
-      await _clearTokens();
+      // Don't clear tokens on unknown errors - preserve session
       return false;
     }
   }
@@ -275,7 +304,7 @@ class AuthService extends Notifier<AuthState> {
   }
 
   /// Register for admin order notifications
-  Future<void> _registerForAdminNotifications() async {
+  Future<void> _registerForAdminNotifications({String preferredLanguage = 'en'}) async {
     try {
       // Request notification permission
       final hasPermission = await _firebaseService.requestPermission();
@@ -294,7 +323,10 @@ class AuthService extends Notifier<AuthState> {
       // Register with backend
       final response = await _dio.post(
         '${AppConfig.notificationsApiUrl}subscriptions/admin-orders',
-        data: {'fcmToken': fcmToken},
+        data: {
+          'fcmToken': fcmToken,
+          'preferredLanguage': preferredLanguage,
+        },
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
           contentType: Headers.jsonContentType,
@@ -327,7 +359,7 @@ class AuthService extends Notifier<AuthState> {
   }
 
   /// Register for service request notifications
-  Future<void> _registerForServiceRequestNotifications() async {
+  Future<void> _registerForServiceRequestNotifications({String preferredLanguage = 'en'}) async {
     try {
       // Request notification permission
       final hasPermission = await _firebaseService.requestPermission();
@@ -346,7 +378,10 @@ class AuthService extends Notifier<AuthState> {
       // Register with backend
       final response = await _dio.post(
         '${AppConfig.notificationsApiUrl}subscriptions/service-requests',
-        data: {'fcmToken': fcmToken},
+        data: {
+          'fcmToken': fcmToken,
+          'preferredLanguage': preferredLanguage,
+        },
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
           contentType: Headers.jsonContentType,
@@ -378,12 +413,82 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
+  /// Register for admin reservation notifications
+  Future<void> _registerForAdminReservationNotifications({String preferredLanguage = 'en'}) async {
+    try {
+      // Request notification permission
+      final hasPermission = await _firebaseService.requestPermission();
+      if (!hasPermission) {
+        debugPrint('Notification permission not granted');
+        return;
+      }
+
+      // Get FCM token
+      final fcmToken = await _firebaseService.getToken();
+      if (fcmToken == null) {
+        debugPrint('Failed to get FCM token');
+        return;
+      }
+
+      // Register with backend
+      final response = await _dio.post(
+        '${AppConfig.notificationsApiUrl}subscriptions/admin-reservations',
+        data: {
+          'fcmToken': fcmToken,
+          'preferredLanguage': preferredLanguage,
+        },
+        options: Options(
+          headers: {'Authorization': 'Bearer ${state.accessToken}'},
+          contentType: Headers.jsonContentType,
+        ),
+      );
+
+      debugPrint('Admin reservation notification registration: ${response.statusCode == 200 || response.statusCode == 201 ? 'success' : 'failed'}');
+    } catch (e) {
+      debugPrint('Error registering for admin reservation notifications: $e');
+      // Don't fail login if notification registration fails
+    }
+  }
+
+  /// Unregister from admin reservation notifications
+  Future<void> _unregisterFromAdminReservationNotifications() async {
+    if (state.accessToken == null) return;
+
+    try {
+      await _dio.delete(
+        '${AppConfig.notificationsApiUrl}subscriptions/admin-reservations',
+        options: Options(
+          headers: {'Authorization': 'Bearer ${state.accessToken}'},
+        ),
+      );
+      debugPrint('Unregistered from admin reservation notifications');
+    } catch (e) {
+      debugPrint('Error unregistering from admin reservation notifications: $e');
+      // Don't fail logout if notification unregistration fails
+    }
+  }
+
+  /// Update notification language preference for all subscriptions
+  /// Call this when the user changes their language setting
+  Future<void> updateNotificationLanguage(String preferredLanguage) async {
+    if (!state.isAuthenticated) return;
+
+    debugPrint('Updating notification language to: $preferredLanguage');
+
+    // Re-register all subscriptions with the new language preference
+    // The backend will update the existing subscription's language
+    await _registerForAdminNotifications(preferredLanguage: preferredLanguage);
+    await _registerForAdminReservationNotifications(preferredLanguage: preferredLanguage);
+    await _registerForServiceRequestNotifications(preferredLanguage: preferredLanguage);
+  }
+
   Future<void> _clearTokens() async {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _idTokenKey);
 
-    state = const AuthState();
+    // Set isInitializing to false so router redirects to login instead of staying on splash
+    state = const AuthState(isInitializing: false);
   }
 
   Map<String, dynamic> _parseJwt(String token) {

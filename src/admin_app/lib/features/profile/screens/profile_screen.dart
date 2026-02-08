@@ -3,10 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
+import '../widgets/change_password_sheet.dart';
+import '../widgets/help_support_sheet.dart';
+import '../widgets/about_sheet.dart';
 
-/// Admin profile screen - simple and minimal
+/// Admin profile screen - redesigned with FTileGroup pattern
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -32,22 +36,11 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // User avatar
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: theme.colors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  child: Center(
-                    child: AppText(
-                      (authState.name ?? 'A').substring(0, 1).toUpperCase(),
-                      style: theme.typography.xl.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 32,
-                        color: theme.colors.primary,
-                      ),
-                    ),
+                FAvatar.raw(
+                  size: 80,
+                  child: AppText(
+                    _getInitials(authState.name),
+                    style: const TextStyle(fontSize: 32),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -59,42 +52,94 @@ class ProfileScreen extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
 
                 // Email
-                if (authState.email != null)
+                if (authState.email != null) ...[
+                  const SizedBox(height: 4),
                   AppText(
                     authState.email!,
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.mutedForeground,
                     ),
                   ),
+                ],
 
                 const SizedBox(height: 32),
 
-                // Settings section
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.colors.border),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    children: [
-                      _ProfileMenuItem(
-                        icon: Icons.settings_outlined,
-                        title: l10n.settings,
-                        onTap: () => context.go('/settings'),
-                      ),
-                      Divider(height: 1, color: theme.colors.border),
-                      _ProfileMenuItem(
-                        icon: Icons.logout,
-                        title: l10n.logout,
-                        isDestructive: true,
-                        onTap: () => _handleLogout(context, ref, l10n),
-                      ),
-                    ],
+                // Menu Group 1: Settings, Password, Users
+                FTileGroup(
+                  children: [
+                    FTile(
+                      prefix: const Icon(FIcons.settings),
+                      title: AppText(l10n.settings),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () => context.go('/settings'),
+                    ),
+                    FTile(
+                      prefix: const Icon(FIcons.key),
+                      title: AppText(l10n.changePassword),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () => _showChangePasswordSheet(context),
+                    ),
+                    FTile(
+                      prefix: const Icon(FIcons.users),
+                      title: AppText(l10n.usersManagement),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () => context.go('/users'),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Menu Group 2: Help & Support, About
+                FTileGroup(
+                  children: [
+                    FTile(
+                      prefix: const Icon(FIcons.lifeBuoy),
+                      title: AppText(l10n.helpAndSupport),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () => _showHelpSheet(context),
+                    ),
+                    FTile(
+                      prefix: const Icon(FIcons.info),
+                      title: AppText(l10n.about),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onPress: () => _showAboutSheet(context),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Sign Out Button
+                SizedBox(
+                  width: double.infinity,
+                  child: FButton(
+                    style: FButtonStyle.destructive(),
+                    onPress: () => _handleLogout(context, ref, l10n),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(FIcons.logOut),
+                        const SizedBox(width: 8),
+                        AppText(l10n.signOut),
+                      ],
+                    ),
                   ),
                 ),
+
+                const SizedBox(height: 32),
+
+                // Version footer
+                AppText(
+                  l10n.version(AppConfig.appVersion),
+                  style: theme.typography.xs.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -103,13 +148,55 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
+  String _getInitials(String? name) {
+    if (name == null || name.isEmpty) return 'A';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
+  void _showChangePasswordSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) => const ChangePasswordSheet(),
+    );
+  }
+
+  void _showHelpSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) => const HelpSupportSheet(),
+    );
+  }
+
+  void _showAboutSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) => const AboutSheet(),
+    );
+  }
+
   Future<void> _handleLogout(BuildContext context, WidgetRef ref, AppLocalizations l10n) async {
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
-        title: AppText(l10n.logout),
-        body: AppText(l10n.logoutConfirmation),
+        title: AppText(l10n.signOutQuestion),
+        body: AppText(l10n.signOutConfirmation),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
@@ -118,7 +205,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
           FButton(
             style: FButtonStyle.destructive(),
-            child: AppText(l10n.logout),
+            child: AppText(l10n.signOut),
             onPress: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -129,56 +216,5 @@ class ProfileScreen extends ConsumerWidget {
       await ref.read(authServiceProvider.notifier).signOut();
       if (context.mounted) context.go('/login');
     }
-  }
-}
-
-/// Profile menu item widget
-class _ProfileMenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  final bool isDestructive;
-
-  const _ProfileMenuItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.isDestructive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-    final color = isDestructive ? theme.colors.destructive : theme.colors.foreground;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(width: 12),
-              Expanded(
-                child: AppText(
-                  title,
-                  style: theme.typography.sm.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: theme.colors.mutedForeground,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

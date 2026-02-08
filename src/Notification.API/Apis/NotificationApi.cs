@@ -36,27 +36,46 @@ public static class NotificationApi
         api.MapPost("/subscriptions/admin-orders", SubscribeToAdminOrderNotifications)
             .WithName("SubscribeToAdminOrderNotifications")
             .WithSummary("Subscribe to admin order notifications")
-            .WithDescription("Register admin device to receive FCM notifications when new orders are placed")
-            .WithTags("Admin Subscriptions");
+            .WithDescription("Register admin device to receive FCM notifications when new orders are placed (Admin only)")
+            .WithTags("Admin Subscriptions")
+            .RequireAuthorization("Admin");
 
         api.MapDelete("/subscriptions/admin-orders", UnsubscribeFromAdminOrderNotifications)
             .WithName("UnsubscribeFromAdminOrderNotifications")
             .WithSummary("Unsubscribe from admin order notifications")
-            .WithDescription("Unregister admin device from order notifications (typically on logout)")
-            .WithTags("Admin Subscriptions");
+            .WithDescription("Unregister admin device from order notifications (Admin only)")
+            .WithTags("Admin Subscriptions")
+            .RequireAuthorization("Admin");
 
-        // Service request subscription (for staff)
+        // Admin reservation notification endpoints
+        api.MapPost("/subscriptions/admin-reservations", SubscribeToAdminReservationNotifications)
+            .WithName("SubscribeToAdminReservationNotifications")
+            .WithSummary("Subscribe to admin reservation notifications")
+            .WithDescription("Register admin device to receive FCM notifications when rooms are reserved (Admin only)")
+            .WithTags("Admin Subscriptions")
+            .RequireAuthorization("Admin");
+
+        api.MapDelete("/subscriptions/admin-reservations", UnsubscribeFromAdminReservationNotifications)
+            .WithName("UnsubscribeFromAdminReservationNotifications")
+            .WithSummary("Unsubscribe from admin reservation notifications")
+            .WithDescription("Unregister admin device from reservation notifications (Admin only)")
+            .WithTags("Admin Subscriptions")
+            .RequireAuthorization("Admin");
+
+        // Service request subscription (for staff/admin)
         api.MapPost("/subscriptions/service-requests", SubscribeToServiceRequests)
             .WithName("SubscribeToServiceRequests")
             .WithSummary("Subscribe to service request notifications")
-            .WithDescription("Register staff device to receive FCM notifications when users request help")
-            .WithTags("Staff Subscriptions");
+            .WithDescription("Register staff device to receive FCM notifications when users request help (Admin only)")
+            .WithTags("Admin Subscriptions")
+            .RequireAuthorization("Admin");
 
         api.MapDelete("/subscriptions/service-requests", UnsubscribeFromServiceRequests)
             .WithName("UnsubscribeFromServiceRequests")
             .WithSummary("Unsubscribe from service request notifications")
-            .WithDescription("Unregister staff device from service request notifications")
-            .WithTags("Staff Subscriptions");
+            .WithDescription("Unregister staff device from service request notifications (Admin only)")
+            .WithTags("Admin Subscriptions")
+            .RequireAuthorization("Admin");
 
         // Service request endpoints (for users)
         api.MapPost("/service-requests", CreateServiceRequest)
@@ -69,20 +88,23 @@ public static class NotificationApi
         api.MapGet("/service-requests/pending", GetPendingServiceRequests)
             .WithName("GetPendingServiceRequests")
             .WithSummary("Get pending service requests")
-            .WithDescription("Get all pending service requests for staff dashboard")
-            .WithTags("Service Requests");
+            .WithDescription("Get all pending service requests for staff dashboard (Admin only)")
+            .WithTags("Service Requests")
+            .RequireAuthorization("Admin");
 
         api.MapPut("/service-requests/{id}/acknowledge", AcknowledgeServiceRequest)
             .WithName("AcknowledgeServiceRequest")
             .WithSummary("Acknowledge a service request")
-            .WithDescription("Mark request as acknowledged by staff")
-            .WithTags("Service Requests");
+            .WithDescription("Mark request as acknowledged by staff (Admin only)")
+            .WithTags("Service Requests")
+            .RequireAuthorization("Admin");
 
         api.MapPut("/service-requests/{id}/complete", CompleteServiceRequest)
             .WithName("CompleteServiceRequest")
             .WithSummary("Complete a service request")
-            .WithDescription("Mark request as completed")
-            .WithTags("Service Requests");
+            .WithDescription("Mark request as completed (Admin only)")
+            .WithTags("Service Requests")
+            .RequireAuthorization("Admin");
 
         // Notification preferences endpoints
         api.MapGet("/preferences", GetNotificationPreferences)
@@ -113,10 +135,20 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token if it changed
+            // Update FCM token and language if changed
+            var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
                 existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
                 await context.SaveChangesAsync();
             }
             return TypedResults.Conflict("Already subscribed to room availability notifications");
@@ -127,6 +159,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.RoomAvailability,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -189,10 +222,20 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token if it changed
+            // Update FCM token and language if changed
+            var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
                 existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
                 await context.SaveChangesAsync();
             }
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
@@ -203,6 +246,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.AdminOrderNotification,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -234,6 +278,76 @@ public static class NotificationApi
         return TypedResults.NoContent();
     }
 
+    // Admin reservation notification handlers
+    public static async Task<Results<Ok<SubscriptionResponse>, Created<SubscriptionResponse>>> SubscribeToAdminReservationNotifications(
+        NotificationContext context,
+        ClaimsPrincipal user,
+        SubscribeRequest request)
+    {
+        var userId = user.GetUserId()!;
+
+        // Check if already subscribed (update token if so)
+        var existing = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.AdminReservationNotification);
+
+        if (existing != null)
+        {
+            // Update FCM token and language if changed
+            var changed = false;
+            if (existing.FcmToken != request.FcmToken)
+            {
+                existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
+                await context.SaveChangesAsync();
+            }
+            return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
+        }
+
+        var subscription = new NotificationSubscription
+        {
+            UserId = userId,
+            FcmToken = request.FcmToken,
+            Type = SubscriptionType.AdminReservationNotification,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.Subscriptions.Add(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.Created(
+            $"/api/notifications/subscriptions/admin-reservations",
+            new SubscriptionResponse(subscription.Id, subscription.Type, subscription.CreatedAt));
+    }
+
+    public static async Task<Results<NoContent, NotFound>> UnsubscribeFromAdminReservationNotifications(
+        NotificationContext context,
+        ClaimsPrincipal user)
+    {
+        var userId = user.GetUserId()!;
+
+        var subscription = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.AdminReservationNotification);
+
+        if (subscription == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        context.Subscriptions.Remove(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.NoContent();
+    }
+
     // Service request subscription handlers
     public static async Task<Results<Ok<SubscriptionResponse>, Created<SubscriptionResponse>>> SubscribeToServiceRequests(
         NotificationContext context,
@@ -247,9 +361,19 @@ public static class NotificationApi
 
         if (existing != null)
         {
+            var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
                 existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
                 await context.SaveChangesAsync();
             }
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
@@ -260,6 +384,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.ServiceRequests,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -355,6 +480,7 @@ public static class NotificationApi
         NotificationContext context)
     {
         var requests = await context.ServiceRequests
+            .AsNoTracking()
             .Where(r => r.Status == ServiceRequestStatus.Pending || r.Status == ServiceRequestStatus.Acknowledged)
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new ServiceRequestResponse(
@@ -487,7 +613,8 @@ public static class NotificationApi
 }
 
 public record SubscribeRequest(
-    [property: Description("The FCM token from the mobile device")] string FcmToken
+    [property: Description("The FCM token from the mobile device")] string FcmToken,
+    [property: Description("Preferred language for notifications (en or ar)")] string? PreferredLanguage = "en"
 );
 
 public record SubscriptionResponse(
@@ -499,7 +626,7 @@ public record SubscriptionResponse(
 public record CreateServiceRequestDto(
     [property: Description("The user's active session ID")] int SessionId,
     [property: Description("The room ID")] int RoomId,
-    [property: Description("The room name")] string RoomName,
+    [property: Description("The room name (localized)")] LocalizedText RoomName,
     [property: Description("The type of request")] ServiceRequestType RequestType
 );
 
@@ -507,7 +634,7 @@ public record ServiceRequestResponse(
     int Id,
     string UserName,
     int RoomId,
-    string RoomName,
+    LocalizedText RoomName,
     ServiceRequestType RequestType,
     ServiceRequestStatus Status,
     DateTime CreatedAt

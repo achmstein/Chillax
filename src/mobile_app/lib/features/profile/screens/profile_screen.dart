@@ -24,15 +24,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      // Use silent refresh if data already exists (e.g., navigating back)
+      bool hasExistingData = false;
+      try {
+        hasExistingData = ref.read(loyaltyProvider).loyaltyInfo != null ||
+            ref.read(accountProvider).account != null;
+      } catch (_) {
+        // Provider may be in error state, proceed with full load
+      }
+      _loadData(silent: hasExistingData);
     });
   }
 
-  void _loadData() {
+  Future<void> _loadData({bool silent = false}) async {
     final authState = ref.read(authServiceProvider);
     if (authState.isAuthenticated) {
-      ref.read(loyaltyProvider.notifier).loadLoyaltyInfo();
-      ref.read(accountProvider.notifier).loadAccount();
+      if (silent) {
+        // Silent refresh - don't show loading indicator
+        await Future.wait([
+          ref.read(loyaltyProvider.notifier).refresh(),
+          ref.read(accountProvider.notifier).refresh(),
+        ]);
+      } else {
+        await Future.wait([
+          ref.read(loyaltyProvider.notifier).loadLoyaltyInfo(),
+          ref.read(accountProvider.notifier).loadAccount(),
+        ]);
+      }
     }
   }
 
@@ -53,60 +71,64 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         // Body
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // User avatar and info
-                FAvatar.raw(
-                  size: 80,
-                  child: AppText(
-                    authState.name?.isNotEmpty == true
-                        ? authState.name![0].toUpperCase()
-                        : 'G',
-                    style: TextStyle(fontSize: 32),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                AppText(
-                  authState.name ?? l10n.guestUser,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                  ),
-                ),
-                if (authState.email != null) ...[
-                  const SizedBox(height: 4),
-                  AppText(
-                    authState.email!,
-                    style: TextStyle(color: colors.mutedForeground),
-                  ),
-                ],
-                const SizedBox(height: 24),
-
-                // Balance card (only shown when customer has balance)
-                if (authState.isAuthenticated &&
-                    !accountState.isLoading &&
-                    accountState.account != null &&
-                    accountState.account!.hasBalance)
-                  const BalanceCard(),
-
-                // Loyalty card
-                if (authState.isAuthenticated) ...[
-                  if (loyaltyState.isLoading && loyaltyState.loyaltyInfo == null)
-                    const LoyaltyLoadingCard()
-                  else if (loyaltyState.loyaltyInfo != null)
-                    LoyaltyCard(
-                      loyaltyInfo: loyaltyState.loyaltyInfo!,
-                      onTap: () => context.push('/loyalty'),
-                    )
-                  else
-                    LoyaltyEmptyCard(
-                      isLoading: loyaltyState.isLoading,
-                      onJoin: () => ref.read(loyaltyProvider.notifier).joinLoyaltyProgram(),
+          child: RefreshIndicator(
+            onRefresh: _loadData,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // User avatar and info
+                  FAvatar.raw(
+                    size: 80,
+                    child: AppText(
+                      authState.name?.isNotEmpty == true
+                          ? authState.name![0].toUpperCase()
+                          : 'G',
+                      style: TextStyle(fontSize: 32),
                     ),
+                  ),
                   const SizedBox(height: 16),
-                ],
+                  AppText(
+                    authState.name ?? l10n.guestUser,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                    ),
+                  ),
+                  if (authState.email != null) ...[
+                    const SizedBox(height: 4),
+                    AppText(
+                      authState.email!,
+                      style: TextStyle(color: colors.mutedForeground),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+
+                  // Balance card (only shown when customer has balance)
+                  // Keep showing if we have data, even while reloading
+                  if (authState.isAuthenticated &&
+                      accountState.account != null &&
+                      accountState.account!.hasBalance)
+                    const BalanceCard(),
+
+                  // Loyalty card
+                  // Keep showing existing data while reloading to avoid flicker
+                  if (authState.isAuthenticated) ...[
+                    if (loyaltyState.loyaltyInfo != null)
+                      LoyaltyCard(
+                        loyaltyInfo: loyaltyState.loyaltyInfo!,
+                        onTap: () => context.push('/loyalty'),
+                      )
+                    else if (loyaltyState.isLoading)
+                      const LoyaltyLoadingCard()
+                    else
+                      LoyaltyEmptyCard(
+                        isLoading: loyaltyState.isLoading,
+                        onJoin: () => ref.read(loyaltyProvider.notifier).joinLoyaltyProgram(),
+                      ),
+                    const SizedBox(height: 16),
+                  ],
 
                 // Menu items using FTile
                 FTileGroup(
@@ -201,6 +223,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
             ),
           ),
+        ),
         ),
       ],
     );

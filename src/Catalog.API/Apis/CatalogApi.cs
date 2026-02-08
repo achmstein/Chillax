@@ -74,45 +74,52 @@ public static class CatalogApi
         api.MapPost("/categories", CreateCategory)
             .WithName("CreateCategory")
             .WithSummary("Create a menu category")
-            .WithDescription("Create a new menu category")
-            .WithTags("Categories");
+            .WithDescription("Create a new menu category (Admin only)")
+            .WithTags("Categories")
+            .RequireAuthorization("Admin");
 
         api.MapPut("/categories/{id:int}", UpdateCategory)
             .WithName("UpdateCategory")
             .WithSummary("Update a menu category")
-            .WithDescription("Update an existing menu category")
-            .WithTags("Categories");
+            .WithDescription("Update an existing menu category (Admin only)")
+            .WithTags("Categories")
+            .RequireAuthorization("Admin");
 
         api.MapDelete("/categories/{id:int}", DeleteCategory)
             .WithName("DeleteCategory")
             .WithSummary("Delete menu category")
-            .WithDescription("Delete the specified menu category")
-            .WithTags("Categories");
+            .WithDescription("Delete the specified menu category (Admin only)")
+            .WithTags("Categories")
+            .RequireAuthorization("Admin");
 
         // CRUD endpoints
         api.MapPost("/items", CreateItem)
             .WithName("CreateItem")
             .WithSummary("Create a menu item")
-            .WithDescription("Create a new menu item")
-            .WithTags("Items");
+            .WithDescription("Create a new menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         api.MapPut("/items/{id:int}", UpdateItem)
             .WithName("UpdateItem")
             .WithSummary("Update a menu item")
-            .WithDescription("Update an existing menu item")
-            .WithTags("Items");
+            .WithDescription("Update an existing menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         api.MapDelete("/items/{id:int}", DeleteItemById)
             .WithName("DeleteItem")
             .WithSummary("Delete menu item")
-            .WithDescription("Delete the specified menu item")
-            .WithTags("Items");
+            .WithDescription("Delete the specified menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         api.MapPatch("/items/{id:int}/availability", ToggleItemAvailability)
             .WithName("ToggleItemAvailability")
             .WithSummary("Toggle item availability")
-            .WithDescription("Toggle the availability of a menu item")
-            .WithTags("Items");
+            .WithDescription("Toggle the availability of a menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         // Customization endpoints
         api.MapGet("/items/{id:int}/customizations", GetItemCustomizations)
@@ -120,6 +127,37 @@ public static class CatalogApi
             .WithSummary("Get item customizations")
             .WithDescription("Get all customization options for a menu item")
             .WithTags("Customizations");
+
+        // Upload item picture
+        api.MapPost("/items/{id:int}/pic", UploadItemPicture)
+            .WithName("UploadItemPicture")
+            .WithSummary("Upload item picture")
+            .WithDescription("Upload a picture for a menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin")
+            .DisableAntiforgery();
+
+        // Customization CRUD
+        api.MapPost("/items/{id:int}/customizations", CreateCustomization)
+            .WithName("CreateCustomization")
+            .WithSummary("Create customization group")
+            .WithDescription("Create a new customization group for a menu item (Admin only)")
+            .WithTags("Customizations")
+            .RequireAuthorization("Admin");
+
+        api.MapPut("/items/{id:int}/customizations/{customizationId:int}", UpdateCustomization)
+            .WithName("UpdateCustomization")
+            .WithSummary("Update customization group")
+            .WithDescription("Update a customization group (Admin only)")
+            .WithTags("Customizations")
+            .RequireAuthorization("Admin");
+
+        api.MapDelete("/items/{id:int}/customizations/{customizationId:int}", DeleteCustomization)
+            .WithName("DeleteCustomization")
+            .WithSummary("Delete customization group")
+            .WithDescription("Delete a customization group (Admin only)")
+            .WithTags("Customizations")
+            .RequireAuthorization("Admin");
 
         // User preferences endpoints
         api.MapGet("/preferences/{catalogItemId:int}", GetUserPreference)
@@ -552,6 +590,122 @@ public static class CatalogApi
             .ToListAsync();
 
         return TypedResults.Ok(customizations.ToDtoList());
+    }
+
+    // Upload picture handler
+    public static async Task<Results<Ok<string>, NotFound, BadRequest<ProblemDetails>>> UploadItemPicture(
+        [AsParameters] CatalogServices services,
+        IWebHostEnvironment environment,
+        [Description("The menu item id")] int id,
+        IFormFile file)
+    {
+        var item = await services.Context.CatalogItems.FindAsync(id);
+        if (item is null) return TypedResults.NotFound();
+
+        // Validate file type
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = "Invalid file type. Allowed types: jpg, jpeg, png, webp" });
+        }
+
+        // Save file
+        var fileName = $"{id}{extension}";
+        var path = GetFullPath(environment.ContentRootPath, fileName);
+        using var stream = new FileStream(path, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        // Update item
+        item.PictureFileName = fileName;
+        await services.Context.SaveChangesAsync();
+
+        return TypedResults.Ok(fileName);
+    }
+
+    // Create customization handler
+    public static async Task<Results<Created<ItemCustomizationDto>, NotFound>> CreateCustomization(
+        [AsParameters] CatalogServices services,
+        [Description("The menu item id")] int id,
+        ItemCustomization customization)
+    {
+        var item = await services.Context.CatalogItems.FindAsync(id);
+        if (item is null) return TypedResults.NotFound();
+
+        var newCustomization = new ItemCustomization(customization.Name)
+        {
+            CatalogItemId = id,
+            IsRequired = customization.IsRequired,
+            AllowMultiple = customization.AllowMultiple,
+            DisplayOrder = customization.DisplayOrder
+        };
+
+        foreach (var option in customization.Options)
+        {
+            newCustomization.Options.Add(new CustomizationOption(option.Name)
+            {
+                PriceAdjustment = option.PriceAdjustment,
+                IsDefault = option.IsDefault,
+                DisplayOrder = option.DisplayOrder
+            });
+        }
+
+        services.Context.ItemCustomizations.Add(newCustomization);
+        await services.Context.SaveChangesAsync();
+
+        return TypedResults.Created($"/api/catalog/items/{id}/customizations/{newCustomization.Id}", newCustomization.ToDto());
+    }
+
+    // Update customization handler
+    public static async Task<Results<Ok<ItemCustomizationDto>, NotFound>> UpdateCustomization(
+        [AsParameters] CatalogServices services,
+        [Description("The menu item id")] int id,
+        [Description("The customization id")] int customizationId,
+        ItemCustomization customizationToUpdate)
+    {
+        var customization = await services.Context.ItemCustomizations
+            .Include(c => c.Options)
+            .FirstOrDefaultAsync(c => c.Id == customizationId && c.CatalogItemId == id);
+
+        if (customization is null) return TypedResults.NotFound();
+
+        customization.Name = customizationToUpdate.Name;
+        customization.IsRequired = customizationToUpdate.IsRequired;
+        customization.AllowMultiple = customizationToUpdate.AllowMultiple;
+        customization.DisplayOrder = customizationToUpdate.DisplayOrder;
+
+        // Replace options
+        services.Context.CustomizationOptions.RemoveRange(customization.Options);
+        customization.Options.Clear();
+
+        foreach (var option in customizationToUpdate.Options)
+        {
+            customization.Options.Add(new CustomizationOption(option.Name)
+            {
+                PriceAdjustment = option.PriceAdjustment,
+                IsDefault = option.IsDefault,
+                DisplayOrder = option.DisplayOrder
+            });
+        }
+
+        await services.Context.SaveChangesAsync();
+        return TypedResults.Ok(customization.ToDto());
+    }
+
+    // Delete customization handler
+    public static async Task<Results<NoContent, NotFound>> DeleteCustomization(
+        [AsParameters] CatalogServices services,
+        [Description("The menu item id")] int id,
+        [Description("The customization id")] int customizationId)
+    {
+        var customization = await services.Context.ItemCustomizations
+            .FirstOrDefaultAsync(c => c.Id == customizationId && c.CatalogItemId == id);
+
+        if (customization is null) return TypedResults.NotFound();
+
+        services.Context.ItemCustomizations.Remove(customization);
+        await services.Context.SaveChangesAsync();
+        return TypedResults.NoContent();
     }
 
     private static string GetImageMimeTypeFromImageFileExtension(string extension) => extension switch

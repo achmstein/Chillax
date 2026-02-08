@@ -16,6 +16,7 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
             entity.Property(e => e.UserId).IsRequired();
             entity.Property(e => e.FcmToken).IsRequired();
             entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.PreferredLanguage).HasMaxLength(5).HasDefaultValue("en");
             entity.Property(e => e.CreatedAt).IsRequired();
 
             // Index for efficient lookups by user
@@ -33,7 +34,7 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
             entity.HasKey(e => e.Id);
             entity.Property(e => e.UserId).IsRequired().HasMaxLength(256);
             entity.Property(e => e.UserName).IsRequired().HasMaxLength(256);
-            entity.Property(e => e.RoomName).IsRequired().HasMaxLength(256);
+            entity.OwnsOne(e => e.RoomName, b => b.ToJson());
             entity.Property(e => e.RequestType).IsRequired();
             entity.Property(e => e.Status).IsRequired();
             entity.Property(e => e.CreatedAt).IsRequired();

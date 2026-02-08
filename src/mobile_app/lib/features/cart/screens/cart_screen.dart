@@ -33,6 +33,94 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     super.dispose();
   }
 
+  void _showNoteSheet(BuildContext context, AppLocalizations l10n) {
+    final colors = context.theme.colors;
+    final tempController = TextEditingController(text: _noteController.text);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colors.background,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: colors.mutedForeground,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                AppText(
+                  l10n.orderNoteOptional,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colors.border),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TextField(
+                    controller: tempController,
+                    autofocus: true,
+                    minLines: 4,
+                    maxLines: 6,
+                    decoration: InputDecoration(
+                      hintText: l10n.anySpecialRequests,
+                      hintStyle: TextStyle(
+                        color: colors.mutedForeground,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
+                    style: TextStyle(
+                      color: colors.foreground,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FButton(
+                    onPress: () {
+                      setState(() {
+                        _noteController.text = tempController.text;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: AppText(l10n.done),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
@@ -104,10 +192,44 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     const SizedBox(height: 24),
 
                                     // Note
-                                    FTextField.multiline(
-                                      control: FTextFieldControl.managed(controller: _noteController),
-                                      label: Text(l10n.orderNoteOptional),
-                                      hint: l10n.anySpecialRequests,
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        AppText(
+                                          l10n.orderNoteOptional,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                            color: colors.foreground,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        GestureDetector(
+                                          onTap: () => _showNoteSheet(context, l10n),
+                                          child: Container(
+                                            width: double.infinity,
+                                            constraints: const BoxConstraints(minHeight: 80),
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(color: colors.border),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            alignment: AlignmentDirectional.topStart,
+                                            child: AppText(
+                                              _noteController.text.isNotEmpty
+                                                  ? _noteController.text
+                                                  : l10n.anySpecialRequests,
+                                              style: TextStyle(
+                                                color: _noteController.text.isNotEmpty
+                                                    ? colors.foreground
+                                                    : colors.mutedForeground,
+                                              ),
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 16),
 
@@ -266,14 +388,14 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 AppText(
-                  '${numberFormat.format(_pointsToRedeem)} pts',
+                  '${numberFormat.format(_pointsToRedeem)} ${l10n.pts}',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: colors.foreground,
                   ),
                 ),
                 AppText(
-                  '-£${discount.toStringAsFixed(2)}',
+                  l10n.discountFormat(discount.toStringAsFixed(2)),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: AppTheme.successColor,
@@ -307,7 +429,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
               ),
               AppText(
-                '£${orderTotal.toStringAsFixed(2)}',
+                l10n.priceFormat(orderTotal.toStringAsFixed(2)),
                 style: TextStyle(
                   fontSize: 14,
                   color: colors.mutedForeground,
@@ -327,7 +449,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
               ),
               AppText(
-                '-£${discount.toStringAsFixed(2)}',
+                l10n.discountFormat(discount.toStringAsFixed(2)),
                 style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.successColor,
@@ -349,7 +471,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               ),
             ),
             AppText(
-              '£${finalTotal.toStringAsFixed(2)}',
+              l10n.priceFormat(finalTotal.toStringAsFixed(2)),
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -486,6 +608,7 @@ class CartItemTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.colors;
     final locale = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -626,7 +749,7 @@ class CartItemTile extends ConsumerWidget {
 
                     // Price
                     AppText(
-                      '£${item.totalPrice.toStringAsFixed(2)}',
+                      l10n.priceFormat(item.totalPrice.toStringAsFixed(2)),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

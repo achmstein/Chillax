@@ -1495,6 +1495,510 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PLATINUM'**
   String get tierPlatinum;
+
+  /// No description provided for @noSessionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions yet'**
+  String get noSessionsYet;
+
+  /// No description provided for @loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get loadMore;
+
+  /// No description provided for @sessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions'**
+  String get sessions;
+
+  /// No description provided for @expiredAutoCancelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired - Auto-cancelling...'**
+  String get expiredAutoCancelling;
+
+  /// No description provided for @autoCancelIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-cancel in {countdown}'**
+  String autoCancelIn(String countdown);
+
+  /// No description provided for @expiresIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {countdown}'**
+  String expiresIn(String countdown);
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'EGP'**
+  String get currency;
+
+  /// No description provided for @priceFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'£{price}'**
+  String priceFormat(String price);
+
+  /// No description provided for @hourlyRateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'£{rate}/hr'**
+  String hourlyRateFormat(String rate);
+
+  /// No description provided for @balanceFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} {currency}'**
+  String balanceFormat(String amount, String currency);
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get changePassword;
+
+  /// No description provided for @usersManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get usersManagement;
+
+  /// No description provided for @helpAndSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Support'**
+  String get helpAndSupport;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get newPassword;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords don\'t match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @passwordChangedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed successfully'**
+  String get passwordChangedSuccess;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get passwordMinLength;
+
+  /// No description provided for @addAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Admin'**
+  String get addAdmin;
+
+  /// No description provided for @noUsersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get noUsersFound;
+
+  /// No description provided for @adminRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get adminRole;
+
+  /// No description provided for @customerRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customerRole;
+
+  /// No description provided for @adminCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin created successfully'**
+  String get adminCreatedSuccess;
+
+  /// No description provided for @enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get enabled;
+
+  /// No description provided for @enterNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter new password'**
+  String get enterNewPassword;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @enterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter email address'**
+  String get enterEmail;
+
+  /// No description provided for @enterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter name'**
+  String get enterName;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String version(String version);
+
+  /// No description provided for @needHelpContactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Need help? Contact us:'**
+  String get needHelpContactUs;
+
+  /// No description provided for @supportEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'support@chillax.com'**
+  String get supportEmail;
+
+  /// No description provided for @supportPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'+20 123 456 7890'**
+  String get supportPhone;
+
+  /// No description provided for @supportHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Available 24/7'**
+  String get supportHours;
+
+  /// No description provided for @cafeAndGaming.
+  ///
+  /// In en, this message translates to:
+  /// **'CAFE & GAMING'**
+  String get cafeAndGaming;
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your destination for relaxation, gaming, and great food.'**
+  String get aboutDescription;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get light;
+
+  /// No description provided for @dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get dark;
+
+  /// No description provided for @systemDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'System Default'**
+  String get systemDefault;
+
+  /// No description provided for @selectTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Theme'**
+  String get selectTheme;
+
+  /// No description provided for @lightThemeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Always use light theme'**
+  String get lightThemeDescription;
+
+  /// No description provided for @darkThemeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Always use dark theme'**
+  String get darkThemeDescription;
+
+  /// No description provided for @systemDefaultDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow your device settings'**
+  String get systemDefaultDescription;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// No description provided for @transactionTypePurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase'**
+  String get transactionTypePurchase;
+
+  /// No description provided for @transactionTypeBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus'**
+  String get transactionTypeBonus;
+
+  /// No description provided for @transactionTypeReferral.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral'**
+  String get transactionTypeReferral;
+
+  /// No description provided for @transactionTypePromotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotion'**
+  String get transactionTypePromotion;
+
+  /// No description provided for @transactionTypeRedemption.
+  ///
+  /// In en, this message translates to:
+  /// **'Redemption'**
+  String get transactionTypeRedemption;
+
+  /// No description provided for @transactionTypeAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustment'**
+  String get transactionTypeAdjustment;
+
+  /// No description provided for @pointsEarnedFromOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Points earned from Order #{orderId}'**
+  String pointsEarnedFromOrder(String orderId);
+
+  /// No description provided for @pointsRedeemedForOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Points redeemed for Order #{orderId}'**
+  String pointsRedeemedForOrder(String orderId);
+
+  /// No description provided for @addMenuItemPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Menu Item'**
+  String get addMenuItemPage;
+
+  /// No description provided for @editMenuItemPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Menu Item'**
+  String get editMenuItemPage;
+
+  /// No description provided for @customizations.
+  ///
+  /// In en, this message translates to:
+  /// **'Customizations'**
+  String get customizations;
+
+  /// No description provided for @addCustomization.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Customization'**
+  String get addCustomization;
+
+  /// No description provided for @editCustomization.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Customization'**
+  String get editCustomization;
+
+  /// No description provided for @customizationName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customization Name'**
+  String get customizationName;
+
+  /// No description provided for @customizationNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Size, Extras, Sugar Level'**
+  String get customizationNameHint;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @allowMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Multiple'**
+  String get allowMultiple;
+
+  /// No description provided for @options.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get options;
+
+  /// No description provided for @addOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Option'**
+  String get addOption;
+
+  /// No description provided for @optionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Option Name'**
+  String get optionName;
+
+  /// No description provided for @optionNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Small, Medium, Large'**
+  String get optionNameHint;
+
+  /// No description provided for @priceAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Adjustment'**
+  String get priceAdjustment;
+
+  /// No description provided for @priceAdjustmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 10 or -5'**
+  String get priceAdjustmentHint;
+
+  /// No description provided for @defaultOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get defaultOption;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @changeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Image'**
+  String get changeImage;
+
+  /// No description provided for @removeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Image'**
+  String get removeImage;
+
+  /// No description provided for @itemImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Image'**
+  String get itemImage;
+
+  /// No description provided for @tapToAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add image'**
+  String get tapToAddImage;
+
+  /// No description provided for @noCustomizations.
+  ///
+  /// In en, this message translates to:
+  /// **'No customizations'**
+  String get noCustomizations;
+
+  /// No description provided for @addCustomizationsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add customizations like size or extras'**
+  String get addCustomizationsHint;
+
+  /// No description provided for @optionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one option is required'**
+  String get optionRequired;
+
+  /// No description provided for @savingItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get savingItem;
+
+  /// No description provided for @itemSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Item saved successfully'**
+  String get itemSaved;
+
+  /// No description provided for @failedToSaveItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save item'**
+  String get failedToSaveItem;
+
+  /// No description provided for @deleteCustomizationConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this customization?'**
+  String get deleteCustomizationConfirm;
+
+  /// No description provided for @deleteOptionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this option?'**
+  String get deleteOptionConfirm;
+
+  /// No description provided for @optionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {count, plural, =1{option} other{options}}'**
+  String optionsCount(int count);
 }
 
 class _AppLocalizationsDelegate

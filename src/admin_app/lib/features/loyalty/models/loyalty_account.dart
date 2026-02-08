@@ -11,6 +11,34 @@ enum LoyaltyTier {
       orElse: () => LoyaltyTier.bronze,
     );
   }
+
+  /// Get tier primary color
+  int get colorValue {
+    switch (this) {
+      case LoyaltyTier.bronze:
+        return 0xFFCD7F32;
+      case LoyaltyTier.silver:
+        return 0xFFC0C0C0;
+      case LoyaltyTier.gold:
+        return 0xFFFFD700;
+      case LoyaltyTier.platinum:
+        return 0xFF7B8B9A;
+    }
+  }
+
+  /// Get metallic gradient colors for tier badge
+  List<int> get gradientColors {
+    switch (this) {
+      case LoyaltyTier.bronze:
+        return [0xFFE6A855, 0xFFCD7F32, 0xFF8B5A2B]; // Light bronze -> bronze -> dark bronze
+      case LoyaltyTier.silver:
+        return [0xFFE8E8E8, 0xFFC0C0C0, 0xFF909090]; // Light silver -> silver -> dark silver
+      case LoyaltyTier.gold:
+        return [0xFFFFE55C, 0xFFFFD700, 0xFFDAA520]; // Light gold -> gold -> dark gold
+      case LoyaltyTier.platinum:
+        return [0xFFB8C5D0, 0xFF8B9DAE, 0xFF5C6F7E]; // Light platinum -> platinum -> dark platinum
+    }
+  }
 }
 
 /// Represents a customer's loyalty account
@@ -63,18 +91,10 @@ class LoyaltyAccount {
       };
 
   /// Get tier color for UI display
-  int get tierColorValue {
-    switch (currentTier) {
-      case LoyaltyTier.bronze:
-        return 0xFFCD7F32;
-      case LoyaltyTier.silver:
-        return 0xFFC0C0C0;
-      case LoyaltyTier.gold:
-        return 0xFFFFD700;
-      case LoyaltyTier.platinum:
-        return 0xFFE5E4E2;
-    }
-  }
+  int get tierColorValue => currentTier.colorValue;
+
+  /// Get tier gradient colors for UI display
+  List<int> get tierGradientColors => currentTier.gradientColors;
 
   /// Get points needed for next tier
   int get pointsToNextTier {

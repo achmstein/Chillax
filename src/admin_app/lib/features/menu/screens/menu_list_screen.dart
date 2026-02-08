@@ -1,15 +1,15 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
-import '../widgets/menu_item_form_sheet.dart';
 
 class MenuListScreen extends ConsumerStatefulWidget {
   const MenuListScreen({super.key});
@@ -37,9 +37,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(menuProvider);
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final l10n = AppLocalizations.of(context)!;
-
     final theme = context.theme;
 
     return Column(
@@ -51,6 +49,15 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
           child: Row(
             children: [
               AppText(l10n.menu, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              if (state.items.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                AppText(
+                  '${state.items.length}',
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+              ],
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.category, size: 22),
@@ -59,106 +66,79 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.add, size: 22),
-                onPressed: () => _showItemForm(context),
+                onPressed: () => context.push('/menu/items/new'),
                 tooltip: l10n.addItem,
               ),
             ],
           ),
         ),
 
-        // Content
+        // Category filter chips
+        if (state.categories.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _CategoryChip(
+                    label: l10n.all,
+                    isSelected: state.selectedCategoryId == null,
+                    onTap: () {
+                      ref.read(menuProvider.notifier).selectCategory(null);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  ...state.categories.map((category) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _CategoryChip(
+                        label: category.name.localized(context),
+                        isSelected: state.selectedCategoryId == category.id,
+                        onTap: () {
+                          ref.read(menuProvider.notifier).selectCategory(category.id);
+                        },
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+
+        const SizedBox(height: 8),
+
+        // Content - List view like rooms
         Expanded(
           child: DelayedShimmer(
             isLoading: state.isLoading && state.items.isEmpty,
-            shimmer: const ShimmerLoadingList(showLeadingCircle: false),
-            child: RefreshIndicator(
-                  onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
-                  child: CustomScrollView(
-                    slivers: [
-                      // Category filter
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: kScreenPadding,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                _CategoryChip(
-                                  label: l10n.all,
-                                  isSelected: state.selectedCategoryId == null,
-                                  onTap: () {
-                                    ref.read(menuProvider.notifier).selectCategory(null);
-                                  },
-                                ),
-                                const SizedBox(width: 8),
-                                ...state.categories.map((category) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: _CategoryChip(
-                                      label: category.name,
-                                      isSelected: state.selectedCategoryId == category.id,
-                                      onTap: () {
-                                        ref.read(menuProvider.notifier).selectCategory(category.id);
-                                      },
-                                    ),
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Items grid
-                      if (state.filteredItems.isEmpty)
-                        SliverFillRemaining(
-                          child: EmptyState(
-                            icon: Icons.restaurant,
-                            title: l10n.noItemsFound,
-                          ),
-                        )
-                      else
-                        SliverPadding(
-                          padding: kScreenPadding,
-                          sliver: SliverGrid(
-                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 350,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                              mainAxisExtent: 200,
-                            ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final item = state.filteredItems[index];
-                                return _MenuItemCard(
-                                  item: item,
-                                  currencyFormat: currencyFormat,
-                                  onToggleAvailability: (value) {
-                                    ref.read(menuProvider.notifier)
-                                        .updateItemAvailability(item.id, value);
-                                  },
-                                  onEdit: () => _showItemForm(context, item: item),
-                                  onDelete: () => _deleteItem(context, item),
-                                );
-                              },
-                              childCount: state.filteredItems.length,
-                            ),
-                          ),
-                        ),
-                    ],
+            shimmer: const ShimmerLoadingList(),
+            child: state.filteredItems.isEmpty
+                ? EmptyState(
+                    icon: Icons.restaurant_menu_outlined,
+                    title: l10n.noItemsFound,
+                  )
+                : RefreshIndicator(
+                    onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: state.filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = state.filteredItems[index];
+                        return _MenuItemTile(
+                          item: item,
+                          onToggleAvailability: (value) {
+                            ref.read(menuProvider.notifier).updateItemAvailability(item.id, value);
+                          },
+                          onEdit: () => context.push('/menu/items/${item.id}'),
+                          onDelete: () => _deleteItem(context, item),
+                        );
+                      },
+                    ),
                   ),
-                ),
           ),
         ),
       ],
-    );
-  }
-
-  void _showItemForm(BuildContext context, {MenuItem? item}) {
-    showFSheet(
-      context: context,
-      side: FLayout.rtl,
-      builder: (context) => MenuItemFormSheet(item: item),
     );
   }
 
@@ -169,7 +149,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
       builder: (context) => FDialog(
         direction: Axis.horizontal,
         title: AppText(l10n.deleteItem),
-        body: AppText(l10n.deleteItemConfirmation(item.name)),
+        body: AppText(l10n.deleteItemConfirmation(item.name.localized(context))),
         actions: [
           FButton(
             style: FButtonStyle.outline(),
@@ -228,16 +208,15 @@ class _CategoryChip extends StatelessWidget {
   }
 }
 
-class _MenuItemCard extends StatelessWidget {
+/// Menu item tile - simple list design like rooms
+class _MenuItemTile extends StatelessWidget {
   final MenuItem item;
-  final NumberFormat currencyFormat;
   final ValueChanged<bool> onToggleAvailability;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _MenuItemCard({
+  const _MenuItemTile({
     required this.item,
-    required this.currencyFormat,
     required this.onToggleAvailability,
     required this.onEdit,
     required this.onDelete,
@@ -246,124 +225,93 @@ class _MenuItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      padding: kScreenPadding,
-      decoration: BoxDecoration(
-        border: Border.all(color: theme.colors.border),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image placeholder
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: theme.colors.secondary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.restaurant,
-                  color: theme.colors.mutedForeground,
-                ),
+    return FTappable(
+      onPress: onEdit,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Image or icon
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: item.isAvailable
+                    ? theme.colors.primary.withValues(alpha: 0.1)
+                    : theme.colors.mutedForeground.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText(
-                      item.name,
-                      style: theme.typography.base.copyWith(
-                        fontWeight: FontWeight.w600,
+              clipBehavior: Clip.antiAlias,
+              child: item.pictureUri != null
+                  ? CachedNetworkImage(
+                      imageUrl: item.pictureUri!,
+                      fit: BoxFit.cover,
+                      width: 48,
+                      height: 48,
+                      placeholder: (context, url) => Icon(
+                        Icons.restaurant,
+                        size: 24,
+                        color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.restaurant,
+                        size: 24,
+                        color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
+                      ),
+                    )
+                  : Icon(
+                      Icons.restaurant,
+                      size: 24,
+                      color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
                     ),
-                    const SizedBox(height: 4),
-                    FBadge(style: FBadgeStyle.secondary(),
-                      child: AppText(item.catalogTypeName),
-                    ),
-                  ],
-                ),
-              ),
-              // Action buttons
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.edit,
-                      size: 18,
-                      color: theme.colors.mutedForeground,
-                    ),
-                    onPressed: onEdit,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.delete,
-                      size: 18,
-                      color: theme.colors.destructive,
-                    ),
-                    onPressed: onDelete,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Spacer(),
-          AppText(
-            item.description,
-            style: theme.typography.sm.copyWith(
-              color: theme.colors.mutedForeground,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AppText(
-                currencyFormat.format(item.price),
-                style: theme.typography.lg.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colors.primary,
-                ),
-              ),
-              Row(
+            const SizedBox(width: 12),
+
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppText(
-                    item.isAvailable
-                        ? AppLocalizations.of(context)!.availableLabel
-                        : AppLocalizations.of(context)!.unavailable,
-                    style: theme.typography.xs.copyWith(
-                      color: theme.colors.mutedForeground,
+                    item.name.localized(context),
+                    style: theme.typography.base.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 8),
-                  FSwitch(
-                    value: item.isAvailable,
-                    onChange: onToggleAvailability,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      AppText(
+                        l10n.priceFormat(item.price.toStringAsFixed(0)),
+                        style: theme.typography.sm.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AppText(
+                        '• ${item.catalogTypeName.localized(context)}',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.mutedForeground,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ],
+            ),
+
+            // Availability toggle
+            FSwitch(
+              value: item.isAvailable,
+              onChange: onToggleAvailability,
+            ),
+          ],
+        ),
       ),
     );
   }

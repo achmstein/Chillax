@@ -36,35 +36,35 @@ public static class AccountsApi
             .WithSummary("List all accounts")
             .WithDescription("Get all customer accounts with balances (Admin only)")
             .WithTags("Admin")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapGet("/search", SearchAccounts)
             .WithName("SearchAccounts")
             .WithSummary("Search accounts")
             .WithDescription("Search customer accounts by name (Admin only)")
             .WithTags("Admin")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapGet("/{customerId}", GetAccountByCustomerId)
             .WithName("GetAccountByCustomerId")
             .WithSummary("Get customer account")
             .WithDescription("Get a specific customer's account details (Admin only)")
             .WithTags("Admin")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPost("/{customerId}/charge", AddCharge)
             .WithName("AddCharge")
             .WithSummary("Add charge")
             .WithDescription("Add a charge to a customer's account (Admin only)")
             .WithTags("Admin")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapPost("/{customerId}/payment", RecordPayment)
             .WithName("RecordPayment")
             .WithSummary("Record payment")
             .WithDescription("Record a payment for a customer's account (Admin only)")
             .WithTags("Admin")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         return app;
     }

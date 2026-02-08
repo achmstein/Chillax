@@ -69,7 +69,7 @@
           "Items"
         ],
         "summary": "Create a menu item",
-        "description": "Create a new menu item",
+        "description": "Create a new menu item (Admin only)",
         "operationId": "CreateItem",
         "parameters": [
           {
@@ -105,8 +105,17 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/by": {
@@ -233,7 +242,7 @@
           "Items"
         ],
         "summary": "Update a menu item",
-        "description": "Update an existing menu item",
+        "description": "Update an existing menu item (Admin only)",
         "operationId": "UpdateItem",
         "parameters": [
           {
@@ -280,15 +289,24 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       },
       "delete": {
         "tags": [
           "Items"
         ],
         "summary": "Delete menu item",
-        "description": "Delete the specified menu item",
+        "description": "Delete the specified menu item (Admin only)",
         "operationId": "DeleteItem",
         "parameters": [
           {
@@ -318,8 +336,17 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/by/{name}": {
@@ -503,6 +530,88 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Items"
+        ],
+        "summary": "Upload item picture",
+        "description": "Upload a picture for a menu item (Admin only)",
+        "operationId": "UploadItemPicture",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The menu item id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "description": "The API version, in the format 'major.minor'.",
+            "schema": {
+              "type": "string",
+              "example": "1.0"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/type/{typeId}": {
@@ -689,7 +798,7 @@
           "Categories"
         ],
         "summary": "Create a menu category",
-        "description": "Create a new menu category",
+        "description": "Create a new menu category (Admin only)",
         "operationId": "CreateCategory",
         "parameters": [
           {
@@ -722,8 +831,17 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/categories/{id}": {
@@ -777,7 +895,7 @@
           "Categories"
         ],
         "summary": "Update a menu category",
-        "description": "Update an existing menu category",
+        "description": "Update an existing menu category (Admin only)",
         "operationId": "UpdateCategory",
         "parameters": [
           {
@@ -824,15 +942,24 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       },
       "delete": {
         "tags": [
           "Categories"
         ],
         "summary": "Delete menu category",
-        "description": "Delete the specified menu category",
+        "description": "Delete the specified menu category (Admin only)",
         "operationId": "DeleteCategory",
         "parameters": [
           {
@@ -872,8 +999,17 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/{id}/availability": {
@@ -882,7 +1018,7 @@
           "Items"
         ],
         "summary": "Toggle item availability",
-        "description": "Toggle the availability of a menu item",
+        "description": "Toggle the availability of a menu item (Admin only)",
         "operationId": "ToggleItemAvailability",
         "parameters": [
           {
@@ -919,8 +1055,17 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/items/{id}/customizations": {
@@ -971,6 +1116,205 @@
             "description": "Not Found"
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Customizations"
+        ],
+        "summary": "Create customization group",
+        "description": "Create a new customization group for a menu item (Admin only)",
+        "operationId": "CreateCustomization",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The menu item id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "description": "The API version, in the format 'major.minor'.",
+            "schema": {
+              "type": "string",
+              "example": "1.0"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemCustomization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemCustomizationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
+      }
+    },
+    "/api/catalog/items/{id}/customizations/{customizationId}": {
+      "put": {
+        "tags": [
+          "Customizations"
+        ],
+        "summary": "Update customization group",
+        "description": "Update a customization group (Admin only)",
+        "operationId": "UpdateCustomization",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The menu item id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "customizationId",
+            "in": "path",
+            "description": "The customization id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "description": "The API version, in the format 'major.minor'.",
+            "schema": {
+              "type": "string",
+              "example": "1.0"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemCustomization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemCustomizationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Customizations"
+        ],
+        "summary": "Delete customization group",
+        "description": "Delete a customization group (Admin only)",
+        "operationId": "DeleteCustomization",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The menu item id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "customizationId",
+            "in": "path",
+            "description": "The customization id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "description": "The API version, in the format 'major.minor'.",
+            "schema": {
+              "type": "string",
+              "example": "1.0"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
       }
     },
     "/api/catalog/preferences/{catalogItemId}": {
@@ -1603,6 +1947,10 @@
             "type": "boolean"
           }
         }
+      },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
       },
       "ItemCustomization": {
         "type": "object",

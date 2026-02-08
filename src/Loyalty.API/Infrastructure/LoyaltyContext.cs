@@ -29,6 +29,8 @@ public class LoyaltyContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.AccountId);
             entity.HasIndex(e => e.ReferenceId);
+            entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Description).IsRequired(false);
             entity.HasOne(e => e.Account)
                 .WithMany(a => a.Transactions)
                 .HasForeignKey(e => e.AccountId)

@@ -69,12 +69,16 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
           seedColor: AppTheme.primaryColor,
           brightness: Brightness.light,
         ),
+        useMaterial3: true,
+        fontFamily: getFontFamily(locale),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppTheme.primaryColor,
           brightness: Brightness.dark,
         ),
+        useMaterial3: true,
+        fontFamily: getFontFamily(locale),
       ),
       themeMode: themeState.themeMode == AppThemeMode.light
           ? ThemeMode.light

@@ -1,5 +1,10 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http_parser/http_parser.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/network/api_client.dart';
 import '../models/menu_item.dart';
 
@@ -147,9 +152,11 @@ class MenuNotifier extends Notifier<MenuState> {
   }
 
   // Category CRUD operations
-  Future<bool> createCategory(String name) async {
+  Future<bool> createCategory(LocalizedText name) async {
     try {
-      await _api.post('categories', data: {'type': name});
+      await _api.post('categories', data: {
+        'name': name.toJson(),
+      });
       await loadMenu();
       return true;
     } catch (e) {
@@ -158,9 +165,11 @@ class MenuNotifier extends Notifier<MenuState> {
     }
   }
 
-  Future<bool> updateCategory(int id, String name) async {
+  Future<bool> updateCategory(int id, LocalizedText name) async {
     try {
-      await _api.put('categories/$id', data: {'type': name});
+      await _api.put('categories/$id', data: {
+        'name': name.toJson(),
+      });
       await loadMenu();
       return true;
     } catch (e) {
@@ -182,6 +191,80 @@ class MenuNotifier extends Notifier<MenuState> {
 
   int getItemCountForCategory(int categoryId) {
     return state.items.where((i) => i.catalogTypeId == categoryId).length;
+  }
+
+  // Image upload
+  Future<String?> uploadItemImage(int itemId, File imageFile) async {
+    try {
+      final extension = imageFile.path.split('.').last.toLowerCase();
+      final mimeType = switch (extension) {
+        'jpg' || 'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        _ => 'application/octet-stream',
+      };
+
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          imageFile.path,
+          contentType: MediaType.parse(mimeType),
+        ),
+      });
+
+      final response = await _api.post(
+        'items/$itemId/pic',
+        data: formData,
+      );
+      return response.data as String?;
+    } catch (e) {
+      debugPrint('Failed to upload image: $e');
+      return null;
+    }
+  }
+
+  // Customization CRUD
+  Future<ItemCustomization?> createCustomization(int itemId, ItemCustomization customization) async {
+    try {
+      final response = await _api.post(
+        'items/$itemId/customizations',
+        data: customization.toJson(),
+      );
+      await loadMenu();
+      return ItemCustomization.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('Failed to create customization: $e');
+      return null;
+    }
+  }
+
+  Future<ItemCustomization?> updateCustomization(int itemId, int customizationId, ItemCustomization customization) async {
+    try {
+      final response = await _api.put(
+        'items/$itemId/customizations/$customizationId',
+        data: customization.toJson(),
+      );
+      await loadMenu();
+      return ItemCustomization.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('Failed to update customization: $e');
+      return null;
+    }
+  }
+
+  Future<bool> deleteCustomization(int itemId, int customizationId) async {
+    try {
+      await _api.delete('items/$itemId/customizations/$customizationId');
+      await loadMenu();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to delete customization: $e');
+      return false;
+    }
+  }
+
+  /// Get a single item by ID
+  MenuItem? getItem(int itemId) {
+    return state.items.where((i) => i.id == itemId).firstOrNull;
   }
 }
 

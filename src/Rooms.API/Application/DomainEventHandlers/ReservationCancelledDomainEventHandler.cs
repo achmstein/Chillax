@@ -24,16 +24,27 @@ public class ReservationCancelledDomainEventHandler : INotificationHandler<Reser
     public async Task Handle(ReservationCancelledDomainEvent notification, CancellationToken cancellationToken)
     {
         var reservation = notification.Reservation;
+        var roomName = reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}");
 
         _logger.LogInformation("Reservation cancelled: {ReservationId}, Previous status: {PreviousStatus}",
             reservation.Id, notification.PreviousStatus);
 
-        // If was active, publish room available event
+        // Notify admins about the cancellation
+        var cancellationEvent = new ReservationCancelledIntegrationEvent(
+            reservation.Id,
+            reservation.RoomId,
+            roomName,
+            reservation.CustomerId,
+            reservation.CustomerName);
+
+        await _eventBus.PublishAsync(cancellationEvent);
+
+        // If was active, also publish room available event
         if (notification.PreviousStatus == ReservationStatus.Active)
         {
             var roomAvailableEvent = new RoomBecameAvailableIntegrationEvent(
                 reservation.RoomId,
-                reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"));
+                roomName);
 
             await _eventBus.PublishAsync(roomAvailableEvent);
         }

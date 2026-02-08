@@ -27,13 +27,17 @@ public static class Extensions
                 options.TypeInfoResolverChain.Add(NotificationIntegrationEventContext.Default))
             .AddSubscription<RoomBecameAvailableIntegrationEvent, RoomBecameAvailableIntegrationEventHandler>()
             .AddSubscription<OrderStatusChangedToSubmittedIntegrationEvent, OrderSubmittedIntegrationEventHandler>()
-            .AddSubscription<ServiceRequestCreatedIntegrationEvent, ServiceRequestCreatedIntegrationEventHandler>();
+            .AddSubscription<ServiceRequestCreatedIntegrationEvent, ServiceRequestCreatedIntegrationEventHandler>()
+            .AddSubscription<RoomReservedIntegrationEvent, RoomReservedIntegrationEventHandler>()
+            .AddSubscription<ReservationCancelledIntegrationEvent, ReservationCancelledIntegrationEventHandler>();
     }
 }
 
 [JsonSerializable(typeof(RoomBecameAvailableIntegrationEvent))]
 [JsonSerializable(typeof(OrderStatusChangedToSubmittedIntegrationEvent))]
 [JsonSerializable(typeof(ServiceRequestCreatedIntegrationEvent))]
+[JsonSerializable(typeof(RoomReservedIntegrationEvent))]
+[JsonSerializable(typeof(ReservationCancelledIntegrationEvent))]
 public partial class NotificationIntegrationEventContext : JsonSerializerContext
 {
 }

@@ -24,6 +24,15 @@ var roomsDb = postgres.AddDatabase("roomsdb");
 var loyaltyDb = postgres.AddDatabase("loyaltydb");
 var notificationDb = postgres.AddDatabase("notificationdb");
 
+// pgAdmin for database management
+builder.AddContainer("pgadmin", "dpage/pgadmin4", "9.7.0")
+    .WithHttpEndpoint(port: 5050, targetPort: 80)
+    .WithEnvironment("PGADMIN_DEFAULT_EMAIL", "admin@chillax.com")
+    .WithEnvironment("PGADMIN_DEFAULT_PASSWORD", "admin")
+    .WithEnvironment("PGADMIN_CONFIG_SERVER_MODE", "False")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WaitFor(postgres);
+
 var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
 
 // Keycloak for identity

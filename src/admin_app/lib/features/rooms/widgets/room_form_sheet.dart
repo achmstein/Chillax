@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/localized_text_field.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../providers/rooms_provider.dart';
@@ -22,25 +23,32 @@ class RoomFormSheet extends ConsumerStatefulWidget {
 
 class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
+  late TextEditingController _nameEnController;
+  late TextEditingController _nameArController;
+  late TextEditingController _descriptionEnController;
+  late TextEditingController _descriptionArController;
   late TextEditingController _hourlyRateController;
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.room?.name.en ?? '');
-    _descriptionController =
+    _nameEnController = TextEditingController(text: widget.room?.name.en ?? '');
+    _nameArController = TextEditingController(text: widget.room?.name.ar ?? '');
+    _descriptionEnController =
         TextEditingController(text: widget.room?.description?.en ?? '');
+    _descriptionArController =
+        TextEditingController(text: widget.room?.description?.ar ?? '');
     _hourlyRateController = TextEditingController(
         text: widget.room?.hourlyRate.toStringAsFixed(2) ?? '');
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _descriptionController.dispose();
+    _nameEnController.dispose();
+    _nameArController.dispose();
+    _descriptionEnController.dispose();
+    _descriptionArController.dispose();
     _hourlyRateController.dispose();
     super.dispose();
   }
@@ -106,32 +114,25 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Name field
-                      AppText(
-                        l10n.nameRequired,
-                        style: theme.typography.sm.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FTextField(
-                        control: FTextFieldControl.managed(controller: _nameController),
-                        hint: 'e.g. PlayStation Room 1',
+                      // Name field (bilingual)
+                      LocalizedTextField(
+                        label: l10n.name,
+                        isRequired: true,
+                        enController: _nameEnController,
+                        arController: _nameArController,
+                        enHint: 'e.g. PlayStation Room 1',
+                        arHint: 'مثال: غرفة بلايستيشن ١',
                       ),
                       const SizedBox(height: 16),
 
-                      // Description field
-                      AppText(
-                        l10n.description,
-                        style: theme.typography.sm.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FTextField.multiline(
-                        control: FTextFieldControl.managed(controller: _descriptionController),
-                        hint: l10n.optionalDescription,
-                        minLines: 2,
+                      // Description field (bilingual)
+                      LocalizedTextField(
+                        label: l10n.description,
+                        enController: _descriptionEnController,
+                        arController: _descriptionArController,
+                        enHint: l10n.optionalDescription,
+                        arHint: 'وصف اختياري',
+                        isMultiline: true,
                         maxLines: 4,
                       ),
                       const SizedBox(height: 16),
@@ -200,7 +201,7 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
   }
 
   Future<void> _submit() async {
-    if (_nameController.text.trim().isEmpty) {
+    if (_nameEnController.text.trim().isEmpty) {
       return;
     }
 
@@ -213,16 +214,9 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
 
     final room = Room(
       id: widget.room?.id ?? 0,
-      name: LocalizedText(
-        en: _nameController.text.trim(),
-        ar: widget.room?.name.ar,
-      ),
-      description: _descriptionController.text.trim().isNotEmpty
-          ? LocalizedText(
-              en: _descriptionController.text.trim(),
-              ar: widget.room?.description?.ar,
-            )
-          : null,
+      name: LocalizedTextControllers.getValue(_nameEnController, _nameArController),
+      description: LocalizedTextControllers.getValueOrNull(
+          _descriptionEnController, _descriptionArController),
       status: widget.room?.status ?? RoomStatus.available,
       hourlyRate: hourlyRate,
       pictureUri: widget.room?.pictureUri,

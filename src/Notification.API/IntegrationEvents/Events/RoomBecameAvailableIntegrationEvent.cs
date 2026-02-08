@@ -1,5 +1,6 @@
 using Chillax.EventBus.Events;
+using Chillax.Notification.API.Model;
 
 namespace Chillax.Notification.API.IntegrationEvents.Events;
 
-public record RoomBecameAvailableIntegrationEvent(int RoomId, string RoomName) : IntegrationEvent;
+public record RoomBecameAvailableIntegrationEvent(int RoomId, LocalizedText RoomName) : IntegrationEvent;

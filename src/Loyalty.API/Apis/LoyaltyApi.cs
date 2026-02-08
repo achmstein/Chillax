@@ -1,6 +1,8 @@
 using System.ComponentModel;
+using System.Security.Claims;
 using Chillax.Loyalty.API.Infrastructure;
 using Chillax.Loyalty.API.Model;
+using Chillax.ServiceDefaults;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +22,7 @@ public static class LoyaltyApi
             .WithSummary("List all loyalty accounts")
             .WithDescription("Get all loyalty accounts (Admin only)")
             .WithTags("Accounts")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         api.MapGet("/accounts/{userId}", GetAccountByUserId)
             .WithName("GetAccount")
@@ -63,7 +65,7 @@ public static class LoyaltyApi
             .WithSummary("Adjust points")
             .WithDescription("Manual adjustment of points (Admin only)")
             .WithTags("Transactions")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         // Tier endpoints
         api.MapGet("/tiers", GetTierInfo)
@@ -78,7 +80,7 @@ public static class LoyaltyApi
             .WithSummary("Get loyalty stats")
             .WithDescription("Get loyalty program statistics (Admin only)")
             .WithTags("Stats")
-            .RequireAuthorization();
+            .RequireAuthorization("Admin");
 
         return app;
     }
@@ -118,7 +120,8 @@ public static class LoyaltyApi
 
     public static async Task<Results<Created<AccountDto>, Conflict<ProblemDetails>>> CreateAccount(
         LoyaltyContext context,
-        CreateAccountRequest request)
+        CreateAccountRequest request,
+        ClaimsPrincipal user)
     {
         // Check if account already exists
         var existing = await context.Accounts.FirstOrDefaultAsync(a => a.UserId == request.UserId);
@@ -130,10 +133,13 @@ public static class LoyaltyApi
             });
         }
 
+        // Get display name from JWT claims (identity service)
+        var displayName = user.GetUserName();
+
         var account = new LoyaltyAccount
         {
             UserId = request.UserId,
-            UserDisplayName = request.UserDisplayName
+            UserDisplayName = displayName
         };
 
         context.Accounts.Add(account);
@@ -213,7 +219,12 @@ public static class LoyaltyApi
 
         try
         {
-            account.AddPoints(request.Points, request.Type, request.Description, request.ReferenceId);
+            if (!Enum.TryParse<TransactionType>(request.Type, true, out var transactionType))
+            {
+                return TypedResults.BadRequest<ProblemDetails>(new() { Detail = $"Invalid transaction type: {request.Type}" });
+            }
+
+            account.AddPoints(request.Points, transactionType, request.ReferenceId, request.Description);
             await context.SaveChangesAsync();
 
             var transaction = account.Transactions.OrderByDescending(t => t.CreatedAt).First();
@@ -242,8 +253,8 @@ public static class LoyaltyApi
         {
             AccountId = account.Id,
             Points = request.Points,
-            Type = "adjustment",
-            Description = request.Reason
+            Type = TransactionType.Adjustment,
+            Description = request.Reason  // Only Adjustment type uses Description
         };
 
         account.PointsBalance += request.Points;
@@ -307,8 +318,8 @@ public static class LoyaltyApi
 }
 
 // DTOs
-public record CreateAccountRequest(string UserId, string? UserDisplayName = null);
-public record EarnPointsRequest(string UserId, int Points, string Type, string Description, string? ReferenceId = null, string? UserDisplayName = null);
+public record CreateAccountRequest(string UserId);
+public record EarnPointsRequest(string UserId, int Points, string Type, string? ReferenceId = null, string? Description = null, string? UserDisplayName = null);
 public record AdjustPointsRequest(string UserId, int Points, string Reason);
 
 public record AccountDto(
@@ -340,11 +351,11 @@ public record TransactionDto(
     int Points,
     string Type,
     string? ReferenceId,
-    string Description,
+    string? Description,  // Only used for Adjustment type
     DateTime CreatedAt)
 {
     public TransactionDto(PointsTransaction t) : this(
-        t.Id, t.Points, t.Type, t.ReferenceId, t.Description, t.CreatedAt)
+        t.Id, t.Points, t.Type.ToString(), t.ReferenceId, t.Description, t.CreatedAt)
     { }
 }
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
@@ -55,7 +55,6 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
     final filteredAccounts = notifier.filteredAccounts;
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
     final totalBalance = state.accounts.fold<double>(0, (sum, a) => sum + a.balance);
 
     return Column(
@@ -91,7 +90,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 ),
                 const SizedBox(height: 2),
                 AppText(
-                  currencyFormat.format(totalBalance),
+                  l10n.priceFormat(totalBalance.toStringAsFixed(0)),
                   style: theme.typography.xl.copyWith(
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFFEF4444),
@@ -167,7 +166,7 @@ class _AccountTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final currencyFormat = NumberFormat.currency(symbol: '£', decimalDigits: 0);
+    final l10n = AppLocalizations.of(context)!;
 
     return GestureDetector(
       onTap: onTap,
@@ -208,7 +207,7 @@ class _AccountTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   AppText(
-                    _formatDate(account.updatedAt, AppLocalizations.of(context)!, Localizations.localeOf(context).languageCode),
+                    _formatDate(account.updatedAt, l10n, Localizations.localeOf(context).languageCode),
                     style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                   ),
                 ],
@@ -216,7 +215,7 @@ class _AccountTile extends StatelessWidget {
             ),
             // Balance
             AppText(
-              currencyFormat.format(account.balance),
+              l10n.priceFormat(account.balance.toStringAsFixed(0)),
               style: theme.typography.sm.copyWith(
                 fontWeight: FontWeight.w600,
                 color: account.hasBalance ? theme.colors.destructive : theme.colors.mutedForeground,

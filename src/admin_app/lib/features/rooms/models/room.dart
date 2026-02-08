@@ -93,10 +93,8 @@ class Room {
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name.en,
-      'nameAr': name.ar,
-      'description': description?.en,
-      'descriptionAr': description?.ar,
+      'name': name.toJson(),
+      'description': description?.toJson(),
       'hourlyRate': hourlyRate,
       'pictureFileName': pictureUri,
     };

@@ -213,10 +213,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statusReserved => 'محجوزة';
 
   @override
-  String get statusAvailable => 'متاح';
+  String get statusAvailable => 'متاحة';
 
   @override
-  String get statusOccupied => 'مشغول';
+  String get statusOccupied => 'مشغولة';
 
   @override
   String get statusMaintenance => 'صيانة';
@@ -744,4 +744,280 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tierPlatinum => 'بلاتيني';
+
+  @override
+  String get noSessionsYet => 'مفيش جلسات لسه';
+
+  @override
+  String get loadMore => 'تحميل المزيد';
+
+  @override
+  String get sessions => 'الجلسات';
+
+  @override
+  String get expiredAutoCancelling => 'انتهى - بيتلغي...';
+
+  @override
+  String autoCancelIn(String countdown) {
+    return 'هيتلغي في $countdown';
+  }
+
+  @override
+  String expiresIn(String countdown) {
+    return 'بينتهي في $countdown';
+  }
+
+  @override
+  String get currency => 'ج.م';
+
+  @override
+  String priceFormat(String price) {
+    return '$price ج.م';
+  }
+
+  @override
+  String hourlyRateFormat(String rate) {
+    return '$rate ج.م/ساعة';
+  }
+
+  @override
+  String balanceFormat(String amount, String currency) {
+    return '$amount $currency';
+  }
+
+  @override
+  String get changePassword => 'تغيير الباسورد';
+
+  @override
+  String get usersManagement => 'المستخدمين';
+
+  @override
+  String get helpAndSupport => 'المساعدة والدعم';
+
+  @override
+  String get newPassword => 'الباسورد الجديد';
+
+  @override
+  String get confirmPassword => 'تأكيد الباسورد';
+
+  @override
+  String get passwordsDoNotMatch => 'الباسوردين مش متطابقين';
+
+  @override
+  String get passwordChangedSuccess => 'تم تغيير الباسورد بنجاح';
+
+  @override
+  String get passwordMinLength => 'الباسورد لازم يكون 8 حروف على الأقل';
+
+  @override
+  String get addAdmin => 'إضافة أدمن';
+
+  @override
+  String get noUsersFound => 'مفيش مستخدمين';
+
+  @override
+  String get adminRole => 'أدمن';
+
+  @override
+  String get customerRole => 'عميل';
+
+  @override
+  String get adminCreatedSuccess => 'تم إنشاء الأدمن بنجاح';
+
+  @override
+  String get enabled => 'مفعّل';
+
+  @override
+  String get enterNewPassword => 'اكتب الباسورد الجديد';
+
+  @override
+  String get email => 'الإيميل';
+
+  @override
+  String get enterEmail => 'اكتب الإيميل';
+
+  @override
+  String get enterName => 'اكتب الاسم';
+
+  @override
+  String version(String version) {
+    return 'الإصدار $version';
+  }
+
+  @override
+  String get needHelpContactUs => 'محتاج مساعدة؟ تواصل معانا:';
+
+  @override
+  String get supportEmail => 'support@chillax.com';
+
+  @override
+  String get supportPhone => '+20 123 456 7890';
+
+  @override
+  String get supportHours => 'متاحين 24/7';
+
+  @override
+  String get cafeAndGaming => 'كافيه وجيمنج';
+
+  @override
+  String get aboutDescription => 'وجهتك للاسترخاء والجيمنج والأكل الحلو.';
+
+  @override
+  String get appearance => 'المظهر';
+
+  @override
+  String get theme => 'الثيم';
+
+  @override
+  String get light => 'فاتح';
+
+  @override
+  String get dark => 'غامق';
+
+  @override
+  String get systemDefault => 'زي الجهاز';
+
+  @override
+  String get selectTheme => 'اختار الثيم';
+
+  @override
+  String get lightThemeDescription => 'الثيم الفاتح دايماً';
+
+  @override
+  String get darkThemeDescription => 'الثيم الغامق دايماً';
+
+  @override
+  String get systemDefaultDescription => 'زي إعدادات الجهاز';
+
+  @override
+  String get selectLanguage => 'اختار اللغة';
+
+  @override
+  String get transactionTypePurchase => 'شراء';
+
+  @override
+  String get transactionTypeBonus => 'مكافأة';
+
+  @override
+  String get transactionTypeReferral => 'إحالة';
+
+  @override
+  String get transactionTypePromotion => 'عرض';
+
+  @override
+  String get transactionTypeRedemption => 'استبدال';
+
+  @override
+  String get transactionTypeAdjustment => 'تعديل';
+
+  @override
+  String pointsEarnedFromOrder(String orderId) {
+    return 'نقط مكتسبة من طلب #$orderId';
+  }
+
+  @override
+  String pointsRedeemedForOrder(String orderId) {
+    return 'نقط مستخدمة في طلب #$orderId';
+  }
+
+  @override
+  String get addMenuItemPage => 'إضافة صنف';
+
+  @override
+  String get editMenuItemPage => 'تعديل صنف';
+
+  @override
+  String get customizations => 'التخصيصات';
+
+  @override
+  String get addCustomization => 'إضافة تخصيص';
+
+  @override
+  String get editCustomization => 'تعديل تخصيص';
+
+  @override
+  String get customizationName => 'اسم التخصيص';
+
+  @override
+  String get customizationNameHint => 'مثلاً: الحجم، الإضافات، مستوى السكر';
+
+  @override
+  String get required => 'مطلوب';
+
+  @override
+  String get allowMultiple => 'سماح باختيار متعدد';
+
+  @override
+  String get options => 'الخيارات';
+
+  @override
+  String get addOption => 'إضافة خيار';
+
+  @override
+  String get optionName => 'اسم الخيار';
+
+  @override
+  String get optionNameHint => 'مثلاً: صغير، وسط، كبير';
+
+  @override
+  String get priceAdjustment => 'تعديل السعر';
+
+  @override
+  String get priceAdjustmentHint => 'مثلاً: 10 أو -5';
+
+  @override
+  String get defaultOption => 'افتراضي';
+
+  @override
+  String get takePhoto => 'التقاط صورة';
+
+  @override
+  String get chooseFromGallery => 'اختيار من المعرض';
+
+  @override
+  String get changeImage => 'تغيير الصورة';
+
+  @override
+  String get removeImage => 'إزالة الصورة';
+
+  @override
+  String get itemImage => 'صورة الصنف';
+
+  @override
+  String get tapToAddImage => 'اضغط لإضافة صورة';
+
+  @override
+  String get noCustomizations => 'مفيش تخصيصات';
+
+  @override
+  String get addCustomizationsHint => 'ضيف تخصيصات زي الحجم أو الإضافات';
+
+  @override
+  String get optionRequired => 'لازم خيار واحد على الأقل';
+
+  @override
+  String get savingItem => 'جاري الحفظ...';
+
+  @override
+  String get itemSaved => 'تم حفظ الصنف';
+
+  @override
+  String get failedToSaveItem => 'فشل حفظ الصنف';
+
+  @override
+  String get deleteCustomizationConfirm => 'مسح التخصيص ده؟';
+
+  @override
+  String get deleteOptionConfirm => 'مسح الخيار ده؟';
+
+  @override
+  String optionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خيارات',
+      one: 'خيار',
+    );
+    return '$count $_temp0';
+  }
 }

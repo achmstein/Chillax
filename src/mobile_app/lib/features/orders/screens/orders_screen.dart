@@ -319,7 +319,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                   ),
                 ),
                 AppText(
-                  '£${widget.order.total.toStringAsFixed(2)}',
+                  l10n.priceFormat(widget.order.total.toStringAsFixed(2)),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colors.foreground),
                 ),
                 const SizedBox(width: 8),
@@ -386,7 +386,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                             ),
                             Expanded(child: AppText(item.productName.getText(locale), style: TextStyle(fontSize: 14, color: colors.foreground))),
                             AppText(
-                              '£${item.totalPrice.toStringAsFixed(2)}',
+                              l10n.priceFormat(item.totalPrice.toStringAsFixed(2)),
                               style: TextStyle(fontSize: 14, color: colors.mutedForeground),
                             ),
                           ],

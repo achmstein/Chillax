@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../auth/auth_service.dart';
 
 const String _localeKey = 'app_locale';
 
@@ -37,6 +38,9 @@ class LocaleNotifier extends Notifier<Locale> {
     state = locale;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_localeKey, locale.languageCode);
+
+    // Update notification subscriptions with the new language preference
+    ref.read(authServiceProvider.notifier).updateNotificationLanguage(locale.languageCode);
   }
 
   void toggleLocale() {

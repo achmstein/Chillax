@@ -81,7 +81,29 @@ public class FcmService : IFcmService
                     Title = title,
                     Body = body
                 },
-                Data = data
+                Data = data,
+                // High priority for instant delivery
+                Android = new AndroidConfig
+                {
+                    Priority = Priority.High,
+                    Notification = new AndroidNotification
+                    {
+                        Priority = NotificationPriority.MAX,
+                        ChannelId = "high_priority_channel"
+                    }
+                },
+                Apns = new ApnsConfig
+                {
+                    Headers = new Dictionary<string, string>
+                    {
+                        { "apns-priority", "10" } // Immediate delivery on iOS
+                    },
+                    Aps = new Aps
+                    {
+                        Sound = "default",
+                        ContentAvailable = true
+                    }
+                }
             };
 
             var response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
@@ -125,7 +147,29 @@ public class FcmService : IFcmService
                     Title = title,
                     Body = body
                 },
-                Data = data
+                Data = data,
+                // High priority for instant delivery
+                Android = new AndroidConfig
+                {
+                    Priority = Priority.High,
+                    Notification = new AndroidNotification
+                    {
+                        Priority = NotificationPriority.MAX,
+                        ChannelId = "high_priority_channel"
+                    }
+                },
+                Apns = new ApnsConfig
+                {
+                    Headers = new Dictionary<string, string>
+                    {
+                        { "apns-priority", "10" }
+                    },
+                    Aps = new Aps
+                    {
+                        Sound = "default",
+                        ContentAvailable = true
+                    }
+                }
             }).ToList();
 
             var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);

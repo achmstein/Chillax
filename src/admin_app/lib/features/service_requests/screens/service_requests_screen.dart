@@ -2,12 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/service_request.dart';
 import '../providers/service_requests_provider.dart';
+
+/// Extension to get localized labels for service request types
+extension ServiceRequestTypeLocalization on ServiceRequestType {
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case ServiceRequestType.callWaiter:
+        return l10n.callWaiter;
+      case ServiceRequestType.controllerChange:
+        return l10n.controllerChange;
+      case ServiceRequestType.receiptToPay:
+        return l10n.receiptToPay;
+    }
+  }
+}
 
 class ServiceRequestsScreen extends ConsumerStatefulWidget {
   const ServiceRequestsScreen({super.key});
@@ -164,7 +179,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: AppText(
-                        request.requestType.label,
+                        request.requestType.localizedLabel(l10n),
                         style: theme.typography.lg.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -173,7 +188,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                 ),
                 const SizedBox(height: 16),
                 // Details
-                _DetailRow(icon: Icons.meeting_room, label: l10n.room, value: request.roomName),
+                _DetailRow(icon: Icons.meeting_room, label: l10n.room, value: request.roomName.localized(context)),
                 const SizedBox(height: 8),
                 _DetailRow(icon: Icons.person_outline, label: l10n.customer, value: request.userName),
                 const SizedBox(height: 8),
@@ -362,7 +377,7 @@ class _RequestTile extends StatelessWidget {
                       Row(
                         children: [
                           AppText(
-                            request.requestType.label,
+                            request.requestType.localizedLabel(l10n),
                             style: theme.typography.sm.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -374,7 +389,7 @@ class _RequestTile extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           AppText(
-                            request.roomName,
+                            request.roomName.localized(context),
                             style: theme.typography.sm.copyWith(
                               color: theme.colors.primary,
                               fontWeight: FontWeight.w500,
@@ -395,7 +410,7 @@ class _RequestTile extends StatelessWidget {
 
                 // Action hint
                 AppText(
-                  isPending ? 'TAP' : isAcknowledged ? 'DONE' : '',
+                  isPending ? l10n.tap : isAcknowledged ? l10n.doneLabel : '',
                   style: theme.typography.xs.copyWith(
                     color: isPending
                         ? theme.colors.destructive

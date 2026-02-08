@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Chillax.Catalog.API.Model;
 
 namespace Chillax.Catalog.API.Infrastructure;
@@ -31,12 +31,12 @@ public partial class CatalogContextSeed(
             logger.LogInformation("Seeded catalog with {NumTypes} types", types.Count);
             await context.SaveChangesAsync();
 
-            // Seed menu items based on actual Chillax menu
+            // Seed menu items based on Loyverse export
             var menuItems = new List<CatalogItem>
             {
-                // ============== COFFEE (Category 1) ==============
+                // ============== COFFEE - قهوة (Category 1) ==============
                 new(new LocalizedText("Turkish Coffee", "قهوة تركي"),
-                    new LocalizedText("Traditional Turkish coffee brewed to perfection", "قهوة تركية تقليدية محضرة بإتقان"))
+                    new LocalizedText("Our signature Turkish coffee, roasted fresh daily", "قهوتنا التركي المميزة، محمصة طازة كل يوم"))
                 {
                     Price = 25.00m,
                     CatalogTypeId = 1,
@@ -45,8 +45,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 1,
                     PictureFileName = "turkish-coffee.webp"
                 },
-                new(new LocalizedText("Hazelnut Coffee", "قهوة بالبندق"),
-                    new LocalizedText("Rich coffee with hazelnut flavor", "قهوة غنية بنكهة البندق"))
+                new(new LocalizedText("Hazelnut Coffee", "قهوة بندق"),
+                    new LocalizedText("Turkish coffee with rich hazelnut flavor", "قهوة تركي بنكهة البندق الغنية"))
                 {
                     Price = 35.00m,
                     CatalogTypeId = 1,
@@ -55,8 +55,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 2,
                     PictureFileName = "hazelnut-coffee.webp"
                 },
-                new(new LocalizedText("French Coffee", "قهوة فرنسية"),
-                    new LocalizedText("Smooth French-style coffee", "قهوة فرنسية ناعمة"))
+                new(new LocalizedText("French Coffee", "قهوة فرنساوي"),
+                    new LocalizedText("Smooth French-style coffee with a creamy taste", "قهوة فرنساوي ناعمة بطعم كريمي"))
                 {
                     Price = 35.00m,
                     CatalogTypeId = 1,
@@ -65,8 +65,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 3,
                     PictureFileName = "french-coffee.webp"
                 },
-                new(new LocalizedText("Caramel Coffee", "قهوة بالكراميل"),
-                    new LocalizedText("Sweet caramel flavored coffee", "قهوة حلوة بنكهة الكراميل"))
+                new(new LocalizedText("Caramel Coffee", "قهوة كاراميل"),
+                    new LocalizedText("Sweet caramel flavored Turkish coffee", "قهوة تركي بنكهة الكراميل الحلوة"))
                 {
                     Price = 30.00m,
                     CatalogTypeId = 1,
@@ -76,7 +76,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "caramel-coffee.webp"
                 },
                 new(new LocalizedText("Cappuccino", "كابتشينو"),
-                    new LocalizedText("Classic Italian cappuccino with steamed milk foam", "كابتشينو إيطالي كلاسيكي مع رغوة الحليب"))
+                    new LocalizedText("Classic Italian cappuccino with creamy foam", "كابتشينو إيطالي كلاسيك برغوة كريمية"))
                 {
                     Price = 50.00m,
                     CatalogTypeId = 1,
@@ -95,8 +95,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 6,
                     PictureFileName = "latte.webp"
                 },
-                new(new LocalizedText("Macchiato", "ماكياتو"),
-                    new LocalizedText("Espresso marked with a dash of milk foam", "اسبرسو مع لمسة من رغوة الحليب"))
+                new(new LocalizedText("Macchiato", "ميكاتو"),
+                    new LocalizedText("Strong espresso with a touch of milk foam", "اسبرسو قوي بلمسة من رغوة الحليب"))
                 {
                     Price = 40.00m,
                     CatalogTypeId = 1,
@@ -106,7 +106,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "macchiato.webp"
                 },
                 new(new LocalizedText("Nescafe", "نسكافيه"),
-                    new LocalizedText("Instant coffee, available black or with milk", "قهوة سريعة التحضير، سادة أو بالحليب"))
+                    new LocalizedText("Instant Nescafe, black or with milk", "نسكافيه سريع التحضير، سادة أو بالحليب"))
                 {
                     Price = 35.00m,
                     CatalogTypeId = 1,
@@ -115,8 +115,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 8,
                     PictureFileName = "nescafe.webp"
                 },
-                new(new LocalizedText("American Coffee", "قهوة أمريكية"),
-                    new LocalizedText("Classic American-style brewed coffee", "قهوة أمريكية كلاسيكية"))
+                new(new LocalizedText("American Coffee", "امريكان كوفي"),
+                    new LocalizedText("Classic American brewed coffee", "قهوة أمريكان كلاسيك"))
                 {
                     Price = 60.00m,
                     CatalogTypeId = 1,
@@ -126,7 +126,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "americano.webp"
                 },
 
-                // ============== ESPRESSO (Category 2) ==============
+                // ============== ESPRESSO - اسبرسو (Category 2) ==============
                 new(new LocalizedText("Espresso", "اسبرسو"),
                     new LocalizedText("Strong Italian espresso shot", "شوت اسبرسو إيطالي قوي"))
                 {
@@ -138,7 +138,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "espresso.webp"
                 },
                 new(new LocalizedText("Mocha", "موكا"),
-                    new LocalizedText("Espresso with chocolate and steamed milk", "اسبرسو مع الشوكولاتة والحليب المبخر"))
+                    new LocalizedText("Espresso with chocolate and steamed milk", "اسبرسو بالشوكولاتة والحليب"))
                 {
                     Price = 60.00m,
                     CatalogTypeId = 2,
@@ -147,8 +147,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 2,
                     PictureFileName = "mocha.webp"
                 },
-                new(new LocalizedText("Iced Mocha", "موكا مثلجة"),
-                    new LocalizedText("Chilled mocha with ice", "موكا باردة مع الثلج"))
+                new(new LocalizedText("Iced Mocha", "آيس موكا"),
+                    new LocalizedText("Chilled mocha with ice, perfect for hot days", "موكا ساقعة بالتلج، مثالية للأيام الحر"))
                 {
                     Price = 60.00m,
                     CatalogTypeId = 2,
@@ -158,9 +158,9 @@ public partial class CatalogContextSeed(
                     PictureFileName = "iced-mocha.webp"
                 },
 
-                // ============== HOT DRINKS (Category 3) ==============
+                // ============== HOT DRINKS - مشروبات ساخنة (Category 3) ==============
                 new(new LocalizedText("Tea", "شاي"),
-                    new LocalizedText("Traditional tea, available in various styles", "شاي تقليدي متاح بأنواع مختلفة"))
+                    new LocalizedText("Traditional Egyptian tea, the way you like it", "شاي مصري تقليدي، زي ما بتحبه"))
                 {
                     Price = 15.00m,
                     CatalogTypeId = 3,
@@ -169,8 +169,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 1,
                     PictureFileName = "tea.webp"
                 },
-                new(new LocalizedText("Green Tea", "شاي أخضر"),
-                    new LocalizedText("Healthy green tea", "شاي أخضر صحي"))
+                new(new LocalizedText("Green Tea", "شاي اخضر"),
+                    new LocalizedText("Healthy green tea for a refreshing experience", "شاي أخضر صحي لتجربة منعشة"))
                 {
                     Price = 20.00m,
                     CatalogTypeId = 3,
@@ -179,8 +179,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 2,
                     PictureFileName = "green-tea.webp"
                 },
-                new(new LocalizedText("Herbal Tea", "شاي أعشاب"),
-                    new LocalizedText("Soothing herbal infusion - mint, anise, hibiscus, cinnamon", "منقوع أعشاب مهدئ - نعناع، يانسون، كركديه، قرفة"))
+                new(new LocalizedText("Herbal Tea", "أعشاب"),
+                    new LocalizedText("Soothing herbal infusion - mint, anise, hibiscus, cinnamon", "أعشاب مهدئة - نعناع، ينسون، كركديه، قرفة"))
                 {
                     Price = 20.00m,
                     CatalogTypeId = 3,
@@ -190,7 +190,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "herbal-tea.webp"
                 },
                 new(new LocalizedText("Hot Lemon", "ليمون ساخن"),
-                    new LocalizedText("Warm lemon drink, optional honey", "مشروب ليمون دافئ، بالعسل اختياري"))
+                    new LocalizedText("Warm lemon drink, with optional honey", "ليمون سخن، ممكن بالعسل"))
                 {
                     Price = 25.00m,
                     CatalogTypeId = 3,
@@ -199,8 +199,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 4,
                     PictureFileName = "hot-lemon.webp"
                 },
-                new(new LocalizedText("Hot Chocolate", "شوكولاتة ساخنة"),
-                    new LocalizedText("Rich and creamy hot chocolate", "شوكولاتة ساخنة غنية وكريمية"))
+                new(new LocalizedText("Hot Chocolate", "هوت شوكلت"),
+                    new LocalizedText("Rich and creamy hot chocolate", "هوت شوكلت غنية وكريمية"))
                 {
                     Price = 50.00m,
                     CatalogTypeId = 3,
@@ -209,8 +209,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 5,
                     PictureFileName = "hot-chocolate.webp"
                 },
-                new(new LocalizedText("Hot Cider", "سيدر ساخن"),
-                    new LocalizedText("Warm apple cider", "سيدر تفاح دافئ"))
+                new(new LocalizedText("Hot Cider", "هوت سيدر"),
+                    new LocalizedText("Warm apple cider to warm you up", "سيدر تفاح سخن يدفيك"))
                 {
                     Price = 45.00m,
                     CatalogTypeId = 3,
@@ -220,7 +220,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "hot-cider.webp"
                 },
                 new(new LocalizedText("Sahlab", "سحلب"),
-                    new LocalizedText("Traditional creamy orchid root drink with toppings", "سحلب تقليدي كريمي مع الإضافات"))
+                    new LocalizedText("Traditional creamy sahlab with your choice of toppings", "سحلب تقليدي كريمي بالإضافات اللي تحبها"))
                 {
                     Price = 40.00m,
                     CatalogTypeId = 3,
@@ -230,7 +230,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "sahlab.webp"
                 },
                 new(new LocalizedText("Hummus Al-Sham", "حمص الشام"),
-                    new LocalizedText("Traditional Egyptian warm chickpea drink", "حمص الشام المصري التقليدي الدافئ"))
+                    new LocalizedText("Traditional Egyptian warm chickpea drink", "حمص الشام المصري الأصيل"))
                 {
                     Price = 40.00m,
                     CatalogTypeId = 3,
@@ -240,9 +240,9 @@ public partial class CatalogContextSeed(
                     PictureFileName = "hummus-sham.webp"
                 },
 
-                // ============== ICED DRINKS (Category 4) ==============
-                new(new LocalizedText("Iced Coffee", "قهوة مثلجة"),
-                    new LocalizedText("Chilled coffee over ice", "قهوة باردة مع الثلج"))
+                // ============== ICED DRINKS - مشروبات مثلجة (Category 4) ==============
+                new(new LocalizedText("Iced Coffee", "آيس كوفي"),
+                    new LocalizedText("Chilled coffee over ice, refreshing and energizing", "قهوة ساقعة بالتلج، منعشة ومنشطة"))
                 {
                     Price = 60.00m,
                     CatalogTypeId = 4,
@@ -252,7 +252,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "iced-latte.webp"
                 },
                 new(new LocalizedText("Frappuccino", "فرابتشينو"),
-                    new LocalizedText("Blended iced coffee drink", "مشروب قهوة مثلجة مخفوقة"))
+                    new LocalizedText("Blended iced coffee drink, smooth and delicious", "فرابتشينو مخفوق، ناعم ولذيذ"))
                 {
                     Price = 80.00m,
                     CatalogTypeId = 4,
@@ -262,7 +262,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "frappuccino.webp"
                 },
                 new(new LocalizedText("Flat White", "فلات وايت"),
-                    new LocalizedText("Iced flat white with velvety milk", "فلات وايت مثلج مع حليب ناعم"))
+                    new LocalizedText("Iced flat white with velvety milk", "فلات وايت ساقع بحليب ناعم"))
                 {
                     Price = 80.00m,
                     CatalogTypeId = 4,
@@ -271,8 +271,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 3,
                     PictureFileName = "flat-white.webp"
                 },
-                new(new LocalizedText("Iced Chocolate", "شوكولاتة مثلجة"),
-                    new LocalizedText("Cold chocolate drink over ice", "مشروب شوكولاتة بارد مع الثلج"))
+                new(new LocalizedText("Iced Chocolate", "ايس شوكلت"),
+                    new LocalizedText("Cold chocolate drink over ice", "شوكولاتة ساقعة بالتلج"))
                 {
                     Price = 60.00m,
                     CatalogTypeId = 4,
@@ -282,7 +282,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "iced-chocolate.webp"
                 },
                 new(new LocalizedText("Milkshake", "ميلك شيك"),
-                    new LocalizedText("Creamy milkshake - chocolate, vanilla, strawberry, or caramel", "ميلك شيك كريمي - شوكولاتة، فانيليا، فراولة، أو كراميل"))
+                    new LocalizedText("Creamy milkshake in your favorite flavor", "ميلك شيك كريمي بنكهتك المفضلة"))
                 {
                     Price = 50.00m,
                     CatalogTypeId = 4,
@@ -292,7 +292,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "milkshake.webp"
                 },
                 new(new LocalizedText("Oreo Milkshake", "ميلك شيك أوريو"),
-                    new LocalizedText("Creamy milkshake with Oreo cookies", "ميلك شيك كريمي مع بسكويت أوريو"))
+                    new LocalizedText("Creamy milkshake with Oreo cookies", "ميلك شيك كريمي ببسكويت أوريو"))
                 {
                     Price = 60.00m,
                     CatalogTypeId = 4,
@@ -301,7 +301,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 6,
                     PictureFileName = "oreo-milkshake.webp"
                 },
-                new(new LocalizedText("Galaxy Milkshake", "ميلك شيك جالاكسي"),
+                new(new LocalizedText("Galaxy Milkshake", "ميلك جالاكسي"),
                     new LocalizedText("Rich Galaxy chocolate milkshake", "ميلك شيك شوكولاتة جالاكسي غني"))
                 {
                     Price = 80.00m,
@@ -311,7 +311,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 7,
                     PictureFileName = "galaxy-milkshake.webp"
                 },
-                new(new LocalizedText("Oreo Shake", "شيك أوريو"),
+                new(new LocalizedText("Oreo Shake", "اوريو"),
                     new LocalizedText("Oreo cookie blended shake", "شيك أوريو مخفوق"))
                 {
                     Price = 60.00m,
@@ -321,7 +321,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 8,
                     PictureFileName = "oreo-shake.webp"
                 },
-                new(new LocalizedText("Burio Shake", "شيك بوريو"),
+                new(new LocalizedText("Burio Shake", "بوريو"),
                     new LocalizedText("Burio chocolate blended shake", "شيك بوريو شوكولاتة مخفوق"))
                 {
                     Price = 50.00m,
@@ -332,7 +332,7 @@ public partial class CatalogContextSeed(
                     PictureFileName = "burio-shake.webp"
                 },
                 new(new LocalizedText("Yogurt", "زبادي"),
-                    new LocalizedText("Fresh yogurt drink - plain, honey, or fruit", "مشروب زبادي طازج - سادة، بالعسل، أو بالفواكه"))
+                    new LocalizedText("Fresh yogurt drink - plain, honey, or fruit", "زبادي طازج - سادة، بالعسل، أو بالفواكه"))
                 {
                     Price = 35.00m,
                     CatalogTypeId = 4,
@@ -341,8 +341,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 10,
                     PictureFileName = "yogurt.webp"
                 },
-                new(new LocalizedText("Brownies Shake", "شيك براونيز"),
-                    new LocalizedText("Chocolate brownies blended shake", "شيك براونيز شوكولاتة مخفوق"))
+                new(new LocalizedText("Brownies Shake", "براونيز"),
+                    new LocalizedText("Chocolate brownies blended shake", "شيك براونيز شوكولاتة"))
                 {
                     Price = 45.00m,
                     CatalogTypeId = 4,
@@ -351,8 +351,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 11,
                     PictureFileName = "brownie.webp"
                 },
-                new(new LocalizedText("Ice Cream Scoop", "سكوب آيس كريم"),
-                    new LocalizedText("Premium ice cream scoop", "سكوب آيس كريم فاخر"))
+                new(new LocalizedText("Ice Cream Scoop", "بولة ايس كريم"),
+                    new LocalizedText("Premium ice cream scoop", "بولة آيس كريم فاخرة"))
                 {
                     Price = 20.00m,
                     CatalogTypeId = 4,
@@ -361,9 +361,19 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 12,
                     PictureFileName = "ice-cream.webp"
                 },
+                new(new LocalizedText("Oreo Piece", "قطعه أوريو"),
+                    new LocalizedText("Extra Oreo piece for your drink", "قطعة أوريو إضافية لمشروبك"))
+                {
+                    Price = 15.00m,
+                    CatalogTypeId = 4,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 13,
+                    PictureFileName = "oreo-piece.webp"
+                },
 
-                // ============== JUICES (Category 5) ==============
-                new(new LocalizedText("Orange Juice", "عصير برتقال"),
+                // ============== JUICES - عصائر (Category 5) ==============
+                new(new LocalizedText("Orange Juice", "برتقال"),
                     new LocalizedText("Freshly squeezed orange juice", "عصير برتقال طازج معصور"))
                 {
                     Price = 20.00m,
@@ -373,8 +383,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 1,
                     PictureFileName = "orange-juice.webp"
                 },
-                new(new LocalizedText("Mango Juice", "عصير مانجو"),
-                    new LocalizedText("Fresh mango juice", "عصير مانجو طازج"))
+                new(new LocalizedText("Mango Juice", "مانجو"),
+                    new LocalizedText("Fresh mango juice, sweet and tropical", "عصير مانجو طازج، حلو ومنعش"))
                 {
                     Price = 50.00m,
                     CatalogTypeId = 5,
@@ -383,7 +393,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 2,
                     PictureFileName = "mango-smoothie.webp"
                 },
-                new(new LocalizedText("Strawberry Juice", "عصير فراولة"),
+                new(new LocalizedText("Strawberry Juice", "فراولة"),
                     new LocalizedText("Fresh strawberry juice, plain or with milk", "عصير فراولة طازج، سادة أو بالحليب"))
                 {
                     Price = 50.00m,
@@ -393,7 +403,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 3,
                     PictureFileName = "strawberry-smoothie.webp"
                 },
-                new(new LocalizedText("Guava Juice", "عصير جوافة"),
+                new(new LocalizedText("Guava Juice", "جوافة"),
                     new LocalizedText("Fresh guava juice, plain or with milk", "عصير جوافة طازج، سادة أو بالحليب"))
                 {
                     Price = 50.00m,
@@ -403,7 +413,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 4,
                     PictureFileName = "guava-juice.webp"
                 },
-                new(new LocalizedText("Banana Juice", "عصير موز"),
+                new(new LocalizedText("Banana Juice", "موز"),
                     new LocalizedText("Creamy banana juice", "عصير موز كريمي"))
                 {
                     Price = 35.00m,
@@ -413,8 +423,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 5,
                     PictureFileName = "banana-juice.webp"
                 },
-                new(new LocalizedText("Kiwi Juice", "عصير كيوي"),
-                    new LocalizedText("Fresh kiwi juice", "عصير كيوي طازج"))
+                new(new LocalizedText("Kiwi Juice", "كيوي"),
+                    new LocalizedText("Fresh kiwi juice, tangy and refreshing", "عصير كيوي طازج، منعش"))
                 {
                     Price = 50.00m,
                     CatalogTypeId = 5,
@@ -423,7 +433,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 6,
                     PictureFileName = "kiwi-juice.webp"
                 },
-                new(new LocalizedText("Lemonade", "ليمونادة"),
+                new(new LocalizedText("Lemonade", "ليمون"),
                     new LocalizedText("Fresh lemonade, plain or with mint", "ليمونادة طازجة، سادة أو بالنعناع"))
                 {
                     Price = 30.00m,
@@ -433,7 +443,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 7,
                     PictureFileName = "lemonade.webp"
                 },
-                new(new LocalizedText("Watermelon Juice", "عصير بطيخ"),
+                new(new LocalizedText("Watermelon Juice", "بطيخ"),
                     new LocalizedText("Refreshing watermelon juice", "عصير بطيخ منعش"))
                 {
                     Price = 45.00m,
@@ -443,7 +453,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 8,
                     PictureFileName = "watermelon-juice.webp"
                 },
-                new(new LocalizedText("Prickly Pear Juice", "عصير تين شوكي"),
+                new(new LocalizedText("Prickly Pear Juice", "تين شوكي"),
                     new LocalizedText("Fresh prickly pear cactus fruit juice", "عصير تين شوكي طازج"))
                 {
                     Price = 45.00m,
@@ -453,8 +463,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 9,
                     PictureFileName = "prickly-pear-juice.webp"
                 },
-                new(new LocalizedText("Date Shake", "شيك تمر"),
-                    new LocalizedText("Sweet date shake, plain or with milk", "شيك تمر حلو، سادة أو بالحليب"))
+                new(new LocalizedText("Date Shake", "بلح"),
+                    new LocalizedText("Sweet date shake, plain or with milk", "شيك بلح حلو، سادة أو بالحليب"))
                 {
                     Price = 50.00m,
                     CatalogTypeId = 5,
@@ -463,7 +473,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 10,
                     PictureFileName = "date-shake.webp"
                 },
-                new(new LocalizedText("Fruit Salad", "سلطة فواكه"),
+                new(new LocalizedText("Fruit Salad", "فروت سلاط"),
                     new LocalizedText("Mixed fresh fruit salad", "سلطة فواكه طازجة مشكلة"))
                 {
                     Price = 40.00m,
@@ -473,7 +483,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 11,
                     PictureFileName = "fruit-salad.webp"
                 },
-                new(new LocalizedText("Cocktail Juice", "عصير كوكتيل"),
+                new(new LocalizedText("Cocktail Juice", "كوكتيل"),
                     new LocalizedText("Mixed fruit cocktail juice", "عصير كوكتيل فواكه مشكل"))
                 {
                     Price = 60.00m,
@@ -483,7 +493,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 12,
                     PictureFileName = "cocktail-juice.webp"
                 },
-                new(new LocalizedText("Sunshine Juice", "عصير صن شاين"),
+                new(new LocalizedText("Sunshine Juice", "صن شاين"),
                     new LocalizedText("Refreshing sunshine blend juice", "عصير صن شاين منعش"))
                 {
                     Price = 50.00m,
@@ -493,8 +503,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 13,
                     PictureFileName = "sunshine-juice.webp"
                 },
-                new(new LocalizedText("Florida Juice", "عصير فلوريدا"),
-                    new LocalizedText("Florida-style citrus blend juice", "عصير حمضيات على طريقة فلوريدا"))
+                new(new LocalizedText("Florida Juice", "فلوريدا"),
+                    new LocalizedText("Florida-style citrus blend juice", "عصير فلوريدا حمضيات"))
                 {
                     Price = 60.00m,
                     CatalogTypeId = 5,
@@ -503,10 +513,20 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 14,
                     PictureFileName = "florida-juice.webp"
                 },
+                new(new LocalizedText("Juice Extras", "إضافات"),
+                    new LocalizedText("Extra additions for your juice", "إضافات لعصيرك"))
+                {
+                    Price = 10.00m,
+                    CatalogTypeId = 5,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 15,
+                    PictureFileName = "juice-extras.webp"
+                },
 
-                // ============== SOFT DRINKS (Category 6) ==============
-                new(new LocalizedText("Pepsi", "بيبسي"),
-                    new LocalizedText("Chilled Pepsi cola", "بيبسي كولا مثلجة"))
+                // ============== SOFT DRINKS - مشروبات غازية (Category 6) ==============
+                new(new LocalizedText("Soft Drink", "مشروب غازي"),
+                    new LocalizedText("Chilled soft drink - Pepsi, 7Up, Mirinda, and more", "مشروب غازي ساقع - بيبسي، سفن، ميرندا، وغيرهم"))
                 {
                     Price = 25.00m,
                     CatalogTypeId = 6,
@@ -515,8 +535,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 1,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("7Up", "سفن أب"),
-                    new LocalizedText("Chilled lemon-lime soda", "مشروب غازي ليمون مثلج"))
+                new(new LocalizedText("Mountain Dew", "Dew"),
+                    new LocalizedText("Chilled Mountain Dew", "ماونتن ديو ساقع"))
                 {
                     Price = 25.00m,
                     CatalogTypeId = 6,
@@ -525,8 +545,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 2,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("Mirinda", "ميرندا"),
-                    new LocalizedText("Chilled orange soda", "مشروب غازي برتقال مثلج"))
+                new(new LocalizedText("Twist", "Twist"),
+                    new LocalizedText("Carbonated lemon drink", "تويست ليمون غازي"))
                 {
                     Price = 25.00m,
                     CatalogTypeId = 6,
@@ -535,34 +555,14 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 3,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("Mountain Dew", "ماونتن ديو"),
-                    new LocalizedText("Chilled citrus soda", "مشروب غازي حمضيات مثلج"))
+                new(new LocalizedText("V7", "V7"),
+                    new LocalizedText("Vegetable juice blend", "عصير خضروات مشكل"))
                 {
                     Price = 25.00m,
                     CatalogTypeId = 6,
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 4,
-                    PictureFileName = "soft-drink.webp"
-                },
-                new(new LocalizedText("Schweppes", "شويبس"),
-                    new LocalizedText("Sparkling tonic - lemon, pomegranate, gold, or tangerine", "مشروب فوار - ليمون، رمان، جولد، أو يوسفي"))
-                {
-                    Price = 20.00m,
-                    CatalogTypeId = 6,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 1,
-                    DisplayOrder = 5,
-                    PictureFileName = "soft-drink.webp"
-                },
-                new(new LocalizedText("Birell", "بيريل"),
-                    new LocalizedText("Non-alcoholic malt beverage", "مشروب شعير خالي من الكحول"))
-                {
-                    Price = 25.00m,
-                    CatalogTypeId = 6,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 1,
-                    DisplayOrder = 6,
                     PictureFileName = "soft-drink.webp"
                 },
                 new(new LocalizedText("Mineral Water", "مياه معدنية"),
@@ -572,21 +572,41 @@ public partial class CatalogContextSeed(
                     CatalogTypeId = 6,
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
-                    DisplayOrder = 7,
+                    DisplayOrder = 5,
                     PictureFileName = "mineral-water.webp"
                 },
-                new(new LocalizedText("Red Bull", "ريد بول"),
-                    new LocalizedText("Energy drink", "مشروب طاقة"))
+                new(new LocalizedText("Red Bull", "Red Bull"),
+                    new LocalizedText("Red Bull energy drink", "ريد بول مشروب طاقة"))
                 {
                     Price = 65.00m,
                     CatalogTypeId = 6,
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
-                    DisplayOrder = 8,
+                    DisplayOrder = 6,
                     PictureFileName = "red-bull.webp"
                 },
-                new(new LocalizedText("Power Horse", "باور هورس"),
-                    new LocalizedText("Energy drink", "مشروب طاقة"))
+                new(new LocalizedText("Power Horse", "Power Horse"),
+                    new LocalizedText("Power Horse energy drink", "باور هورس مشروب طاقة"))
+                {
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 7,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new(new LocalizedText("Buzz", "Buzz"),
+                    new LocalizedText("Buzz energy drink", "بز مشروب طاقة"))
+                {
+                    Price = 20.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 8,
+                    PictureFileName = "soft-drink.webp"
+                },
+                new(new LocalizedText("Amstel Zero", "Amstel Zero"),
+                    new LocalizedText("Non-alcoholic Amstel beer", "أمستل زيرو بدون كحول"))
                 {
                     Price = 25.00m,
                     CatalogTypeId = 6,
@@ -595,48 +615,48 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 9,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("Buzz Energy", "بز إنرجي"),
-                    new LocalizedText("Energy drink", "مشروب طاقة"))
+                new(new LocalizedText("Barbican", "Barbican"),
+                    new LocalizedText("Non-alcoholic malt beverage", "باربيكان شعير بدون كحول"))
                 {
-                    Price = 20.00m,
+                    Price = 40.00m,
                     CatalogTypeId = 6,
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 10,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("Amstel Zero", "أمستل زيرو"),
-                    new LocalizedText("Non-alcoholic beer", "بيرة خالية من الكحول"))
+                new(new LocalizedText("Moussy", "موسي"),
+                    new LocalizedText("Non-alcoholic malt beverage", "موسي شعير بدون كحول"))
                 {
-                    Price = 25.00m,
+                    Price = 30.00m,
                     CatalogTypeId = 6,
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 11,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("Barbican", "باربيكان"),
-                    new LocalizedText("Non-alcoholic malt beverage", "مشروب شعير خالي من الكحول"))
+                new(new LocalizedText("FreeGo", "FreeGo"),
+                    new LocalizedText("FreeGo soft drink", "فري جو مشروب غازي"))
                 {
-                    Price = 40.00m,
+                    Price = 20.00m,
                     CatalogTypeId = 6,
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 12,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("Moussy", "موسي"),
-                    new LocalizedText("Non-alcoholic malt beverage", "مشروب شعير خالي من الكحول"))
+                new(new LocalizedText("Snaps", "Snaps"),
+                    new LocalizedText("Snaps carbonated drink", "سنابس مشروب غازي"))
                 {
-                    Price = 30.00m,
+                    Price = 20.00m,
                     CatalogTypeId = 6,
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 13,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("FreeGo", "فري جو"),
-                    new LocalizedText("Soft drink", "مشروب غازي"))
+                new(new LocalizedText("Spiro Spathis", "سبيرو سباتس"),
+                    new LocalizedText("Classic Egyptian lemon soda", "سبيرو سباتس ليمون مصري كلاسيك"))
                 {
                     Price = 20.00m,
                     CatalogTypeId = 6,
@@ -645,8 +665,8 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 14,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("Snaps", "سنابس"),
-                    new LocalizedText("Carbonated drink", "مشروب غازي"))
+                new(new LocalizedText("Double Deer", "دبل دير"),
+                    new LocalizedText("Double Deer carbonated drink", "دبل دير مشروب غازي"))
                 {
                     Price = 20.00m,
                     CatalogTypeId = 6,
@@ -655,50 +675,10 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 15,
                     PictureFileName = "soft-drink.webp"
                 },
-                new(new LocalizedText("Twist", "تويست"),
-                    new LocalizedText("Carbonated lemon drink", "مشروب غازي بالليمون"))
-                {
-                    Price = 25.00m,
-                    CatalogTypeId = 6,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 1,
-                    DisplayOrder = 16,
-                    PictureFileName = "soft-drink.webp"
-                },
-                new(new LocalizedText("V7", "في سفن"),
-                    new LocalizedText("Vegetable juice blend", "عصير خضروات مشكل"))
-                {
-                    Price = 25.00m,
-                    CatalogTypeId = 6,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 1,
-                    DisplayOrder = 17,
-                    PictureFileName = "soft-drink.webp"
-                },
-                new(new LocalizedText("Spiro Spathis", "سبيرو سباتس"),
-                    new LocalizedText("Classic Egyptian lemon soda", "مشروب ليمون غازي مصري كلاسيكي"))
-                {
-                    Price = 20.00m,
-                    CatalogTypeId = 6,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 1,
-                    DisplayOrder = 18,
-                    PictureFileName = "soft-drink.webp"
-                },
-                new(new LocalizedText("Double Deer", "دبل دير"),
-                    new LocalizedText("Carbonated drink", "مشروب غازي"))
-                {
-                    Price = 20.00m,
-                    CatalogTypeId = 6,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 1,
-                    DisplayOrder = 19,
-                    PictureFileName = "soft-drink.webp"
-                },
 
-                // ============== SNACKS (Category 7) ==============
-                new(new LocalizedText("Chips", "شيبسي"),
-                    new LocalizedText("Assorted potato chips", "شيبسي بطاطس متنوع"))
+                // ============== SNACKS - مقرمشات (Category 7) ==============
+                new(new LocalizedText("Chips", "مقرمشات"),
+                    new LocalizedText("Assorted potato chips", "شيبسي متنوع"))
                 {
                     Price = 15.00m,
                     CatalogTypeId = 7,
@@ -707,7 +687,7 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 1,
                     PictureFileName = "chips.webp"
                 },
-                new(new LocalizedText("Peanuts", "فول سوداني"),
+                new(new LocalizedText("Peanuts", "سوداني"),
                     new LocalizedText("Roasted peanuts", "فول سوداني محمص"))
                 {
                     Price = 20.00m,
@@ -718,9 +698,9 @@ public partial class CatalogContextSeed(
                     PictureFileName = "peanuts.webp"
                 },
 
-                // ============== DESSERTS (Category 8) ==============
+                // ============== DESSERTS - حلويات (Category 8) ==============
                 new(new LocalizedText("Waffle", "وافل"),
-                    new LocalizedText("Belgian waffle with toppings", "وافل بلجيكي مع الإضافات"))
+                    new LocalizedText("Belgian waffle with your choice of toppings", "وافل بلجيكي بالإضافات اللي تحبها"))
                 {
                     Price = 70.00m,
                     CatalogTypeId = 8,
@@ -728,16 +708,6 @@ public partial class CatalogContextSeed(
                     PreparationTimeMinutes = 10,
                     DisplayOrder = 1,
                     PictureFileName = "waffles.webp"
-                },
-                new(new LocalizedText("Oreo Piece", "قطعة أوريو"),
-                    new LocalizedText("Oreo cookie dessert piece", "قطعة حلوى أوريو"))
-                {
-                    Price = 15.00m,
-                    CatalogTypeId = 8,
-                    IsAvailable = true,
-                    PreparationTimeMinutes = 1,
-                    DisplayOrder = 2,
-                    PictureFileName = "oreo-piece.webp"
                 }
             };
 
@@ -785,12 +755,12 @@ public partial class CatalogContextSeed(
                         DisplayOrder = 3,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("Light Roast", "تحميص خفيف")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
-                            new(new LocalizedText("Medium Roast", "تحميص متوسط")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 2 },
-                            new(new LocalizedText("Dark Roast", "تحميص غامق")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 }
+                            new(new LocalizedText("Light Roast", "فاتح")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
+                            new(new LocalizedText("Medium Roast", "وسط")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 2 },
+                            new(new LocalizedText("Dark Roast", "غامق")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 }
                         }
                     },
-                    new(new LocalizedText("Sugar Level", "مستوى السكر"))
+                    new(new LocalizedText("Sugar Level", "السكر"))
                     {
                         CatalogItemId = turkishCoffee.Id,
                         IsRequired = false,
@@ -798,13 +768,13 @@ public partial class CatalogContextSeed(
                         DisplayOrder = 4,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("No Sugar (Sada)", "سادة")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
-                            new(new LocalizedText("Light Sugar", "سكر خفيف")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new(new LocalizedText("Medium Sugar (Mazboot)", "مظبوط")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 3 },
-                            new(new LocalizedText("Sweet (Ziyada)", "زيادة")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
+                            new(new LocalizedText("No Sugar", "سادة")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
+                            new(new LocalizedText("Light Sugar", "ع الريحة")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new(new LocalizedText("Medium Sugar", "مظبوط")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 3 },
+                            new(new LocalizedText("Sweet", "زيادة")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
                         }
                     },
-                    new(new LocalizedText("Cup Size", "حجم الفنجان"))
+                    new(new LocalizedText("Cup Size", "الفنجان"))
                     {
                         CatalogItemId = turkishCoffee.Id,
                         IsRequired = false,
@@ -842,7 +812,7 @@ public partial class CatalogContextSeed(
                             new(new LocalizedText("Double", "دبل")) { PriceAdjustment = coffee.Name.En == "Espresso" ? 15.00m : 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     },
-                    new(new LocalizedText("Sugar Level", "مستوى السكر"))
+                    new(new LocalizedText("Sugar Level", "السكر"))
                     {
                         CatalogItemId = coffee.Id,
                         IsRequired = false,
@@ -850,7 +820,7 @@ public partial class CatalogContextSeed(
                         DisplayOrder = 2,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("No Sugar", "بدون سكر")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
+                            new(new LocalizedText("No Sugar", "من غير سكر")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
                             new(new LocalizedText("Light Sugar", "سكر خفيف")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
                             new(new LocalizedText("Regular Sugar", "سكر عادي")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 3 },
                             new(new LocalizedText("Extra Sugar", "سكر زيادة")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
@@ -874,7 +844,7 @@ public partial class CatalogContextSeed(
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("Black", "سادة")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new(new LocalizedText("Black", "بلاك")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
                             new(new LocalizedText("With Milk", "بالحليب")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
@@ -896,14 +866,14 @@ public partial class CatalogContextSeed(
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("Tea Bag", "كيس شاي")) { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 1 },
-                            new(new LocalizedText("Lipton", "ليبتون")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 2 },
-                            new(new LocalizedText("With Milk", "بالحليب")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 3 },
-                            new(new LocalizedText("With Mint", "بالنعناع")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
-                            new(new LocalizedText("With Lemon", "بالليمون")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 5 }
+                            new(new LocalizedText("Tea Bag", "باكيت")) { PriceAdjustment = 5.00m, IsDefault = true, DisplayOrder = 1 },
+                            new(new LocalizedText("Lipton", "ليبتون")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new(new LocalizedText("With Lemon", "ليمون")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
+                            new(new LocalizedText("With Mint", "نعناع")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
+                            new(new LocalizedText("With Milk", "حليب")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 5 }
                         }
                     },
-                    new(new LocalizedText("Sugar Level", "مستوى السكر"))
+                    new(new LocalizedText("Sugar Level", "السكر"))
                     {
                         CatalogItemId = tea.Id,
                         IsRequired = false,
@@ -911,13 +881,13 @@ public partial class CatalogContextSeed(
                         DisplayOrder = 2,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("No Sugar", "بدون سكر")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
+                            new(new LocalizedText("No Sugar", "من غير سكر")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 1 },
                             new(new LocalizedText("Light Sugar", "سكر خفيف")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
                             new(new LocalizedText("Regular Sugar", "سكر عادي")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 3 },
                             new(new LocalizedText("Extra Sugar", "سكر زيادة")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
                         }
                     },
-                    new(new LocalizedText("Cup Size", "حجم الفنجان"))
+                    new(new LocalizedText("Cup Size", "الكوباية"))
                     {
                         CatalogItemId = tea.Id,
                         IsRequired = false,
@@ -925,8 +895,8 @@ public partial class CatalogContextSeed(
                         DisplayOrder = 3,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("Regular Cup", "فنجان عادي")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("Large Cup", "فنجان كبير")) { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 }
+                            new(new LocalizedText("Regular Cup", "كوباية عادية")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new(new LocalizedText("Large Cup", "كوباية كبيرة")) { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
@@ -948,12 +918,12 @@ public partial class CatalogContextSeed(
                         Options = new List<CustomizationOption>
                         {
                             new(new LocalizedText("Mint", "نعناع")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("Anise", "يانسون")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new(new LocalizedText("Anise", "ينسون")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
                             new(new LocalizedText("Hibiscus", "كركديه")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
                             new(new LocalizedText("Cinnamon", "قرفة")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
-                            new(new LocalizedText("Cinnamon with Milk", "قرفة بالحليب")) { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 },
-                            new(new LocalizedText("Cinnamon Ginger", "قرفة بالزنجبيل")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 6 },
-                            new(new LocalizedText("Cocktail Mix", "كوكتيل مشكل")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 7 }
+                            new(new LocalizedText("Cinnamon with Milk", "قرفة حليب")) { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 5 },
+                            new(new LocalizedText("Cinnamon Ginger", "قرفة جنزبيل")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 6 },
+                            new(new LocalizedText("Cocktail Mix", "كوكتيل")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 7 }
                         }
                     }
                 };
@@ -975,11 +945,11 @@ public partial class CatalogContextSeed(
                         Options = new List<CustomizationOption>
                         {
                             new(new LocalizedText("Plain", "سادة")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("With Chocolate", "بالشوكولاتة")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 },
-                            new(new LocalizedText("With Nuts", "بالمكسرات")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 3 },
-                            new(new LocalizedText("With Oreo", "بالأوريو")) { PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 4 },
-                            new(new LocalizedText("With Burio", "بالبوريو")) { PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 5 },
-                            new(new LocalizedText("With Fruits", "بالفواكه")) { PriceAdjustment = 25.00m, IsDefault = false, DisplayOrder = 6 }
+                            new(new LocalizedText("With Chocolate", "شوكولاتة")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 },
+                            new(new LocalizedText("With Nuts", "مكسرات")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 3 },
+                            new(new LocalizedText("With Oreo", "اوريو")) { PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 4 },
+                            new(new LocalizedText("With Burio", "بوريو")) { PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 5 },
+                            new(new LocalizedText("With Fruits", "فواكه")) { PriceAdjustment = 25.00m, IsDefault = false, DisplayOrder = 6 }
                         }
                     }
                 };
@@ -1001,7 +971,7 @@ public partial class CatalogContextSeed(
                         Options = new List<CustomizationOption>
                         {
                             new(new LocalizedText("Plain", "سادة")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("With Honey", "بالعسل")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
+                            new(new LocalizedText("With Honey", "عسل")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
@@ -1022,7 +992,7 @@ public partial class CatalogContextSeed(
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("Chocolate", "شوكولاتة")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new(new LocalizedText("Chocolate", "شيكولاته")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
                             new(new LocalizedText("Vanilla", "فانيليا")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
                             new(new LocalizedText("Strawberry", "فراولة")) { PriceAdjustment = 20.00m, IsDefault = false, DisplayOrder = 3 },
                             new(new LocalizedText("Caramel", "كراميل")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 }
@@ -1050,7 +1020,7 @@ public partial class CatalogContextSeed(
                         Options = new List<CustomizationOption>
                         {
                             new(new LocalizedText("Plain", "سادة")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("With Chunks", "بالقطع")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
+                            new(new LocalizedText("With Chunks", "قطع")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
@@ -1072,8 +1042,8 @@ public partial class CatalogContextSeed(
                         Options = new List<CustomizationOption>
                         {
                             new(new LocalizedText("Plain", "سادة")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("With Honey", "بالعسل")) { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
-                            new(new LocalizedText("With Fruits", "بالفواكه")) { PriceAdjustment = 30.00m, IsDefault = false, DisplayOrder = 3 }
+                            new(new LocalizedText("With Honey", "عسل")) { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 2 },
+                            new(new LocalizedText("With Fruits", "فواكه")) { PriceAdjustment = 30.00m, IsDefault = false, DisplayOrder = 3 }
                         }
                     }
                 };
@@ -1098,7 +1068,7 @@ public partial class CatalogContextSeed(
                         Options = new List<CustomizationOption>
                         {
                             new(new LocalizedText("Plain", "سادة")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("With Milk", "بالحليب")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
+                            new(new LocalizedText("With Milk", "حليب")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
@@ -1120,31 +1090,35 @@ public partial class CatalogContextSeed(
                         Options = new List<CustomizationOption>
                         {
                             new(new LocalizedText("Plain", "سادة")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("With Mint", "بالنعناع")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
+                            new(new LocalizedText("With Mint", "نعناع")) { PriceAdjustment = 10.00m, IsDefault = false, DisplayOrder = 2 }
                         }
                     }
                 };
                 await context.ItemCustomizations.AddRangeAsync(customizations);
             }
 
-            // Add customizations for Schweppes
-            var schweppes = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name.En == "Schweppes");
-            if (schweppes != null)
+            // Add customizations for Soft Drinks
+            var softDrink = await context.CatalogItems.FirstOrDefaultAsync(i => i.Name.En == "Soft Drink");
+            if (softDrink != null)
             {
                 var customizations = new List<ItemCustomization>
                 {
-                    new(new LocalizedText("Flavor", "النكهة"))
+                    new(new LocalizedText("Type", "النوع"))
                     {
-                        CatalogItemId = schweppes.Id,
+                        CatalogItemId = softDrink.Id,
                         IsRequired = true,
                         AllowMultiple = false,
                         DisplayOrder = 1,
                         Options = new List<CustomizationOption>
                         {
-                            new(new LocalizedText("Lemon", "ليمون")) { PriceAdjustment = 5.00m, IsDefault = true, DisplayOrder = 1 },
-                            new(new LocalizedText("Pomegranate", "رمان")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
-                            new(new LocalizedText("Gold", "جولد")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
-                            new(new LocalizedText("Tangerine", "يوسفي")) { PriceAdjustment = 5.00m, IsDefault = false, DisplayOrder = 4 }
+                            new(new LocalizedText("Pepsi", "بيبسي")) { PriceAdjustment = 0, IsDefault = true, DisplayOrder = 1 },
+                            new(new LocalizedText("7Up", "سفن اب")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 2 },
+                            new(new LocalizedText("Mirinda", "ميرندا")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 3 },
+                            new(new LocalizedText("Schweppes Lemon", "شويبس ليمون")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 4 },
+                            new(new LocalizedText("Schweppes Pomegranate", "شويبس رمان")) { PriceAdjustment = -5.00m, IsDefault = false, DisplayOrder = 5 },
+                            new(new LocalizedText("Schweppes Gold", "شويبس جولد")) { PriceAdjustment = -5.00m, IsDefault = false, DisplayOrder = 6 },
+                            new(new LocalizedText("Schweppes Tangerine", "شويبس يوسفي")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 7 },
+                            new(new LocalizedText("Birell", "بيريل")) { PriceAdjustment = 0, IsDefault = false, DisplayOrder = 8 }
                         }
                     }
                 };

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/config/app_config.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
@@ -281,7 +281,6 @@ class _RoomTileState extends State<_RoomTile> {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
-    final currencyFormat = NumberFormat.currency(symbol: '£');
     final isActive = widget.session?.status == SessionStatus.active;
     final isReserved = widget.session?.status == SessionStatus.reserved;
     final isAvailable = widget.room.status == RoomStatus.available &&
@@ -339,7 +338,7 @@ class _RoomTileState extends State<_RoomTile> {
                   Row(
                     children: [
                       AppText(
-                        '${currencyFormat.format(widget.room.hourlyRate)}${l10n.perHour}',
+                        l10n.hourlyRateFormat(widget.room.hourlyRate.toStringAsFixed(0)),
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -409,10 +408,13 @@ class _RoomTileState extends State<_RoomTile> {
                 ),
                 child: GestureDetector(
                   onTap: widget.onStartSession,
-                  child: Icon(
-                    Icons.play_arrow,
-                    color: theme.colors.primaryForeground,
-                    size: 18,
+                  child: Transform.scale(
+                    scaleX: Directionality.of(context) == TextDirection.rtl ? -1 : 1,
+                    child: Icon(
+                      Icons.play_arrow,
+                      color: theme.colors.primaryForeground,
+                      size: 18,
+                    ),
                   ),
                 ),
               )

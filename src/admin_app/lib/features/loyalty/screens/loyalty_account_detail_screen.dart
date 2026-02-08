@@ -10,6 +10,44 @@ import '../models/points_transaction.dart';
 import '../providers/loyalty_provider.dart';
 import 'loyalty_screen.dart' show getLocalizedTierName;
 
+/// Get localized transaction type name
+String getLocalizedTransactionType(String type, AppLocalizations l10n) {
+  switch (type.toLowerCase()) {
+    case 'purchase':
+      return l10n.transactionTypePurchase;
+    case 'bonus':
+      return l10n.transactionTypeBonus;
+    case 'referral':
+      return l10n.transactionTypeReferral;
+    case 'promotion':
+      return l10n.transactionTypePromotion;
+    case 'redemption':
+      return l10n.transactionTypeRedemption;
+    case 'adjustment':
+      return l10n.transactionTypeAdjustment;
+    default:
+      return type;
+  }
+}
+
+/// Get localized transaction description
+String? getLocalizedTransactionDescription(PointsTransaction tx, AppLocalizations l10n) {
+  // If description is provided, show it
+  if (tx.description != null && tx.description!.isNotEmpty) {
+    return tx.description;
+  }
+
+  // Otherwise, construct localized description from type + referenceId
+  switch (tx.type.toLowerCase()) {
+    case 'purchase':
+      return tx.referenceId != null ? l10n.pointsEarnedFromOrder(tx.referenceId!) : null;
+    case 'redemption':
+      return tx.referenceId != null ? l10n.pointsRedeemedForOrder(tx.referenceId!) : null;
+    default:
+      return null;
+  }
+}
+
 /// Wrapper for loyalty account detail as a full page
 class LoyaltyAccountDetailPageWrapper extends ConsumerStatefulWidget {
   final String userId;
@@ -38,23 +76,27 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
   }
 
   Future<void> _loadAccount() async {
-    if (widget.accountJson != null) {
+    // Always fetch fresh account data from API
+    final account = await ref.read(loyaltyProvider.notifier).getAccountByUserId(widget.userId);
+
+    if (account != null) {
+      setState(() {
+        _account = account;
+        _isLoading = false;
+      });
+      _loadTransactions();
+    } else if (widget.accountJson != null) {
+      // Fallback to passed data if API fails
       setState(() {
         _account = LoyaltyAccount.fromJson(widget.accountJson!);
         _isLoading = false;
       });
       _loadTransactions();
     } else {
-      await ref.read(loyaltyProvider.notifier).loadAll();
-      final accounts = ref.read(loyaltyProvider).accounts;
-      final account = accounts.where((a) => a.userId == widget.userId).firstOrNull;
       setState(() {
-        _account = account;
+        _account = null;
         _isLoading = false;
       });
-      if (account != null) {
-        _loadTransactions();
-      }
     }
   }
 
@@ -255,7 +297,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
         title: l10n.addPoints,
         account: _account!,
         isAdjustment: false,
-        onComplete: () => _loadTransactions(),
+        onComplete: _refresh,
       ),
     );
   }
@@ -270,7 +312,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
         title: l10n.adjust,
         account: _account!,
         isAdjustment: true,
-        onComplete: () => _loadTransactions(),
+        onComplete: _refresh,
       ),
     );
   }
@@ -302,41 +344,44 @@ class _TierBadge extends StatelessWidget {
 
   const _TierBadge({required this.tier});
 
-  Color get _tierColor {
-    switch (tier) {
-      case LoyaltyTier.bronze:
-        return const Color(0xFFCD7F32);
-      case LoyaltyTier.silver:
-        return const Color(0xFFC0C0C0);
-      case LoyaltyTier.gold:
-        return const Color(0xFFFFD700);
-      case LoyaltyTier.platinum:
-        return const Color(0xFFE5E4E2);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
-
     final l10n = AppLocalizations.of(context)!;
+    final gradientColors = tier.gradientColors.map((c) => Color(c)).toList();
+    // Use dark text for light tier colors (silver, gold), white for darker (bronze, platinum)
+    final textColor = (tier == LoyaltyTier.bronze || tier == LoyaltyTier.platinum)
+        ? Colors.white
+        : Colors.black87;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: _tierColor.withValues(alpha: 0.2),
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Color(tier.colorValue).withValues(alpha: 0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.workspace_premium, size: 14, color: _tierColor),
+          Icon(Icons.workspace_premium, size: 14, color: textColor),
           const SizedBox(width: 4),
           AppText(
             getLocalizedTierName(tier, l10n),
-            style: theme.typography.xs.copyWith(
-              fontWeight: FontWeight.w600,
-              color: _tierColor,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -413,6 +458,7 @@ class _TransactionsSection extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final tx = transactions[index];
                           final isPositive = tx.isEarned;
+                          final localizedDescription = getLocalizedTransactionDescription(tx, l10n);
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -434,17 +480,28 @@ class _TransactionsSection extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 12),
 
-                                // Description and date
+                                // Type, description and date
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       AppText(
-                                        tx.typeDisplay,
+                                        getLocalizedTransactionType(tx.type, l10n),
                                         style: theme.typography.sm.copyWith(
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
+                                      if (localizedDescription != null) ...[
+                                        const SizedBox(height: 2),
+                                        AppText(
+                                          localizedDescription,
+                                          style: theme.typography.xs.copyWith(
+                                            color: theme.colors.mutedForeground,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                       const SizedBox(height: 4),
                                       AppText(
                                         '${dateFormat.format(tx.createdAt.toLocal())} at ${timeFormat.format(tx.createdAt.toLocal())}',
@@ -704,24 +761,19 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
     bool success = false;
     try {
       if (widget.isAdjustment) {
-        await ref.read(loyaltyProvider.notifier).adjustPoints(
+        success = await ref.read(loyaltyProvider.notifier).adjustPoints(
           userId: widget.account.userId,
           points: points,
-          reason: _descriptionController.text.isEmpty
-              ? 'Manual adjustment'
-              : _descriptionController.text,
+          reason: _descriptionController.text.trim(),
         );
       } else {
-        await ref.read(loyaltyProvider.notifier).earnPoints(
+        success = await ref.read(loyaltyProvider.notifier).earnPoints(
           userId: widget.account.userId,
           points: points,
           type: 'bonus',
-          description: _descriptionController.text.isEmpty
-              ? 'Manual bonus'
-              : _descriptionController.text,
+          description: _descriptionController.text.trim(),
         );
       }
-      success = true;
     } catch (e) {
       success = false;
     }
