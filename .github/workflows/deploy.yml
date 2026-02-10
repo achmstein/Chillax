@@ -1,12 +1,6 @@
 name: Deploy to Server
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types:
-      - completed
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       environment:
@@ -25,7 +19,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     environment: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
