@@ -48,6 +48,20 @@ jobs:
           cp src/Chillax.AppHost/KeycloakConfiguration/chillax-realm.json deploy-artifacts/chillax-realm.json
           sed -i 's|source: ".*chillax-realm.json"|source: "./chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
 
+          # Fill empty .env values (aspire publish generates empty placeholders)
+          sed -i 's/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=postgres/' deploy-artifacts/.env
+          sed -i 's/^EVENTBUS_PASSWORD=$/EVENTBUS_PASSWORD=guest/' deploy-artifacts/.env
+          sed -i 's/^KEYCLOAK_PASSWORD=$/KEYCLOAK_PASSWORD=admin/' deploy-artifacts/.env
+
+          # Fill port values for service discovery
+          sed -i 's/^CATALOG_API_PORT=$/CATALOG_API_PORT=8080/' deploy-artifacts/.env
+          sed -i 's/^ORDERING_API_PORT=$/ORDERING_API_PORT=8080/' deploy-artifacts/.env
+          sed -i 's/^ROOMS_API_PORT=$/ROOMS_API_PORT=8080/' deploy-artifacts/.env
+          sed -i 's/^IDENTITY_API_PORT=$/IDENTITY_API_PORT=8080/' deploy-artifacts/.env
+          sed -i 's/^LOYALTY_API_PORT=$/LOYALTY_API_PORT=8080/' deploy-artifacts/.env
+          sed -i 's/^NOTIFICATION_API_PORT=$/NOTIFICATION_API_PORT=8080/' deploy-artifacts/.env
+          sed -i 's/^ACCOUNTS_API_PORT=$/ACCOUNTS_API_PORT=8080/' deploy-artifacts/.env
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
