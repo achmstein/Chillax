@@ -44,6 +44,11 @@ jobs:
           cp src/Chillax.AppHost/KeycloakConfiguration/chillax-realm.json deploy-artifacts/chillax-realm.json
           sed -i 's|source: ".*chillax-realm.json"|source: "./chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
 
+          # Fix Aspire service discovery URLs to standard Docker Compose DNS
+          sed -i 's|"https+http://\([^"]*\)"|"http://\1:8080"|g' deploy-artifacts/docker-compose.yaml
+          sed -i 's|"http://_http.\([^"]*\)"|"http://\1:8080"|g' deploy-artifacts/docker-compose.yaml
+          sed -i 's|"http://keycloak:8080"|"http://keycloak:8080"|g' deploy-artifacts/docker-compose.yaml
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
