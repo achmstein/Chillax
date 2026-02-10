@@ -108,6 +108,7 @@ jobs:
           packageName: com.chillax.client
           releaseFiles: src/client_app/build/app/outputs/bundle/release/app-release.aab
           track: ${{ github.event.inputs.track || 'internal' }}
+          status: draft
 
   build-android-admin:
     if: |
@@ -174,6 +175,7 @@ jobs:
           packageName: com.chillax.admin
           releaseFiles: src/admin_app/build/app/outputs/bundle/release/app-release.aab
           track: ${{ github.event.inputs.track || 'internal' }}
+          status: draft
 
   # ==========================================
   # iOS Builds
