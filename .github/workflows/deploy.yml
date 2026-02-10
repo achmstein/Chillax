@@ -47,6 +47,7 @@ jobs:
         run: |
           cp src/Chillax.AppHost/KeycloakConfiguration/chillax-realm.json deploy-artifacts/chillax-realm.json
           sed -i 's|source: ".*chillax-realm.json"|source: "./chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
+          sed -i 's|target: "/opt/keycloak/data/import"|target: "/opt/keycloak/data/import/chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
 
           # Fill empty .env values (aspire publish generates empty placeholders)
           sed -i 's/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=postgres/' deploy-artifacts/.env
