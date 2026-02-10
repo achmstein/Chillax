@@ -89,7 +89,7 @@ jobs:
           EOF
 
       - name: Build Android App Bundle
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --build-number=${{ github.run_number }}
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
@@ -155,7 +155,7 @@ jobs:
           EOF
 
       - name: Build Android App Bundle
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --build-number=${{ github.run_number }}
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
@@ -230,7 +230,7 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Build iOS
-        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+        run: flutter build ipa --release --build-number=${{ github.run_number }} --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -316,7 +316,7 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Build iOS
-        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+        run: flutter build ipa --release --build-number=${{ github.run_number }} --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
