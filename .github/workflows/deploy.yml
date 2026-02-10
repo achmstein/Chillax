@@ -45,12 +45,9 @@ jobs:
           cd src/Chillax.AppHost
           aspire publish -o ../../deploy-artifacts
 
-      - name: Fix Keycloak bind mount path and copy realm config
+      - name: Prepare deployment artifacts
         run: |
-          # Copy Keycloak realm config into deploy artifacts
           cp src/Chillax.AppHost/KeycloakConfiguration/chillax-realm.json deploy-artifacts/chillax-realm.json
-
-          # Fix the bind mount path in the generated compose file to use server path
           sed -i 's|source: ".*chillax-realm.json"|source: "./chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
 
       - name: Upload artifacts
