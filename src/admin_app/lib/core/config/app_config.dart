@@ -1,13 +1,13 @@
 /// Application configuration for Admin Tablet App
 class AppConfig {
   // Admin BFF base URL (all API calls go through here)
-  // Debug: localhost with adb reverse tcp:80 tcp:80
+  // Debug: localhost with adb reverse tcp:8080 tcp:80
   // Release: Oracle Cloud server
   static const bool _isRelease = bool.fromEnvironment('dart.vm.product');
   static String get bffBaseUrl {
     return _isRelease
         ? 'http://145.241.109.212'
-        : 'http://localhost:80';
+        : 'http://localhost:8080';
   }
 
   // API endpoints (through BFF) - trailing slash required for Dio path resolution

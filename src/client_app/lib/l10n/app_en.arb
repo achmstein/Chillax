@@ -186,7 +186,7 @@
   },
   "signOutConfirmation": "Are you sure you want to sign out?",
   "needHelpContactUs": "Need help? Contact us:",
-  "supportHours": "Mon-Sun: 10:00 AM - 11:00 PM",
+  "supportHours": "5:00 PM - 5:00 AM",
   "aboutDescription": "Order delicious food & drinks, or reserve a PlayStation room for an amazing gaming experience.",
 
   "notifications": "Notifications",
@@ -405,5 +405,13 @@
     }
   },
   "pleaseWaitBeforeRequest": "Please wait before making another request",
-  "failedToSendRequest": "Failed to send request"
+  "failedToSendRequest": "Failed to send request",
+
+  "updateName": "Update Name",
+  "enterNewName": "Enter your new display name",
+  "nameUpdatedSuccessfully": "Name updated successfully",
+  "newName": "New name",
+  "failedToUpdateName": "Failed to update name. Please try again.",
+
+  "callUs": "Call Us"
 }

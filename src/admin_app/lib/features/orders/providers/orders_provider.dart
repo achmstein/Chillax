@@ -62,7 +62,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
       );
     } catch (e) {
       debugPrint('Failed to load orders: $e');
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 

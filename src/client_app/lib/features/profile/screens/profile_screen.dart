@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/widgets/app_text.dart';
@@ -72,6 +73,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         // Body
         Expanded(
           child: RefreshIndicator(
+            color: colors.primary,
+            backgroundColor: colors.background,
             onRefresh: _loadData,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -165,10 +168,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       onPress: () => context.push('/settings'),
                     ),
                     FTile(
-                      prefix: const Icon(FIcons.lifeBuoy),
-                      title: AppText(l10n.helpAndSupport),
+                      prefix: const Icon(FIcons.phone),
+                      title: AppText(l10n.callUs),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () => _showHelpSheet(context),
+                      onPress: () => launchUrl(Uri.parse('tel:01004698469')),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.info),
@@ -354,15 +357,10 @@ class _HelpSupportSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _ContactRow(
-                    icon: FIcons.mail,
-                    text: l10n.supportEmail,
-                    colors: colors,
-                  ),
-                  const SizedBox(height: 12),
-                  _ContactRow(
                     icon: FIcons.phone,
                     text: l10n.supportPhone,
                     colors: colors,
+                    forceLtr: true,
                   ),
                   const SizedBox(height: 12),
                   _ContactRow(
@@ -386,11 +384,13 @@ class _ContactRow extends StatelessWidget {
   final IconData icon;
   final String text;
   final dynamic colors;
+  final bool forceLtr;
 
   const _ContactRow({
     required this.icon,
     required this.text,
     required this.colors,
+    this.forceLtr = false,
   });
 
   @override
@@ -409,6 +409,7 @@ class _ContactRow extends StatelessWidget {
         const SizedBox(width: 12),
         AppText(
           text,
+          textDirection: forceLtr ? TextDirection.ltr : null,
           style: TextStyle(
             fontSize: 15,
             color: colors.foreground,
@@ -481,7 +482,7 @@ class _AboutSheet extends StatelessWidget {
                   // Logo
                   Image.asset(
                     'assets/images/logo.png',
-                    width: 180,
+                    width: 140,
                     color: colors.foreground,
                     filterQuality: FilterQuality.high,
                   ),
@@ -491,7 +492,7 @@ class _AboutSheet extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       color: colors.mutedForeground,
-                      letterSpacing: 2,
+                      letterSpacing: Localizations.localeOf(context).languageCode == 'ar' ? 0 : 2,
                     ),
                   ),
                   const SizedBox(height: 16),

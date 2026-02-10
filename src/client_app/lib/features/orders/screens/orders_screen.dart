@@ -378,10 +378,15 @@ class _OrderTileState extends ConsumerState<OrderTile>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
                           children: [
                             AppText(
-                              '${item.units}x ',
+                              '${item.units}',
+                              style: TextStyle(fontSize: 14, color: colors.mutedForeground),
+                            ),
+                            AppText(
+                              'x ',
                               style: TextStyle(fontSize: 14, color: colors.mutedForeground),
                             ),
                             Expanded(child: AppText(item.productName.getText(locale), style: TextStyle(fontSize: 14, color: colors.foreground))),

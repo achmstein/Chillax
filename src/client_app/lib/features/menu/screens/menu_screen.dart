@@ -44,72 +44,89 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   final ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
   final TextEditingController _searchController = TextEditingController();
 
-  String? _selectedCategory;
-  bool _showSearch = false;
-  int _lastFirstVisibleIndex = 0;
+  // ValueNotifiers so _onScroll never calls setState — only the specific
+  // widgets that listen rebuild, the ScrollablePositionedList is untouched.
+  final ValueNotifier<String?> _selectedCategoryNotifier = ValueNotifier(null);
+  final ValueNotifier<bool> _showSearchNotifier = ValueNotifier(false);
+
+  double _lastScrollOffset = 0.0;
   String _searchQuery = '';
   List<String> _categoryNames = [];
+  bool _isProgrammaticScroll = false;
+  int _searchToggleCooldown = 0;
 
   @override
   void initState() {
     super.initState();
     _itemPositionsListener.itemPositions.addListener(_onScroll);
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _itemPositionsListener.itemPositions.removeListener(_onScroll);
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _selectedCategoryNotifier.dispose();
+    _showSearchNotifier.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text;
+    if (query != _searchQuery) {
+      setState(() => _searchQuery = query);
+    }
   }
 
   void _onScroll() {
     final positions = _itemPositionsListener.itemPositions.value;
-    if (positions.isEmpty) return;
+    if (positions.isEmpty || _isProgrammaticScroll) return;
 
-    // Find first visible item (the one with smallest leading edge that's visible)
-    final sortedPositions = positions.toList()
-      ..sort((a, b) => a.itemLeadingEdge.compareTo(b.itemLeadingEdge));
+    // Single pass: find the item at the viewport top
+    int topIndex = -1;
+    double topLeading = 0.0;
+    double topTrailing = 0.0;
+    for (final p in positions) {
+      if (p.itemLeadingEdge <= 0 && p.itemTrailingEdge > 0 && p.index > topIndex) {
+        topIndex = p.index;
+        topLeading = p.itemLeadingEdge;
+        topTrailing = p.itemTrailingEdge;
+      }
+    }
+    if (topIndex < 0) return;
 
-    // Get the first item that's at least partially visible
-    final firstVisible = sortedPositions.firstWhere(
-      (p) => p.itemTrailingEdge > 0,
-      orElse: () => sortedPositions.first,
-    );
+    final extent = topTrailing - topLeading;
+    final fraction = extent > 0 ? (-topLeading).clamp(0.0, extent) / extent : 0.0;
+    final offset = topIndex + fraction;
+    final delta = offset - _lastScrollOffset;
+    _lastScrollOffset = offset;
 
-    final currentIndex = firstVisible.index;
-    final isScrollingDown = currentIndex > _lastFirstVisibleIndex;
-
-    // Don't show search during programmatic scroll (category tap)
-    if (!_isProgrammaticScroll) {
-      // Show search when scrolling down, hide when at top
-      if (currentIndex > 0 && isScrollingDown && !_showSearch) {
-        setState(() => _showSearch = true);
-      } else if (currentIndex == 0 && firstVisible.itemLeadingEdge > -0.1) {
-        if (_showSearch && _searchQuery.isEmpty) {
-          setState(() => _showSearch = false);
-        }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now > _searchToggleCooldown) {
+      if (delta > 0.02 && !_showSearchNotifier.value) {
+        _showSearchNotifier.value = true;
+        _searchToggleCooldown = now + 300;
+      } else if (delta < -0.02 && _showSearchNotifier.value && _searchQuery.isEmpty) {
+        _showSearchNotifier.value = false;
+        _searchToggleCooldown = now + 300;
       }
     }
 
-    _lastFirstVisibleIndex = currentIndex;
-
-    // Update selected category based on scroll position (skip during programmatic scroll)
-    if (!_isProgrammaticScroll && _categoryNames.isNotEmpty && currentIndex < _categoryNames.length) {
-      final newCategory = _categoryNames[currentIndex];
-      if (newCategory != _selectedCategory) {
-        setState(() => _selectedCategory = newCategory);
+    if (_categoryNames.isNotEmpty) {
+      final catIndex = offset.floor().clamp(0, _categoryNames.length - 1);
+      final newCategory = _categoryNames[catIndex];
+      if (newCategory != _selectedCategoryNotifier.value) {
+        _selectedCategoryNotifier.value = newCategory;
       }
     }
   }
-
-  bool _isProgrammaticScroll = false;
 
   void _scrollToCategory(String category) {
     final index = _categoryNames.indexOf(category);
     if (index == -1) return;
 
-    setState(() => _selectedCategory = category);
+    _selectedCategoryNotifier.value = category;
 
     _isProgrammaticScroll = true;
     _itemScrollController.scrollTo(
@@ -117,7 +134,25 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     ).then((_) {
-      _isProgrammaticScroll = false;
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (!mounted) return;
+        final positions = _itemPositionsListener.itemPositions.value;
+        int topIdx = -1;
+        double topLead = 0, topTrail = 0;
+        for (final p in positions) {
+          if (p.itemLeadingEdge <= 0 && p.itemTrailingEdge > 0 && p.index > topIdx) {
+            topIdx = p.index;
+            topLead = p.itemLeadingEdge;
+            topTrail = p.itemTrailingEdge;
+          }
+        }
+        if (topIdx >= 0) {
+          final ext = topTrail - topLead;
+          final frac = ext > 0 ? (-topLead).clamp(0.0, ext) / ext : 0.0;
+          _lastScrollOffset = topIdx + frac;
+        }
+        _isProgrammaticScroll = false;
+      });
     });
   }
 
@@ -167,65 +202,51 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
               _categoryNames = filteredItems.keys.map((c) => c.name.getText(locale)).toList();
 
               // Set initial selected category
-              _selectedCategory ??= _categoryNames.isNotEmpty ? _categoryNames.first : null;
+              if (_selectedCategoryNotifier.value == null && _categoryNames.isNotEmpty) {
+                _selectedCategoryNotifier.value = _categoryNames.first;
+              }
 
               return Column(
                 children: [
-                  // Search bar (animated) - above category menu
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    height: _showSearch ? 56 : 0,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: _showSearch ? 1 : 0,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: l10n.searchMenu,
-                              prefixIcon: Icon(FIcons.search, size: 20, color: colors.mutedForeground),
-                              suffixIcon: _searchQuery.isNotEmpty
-                                  ? IconButton(
-                                      icon: Icon(FIcons.x, size: 20, color: colors.mutedForeground),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() => _searchQuery = '');
-                                      },
-                                    )
-                                  : null,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: colors.border),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: colors.border),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(color: colors.primary),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              isDense: true,
-                            ),
-                            onChanged: (value) => setState(() => _searchQuery = value),
-                          ),
+                  // Search bar — always rendered, animated on show, instant on hide.
+                  // Isolated in ValueListenableBuilder so the list never rebuilds.
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _showSearchNotifier,
+                    builder: (context, showSearch, child) {
+                      return ClipRect(
+                        child: AnimatedAlign(
+                          // Animate open, instant close (no animation frames = no lag)
+                          duration: Duration(milliseconds: showSearch ? 200 : 0),
+                          curve: Curves.easeInOut,
+                          alignment: Alignment.topCenter,
+                          heightFactor: showSearch ? 1.0 : 0.0,
+                          child: child,
                         ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: FTextField(
+                        control: FTextFieldControl.managed(controller: _searchController),
+                        hint: l10n.searchMenu,
+                        prefixBuilder: (context, style, states) =>
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+                              child: Icon(FIcons.search, size: 18, color: colors.mutedForeground),
+                            ),
                       ),
                     ),
                   ),
 
-                  // Sticky category menu
+                  // Sticky category menu — listens to notifier internally,
+                  // only its chips rebuild on selection change.
                   _CategoryMenu(
                     categories: _categoryNames,
-                    selectedCategory: _selectedCategory,
+                    selectedCategoryNotifier: _selectedCategoryNotifier,
                     onCategoryTap: _scrollToCategory,
                   ),
 
-                  // Menu items
+                  // Menu items — never rebuilt by scroll-driven state changes
                   Expanded(
                     child: RefreshIndicator(
                       color: colors.primary,
@@ -329,15 +350,16 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   }
 }
 
-/// Horizontal category menu
+/// Horizontal category menu — listens to [selectedCategoryNotifier] internally
+/// so only this widget rebuilds when the selection changes during scrolling.
 class _CategoryMenu extends StatefulWidget {
   final List<String> categories;
-  final String? selectedCategory;
+  final ValueNotifier<String?> selectedCategoryNotifier;
   final Function(String) onCategoryTap;
 
   const _CategoryMenu({
     required this.categories,
-    required this.selectedCategory,
+    required this.selectedCategoryNotifier,
     required this.onCategoryTap,
   });
 
@@ -349,21 +371,32 @@ class _CategoryMenuState extends State<_CategoryMenu> {
   final ScrollController _scrollController = ScrollController();
 
   @override
-  void didUpdateWidget(_CategoryMenu oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedCategory != oldWidget.selectedCategory) {
-      _scrollToSelectedCategory();
-    }
+  void initState() {
+    super.initState();
+    widget.selectedCategoryNotifier.addListener(_onSelectionChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.selectedCategoryNotifier.removeListener(_onSelectionChanged);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onSelectionChanged() {
+    _scrollToSelectedCategory();
+    // Rebuild chips to update highlight — only this widget, not the parent.
+    if (mounted) setState(() {});
   }
 
   void _scrollToSelectedCategory() {
-    if (widget.selectedCategory == null) return;
-    final index = widget.categories.indexOf(widget.selectedCategory!);
-    if (index == -1) return;
+    final selected = widget.selectedCategoryNotifier.value;
+    if (selected == null) return;
+    final index = widget.categories.indexOf(selected);
+    if (index == -1 || !_scrollController.hasClients) return;
 
-    // Estimate position: each chip is roughly 80px wide
     const chipWidth = 80.0;
-    final targetOffset = (index * chipWidth) - 100; // Center it a bit
+    final targetOffset = (index * chipWidth) - 100;
 
     _scrollController.animateTo(
       targetOffset.clamp(0, _scrollController.position.maxScrollExtent),
@@ -375,6 +408,7 @@ class _CategoryMenuState extends State<_CategoryMenu> {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
+    final selected = widget.selectedCategoryNotifier.value;
     return Container(
       height: 44,
       decoration: BoxDecoration(
@@ -390,7 +424,7 @@ class _CategoryMenuState extends State<_CategoryMenu> {
         itemCount: widget.categories.length,
         itemBuilder: (context, index) {
           final category = widget.categories[index];
-          final isSelected = category == widget.selectedCategory;
+          final isSelected = category == selected;
           return GestureDetector(
             onTap: () => widget.onCategoryTap(category),
             child: Container(

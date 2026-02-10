@@ -33,8 +33,8 @@ class SettingsState {
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
-  late final SettingsService _service;
-  late final AuthState _authState;
+  late SettingsService _service;
+  late AuthState _authState;
 
   @override
   SettingsState build() {
@@ -112,6 +112,21 @@ class SettingsNotifier extends Notifier<SettingsState> {
 
     try {
       await _service.updateEmail(newEmail);
+      state = state.copyWith(isSaving: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isSaving: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> updateName(String newName) async {
+    state = state.copyWith(isSaving: true, clearError: true);
+
+    try {
+      await _service.updateName(newName);
+      // Refresh auth state to pick up the new name from refreshed token
+      await ref.read(authServiceProvider.notifier).refreshToken();
       state = state.copyWith(isSaving: false);
       return true;
     } catch (e) {

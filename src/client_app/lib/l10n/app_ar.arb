@@ -151,7 +151,7 @@
   "version": "الاصدار {version}",
   "signOutConfirmation": "متأكد انك عايز تخرج؟",
   "needHelpContactUs": "محتاج مساعدة؟ كلمنا:",
-  "supportHours": "كل يوم: 10 الصبح - 11 بليل",
+  "supportHours": "5 بليل - 5 الصبح",
   "aboutDescription": "اطلب مشروبات وأكل حلو، أو احجز اوضة بلايستيشن وانبسط.",
 
   "notifications": "الاشعارات",
@@ -293,5 +293,13 @@
   "failedToJoinSession": "الدخول للجلسة فشل",
   "memberCountFormat": "{count} أعضاء",
   "pleaseWaitBeforeRequest": "استنى شوية قبل ما تطلب تاني",
-  "failedToSendRequest": "الطلب مش بيتبعت"
+  "failedToSendRequest": "الطلب مش بيتبعت",
+
+  "updateName": "تحديث الاسم",
+  "enterNewName": "ادخل اسمك الجديد",
+  "nameUpdatedSuccessfully": "تم تحديث الاسم بنجاح",
+  "newName": "الاسم الجديد",
+  "failedToUpdateName": "الاسم مش بيتغير. جرب تاني.",
+
+  "callUs": "كلمنا"
 }

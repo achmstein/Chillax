@@ -432,7 +432,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get needHelpContactUs => 'Need help? Contact us:';
 
   @override
-  String get supportHours => 'Mon-Sun: 10:00 AM - 11:00 PM';
+  String get supportHours => '5:00 PM - 5:00 AM';
 
   @override
   String get aboutDescription =>
@@ -846,4 +846,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToSendRequest => 'Failed to send request';
+
+  @override
+  String get updateName => 'Update Name';
+
+  @override
+  String get enterNewName => 'Enter your new display name';
+
+  @override
+  String get nameUpdatedSuccessfully => 'Name updated successfully';
+
+  @override
+  String get newName => 'New name';
+
+  @override
+  String get failedToUpdateName => 'Failed to update name. Please try again.';
+
+  @override
+  String get callUs => 'Call Us';
 }

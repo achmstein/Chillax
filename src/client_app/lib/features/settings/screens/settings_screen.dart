@@ -132,6 +132,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       FTileGroup(
                         children: [
                           FTile(
+                            prefix: const Icon(FIcons.user),
+                            title: AppText(l10n.updateName),
+                            suffix: const Icon(FIcons.chevronRight),
+                            onPress: () => context.push('/settings/update-name'),
+                          ),
+                          FTile(
                             prefix: const Icon(FIcons.lock),
                             title: AppText(l10n.changePassword),
                             suffix: const Icon(FIcons.chevronRight),

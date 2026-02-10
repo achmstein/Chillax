@@ -374,7 +374,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
             if (orderDetails.customerNote != null) ...[
               const SizedBox(height: 4),
               AppText(
-                'Note: ${orderDetails.customerNote}',
+                '${l10n.note}: ${orderDetails.customerNote}',
                 style: theme.typography.xs.copyWith(
                   color: theme.colors.mutedForeground,
                   fontStyle: FontStyle.italic,

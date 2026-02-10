@@ -166,12 +166,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   FButton(
                     onPress: _isLoading ? null : _signIn,
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: theme.colors.primaryForeground,
                             ),
                           )
                         : AppText(l10n.signIn),

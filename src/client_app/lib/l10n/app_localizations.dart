@@ -899,7 +899,7 @@ abstract class AppLocalizations {
   /// No description provided for @supportHours.
   ///
   /// In en, this message translates to:
-  /// **'Mon-Sun: 10:00 AM - 11:00 PM'**
+  /// **'5:00 PM - 5:00 AM'**
   String get supportHours;
 
   /// No description provided for @aboutDescription.
@@ -1645,6 +1645,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to send request'**
   String get failedToSendRequest;
+
+  /// No description provided for @updateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Name'**
+  String get updateName;
+
+  /// No description provided for @enterNewName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new display name'**
+  String get enterNewName;
+
+  /// No description provided for @nameUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Name updated successfully'**
+  String get nameUpdatedSuccessfully;
+
+  /// No description provided for @newName.
+  ///
+  /// In en, this message translates to:
+  /// **'New name'**
+  String get newName;
+
+  /// No description provided for @failedToUpdateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update name. Please try again.'**
+  String get failedToUpdateName;
+
+  /// No description provided for @callUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Us'**
+  String get callUs;
 }
 
 class _AppLocalizationsDelegate

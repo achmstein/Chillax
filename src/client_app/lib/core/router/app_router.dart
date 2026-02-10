@@ -17,6 +17,7 @@ import '../../features/profile/screens/loyalty_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/settings/screens/change_password_screen.dart';
 import '../../features/settings/screens/update_email_screen.dart';
+import '../../features/settings/screens/update_name_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../widgets/main_scaffold.dart';
@@ -284,6 +285,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings/change-password',
         pageBuilder: (context, state) => CustomTransitionPage(
           child: const ChangePasswordScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      // Update name route
+      GoRoute(
+        path: '/settings/update-name',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const UpdateNameScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(

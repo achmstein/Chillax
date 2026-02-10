@@ -531,7 +531,8 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
     if (_nameEnController.text.trim().isEmpty) return;
 
     final priceText = _priceController.text.trim();
-    if (priceText.isEmpty) {
+    final price = double.tryParse(priceText);
+    if (price == null) {
       return;
     }
 
@@ -546,13 +547,11 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
       id: widget.itemId ?? 0,
       name: LocalizedTextControllers.getValue(_nameEnController, _nameArController),
       description: LocalizedTextControllers.getValue(_descriptionEnController, _descriptionArController),
-      price: double.parse(priceText),
+      price: price,
       catalogTypeId: _selectedCategoryId!,
       catalogTypeName: category.name,
       isAvailable: _isAvailable,
-      preparationTimeMinutes: _prepTimeController.text.isNotEmpty
-          ? int.parse(_prepTimeController.text)
-          : null,
+      preparationTimeMinutes: int.tryParse(_prepTimeController.text),
       customizations: _customizations,
     );
 

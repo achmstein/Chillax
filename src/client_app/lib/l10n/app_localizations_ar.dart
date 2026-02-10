@@ -424,7 +424,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get needHelpContactUs => 'محتاج مساعدة؟ كلمنا:';
 
   @override
-  String get supportHours => 'كل يوم: 10 الصبح - 11 بليل';
+  String get supportHours => '5 بليل - 5 الصبح';
 
   @override
   String get aboutDescription =>
@@ -808,8 +808,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterAccessCode => 'ادخل كود الدخول';
 
   @override
-  String get accessCodeDescription =>
-      'اطلب الكود من صاحب الجلسة أو الموظف';
+  String get accessCodeDescription => 'اطلب الكود من صاحب الجلسة أو الموظف';
 
   @override
   String get sessionFound => 'الجلسة موجودة';
@@ -833,4 +832,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get failedToSendRequest => 'الطلب مش بيتبعت';
+
+  @override
+  String get updateName => 'تحديث الاسم';
+
+  @override
+  String get enterNewName => 'ادخل اسمك الجديد';
+
+  @override
+  String get nameUpdatedSuccessfully => 'تم تحديث الاسم بنجاح';
+
+  @override
+  String get newName => 'الاسم الجديد';
+
+  @override
+  String get failedToUpdateName => 'الاسم مش بيتغير. جرب تاني.';
+
+  @override
+  String get callUs => 'كلمنا';
 }

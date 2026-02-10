@@ -36,6 +36,12 @@ class SettingsService {
     });
   }
 
+  Future<void> updateName(String newName) async {
+    await _identityApiClient.post('update-name', data: {
+      'newName': newName,
+    });
+  }
+
   Future<void> deleteAccount() async {
     await _identityApiClient.delete('delete-account');
   }

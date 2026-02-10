@@ -28,7 +28,6 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -52,13 +51,26 @@ class SplashScreen extends StatelessWidget {
 /// Shell route key for preserving state
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Auth change notifier for GoRouter refreshListenable.
+/// This avoids recreating the entire GoRouter on auth state changes.
+class _AuthChangeNotifier extends ChangeNotifier {
+  _AuthChangeNotifier(Ref ref) {
+    ref.listen(authServiceProvider, (_, __) {
+      notifyListeners();
+    });
+  }
+}
+
 /// Router provider
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authServiceProvider);
+  final authNotifier = _AuthChangeNotifier(ref);
+  ref.onDispose(() => authNotifier.dispose());
 
   return GoRouter(
+    refreshListenable: authNotifier,
     initialLocation: '/splash',
     redirect: (context, state) {
+      final authState = ref.read(authServiceProvider);
       final isInitializing = authState.isInitializing;
       final isAuthenticated = authState.isAuthenticated;
       final isAdmin = authState.isAdmin;

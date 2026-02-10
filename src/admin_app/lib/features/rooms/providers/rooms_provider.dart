@@ -85,7 +85,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
       );
     } catch (e) {
       debugPrint('Failed to load rooms: $e');
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 

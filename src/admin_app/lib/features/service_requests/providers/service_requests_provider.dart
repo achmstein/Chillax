@@ -42,7 +42,7 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
 
   @override
   ServiceRequestsState build() {
-    _apiClient = ref.watch(notificationsApiProvider);
+    _apiClient = ref.read(notificationsApiProvider);
     return const ServiceRequestsState();
   }
 
