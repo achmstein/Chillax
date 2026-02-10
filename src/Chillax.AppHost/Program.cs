@@ -10,11 +10,9 @@ builder.AddDockerComposeEnvironment("chillax");
 // Container registry prefix for GHCR images
 const string ImageRegistry = "ghcr.io/achmstein/chillax";
 
-var rabbitMq = builder.AddRabbitMQ("eventbus",
-        password: builder.AddParameter("eventbus-password", "guest", publishValueAsDefault: true))
+var rabbitMq = builder.AddRabbitMQ("eventbus")
     .WithLifetime(ContainerLifetime.Persistent);
-var postgres = builder.AddPostgres("postgres",
-        password: builder.AddParameter("postgres-password", "postgres", publishValueAsDefault: true))
+var postgres = builder.AddPostgres("postgres")
     .WithImage("ankane/pgvector")
     .WithImageTag("latest")
     .WithLifetime(ContainerLifetime.Persistent);
@@ -38,8 +36,7 @@ builder.AddContainer("pgadmin", "dpage/pgadmin4", "9.7.0")
 var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
 
 // Keycloak for identity
-var keycloak = builder.AddKeycloak("keycloak", port: 8080,
-        adminPassword: builder.AddParameter("keycloak-password", "admin", publishValueAsDefault: true))
+var keycloak = builder.AddKeycloak("keycloak", port: 8080)
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent)
     .WithRealmImport("./KeycloakConfiguration/chillax-realm.json");

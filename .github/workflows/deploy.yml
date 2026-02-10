@@ -73,6 +73,11 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
 
+            # Fill empty password defaults in Aspire-generated .env
+            sed -i 's/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=postgres/' .env
+            sed -i 's/^EVENTBUS_PASSWORD=$/EVENTBUS_PASSWORD=guest/' .env
+            sed -i 's/^KEYCLOAK_PASSWORD=$/KEYCLOAK_PASSWORD=admin/' .env
+
             # Login to GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
