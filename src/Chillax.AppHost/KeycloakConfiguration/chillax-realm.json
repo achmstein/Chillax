@@ -295,8 +295,8 @@
       "implicitFlowEnabled": false,
       "protocol": "openid-connect",
       "redirectUris": [
-        "com.chillax.app://callback",
-        "com.chillax.app://*",
+        "com.chillax.client://callback",
+        "com.chillax.client://*",
         "http://localhost/*",
         "http://10.0.2.2/*"
       ],
