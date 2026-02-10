@@ -11,10 +11,10 @@ builder.AddDockerComposeEnvironment("chillax");
 const string ImageRegistry = "ghcr.io/achmstein/chillax";
 
 var rabbitMq = builder.AddRabbitMQ("eventbus",
-        password: builder.AddParameter("eventbus-password", "guest", publishValueAsDefault: true, secret: true))
+        password: builder.AddParameter("eventbus-password", "guest", publishValueAsDefault: true))
     .WithLifetime(ContainerLifetime.Persistent);
 var postgres = builder.AddPostgres("postgres",
-        password: builder.AddParameter("postgres-password", "postgres", publishValueAsDefault: true, secret: true))
+        password: builder.AddParameter("postgres-password", "postgres", publishValueAsDefault: true))
     .WithImage("ankane/pgvector")
     .WithImageTag("latest")
     .WithLifetime(ContainerLifetime.Persistent);
@@ -39,7 +39,7 @@ var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
 
 // Keycloak for identity
 var keycloak = builder.AddKeycloak("keycloak", port: 8080,
-        adminPassword: builder.AddParameter("keycloak-password", "admin", publishValueAsDefault: true, secret: true))
+        adminPassword: builder.AddParameter("keycloak-password", "admin", publishValueAsDefault: true))
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent)
     .WithRealmImport("./KeycloakConfiguration/chillax-realm.json");
