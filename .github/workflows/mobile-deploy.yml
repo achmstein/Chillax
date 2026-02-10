@@ -1,13 +1,6 @@
 name: Build and Deploy Mobile Apps
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/client_app/**'
-      - 'src/admin_app/**'
-      - '.github/workflows/mobile-deploy.yml'
   workflow_dispatch:
     inputs:
       app:
@@ -48,7 +41,6 @@ jobs:
 
   build-android-client:
     if: |
-      github.event_name == 'push' ||
       (github.event.inputs.app == 'all' || github.event.inputs.app == 'client_app') &&
       (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
     runs-on: ubuntu-latest
@@ -115,7 +107,6 @@ jobs:
 
   build-android-admin:
     if: |
-      github.event_name == 'push' ||
       (github.event.inputs.app == 'all' || github.event.inputs.app == 'admin_app') &&
       (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
     runs-on: ubuntu-latest
@@ -186,7 +177,6 @@ jobs:
 
   build-ios-client:
     if: |
-      github.event_name == 'push' ||
       (github.event.inputs.app == 'all' || github.event.inputs.app == 'client_app') &&
       (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
     runs-on: macos-latest
@@ -273,7 +263,6 @@ jobs:
 
   build-ios-admin:
     if: |
-      github.event_name == 'push' ||
       (github.event.inputs.app == 'all' || github.event.inputs.app == 'admin_app') &&
       (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
     runs-on: macos-latest
