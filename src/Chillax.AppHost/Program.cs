@@ -10,9 +10,11 @@ builder.AddDockerComposeEnvironment("chillax");
 // Container registry prefix for GHCR images
 const string ImageRegistry = "ghcr.io/achmstein/chillax";
 
-var rabbitMq = builder.AddRabbitMQ("eventbus")
+var rabbitMq = builder.AddRabbitMQ("eventbus",
+        password: builder.AddParameter("eventbus-password", "guest", publishValueAsDefault: true, secret: true))
     .WithLifetime(ContainerLifetime.Persistent);
-var postgres = builder.AddPostgres("postgres")
+var postgres = builder.AddPostgres("postgres",
+        password: builder.AddParameter("postgres-password", "postgres", publishValueAsDefault: true, secret: true))
     .WithImage("ankane/pgvector")
     .WithImageTag("latest")
     .WithLifetime(ContainerLifetime.Persistent);
@@ -36,7 +38,8 @@ builder.AddContainer("pgadmin", "dpage/pgadmin4", "9.7.0")
 var launchProfileName = ShouldUseHttpForEndpoints() ? "http" : "https";
 
 // Keycloak for identity
-var keycloak = builder.AddKeycloak("keycloak", port: 8080)
+var keycloak = builder.AddKeycloak("keycloak", port: 8080,
+        adminPassword: builder.AddParameter("keycloak-password", "admin", publishValueAsDefault: true, secret: true))
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent)
     .WithRealmImport("./KeycloakConfiguration/chillax-realm.json");
@@ -96,47 +99,24 @@ var accountsApi = builder.AddProject<Projects.Accounts_API>("accounts-api")
     .WithEnvironment("Keycloak__Realm", "chillax");
 
 // Configure services for Docker Compose deployment with GHCR images
-catalogApi.PublishAsDockerComposeService((resource, service) =>
+void ConfigureApiService(Aspire.Hosting.ApplicationModel.IResourceBuilder<Aspire.Hosting.ApplicationModel.ProjectResource> api, string imageSuffix)
 {
-    service.Image = $"{ImageRegistry}-catalog:latest";
-    service.Restart = "unless-stopped";
-});
+    api.PublishAsDockerComposeService((resource, service) =>
+    {
+        service.Image = $"{ImageRegistry}-{imageSuffix}:latest";
+        service.Restart = "unless-stopped";
+        service.Environment["HTTP_PORTS"] = "8080";
+        service.Expose = ["8080"];
+    });
+}
 
-orderingApi.PublishAsDockerComposeService((resource, service) =>
-{
-    service.Image = $"{ImageRegistry}-ordering:latest";
-    service.Restart = "unless-stopped";
-});
-
-roomsApi.PublishAsDockerComposeService((resource, service) =>
-{
-    service.Image = $"{ImageRegistry}-rooms:latest";
-    service.Restart = "unless-stopped";
-});
-
-identityApi.PublishAsDockerComposeService((resource, service) =>
-{
-    service.Image = $"{ImageRegistry}-identity:latest";
-    service.Restart = "unless-stopped";
-});
-
-loyaltyApi.PublishAsDockerComposeService((resource, service) =>
-{
-    service.Image = $"{ImageRegistry}-loyalty:latest";
-    service.Restart = "unless-stopped";
-});
-
-notificationApi.PublishAsDockerComposeService((resource, service) =>
-{
-    service.Image = $"{ImageRegistry}-notification:latest";
-    service.Restart = "unless-stopped";
-});
-
-accountsApi.PublishAsDockerComposeService((resource, service) =>
-{
-    service.Image = $"{ImageRegistry}-accounts:latest";
-    service.Restart = "unless-stopped";
-});
+ConfigureApiService(catalogApi, "catalog");
+ConfigureApiService(orderingApi, "ordering");
+ConfigureApiService(roomsApi, "rooms");
+ConfigureApiService(identityApi, "identity");
+ConfigureApiService(loyaltyApi, "loyalty");
+ConfigureApiService(notificationApi, "notification");
+ConfigureApiService(accountsApi, "accounts");
 
 // Reverse proxy - BFF for Flutter apps (fixed port 27748 for adb reverse)
 // Used by both mobile app and admin app

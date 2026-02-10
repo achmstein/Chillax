@@ -73,19 +73,7 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
 
-            # Set required environment variables (fill empty values from Aspire template)
-            sed -i 's/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=ChillaxDB2026!/' .env
-            sed -i 's/^EVENTBUS_PASSWORD=$/EVENTBUS_PASSWORD=ChillaxMQ2026!/' .env
-            sed -i 's/^KEYCLOAK_PASSWORD=$/KEYCLOAK_PASSWORD=ChillaxAdmin2026!/' .env
-            sed -i 's/^CATALOG_API_PORT=$/CATALOG_API_PORT=8080/' .env
-            sed -i 's/^ORDERING_API_PORT=$/ORDERING_API_PORT=8080/' .env
-            sed -i 's/^ROOMS_API_PORT=$/ROOMS_API_PORT=8080/' .env
-            sed -i 's/^IDENTITY_API_PORT=$/IDENTITY_API_PORT=8080/' .env
-            sed -i 's/^LOYALTY_API_PORT=$/LOYALTY_API_PORT=8080/' .env
-            sed -i 's/^NOTIFICATION_API_PORT=$/NOTIFICATION_API_PORT=8080/' .env
-            sed -i 's/^ACCOUNTS_API_PORT=$/ACCOUNTS_API_PORT=8080/' .env
-
-            # Login to GHCR
+# Login to GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
             # Pull pre-built images and build any Aspire-generated services (e.g. mobile-bff)
