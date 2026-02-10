@@ -45,6 +45,13 @@ jobs:
           cd src/Chillax.AppHost
           aspire publish -o ../../deploy-artifacts
 
+      - name: Fix Keycloak bind mount path and copy realm config
+        run: |
+          # Copy Keycloak realm config into deploy artifacts
+          cp src/Chillax.AppHost/KeycloakConfiguration/chillax-realm.json deploy-artifacts/chillax-realm.json
+
+          # Fix the bind mount path in the generated compose file to use server path
+          sed -i 's|source: ".*chillax-realm.json"|source: "./chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -74,6 +81,22 @@ jobs:
           envs: GHCR_TOKEN,GHCR_USER
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
+
+            # Create .env file if it doesn't exist
+            if [ ! -f .env ]; then
+              cat > .env << 'ENVEOF'
+            POSTGRES_PASSWORD=ChillaxDB2026!
+            EVENTBUS_PASSWORD=ChillaxMQ2026!
+            KEYCLOAK_PASSWORD=ChillaxAdmin2026!
+            CATALOG_API_PORT=8080
+            ORDERING_API_PORT=8080
+            ROOMS_API_PORT=8080
+            IDENTITY_API_PORT=8080
+            LOYALTY_API_PORT=8080
+            NOTIFICATION_API_PORT=8080
+            ACCOUNTS_API_PORT=8080
+            ENVEOF
+            fi
 
             # Login to GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
