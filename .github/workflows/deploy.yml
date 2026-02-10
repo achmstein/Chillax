@@ -73,7 +73,7 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
 
-# Login to GHCR
+            # Login to GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
             # Pull pre-built images and build any Aspire-generated services (e.g. mobile-bff)
