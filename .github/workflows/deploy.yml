@@ -73,21 +73,24 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
 
-            # Create .env file if it doesn't exist
-            if [ ! -f .env ]; then
-              cat > .env << 'ENVEOF'
-            POSTGRES_PASSWORD=ChillaxDB2026!
-            EVENTBUS_PASSWORD=ChillaxMQ2026!
-            KEYCLOAK_PASSWORD=ChillaxAdmin2026!
-            CATALOG_API_PORT=8080
-            ORDERING_API_PORT=8080
-            ROOMS_API_PORT=8080
-            IDENTITY_API_PORT=8080
-            LOYALTY_API_PORT=8080
-            NOTIFICATION_API_PORT=8080
-            ACCOUNTS_API_PORT=8080
-            ENVEOF
-            fi
+            # Ensure .env file has required variables
+            touch .env
+            for VAR in \
+              "POSTGRES_PASSWORD=ChillaxDB2026!" \
+              "EVENTBUS_PASSWORD=ChillaxMQ2026!" \
+              "KEYCLOAK_PASSWORD=ChillaxAdmin2026!" \
+              "CATALOG_API_PORT=8080" \
+              "ORDERING_API_PORT=8080" \
+              "ROOMS_API_PORT=8080" \
+              "IDENTITY_API_PORT=8080" \
+              "LOYALTY_API_PORT=8080" \
+              "NOTIFICATION_API_PORT=8080" \
+              "ACCOUNTS_API_PORT=8080"; do
+              KEY="${VAR%%=*}"
+              if ! grep -q "^${KEY}=" .env; then
+                echo "$VAR" >> .env
+              fi
+            done
 
             # Login to GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
