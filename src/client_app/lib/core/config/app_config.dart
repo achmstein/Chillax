@@ -1,10 +1,13 @@
 /// Application configuration
 class AppConfig {
   // Mobile BFF base URL (all API calls go through here)
-  // With adb reverse, use localhost; for emulator use 10.0.2.2
+  // Debug: localhost with adb reverse tcp:27748 tcp:27748
+  // Release: Oracle Cloud server
+  static const bool _isRelease = bool.fromEnvironment('dart.vm.product');
   static String get bffBaseUrl {
-    // Using localhost works with: adb reverse tcp:27748 tcp:27748
-    return 'http://localhost:27748';
+    return _isRelease
+        ? 'http://145.241.109.212:27748'
+        : 'http://localhost:27748';
   }
 
   // API endpoints (through BFF) - trailing slash required for Dio path resolution

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/mobile_app/**'
+      - 'src/client_app/**'
       - 'src/admin_app/**'
       - '.github/workflows/mobile-deploy.yml'
   workflow_dispatch:
@@ -16,7 +16,7 @@ on:
         type: choice
         options:
           - all
-          - mobile_app
+          - client_app
           - admin_app
       platform:
         description: 'Platform to build'
@@ -46,15 +46,15 @@ jobs:
   # Android Builds
   # ==========================================
 
-  build-android-mobile:
+  build-android-client:
     if: |
       github.event_name == 'push' ||
-      (github.event.inputs.app == 'all' || github.event.inputs.app == 'mobile_app') &&
+      (github.event.inputs.app == 'all' || github.event.inputs.app == 'client_app') &&
       (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: src/mobile_app
+        working-directory: src/client_app
     steps:
       - uses: actions/checkout@v4
 
@@ -102,15 +102,15 @@ jobs:
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mobile-app-android-aab
-          path: src/mobile_app/build/app/outputs/bundle/release/app-release.aab
+          name: client-app-android-aab
+          path: src/client_app/build/app/outputs/bundle/release/app-release.aab
 
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
           packageName: com.chillax.client
-          releaseFiles: src/mobile_app/build/app/outputs/bundle/release/app-release.aab
+          releaseFiles: src/client_app/build/app/outputs/bundle/release/app-release.aab
           track: ${{ github.event.inputs.track || 'internal' }}
 
   build-android-admin:
@@ -184,15 +184,15 @@ jobs:
   # iOS Builds
   # ==========================================
 
-  build-ios-mobile:
+  build-ios-client:
     if: |
       github.event_name == 'push' ||
-      (github.event.inputs.app == 'all' || github.event.inputs.app == 'mobile_app') &&
+      (github.event.inputs.app == 'all' || github.event.inputs.app == 'client_app') &&
       (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
     runs-on: macos-latest
     defaults:
       run:
-        working-directory: src/mobile_app
+        working-directory: src/client_app
     steps:
       - uses: actions/checkout@v4
 
@@ -245,8 +245,8 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mobile-app-ios-ipa
-          path: src/mobile_app/build/ios/ipa/*.ipa
+          name: client-app-ios-ipa
+          path: src/client_app/build/ios/ipa/*.ipa
 
       - name: Upload to App Store Connect
         env:
