@@ -35,6 +35,10 @@ jobs:
         run: dotnet tool install --global aspire.cli --prerelease
 
       - name: Generate Docker Compose artifacts
+        env:
+          Parameters__postgres_password: postgres
+          Parameters__eventbus_password: guest
+          Parameters__keycloak_password: admin
         run: |
           cd src/Chillax.AppHost
           aspire publish -o ../../deploy-artifacts
@@ -43,11 +47,6 @@ jobs:
         run: |
           cp src/Chillax.AppHost/KeycloakConfiguration/chillax-realm.json deploy-artifacts/chillax-realm.json
           sed -i 's|source: ".*chillax-realm.json"|source: "./chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
-
-          # Fix Aspire service discovery URLs to standard Docker Compose DNS
-          sed -i 's|"https+http://\([^"]*\)"|"http://\1:8080"|g' deploy-artifacts/docker-compose.yaml
-          sed -i 's|"http://_http.\([^"]*\)"|"http://\1:8080"|g' deploy-artifacts/docker-compose.yaml
-          sed -i 's|"http://keycloak:8080"|"http://keycloak:8080"|g' deploy-artifacts/docker-compose.yaml
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -77,11 +76,6 @@ jobs:
           envs: GHCR_TOKEN,GHCR_USER
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-
-            # Fill empty password defaults in Aspire-generated .env
-            sed -i 's/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=postgres/' .env
-            sed -i 's/^EVENTBUS_PASSWORD=$/EVENTBUS_PASSWORD=guest/' .env
-            sed -i 's/^KEYCLOAK_PASSWORD=$/KEYCLOAK_PASSWORD=admin/' .env
 
             # Login to GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin

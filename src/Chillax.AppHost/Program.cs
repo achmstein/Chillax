@@ -1,4 +1,4 @@
-using Chillax.AppHost;
+﻿using Chillax.AppHost;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -96,7 +96,7 @@ var accountsApi = builder.AddProject<Projects.Accounts_API>("accounts-api")
     .WithEnvironment("Keycloak__Realm", "chillax");
 
 // Configure services for Docker Compose deployment with GHCR images
-void ConfigureApiService(Aspire.Hosting.ApplicationModel.IResourceBuilder<Aspire.Hosting.ApplicationModel.ProjectResource> api, string imageSuffix)
+void ConfigureApiService(IResourceBuilder<ProjectResource> api, string imageSuffix)
 {
     api.PublishAsDockerComposeService((resource, service) =>
     {
@@ -115,12 +115,12 @@ ConfigureApiService(loyaltyApi, "loyalty");
 ConfigureApiService(notificationApi, "notification");
 ConfigureApiService(accountsApi, "accounts");
 
-// Reverse proxy - BFF for Flutter apps (fixed port 27748 for adb reverse)
+// Reverse proxy - BFF for Flutter apps
 // Used by both mobile app and admin app
 builder.AddYarp("mobile-bff")
     .WithEndpoint("http", endpoint =>
     {
-        endpoint.Port = 27748;
+        endpoint.Port = 80;
         endpoint.UriScheme = "http";
         endpoint.IsExternal = true;
     })
