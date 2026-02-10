@@ -266,16 +266,16 @@ abstract class AppLocalizations {
   /// **'Guest User'**
   String get guestUser;
 
-  /// No description provided for @enterBothUsernamePassword.
+  /// No description provided for @enterBothEmailAndPassword.
   ///
   /// In en, this message translates to:
-  /// **'Please enter both username and password.'**
-  String get enterBothUsernamePassword;
+  /// **'Please enter both email and password.'**
+  String get enterBothEmailAndPassword;
 
   /// No description provided for @invalidCredentials.
   ///
   /// In en, this message translates to:
-  /// **'Invalid username or password. Please try again.'**
+  /// **'Invalid email or password. Please try again.'**
   String get invalidCredentials;
 
   /// No description provided for @anErrorOccurred.
@@ -317,7 +317,7 @@ abstract class AppLocalizations {
   /// No description provided for @registrationFailed.
   ///
   /// In en, this message translates to:
-  /// **'Registration failed. Username or email may already exist.'**
+  /// **'Registration failed. Email may already exist.'**
   String get registrationFailed;
 
   /// No description provided for @success.
@@ -1585,6 +1585,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customizable'**
   String get customizable;
+
+  /// No description provided for @joinSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Session'**
+  String get joinSession;
+
+  /// No description provided for @enterAccessCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Access Code'**
+  String get enterAccessCode;
+
+  /// No description provided for @accessCodeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the session owner or staff for the 6-digit code'**
+  String get accessCodeDescription;
+
+  /// No description provided for @sessionFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Found'**
+  String get sessionFound;
+
+  /// No description provided for @sessionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Session not found'**
+  String get sessionNotFound;
+
+  /// No description provided for @failedToFetchSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch session'**
+  String get failedToFetchSession;
+
+  /// No description provided for @failedToJoinSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to join session'**
+  String get failedToJoinSession;
+
+  /// No description provided for @memberCountFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} members'**
+  String memberCountFormat(int count);
+
+  /// No description provided for @pleaseWaitBeforeRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait before making another request'**
+  String get pleaseWaitBeforeRequest;
+
+  /// No description provided for @failedToSendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send request'**
+  String get failedToSendRequest;
 }
 
 class _AppLocalizationsDelegate

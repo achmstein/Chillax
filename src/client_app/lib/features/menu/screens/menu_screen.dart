@@ -126,7 +126,6 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     final locale = ref.watch(localeProvider);
     final groupedItemsAsync = ref.watch(groupedMenuItemsProvider(locale));
     final cart = ref.watch(cartProvider);
-    final hasItems = !cart.isEmpty;
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
 
@@ -257,7 +256,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         ),
 
         // View Cart button (fixed at bottom)
-        if (hasItems)
+        if (!cart.isEmpty)
           Builder(
             builder: (context) {
             final btnColors = context.theme.colors;

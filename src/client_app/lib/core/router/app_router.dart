@@ -94,13 +94,22 @@ class SplashScreen extends StatelessWidget {
   }
 }
 
+/// Listenable that notifies GoRouter when auth state changes
+class _AuthNotifier extends ChangeNotifier {
+  _AuthNotifier(Ref ref) {
+    ref.listen(authServiceProvider, (_, __) => notifyListeners());
+  }
+}
+
 /// App router provider
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authServiceProvider);
+  final authNotifier = _AuthNotifier(ref);
 
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: authNotifier,
     redirect: (context, state) {
+      final authState = ref.read(authServiceProvider);
       final isInitializing = authState.isInitializing;
       final isAuthenticated = authState.isAuthenticated;
       final currentLocation = state.matchedLocation;

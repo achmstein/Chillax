@@ -526,7 +526,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
             AppText(
               AppLocalizations.of(context)!.needSomething,
               style: TextStyle(
-                color: AppTheme.textSecondary,
+                color: context.theme.colors.mutedForeground,
                 fontSize: 14,
               ),
             ),
@@ -593,10 +593,14 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
           icon: Icon(FIcons.check, color: AppTheme.successColor),
         );
       } else {
+        final l10n = AppLocalizations.of(context)!;
         final error = ref.read(serviceRequestProvider).error;
+        final errorMessage = error == 'cooldown'
+            ? l10n.pleaseWaitBeforeRequest
+            : l10n.failedToSendRequest;
         showFToast(
           context: context,
-          title: Text(error ?? 'Failed to send request'),
+          title: Text(errorMessage),
           icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
         );
       }
@@ -640,6 +644,7 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
     return GestureDetector(
       onTapDown: _isInCooldown ? null : (_) => setState(() => _isPressed = true),
       onTapUp: _isInCooldown ? null : (_) => setState(() => _isPressed = false),
@@ -653,14 +658,14 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             color: _isInCooldown
-                ? AppTheme.textMuted.withValues(alpha: 0.15)
+                ? colors.mutedForeground.withValues(alpha: 0.15)
                 : _isPressed
-                    ? AppTheme.primaryColor.withValues(alpha: 0.15)
-                    : AppTheme.textMuted.withValues(alpha: 0.1),
+                    ? colors.primary.withValues(alpha: 0.15)
+                    : colors.mutedForeground.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: _isPressed && !_isInCooldown
-                  ? AppTheme.primaryColor.withValues(alpha: 0.3)
+                  ? colors.primary.withValues(alpha: 0.3)
                   : Colors.transparent,
               width: 1.5,
             ),
@@ -674,7 +679,7 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.textMuted,
+                    color: colors.mutedForeground,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -682,17 +687,17 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
                   widget.label,
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppTheme.textMuted,
+                    color: colors.mutedForeground,
                   ),
                 ),
               ] else ...[
-                Icon(widget.icon, size: 24, color: AppTheme.primaryColor),
+                Icon(widget.icon, size: 24, color: colors.foreground),
                 const SizedBox(height: 8),
                 AppText(
                   widget.label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppTheme.textSecondary,
+                    color: colors.mutedForeground,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
 
@@ -63,18 +64,20 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
       final preview = await service.getSessionPreview(code);
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
           _preview = preview;
           _isLoadingPreview = false;
-          _error = preview == null ? 'Session not found' : null;
+          _error = preview == null ? l10n.sessionNotFound : null;
         });
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
           _preview = null;
           _isLoadingPreview = false;
-          _error = 'Failed to fetch session';
+          _error = l10n.failedToFetchSession;
         });
       }
     }
@@ -95,20 +98,22 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
 
       if (mounted) {
         // Refresh sessions and go back
+        final l10n = AppLocalizations.of(context)!;
         ref.read(mySessionsProvider.notifier).refresh();
         ref.invalidate(roomsProvider);
         Navigator.pop(context, true);
         showFToast(
           context: context,
-          title: const Text('Joined session successfully!'),
+          title: Text(l10n.joinedSessionSuccessfully),
           icon: Icon(FIcons.check, color: AppTheme.successColor),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
           _isJoining = false;
-          _error = 'Failed to join session';
+          _error = l10n.failedToJoinSession;
         });
       }
     }
@@ -116,18 +121,20 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(FIcons.arrowLeft, color: Colors.black),
+          icon: Icon(FIcons.arrowLeft, color: colors.foreground),
           onPressed: () => Navigator.pop(context),
         ),
         title: AppText(
-          'Join Session',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          l10n.joinSession,
+          style: TextStyle(color: colors.foreground, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -144,33 +151,33 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  color: colors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
                   FIcons.users,
                   size: 40,
-                  color: AppTheme.primaryColor,
+                  color: colors.primary,
                 ),
               ),
               const SizedBox(height: 24),
 
               // Instructions
               AppText(
-                'Enter Access Code',
+                l10n.enterAccessCode,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
+                  color: colors.foreground,
                 ),
               ),
               const SizedBox(height: 8),
               AppText(
-                'Ask the session owner or staff for the 6-digit code',
+                l10n.accessCodeDescription,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppTheme.textSecondary,
+                  color: colors.mutedForeground,
                 ),
               ),
               const SizedBox(height: 32),
@@ -210,23 +217,23 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                 child: ElevatedButton(
                   onPressed: _preview != null && !_isJoining ? _joinSession : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.primaryForeground,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: const StadiumBorder(),
-                    disabledBackgroundColor: AppTheme.textMuted.withValues(alpha: 0.2),
+                    disabledBackgroundColor: colors.mutedForeground.withValues(alpha: 0.2),
                   ),
                   child: _isJoining
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: colors.primaryForeground,
                             strokeWidth: 2,
                           ),
                         )
                       : AppText(
-                          'Join Session',
+                          l10n.joinSession,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -242,14 +249,15 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
   }
 
   Widget _buildCodeInput() {
+    final colors = context.theme.colors;
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.textMuted.withValues(alpha: 0.05),
+        color: colors.mutedForeground.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _error != null
               ? AppTheme.errorColor.withValues(alpha: 0.5)
-              : AppTheme.textMuted.withValues(alpha: 0.2),
+              : colors.mutedForeground.withValues(alpha: 0.2),
         ),
       ),
       child: TextField(
@@ -272,7 +280,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
             fontSize: 32,
             fontWeight: FontWeight.bold,
             letterSpacing: 12,
-            color: AppTheme.textMuted.withValues(alpha: 0.3),
+            color: colors.mutedForeground.withValues(alpha: 0.3),
           ),
         ),
         inputFormatters: [
@@ -295,6 +303,8 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
 
   Widget _buildSessionPreview() {
     final preview = _preview!;
+    final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -323,7 +333,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
               Icon(FIcons.check, size: 18, color: AppTheme.successColor),
               const SizedBox(width: 8),
               AppText(
-                'Session Found',
+                l10n.sessionFound,
                 style: TextStyle(
                   color: AppTheme.successColor,
                   fontWeight: FontWeight.w600,
@@ -341,13 +351,13 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  color: colors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   FIcons.gamepad2,
                   size: 24,
-                  color: AppTheme.primaryColor,
+                  color: colors.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -365,12 +375,12 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(FIcons.users, size: 14, color: AppTheme.textSecondary),
+                        Icon(FIcons.users, size: 14, color: colors.mutedForeground),
                         const SizedBox(width: 4),
                         AppText(
-                          '${preview.memberCount} ${preview.memberCount == 1 ? 'member' : 'members'}',
+                          l10n.memberCountFormat(preview.memberCount),
                           style: TextStyle(
-                            color: AppTheme.textSecondary,
+                            color: colors.mutedForeground,
                             fontSize: 13,
                           ),
                         ),

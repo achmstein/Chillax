@@ -93,12 +93,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestUser => 'Guest User';
 
   @override
-  String get enterBothUsernamePassword =>
-      'Please enter both username and password.';
+  String get enterBothEmailAndPassword =>
+      'Please enter both email and password.';
 
   @override
   String get invalidCredentials =>
-      'Invalid username or password. Please try again.';
+      'Invalid email or password. Please try again.';
 
   @override
   String anErrorOccurred(String error) {
@@ -123,7 +123,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registrationFailed =>
-      'Registration failed. Username or email may already exist.';
+      'Registration failed. Email may already exist.';
 
   @override
   String get success => 'Success';
@@ -812,4 +812,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customizable => 'Customizable';
+
+  @override
+  String get joinSession => 'Join Session';
+
+  @override
+  String get enterAccessCode => 'Enter Access Code';
+
+  @override
+  String get accessCodeDescription =>
+      'Ask the session owner or staff for the 6-digit code';
+
+  @override
+  String get sessionFound => 'Session Found';
+
+  @override
+  String get sessionNotFound => 'Session not found';
+
+  @override
+  String get failedToFetchSession => 'Failed to fetch session';
+
+  @override
+  String get failedToJoinSession => 'Failed to join session';
+
+  @override
+  String memberCountFormat(int count) {
+    return '$count members';
+  }
+
+  @override
+  String get pleaseWaitBeforeRequest =>
+      'Please wait before making another request';
+
+  @override
+  String get failedToSendRequest => 'Failed to send request';
 }

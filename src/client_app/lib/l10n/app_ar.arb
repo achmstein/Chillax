@@ -37,15 +37,15 @@
   "createAccount": "عمل حساب",
   "guestUser": "زائر",
 
-  "enterBothUsernamePassword": "ادخل اليوزر والباسورد.",
-  "invalidCredentials": "اليوزر أو الباسورد غلط. جرب تاني.",
+  "enterBothEmailAndPassword": "ادخل الايميل والباسورد.",
+  "invalidCredentials": "الايميل أو الباسورد غلط. جرب تاني.",
   "anErrorOccurred": "حصل مشكلة: {error}",
   "socialSignInFailed": "الدخول فشل. جرب تاني.",
   "fillAllFields": "املا كل الخانات.",
   "passwordsDontMatch": "الباسورد مش متطابق.",
   "passwordTooShort": "الباسورد لازم يكون 6 حروف على الأقل.",
   "registrationSuccessful": "تم التسجيل! سجل دخولك.",
-  "registrationFailed": "التسجيل فشل. اليوزر أو الايميل موجود قبل كده.",
+  "registrationFailed": "التسجيل فشل. الايميل ممكن يكون موجود قبل كده.",
 
   "success": "تمام",
   "error": "خطأ",
@@ -104,10 +104,10 @@
   "shareCodeWithFriends": "شير الكود مع صحابك",
   "codeCopied": "الكود اتنسخ!",
   "needSomething": "عايز حاجة؟",
-  "callWaiter": "نادي الجرسون",
+  "callWaiter": "نادي الويتر",
   "controller": "دراع",
   "getBill": "الفاتورة",
-  "waiterNotified": "الجرسون عرف",
+  "waiterNotified": "الويتر عرف",
   "controllerRequestSent": "طلب الدراع اتبعت",
   "billRequestSent": "طلب الفاتورة اتبعت",
   "reserved": "محجوزة",
@@ -282,5 +282,16 @@
   "pointsRedeemedForOrder": "نقط مستخدمة في طلب #{orderId}",
   "balanceAmount": "{amount} {currency}",
 
-  "customizable": "قابل للتخصيص"
+  "customizable": "قابل للتخصيص",
+
+  "joinSession": "ادخل الجلسة",
+  "enterAccessCode": "ادخل كود الدخول",
+  "accessCodeDescription": "اطلب الكود من صاحب الجلسة أو الموظف",
+  "sessionFound": "الجلسة موجودة",
+  "sessionNotFound": "الجلسة مش موجودة",
+  "failedToFetchSession": "الجلسة مش بتحمل",
+  "failedToJoinSession": "الدخول للجلسة فشل",
+  "memberCountFormat": "{count} أعضاء",
+  "pleaseWaitBeforeRequest": "استنى شوية قبل ما تطلب تاني",
+  "failedToSendRequest": "الطلب مش بيتبعت"
 }

@@ -37,8 +37,8 @@
   "createAccount": "Create Account",
   "guestUser": "Guest User",
 
-  "enterBothUsernamePassword": "Please enter both username and password.",
-  "invalidCredentials": "Invalid username or password. Please try again.",
+  "enterBothEmailAndPassword": "Please enter both email and password.",
+  "invalidCredentials": "Invalid email or password. Please try again.",
   "anErrorOccurred": "An error occurred: {error}",
   "@anErrorOccurred": {
     "placeholders": {
@@ -50,7 +50,7 @@
   "passwordsDontMatch": "Passwords do not match.",
   "passwordTooShort": "Password must be at least 6 characters.",
   "registrationSuccessful": "Registration successful! Please sign in.",
-  "registrationFailed": "Registration failed. Username or email may already exist.",
+  "registrationFailed": "Registration failed. Email may already exist.",
 
   "success": "Success",
   "error": "Error",
@@ -389,5 +389,21 @@
     }
   },
 
-  "customizable": "Customizable"
+  "customizable": "Customizable",
+
+  "joinSession": "Join Session",
+  "enterAccessCode": "Enter Access Code",
+  "accessCodeDescription": "Ask the session owner or staff for the 6-digit code",
+  "sessionFound": "Session Found",
+  "sessionNotFound": "Session not found",
+  "failedToFetchSession": "Failed to fetch session",
+  "failedToJoinSession": "Failed to join session",
+  "memberCountFormat": "{count} members",
+  "@memberCountFormat": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "pleaseWaitBeforeRequest": "Please wait before making another request",
+  "failedToSendRequest": "Failed to send request"
 }

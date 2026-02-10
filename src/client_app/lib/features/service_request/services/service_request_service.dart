@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/service_request.dart';
@@ -68,12 +69,16 @@ class ServiceRequestNotifier extends Notifier<ServiceRequestState> {
       final response = await _service.createRequest(request);
       state = state.copyWith(isLoading: false, lastRequest: response);
       return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.response?.statusCode == 400 ? 'cooldown' : 'error',
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString().contains('400')
-            ? 'Please wait before making another request'
-            : 'Failed to send request. Please try again.',
+        error: 'error',
       );
       return false;
     }

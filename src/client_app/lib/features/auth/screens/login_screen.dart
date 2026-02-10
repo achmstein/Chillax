@@ -6,7 +6,7 @@ import '../../../core/auth/auth_service.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Login screen with native username/password authentication
+/// Login screen with native email/password authentication
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,7 +15,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _isSocialLoading = false;
@@ -23,19 +23,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleSignIn() async {
     final l10n = AppLocalizations.of(context)!;
-    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       setState(() {
-        _error = l10n.enterBothUsernamePassword;
+        _error = l10n.enterBothEmailAndPassword;
       });
       return;
     }
@@ -47,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final authService = ref.read(authServiceProvider.notifier);
-      final success = await authService.signIn(username, password);
+      final success = await authService.signIn(email, password);
 
       if (!success && mounted) {
         setState(() {
@@ -139,11 +139,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
 
-                // Username field
+                // Email field
                 FTextField.email(
-                  control: FTextFieldControl.managed(controller: _usernameController),
-                  label: AppText(l10n.usernameOrEmail),
-                  hint: l10n.enterUsernameOrEmail,
+                  control: FTextFieldControl.managed(controller: _emailController),
+                  label: AppText(l10n.email),
+                  hint: l10n.enterEmail,
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),

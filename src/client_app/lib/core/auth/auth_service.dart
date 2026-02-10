@@ -350,11 +350,14 @@ class AuthService extends Notifier<AuthState> {
       debugPrint('Token refresh DioException: ${e.type}');
       debugPrint('Token refresh error response: ${e.response?.statusCode} - ${e.response?.data}');
       debugPrint('Token refresh error message: ${e.message}');
-      await _clearTokens();
+      // Only clear tokens if the server explicitly rejected the refresh token
+      // (400 = invalid_grant / expired). Don't clear on network errors or timeouts.
+      if (e.response?.statusCode == 400 || e.response?.statusCode == 401) {
+        await _clearTokens();
+      }
       return false;
     } catch (e) {
       debugPrint('Token refresh error: $e');
-      await _clearTokens();
       return false;
     }
   }

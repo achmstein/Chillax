@@ -93,10 +93,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get guestUser => 'زائر';
 
   @override
-  String get enterBothUsernamePassword => 'ادخل اليوزر والباسورد.';
+  String get enterBothEmailAndPassword => 'ادخل الايميل والباسورد.';
 
   @override
-  String get invalidCredentials => 'اليوزر أو الباسورد غلط. جرب تاني.';
+  String get invalidCredentials => 'الايميل أو الباسورد غلط. جرب تاني.';
 
   @override
   String anErrorOccurred(String error) {
@@ -120,7 +120,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get registrationFailed =>
-      'التسجيل فشل. اليوزر أو الايميل موجود قبل كده.';
+      'التسجيل فشل. الايميل ممكن يكون موجود قبل كده.';
 
   @override
   String get success => 'تمام';
@@ -285,7 +285,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get needSomething => 'عايز حاجة؟';
 
   @override
-  String get callWaiter => 'نادي الجرسون';
+  String get callWaiter => 'نادي الويتر';
 
   @override
   String get controller => 'دراع';
@@ -294,7 +294,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get getBill => 'الفاتورة';
 
   @override
-  String get waiterNotified => 'الجرسون عرف';
+  String get waiterNotified => 'الويتر عرف';
 
   @override
   String get controllerRequestSent => 'طلب الدراع اتبعت';
@@ -800,4 +800,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customizable => 'قابل للتخصيص';
+
+  @override
+  String get joinSession => 'ادخل الجلسة';
+
+  @override
+  String get enterAccessCode => 'ادخل كود الدخول';
+
+  @override
+  String get accessCodeDescription =>
+      'اطلب الكود من صاحب الجلسة أو الموظف';
+
+  @override
+  String get sessionFound => 'الجلسة موجودة';
+
+  @override
+  String get sessionNotFound => 'الجلسة مش موجودة';
+
+  @override
+  String get failedToFetchSession => 'الجلسة مش بتحمل';
+
+  @override
+  String get failedToJoinSession => 'الدخول للجلسة فشل';
+
+  @override
+  String memberCountFormat(int count) {
+    return '$count أعضاء';
+  }
+
+  @override
+  String get pleaseWaitBeforeRequest => 'استنى شوية قبل ما تطلب تاني';
+
+  @override
+  String get failedToSendRequest => 'الطلب مش بيتبعت';
 }
