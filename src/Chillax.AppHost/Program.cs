@@ -102,8 +102,6 @@ void ConfigureApiService(IResourceBuilder<ProjectResource> api, string imageSuff
     {
         service.Image = $"{ImageRegistry}-{imageSuffix}:latest";
         service.Restart = "unless-stopped";
-        service.Environment["HTTP_PORTS"] = "8080";
-        service.Expose = ["8080"];
     });
 }
 
