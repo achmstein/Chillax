@@ -52,10 +52,10 @@
 				<key>CFBundleTypeRole</key>
 				<string>Editor</string>
 				<key>CFBundleURLName</key>
-				<string>com.chillax.app</string>
+				<string>com.chillax.client</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>com.chillax.app</string>
+					<string>com.chillax.client</string>
 				</array>
 			</dict>
 			<!-- Google Sign-In URL scheme -->
