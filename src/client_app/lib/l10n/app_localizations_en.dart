@@ -289,7 +289,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get needSomething => 'Need something?';
 
   @override
-  String get callWaiter => 'Call Waiter';
+  String get callWaiter => 'Waiter';
 
   @override
   String get controller => 'Controller';

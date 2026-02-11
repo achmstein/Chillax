@@ -123,11 +123,13 @@ class _MobileLayout extends ConsumerWidget {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: theme.colors.background,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) => SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -168,7 +170,7 @@ class _MobileLayout extends ConsumerWidget {
                   },
                 );
               }),
-              const SizedBox(height: 8),
+              SizedBox(height: 8 + MediaQuery.of(ctx).viewPadding.bottom),
             ],
           ),
         ),

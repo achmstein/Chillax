@@ -44,16 +44,12 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   final ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
   final TextEditingController _searchController = TextEditingController();
 
-  // ValueNotifiers so _onScroll never calls setState — only the specific
-  // widgets that listen rebuild, the ScrollablePositionedList is untouched.
   final ValueNotifier<String?> _selectedCategoryNotifier = ValueNotifier(null);
-  final ValueNotifier<bool> _showSearchNotifier = ValueNotifier(false);
 
-  double _lastScrollOffset = 0.0;
+  bool _showSearch = false;
   String _searchQuery = '';
   List<String> _categoryNames = [];
   bool _isProgrammaticScroll = false;
-  int _searchToggleCooldown = 0;
 
   @override
   void initState() {
@@ -68,7 +64,6 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _selectedCategoryNotifier.dispose();
-    _showSearchNotifier.dispose();
     super.dispose();
   }
 
@@ -77,6 +72,16 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     if (query != _searchQuery) {
       setState(() => _searchQuery = query);
     }
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _showSearch = !_showSearch;
+      if (!_showSearch) {
+        _searchController.clear();
+        _searchQuery = '';
+      }
+    });
   }
 
   void _onScroll() {
@@ -99,19 +104,6 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     final extent = topTrailing - topLeading;
     final fraction = extent > 0 ? (-topLeading).clamp(0.0, extent) / extent : 0.0;
     final offset = topIndex + fraction;
-    final delta = offset - _lastScrollOffset;
-    _lastScrollOffset = offset;
-
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (now > _searchToggleCooldown) {
-      if (delta > 0.02 && !_showSearchNotifier.value) {
-        _showSearchNotifier.value = true;
-        _searchToggleCooldown = now + 300;
-      } else if (delta < -0.02 && _showSearchNotifier.value && _searchQuery.isEmpty) {
-        _showSearchNotifier.value = false;
-        _searchToggleCooldown = now + 300;
-      }
-    }
 
     if (_categoryNames.isNotEmpty) {
       final catIndex = offset.floor().clamp(0, _categoryNames.length - 1);
@@ -136,21 +128,6 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     ).then((_) {
       Future.delayed(const Duration(milliseconds: 50), () {
         if (!mounted) return;
-        final positions = _itemPositionsListener.itemPositions.value;
-        int topIdx = -1;
-        double topLead = 0, topTrail = 0;
-        for (final p in positions) {
-          if (p.itemLeadingEdge <= 0 && p.itemTrailingEdge > 0 && p.index > topIdx) {
-            topIdx = p.index;
-            topLead = p.itemLeadingEdge;
-            topTrail = p.itemTrailingEdge;
-          }
-        }
-        if (topIdx >= 0) {
-          final ext = topTrail - topLead;
-          final frac = ext > 0 ? (-topLead).clamp(0.0, ext) / ext : 0.0;
-          _lastScrollOffset = topIdx + frac;
-        }
         _isProgrammaticScroll = false;
       });
     });
@@ -166,9 +143,15 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
     return Column(
       children: [
-        // Header
+        // Header with search toggle
         FHeader(
           title: AppText(l10n.menu, style: TextStyle(fontSize: 18)),
+          suffixes: [
+            FHeaderAction(
+              icon: Icon(_showSearch ? FIcons.x : FIcons.search, size: 20),
+              onPress: _toggleSearch,
+            ),
+          ],
         ),
 
         // Content
@@ -208,35 +191,16 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
               return Column(
                 children: [
-                  // Search bar — always rendered, animated on show, instant on hide.
-                  // Isolated in ValueListenableBuilder so the list never rebuilds.
-                  ValueListenableBuilder<bool>(
-                    valueListenable: _showSearchNotifier,
-                    builder: (context, showSearch, child) {
-                      return ClipRect(
-                        child: AnimatedAlign(
-                          // Animate open, instant close (no animation frames = no lag)
-                          duration: Duration(milliseconds: showSearch ? 200 : 0),
-                          curve: Curves.easeInOut,
-                          alignment: Alignment.topCenter,
-                          heightFactor: showSearch ? 1.0 : 0.0,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Padding(
+                  // Search bar — toggled by header search icon
+                  if (_showSearch)
+                    Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: FTextField(
                         control: FTextFieldControl.managed(controller: _searchController),
                         hint: l10n.searchMenu,
-                        prefixBuilder: (context, style, states) =>
-                            Padding(
-                              padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
-                              child: Icon(FIcons.search, size: 18, color: colors.mutedForeground),
-                            ),
+                        autofocus: true,
                       ),
                     ),
-                  ),
 
                   // Sticky category menu — listens to notifier internally,
                   // only its chips rebuild on selection change.

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Chillax.Catalog.API.Model;
 
 /// <summary>
@@ -41,6 +43,7 @@ public class CustomizationOption
         Name = new LocalizedText(name);
     }
 
+    [JsonConstructor]
     public CustomizationOption(LocalizedText name)
     {
         Name = name;

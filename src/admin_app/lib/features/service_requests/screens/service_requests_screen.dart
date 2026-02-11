@@ -146,6 +146,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
@@ -154,8 +155,14 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
         ),
         child: SafeArea(
           top: false,
+          bottom: false,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: 20 + MediaQuery.of(context).viewPadding.bottom,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,

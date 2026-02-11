@@ -285,7 +285,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get needSomething => 'عايز حاجة؟';
 
   @override
-  String get callWaiter => 'نادي الويتر';
+  String get callWaiter => 'الويتر';
 
   @override
   String get controller => 'دراع';

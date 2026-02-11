@@ -49,7 +49,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
           child: Row(
             children: [
               AppText(l10n.menu, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
-              if (state.items.isNotEmpty) ...[
+              if (state.items.isNotEmpty && !state.isReorderingItems) ...[
                 const SizedBox(width: 8),
                 AppText(
                   '${state.items.length}',
@@ -59,22 +59,49 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                 ),
               ],
               const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.category, size: 22),
-                onPressed: () => context.go('/categories'),
-                tooltip: l10n.categories,
-              ),
-              IconButton(
-                icon: const Icon(Icons.add, size: 22),
-                onPressed: () => context.push('/menu/items/new'),
-                tooltip: l10n.addItem,
-              ),
+              if (state.isReorderingItems) ...[
+                TextButton(
+                  onPressed: () => ref.read(menuProvider.notifier).cancelItemReorder(),
+                  child: AppText(l10n.cancel),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(Icons.check, size: 22),
+                  onPressed: () async {
+                    final success = await ref.read(menuProvider.notifier).saveReorderedItems();
+                    if (context.mounted) {
+                      final messenger = ScaffoldMessenger.of(context);
+                      messenger.showSnackBar(
+                        SnackBar(content: AppText(success ? l10n.orderSavedSuccess : l10n.failedToSaveOrder)),
+                      );
+                    }
+                  },
+                  tooltip: l10n.saveOrder,
+                ),
+              ] else ...[
+                if (state.filteredItems.length > 1)
+                  IconButton(
+                    icon: const Icon(Icons.swap_vert, size: 22),
+                    onPressed: () => ref.read(menuProvider.notifier).toggleItemReorderMode(),
+                    tooltip: l10n.reorder,
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.category, size: 22),
+                  onPressed: () => context.go('/categories'),
+                  tooltip: l10n.categories,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add, size: 22),
+                  onPressed: () => context.push('/menu/items/new'),
+                  tooltip: l10n.addItem,
+                ),
+              ],
             ],
           ),
         ),
 
         // Category filter chips
-        if (state.categories.isNotEmpty)
+        if (state.categories.isNotEmpty && !state.isReorderingItems)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SingleChildScrollView(
@@ -118,24 +145,46 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                     icon: Icons.restaurant_menu_outlined,
                     title: l10n.noItemsFound,
                   )
-                : RefreshIndicator(
-                    onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: state.filteredItems.length,
-                      itemBuilder: (context, index) {
-                        final item = state.filteredItems[index];
-                        return _MenuItemTile(
-                          item: item,
-                          onToggleAvailability: (value) {
-                            ref.read(menuProvider.notifier).updateItemAvailability(item.id, value);
+                : state.isReorderingItems
+                    ? ReorderableListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: state.filteredItems.length,
+                        onReorder: ref.read(menuProvider.notifier).reorderItems,
+                        proxyDecorator: (child, index, animation) {
+                          return Material(
+                            color: theme.colors.background,
+                            elevation: 2,
+                            shadowColor: theme.colors.border,
+                            borderRadius: BorderRadius.circular(8),
+                            child: child,
+                          );
+                        },
+                        itemBuilder: (context, index) {
+                          final item = state.filteredItems[index];
+                          return _ReorderMenuItemTile(
+                            key: ValueKey(item.id),
+                            item: item,
+                          );
+                        },
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: state.filteredItems.length,
+                          itemBuilder: (context, index) {
+                            final item = state.filteredItems[index];
+                            return _MenuItemTile(
+                              item: item,
+                              onToggleAvailability: (value) {
+                                ref.read(menuProvider.notifier).updateItemAvailability(item.id, value);
+                              },
+                              onEdit: () => context.push('/menu/items/${item.id}'),
+                              onDelete: () => _deleteItem(context, item),
+                            );
                           },
-                          onEdit: () => context.push('/menu/items/${item.id}'),
-                          onDelete: () => _deleteItem(context, item),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                      ),
           ),
         ),
       ],
@@ -203,6 +252,57 @@ class _CategoryChip extends StatelessWidget {
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Simplified menu item tile for reorder mode
+class _ReorderMenuItemTile extends StatelessWidget {
+  final MenuItem item;
+
+  const _ReorderMenuItemTile({
+    super.key,
+    required this.item,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Icon(
+            Icons.drag_handle,
+            color: theme.colors.mutedForeground,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  item.name.localized(context),
+                  style: theme.typography.base.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                AppText(
+                  l10n.priceFormat(item.price.toStringAsFixed(0)),
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

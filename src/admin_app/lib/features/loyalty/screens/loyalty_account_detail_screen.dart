@@ -291,6 +291,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) => _PointsSheet(
@@ -306,6 +307,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) => _PointsSheet(
@@ -577,6 +579,7 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
       ),
       child: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -703,7 +706,7 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: 12 + MediaQuery.of(context).padding.bottom,
+                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
               ),
               child: Row(
                 children: [

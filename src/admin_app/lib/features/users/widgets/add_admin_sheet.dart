@@ -85,6 +85,7 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
+        bottom: false,
         child: Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -204,7 +205,7 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16 + MediaQuery.of(context).viewPadding.bottom),
             ],
           ),
         ),

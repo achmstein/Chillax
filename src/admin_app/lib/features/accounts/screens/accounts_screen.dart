@@ -146,6 +146,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (context) => const _AddChargeSheet(),
@@ -280,6 +281,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
       ),
       child: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -480,7 +482,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: 12 + MediaQuery.of(context).padding.bottom,
+                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
               ),
               child: Row(
                 children: [

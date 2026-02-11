@@ -100,6 +100,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      backgroundColor: theme.colors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -116,6 +117,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       'assets/images/logo.png',
                       width: 200,
                       height: 200,
+                      color: theme.colors.foreground,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -143,11 +145,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
 
-                  // Username field
+                  // Email field
                   FTextField.email(
                     control: FTextFieldControl.managed(controller: _usernameController),
-                    label: AppText(l10n.usernameOrEmail),
-                    hint: l10n.enterUsernameOrEmail,
+                    label: AppText(l10n.email),
+                    hint: l10n.enterEmail,
                     textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 16),

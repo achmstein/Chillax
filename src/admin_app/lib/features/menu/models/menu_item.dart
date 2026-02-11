@@ -11,6 +11,7 @@ class MenuItem {
   final LocalizedText catalogTypeName;
   final bool isAvailable;
   final int? preparationTimeMinutes;
+  final int displayOrder;
   final List<ItemCustomization> customizations;
 
   MenuItem({
@@ -23,6 +24,7 @@ class MenuItem {
     required this.catalogTypeName,
     this.isAvailable = true,
     this.preparationTimeMinutes,
+    this.displayOrder = 0,
     this.customizations = const [],
   });
 
@@ -36,6 +38,7 @@ class MenuItem {
     LocalizedText? catalogTypeName,
     bool? isAvailable,
     int? preparationTimeMinutes,
+    int? displayOrder,
     List<ItemCustomization>? customizations,
   }) {
     return MenuItem(
@@ -48,6 +51,7 @@ class MenuItem {
       catalogTypeName: catalogTypeName ?? this.catalogTypeName,
       isAvailable: isAvailable ?? this.isAvailable,
       preparationTimeMinutes: preparationTimeMinutes ?? this.preparationTimeMinutes,
+      displayOrder: displayOrder ?? this.displayOrder,
       customizations: customizations ?? this.customizations,
     );
   }
@@ -63,6 +67,7 @@ class MenuItem {
       catalogTypeName: LocalizedText.parse(json['catalogTypeName'] ?? ''),
       isAvailable: json['isAvailable'] as bool? ?? true,
       preparationTimeMinutes: json['preparationTimeMinutes'] as int?,
+      displayOrder: json['displayOrder'] as int? ?? 0,
       customizations: (json['customizations'] as List<dynamic>?)
               ?.map((e) => ItemCustomization.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -81,6 +86,7 @@ class MenuItem {
       'catalogTypeName': catalogTypeName.toJson(),
       'isAvailable': isAvailable,
       'preparationTimeMinutes': preparationTimeMinutes,
+      'displayOrder': displayOrder,
       'customizations': customizations.map((e) => e.toJson()).toList(),
     };
   }
@@ -205,11 +211,25 @@ class CustomizationOption {
 class MenuCategory {
   final int id;
   final LocalizedText name;
+  final int displayOrder;
 
   MenuCategory({
     required this.id,
     required this.name,
+    this.displayOrder = 0,
   });
+
+  MenuCategory copyWith({
+    int? id,
+    LocalizedText? name,
+    int? displayOrder,
+  }) {
+    return MenuCategory(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      displayOrder: displayOrder ?? this.displayOrder,
+    );
+  }
 
   factory MenuCategory.fromJson(Map<String, dynamic> json) {
     // Handle both 'type' and 'name' field names for category name
@@ -217,6 +237,7 @@ class MenuCategory {
     return MenuCategory(
       id: json['id'] as int,
       name: LocalizedText.parse(nameValue ?? ''),
+      displayOrder: json['displayOrder'] as int? ?? 0,
     );
   }
 }

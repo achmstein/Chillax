@@ -140,6 +140,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (context) => RoomFormSheet(room: room),

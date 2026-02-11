@@ -65,6 +65,7 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
       ),
       child: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -130,7 +131,7 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                         label: l10n.description,
                         enController: _descriptionEnController,
                         arController: _descriptionArController,
-                        enHint: l10n.optionalDescription,
+                        enHint: 'Optional description',
                         arHint: 'وصف اختياري',
                         isMultiline: true,
                         maxLines: 4,
@@ -167,7 +168,7 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: 12 + MediaQuery.of(context).padding.bottom,
+                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
               ),
               child: Row(
                 children: [

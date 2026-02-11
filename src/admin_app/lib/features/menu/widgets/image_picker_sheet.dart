@@ -28,6 +28,7 @@ class ImagePickerSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: SafeArea(
+        bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -94,7 +95,7 @@ class ImagePickerSheet extends StatelessWidget {
               ),
             ],
 
-            const SizedBox(height: 8),
+            SizedBox(height: 8 + MediaQuery.of(context).viewPadding.bottom),
           ],
         ),
       ),
@@ -120,14 +121,11 @@ class _ImageOptionTile extends StatelessWidget {
     final theme = context.theme;
     final color = isDestructive ? theme.colors.destructive : theme.colors.foreground;
 
-    return FTappable(
-      onPress: onTap,
-      child: Container(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: theme.colors.secondary,
-          borderRadius: BorderRadius.circular(12),
-        ),
         child: Row(
           children: [
             Icon(icon, color: color, size: 24),
@@ -150,6 +148,7 @@ class _ImageOptionTile extends StatelessWidget {
 Future<dynamic> showImagePickerSheet(BuildContext context, {bool hasExistingImage = false}) {
   return showModalBottomSheet<dynamic>(
     context: context,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     builder: (context) => ImagePickerSheet(hasExistingImage: hasExistingImage),
   );

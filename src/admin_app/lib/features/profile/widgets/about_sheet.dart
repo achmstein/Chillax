@@ -19,6 +19,7 @@ class AboutSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
+        bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -107,7 +108,7 @@ class AboutSheet extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16 + MediaQuery.of(context).viewPadding.bottom),
           ],
         ),
       ),

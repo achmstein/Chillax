@@ -252,6 +252,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
@@ -260,12 +261,13 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
         ),
         child: SafeArea(
           top: false,
+          bottom: false,
           child: Padding(
             padding: EdgeInsets.only(
               left: 16,
               right: 16,
               top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16 + MediaQuery.of(context).viewPadding.bottom,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

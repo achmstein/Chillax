@@ -65,6 +65,13 @@ public static class CatalogApi
             .WithDescription("Get a list of menu categories (Drinks, Food, Snacks, Desserts)")
             .WithTags("Categories");
 
+        api.MapPut("/categories/reorder", ReorderCategories)
+            .WithName("ReorderCategories")
+            .WithSummary("Reorder categories")
+            .WithDescription("Batch update category display order (Admin only)")
+            .WithTags("Categories")
+            .RequireAuthorization("Admin");
+
         api.MapGet("/categories/{id:int}", GetCategoryById)
             .WithName("GetCategory")
             .WithSummary("Get menu category")
@@ -90,6 +97,13 @@ public static class CatalogApi
             .WithSummary("Delete menu category")
             .WithDescription("Delete the specified menu category (Admin only)")
             .WithTags("Categories")
+            .RequireAuthorization("Admin");
+
+        api.MapPut("/items/reorder", ReorderItems)
+            .WithName("ReorderItems")
+            .WithSummary("Reorder menu items")
+            .WithDescription("Batch update menu item display order (Admin only)")
+            .WithTags("Items")
             .RequireAuthorization("Admin");
 
         // CRUD endpoints
@@ -136,6 +150,13 @@ public static class CatalogApi
             .WithTags("Items")
             .RequireAuthorization("Admin")
             .DisableAntiforgery();
+
+        api.MapDelete("/items/{id:int}/pic", DeleteItemPicture)
+            .WithName("DeleteItemPicture")
+            .WithSummary("Delete item picture")
+            .WithDescription("Delete the picture for a menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
 
         // Customization CRUD
         api.MapPost("/items/{id:int}/customizations", CreateCustomization)
@@ -469,6 +490,50 @@ public static class CatalogApi
         return TypedResults.NoContent();
     }
 
+    public static async Task<Ok> ReorderCategories(
+        CatalogContext context,
+        [FromBody] ReorderRequest request)
+    {
+        var ids = request.Items.Select(i => i.Id).ToList();
+        var categories = await context.CatalogTypes
+            .Where(c => ids.Contains(c.Id))
+            .ToListAsync();
+
+        foreach (var item in request.Items)
+        {
+            var category = categories.FirstOrDefault(c => c.Id == item.Id);
+            if (category != null)
+            {
+                category.DisplayOrder = item.DisplayOrder;
+            }
+        }
+
+        await context.SaveChangesAsync();
+        return TypedResults.Ok();
+    }
+
+    public static async Task<Ok> ReorderItems(
+        CatalogContext context,
+        [FromBody] ReorderRequest request)
+    {
+        var ids = request.Items.Select(i => i.Id).ToList();
+        var items = await context.CatalogItems
+            .Where(c => ids.Contains(c.Id))
+            .ToListAsync();
+
+        foreach (var item in request.Items)
+        {
+            var catalogItem = items.FirstOrDefault(c => c.Id == item.Id);
+            if (catalogItem != null)
+            {
+                catalogItem.DisplayOrder = item.DisplayOrder;
+            }
+        }
+
+        await context.SaveChangesAsync();
+        return TypedResults.Ok();
+    }
+
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     public static async Task<Created> CreateItem(
         [AsParameters] CatalogServices services,
@@ -506,11 +571,10 @@ public static class CatalogApi
             });
         }
 
-        // Update properties
+        // Update properties (PictureFileName is managed separately via the upload endpoint)
         catalogItem.Name = productToUpdate.Name;
         catalogItem.Description = productToUpdate.Description;
         catalogItem.Price = productToUpdate.Price;
-        catalogItem.PictureFileName = productToUpdate.PictureFileName;
         catalogItem.CatalogTypeId = productToUpdate.CatalogTypeId;
         catalogItem.IsAvailable = productToUpdate.IsAvailable;
         catalogItem.PreparationTimeMinutes = productToUpdate.PreparationTimeMinutes;
@@ -621,6 +685,29 @@ public static class CatalogApi
         await services.Context.SaveChangesAsync();
 
         return TypedResults.Ok(fileName);
+    }
+
+    // Delete picture handler
+    public static async Task<Results<NoContent, NotFound>> DeleteItemPicture(
+        [AsParameters] CatalogServices services,
+        IWebHostEnvironment environment,
+        [Description("The menu item id")] int id)
+    {
+        var item = await services.Context.CatalogItems.FindAsync(id);
+        if (item is null) return TypedResults.NotFound();
+
+        if (!string.IsNullOrEmpty(item.PictureFileName))
+        {
+            var path = GetFullPath(environment.ContentRootPath, item.PictureFileName);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            item.PictureFileName = null;
+            await services.Context.SaveChangesAsync();
+        }
+
+        return TypedResults.NoContent();
     }
 
     // Create customization handler

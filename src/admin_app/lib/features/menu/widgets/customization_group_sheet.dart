@@ -60,6 +60,7 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: SafeArea(
+        bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -98,12 +99,15 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
                 ],
               ),
             ),
-            const FDivider(),
-
             // Content
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: 16 + MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).viewPadding.bottom,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -115,8 +119,8 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
                         isRequired: true,
                         enController: _nameEnController,
                         arController: _nameArController,
-                        enHint: l10n.customizationNameHint,
-                        arHint: l10n.customizationNameHint,
+                        enHint: 'e.g., Size, Extras, Sugar Level',
+                        arHint: 'مثلاً: الحجم، الإضافات، مستوى السكر',
                       ),
                       const SizedBox(height: 16),
 
@@ -158,8 +162,9 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: theme.colors.secondary,
+                            color: theme.colors.background,
                             borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: theme.colors.border),
                           ),
                           child: Center(
                             child: AppText(
@@ -270,25 +275,18 @@ class _SwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colors.secondary,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          AppText(
-            title,
-            style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
-          ),
-          FSwitch(
-            value: value,
-            onChange: onChanged,
-          ),
-        ],
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        AppText(
+          title,
+          style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+        ),
+        FSwitch(
+          value: value,
+          onChange: onChanged,
+        ),
+      ],
     );
   }
 }
@@ -351,34 +349,36 @@ class _OptionCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: theme.colors.secondary,
+        color: theme.colors.background,
         borderRadius: BorderRadius.circular(8),
-        border: option.isDefault
-            ? Border.all(color: theme.colors.primary, width: 2)
-            : null,
+        border: Border.all(
+          color: option.isDefault ? theme.colors.primary : theme.colors.border,
+          width: option.isDefault ? 2 : 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // EN field
           _CompactTextField(
             controller: option.nameEnController,
             label: 'EN',
-            hint: l10n.optionNameHint,
+            hint: 'e.g., Small, Medium, Large',
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
 
           // AR field
           _CompactTextField(
             controller: option.nameArController,
             label: 'AR',
-            hint: l10n.optionNameHint,
+            hint: 'مثلاً: صغير، وسط، كبير',
             textDirection: TextDirection.rtl,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
 
           // Price and actions row
           Row(
@@ -405,7 +405,7 @@ class _OptionCard extends StatelessWidget {
               FTappable(
                 onPress: onSetDefault,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: option.isDefault
                         ? theme.colors.primary
@@ -423,17 +423,22 @@ class _OptionCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
 
               // Delete button
-              IconButton(
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: theme.colors.destructive,
-                  size: 20,
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: theme.colors.destructive,
+                    size: 18,
+                  ),
+                  onPressed: onDelete,
+                  tooltip: l10n.delete,
                 ),
-                onPressed: onDelete,
-                tooltip: l10n.delete,
               ),
             ],
           ),
@@ -506,6 +511,7 @@ Future<ItemCustomization?> showCustomizationGroupSheet(
   return showModalBottomSheet<ItemCustomization>(
     context: context,
     isScrollControlled: true,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     builder: (context) => CustomizationGroupSheet(customization: customization),
   );

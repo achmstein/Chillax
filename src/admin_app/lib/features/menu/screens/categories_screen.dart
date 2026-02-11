@@ -9,6 +9,7 @@ import '../../../core/widgets/ui_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
+import '../widgets/category_form_sheet.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
   const CategoriesScreen({super.key});
@@ -51,17 +52,46 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back, size: 22),
-                onPressed: () => context.go('/menu'),
+                onPressed: state.isReorderingCategories
+                    ? null
+                    : () => context.go('/menu'),
                 tooltip: l10n.backToMenu,
               ),
               const SizedBox(width: 8),
               AppText(l10n.categories, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.add, size: 22),
-                onPressed: () => _showCategoryForm(context),
-                tooltip: l10n.addCategory,
-              ),
+              if (state.isReorderingCategories) ...[
+                TextButton(
+                  onPressed: () => notifier.cancelCategoryReorder(),
+                  child: AppText(l10n.cancel),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(Icons.check, size: 22),
+                  onPressed: () async {
+                    final success = await notifier.saveReorderedCategories();
+                    if (context.mounted) {
+                      final messenger = ScaffoldMessenger.of(context);
+                      messenger.showSnackBar(
+                        SnackBar(content: AppText(success ? l10n.orderSavedSuccess : l10n.failedToSaveOrder)),
+                      );
+                    }
+                  },
+                  tooltip: l10n.saveOrder,
+                ),
+              ] else ...[
+                if (state.categories.length > 1)
+                  IconButton(
+                    icon: const Icon(Icons.swap_vert, size: 22),
+                    onPressed: () => notifier.toggleCategoryReorderMode(),
+                    tooltip: l10n.reorder,
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.add, size: 22),
+                  onPressed: () => _showCategoryForm(context),
+                  tooltip: l10n.addCategory,
+                ),
+              ],
             ],
           ),
         ),
@@ -83,21 +113,69 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                         ),
                       ],
                     )
-                  : ListView.separated(
-                      padding: kScreenPadding,
-                      itemCount: state.categories.length,
-                      separatorBuilder: (_, __) => const FDivider(),
-                      itemBuilder: (context, index) {
-                        final category = state.categories[index];
-                        final itemCount = notifier.getItemCountForCategory(category.id);
-                        return _CategoryListItem(
-                          category: category,
-                          itemCount: itemCount,
-                          onEdit: () => _showCategoryForm(context, category: category),
-                          onDelete: () => _deleteCategory(context, category, itemCount),
-                        );
-                      },
-                    ),
+                  : state.isReorderingCategories
+                      ? ReorderableListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: state.categories.length,
+                          onReorder: notifier.reorderCategories,
+                          proxyDecorator: (child, index, animation) {
+                            return Material(
+                              color: theme.colors.background,
+                              elevation: 2,
+                              shadowColor: theme.colors.border,
+                              borderRadius: BorderRadius.circular(8),
+                              child: child,
+                            );
+                          },
+                          itemBuilder: (context, index) {
+                            final category = state.categories[index];
+                            final itemCount = notifier.getItemCountForCategory(category.id);
+                            return Column(
+                              key: ValueKey(category.id),
+                              children: [
+                                _CategoryListItem(
+                                  category: category,
+                                  itemCount: itemCount,
+                                  isReorderMode: true,
+                                  onTap: () {},
+                                  onDelete: () {},
+                                ),
+                                if (index < state.categories.length - 1)
+                                  Divider(
+                                    height: 1,
+                                    indent: 16,
+                                    endIndent: 16,
+                                    color: theme.colors.border,
+                                  ),
+                              ],
+                            );
+                          },
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: state.categories.length,
+                          itemBuilder: (context, index) {
+                            final category = state.categories[index];
+                            final itemCount = notifier.getItemCountForCategory(category.id);
+                            return Column(
+                              children: [
+                                _CategoryListItem(
+                                  category: category,
+                                  itemCount: itemCount,
+                                  onTap: () => _showCategoryForm(context, category: category),
+                                  onDelete: () => _deleteCategory(context, category, itemCount),
+                                ),
+                                if (index < state.categories.length - 1)
+                                  Divider(
+                                    height: 1,
+                                    indent: 16,
+                                    endIndent: 16,
+                                    color: theme.colors.border,
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
             ),
           ),
         ),
@@ -106,145 +184,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 
   void _showCategoryForm(BuildContext context, {MenuCategory? category}) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = context.theme;
-    final enController = TextEditingController(text: category?.name.en ?? '');
-    final arController = TextEditingController(text: category?.name.ar ?? '');
-    final isEditing = category != null;
-
-    showAdaptiveDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => FDialog(
-        direction: Axis.vertical,
-        title: AppText(isEditing ? l10n.editCategory : l10n.addCategory),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // English field
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: theme.colors.secondary,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Center(
-                      child: AppText(
-                        'EN',
-                        style: theme.typography.xs.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colors.secondaryForeground,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: enController,
-                      decoration: InputDecoration(
-                        hintText: l10n.categoryNameHint,
-                        border: const OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                      ),
-                      autofocus: true,
-                      textCapitalization: TextCapitalization.words,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Arabic field
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: theme.colors.secondary,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Center(
-                      child: AppText(
-                        'AR',
-                        style: theme.typography.xs.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colors.secondaryForeground,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: arController,
-                      decoration: const InputDecoration(
-                        hintText: 'اسم الفئة',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                      ),
-                      textDirection: TextDirection.rtl,
-                      textCapitalization: TextCapitalization.words,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          FButton(
-            style: FButtonStyle.outline(),
-            child: AppText(l10n.cancel),
-            onPress: () => Navigator.of(context).pop(),
-          ),
-          FButton(
-            child: AppText(isEditing ? l10n.update : l10n.create),
-            onPress: () async {
-              final nameEn = enController.text.trim();
-              if (nameEn.isEmpty) return;
-
-              final nameAr = arController.text.trim();
-              final name = LocalizedText(
-                en: nameEn,
-                ar: nameAr.isNotEmpty ? nameAr : null,
-              );
-
-              final messenger = ScaffoldMessenger.of(context);
-              Navigator.of(context).pop();
-
-              final notifier = ref.read(menuProvider.notifier);
-              bool success;
-              if (isEditing) {
-                success = await notifier.updateCategory(category.id, name);
-              } else {
-                success = await notifier.createCategory(name);
-              }
-
-              if (mounted && success) {
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: AppText(isEditing
-                        ? l10n.categoryUpdatedSuccess
-                        : l10n.categoryCreatedSuccess),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) => CategoryFormSheet(category: category),
     );
   }
 
@@ -308,86 +254,87 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 class _CategoryListItem extends StatelessWidget {
   final MenuCategory category;
   final int itemCount;
-  final VoidCallback onEdit;
+  final bool isReorderMode;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const _CategoryListItem({
     required this.category,
     required this.itemCount,
-    required this.onEdit,
+    this.isReorderMode = false,
+    required this.onTap,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: theme.colors.secondary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.category,
-              color: theme.colors.primary,
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Name and count
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  category.name.localized(context),
-                  style: theme.typography.base.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                AppText(
-                  '$itemCount item${itemCount != 1 ? 's' : ''}',
-                  style: theme.typography.sm.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Actions
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: Icon(
-                  Icons.edit,
-                  color: theme.colors.mutedForeground,
-                ),
-                onPressed: onEdit,
-                tooltip: 'Edit category',
+    return FTappable(
+      onPress: isReorderMode ? null : onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Icon
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: theme.colors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
+              child: Icon(
+                Icons.category,
+                size: 24,
+                color: theme.colors.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Name and count
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    category.name.localized(context),
+                    style: theme.typography.base.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  AppText(
+                    l10n.itemCount(itemCount),
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.mutedForeground,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Actions
+            if (isReorderMode)
+              Icon(
+                Icons.drag_handle,
+                color: theme.colors.mutedForeground,
+              )
+            else
               IconButton(
                 icon: Icon(
                   Icons.delete,
+                  size: 20,
                   color: itemCount > 0
                       ? theme.colors.mutedForeground.withValues(alpha: 0.5)
                       : theme.colors.destructive,
                 ),
                 onPressed: onDelete,
-                tooltip: itemCount > 0
-                    ? 'Cannot delete: has items'
-                    : 'Delete category',
               ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

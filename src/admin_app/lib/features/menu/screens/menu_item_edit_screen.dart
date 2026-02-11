@@ -256,7 +256,7 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
           isRequired: true,
           enController: _nameEnController,
           arController: _nameArController,
-          enHint: l10n.enterItemName,
+          enHint: 'Enter item name',
           arHint: 'اكتب اسم الصنف',
         ),
         const SizedBox(height: 16),
@@ -266,7 +266,7 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
           label: l10n.description,
           enController: _descriptionEnController,
           arController: _descriptionArController,
-          enHint: l10n.enterItemDescription,
+          enHint: 'Enter item description',
           arHint: 'اكتب وصف الصنف',
           isMultiline: true,
           maxLines: 3,
@@ -341,25 +341,18 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
         const SizedBox(height: 16),
 
         // Availability toggle
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: theme.colors.secondary,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AppText(
-                l10n.availableLabel,
-                style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
-              ),
-              FSwitch(
-                value: _isAvailable,
-                onChange: (value) => setState(() => _isAvailable = value),
-              ),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            AppText(
+              l10n.availableLabel,
+              style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+            ),
+            FSwitch(
+              value: _isAvailable,
+              onChange: (value) => setState(() => _isAvailable = value),
+            ),
+          ],
         ),
       ],
     );
@@ -572,10 +565,12 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
     }
 
     if (success && mounted) {
-      // Upload image if selected
+      // Handle image changes
       if (_selectedImageFile != null && itemId > 0) {
         await notifier.uploadItemImage(itemId, _selectedImageFile!);
         await notifier.loadMenu();
+      } else if (_imageRemoved && itemId > 0) {
+        await notifier.deleteItemImage(itemId);
       }
 
       // Save customizations
@@ -647,12 +642,13 @@ class _CustomizationTile extends StatelessWidget {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Column(
-      children: [
-        FTappable(
-          onPress: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             child: Row(
               children: [
                 Expanded(
@@ -699,14 +695,15 @@ class _CustomizationTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: Icon(
+                GestureDetector(
+                  onTap: onDelete,
+                  child: Icon(
                     Icons.delete_outline,
                     size: 20,
                     color: theme.colors.mutedForeground,
                   ),
-                  onPressed: onDelete,
                 ),
+                const SizedBox(width: 8),
                 Icon(
                   Icons.chevron_right,
                   color: theme.colors.mutedForeground,
@@ -714,9 +711,10 @@ class _CustomizationTile extends StatelessWidget {
               ],
             ),
           ),
-        ),
-        if (showDivider) const FDivider(),
-      ],
+          if (showDivider)
+            Divider(height: 1, indent: 12, endIndent: 12, color: theme.colors.border),
+        ],
+      ),
     );
   }
 }

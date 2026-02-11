@@ -71,6 +71,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
       width: 400,
       color: theme.colors.background,
       child: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -98,7 +99,12 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
             // Form
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -110,7 +116,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                         isRequired: true,
                         enController: _nameEnController,
                         arController: _nameArController,
-                        enHint: l10n.enterItemName,
+                        enHint: 'Enter item name',
                         arHint: 'اكتب اسم المنتج',
                       ),
                       const SizedBox(height: 16),
@@ -120,7 +126,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                         label: l10n.description,
                         enController: _descriptionEnController,
                         arController: _descriptionArController,
-                        enHint: l10n.enterItemDescription,
+                        enHint: 'Enter item description',
                         arHint: 'اكتب وصف المنتج',
                         isMultiline: true,
                         maxLines: 3,
@@ -225,7 +231,12 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
             // Actions
             const FDivider(),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16 + MediaQuery.of(context).viewPadding.bottom,
+              ),
               child: Row(
                 children: [
                   Expanded(

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Chillax.Catalog.API.Model;
 
 /// <summary>
@@ -27,6 +29,7 @@ public class CatalogType
         Name = new LocalizedText(name);
     }
 
+    [JsonConstructor]
     public CatalogType(LocalizedText name)
     {
         Name = name;

@@ -92,6 +92,23 @@ public record UserPreferenceOptionDto
 }
 
 /// <summary>
+/// Request to batch reorder items or categories
+/// </summary>
+public record ReorderRequest
+{
+    public List<ReorderItemDto> Items { get; init; } = new();
+}
+
+/// <summary>
+/// Single item in a reorder request
+/// </summary>
+public record ReorderItemDto
+{
+    public int Id { get; init; }
+    public int DisplayOrder { get; init; }
+}
+
+/// <summary>
 /// Request to save user preferences for multiple items
 /// </summary>
 public record SaveUserPreferencesRequest
