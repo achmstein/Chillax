@@ -1025,4 +1025,58 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$count $_temp0';
   }
+
+  @override
+  String get reorder => 'Reorder';
+
+  @override
+  String get saveOrder => 'Save Order';
+
+  @override
+  String get orderSavedSuccess => 'Order saved successfully';
+
+  @override
+  String get failedToSaveOrder => 'Failed to save order';
+
+  @override
+  String get allOrders => 'All Orders';
+
+  @override
+  String get loyaltyDiscount => 'Loyalty Discount';
+
+  @override
+  String get subtotal => 'Subtotal';
+
+  @override
+  String get updateName => 'Update Name';
+
+  @override
+  String get newName => 'New Name';
+
+  @override
+  String get enterNewName => 'Enter your new name';
+
+  @override
+  String get nameUpdatedSuccessfully => 'Name updated successfully';
+
+  @override
+  String get failedToUpdateName => 'Failed to update name';
+
+  @override
+  String get noOrdersFound => 'No orders found';
+
+  @override
+  String get createStrongPassword => 'Create a strong password';
+
+  @override
+  String get passwordRequirements => 'Must be at least 8 characters';
+
+  @override
+  String get passwordChangedSuccessfully => 'Password changed successfully';
+
+  @override
+  String get failedToChangePassword => 'Failed to change password';
+
+  @override
+  String get yourDisplayName => 'Your display name';
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/network/api_client.dart';
 
 /// Profile state
@@ -59,6 +60,29 @@ class ProfileNotifier extends Notifier<ProfileState> {
         isLoading: false,
         error: e.toString(),
         passwordChangeSuccess: false,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> updateName(String newName) async {
+    state = state.copyWith(isLoading: true, clearError: true, clearSuccess: true);
+
+    try {
+      await _api.post('update-name', data: {
+        'newName': newName,
+      });
+
+      // Refresh auth token to pick up new name
+      await ref.read(authServiceProvider.notifier).refreshToken();
+
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      debugPrint('Failed to update name: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
       );
       return false;
     }

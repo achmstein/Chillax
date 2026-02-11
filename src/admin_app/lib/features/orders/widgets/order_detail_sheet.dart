@@ -50,7 +50,12 @@ class OrderDetailSheet extends ConsumerWidget {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16 + MediaQuery.of(context).viewPadding.bottom,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -120,6 +125,51 @@ class OrderDetailSheet extends ConsumerWidget {
                   const FDivider(),
                   const SizedBox(height: 16),
 
+                  // Subtotal + Loyalty Discount + Total
+                  if (order.pointsToRedeem > 0) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppText(
+                          l10n.subtotal,
+                          style: theme.typography.sm.copyWith(
+                            color: theme.colors.mutedForeground,
+                          ),
+                        ),
+                        AppText(
+                          l10n.priceFormat((order.total + order.loyaltyDiscount).toStringAsFixed(0)),
+                          style: theme.typography.sm,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.stars, size: 16, color: Colors.green.shade600),
+                            const SizedBox(width: 4),
+                            AppText(
+                              l10n.loyaltyDiscount,
+                              style: theme.typography.sm.copyWith(
+                                color: Colors.green.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        AppText(
+                          '-${l10n.priceFormat(order.loyaltyDiscount.toStringAsFixed(0))}',
+                          style: theme.typography.sm.copyWith(
+                            color: Colors.green.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+
                   // Total
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,7 +198,12 @@ class OrderDetailSheet extends ConsumerWidget {
           if (order.status == OrderStatus.submitted) ...[
             const FDivider(),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16 + MediaQuery.of(context).viewPadding.bottom,
+              ),
               child: Row(
                 children: [
                   Expanded(

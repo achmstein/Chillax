@@ -1020,4 +1020,58 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$count $_temp0';
   }
+
+  @override
+  String get reorder => 'ترتيب';
+
+  @override
+  String get saveOrder => 'حفظ الترتيب';
+
+  @override
+  String get orderSavedSuccess => 'تم حفظ الترتيب بنجاح';
+
+  @override
+  String get failedToSaveOrder => 'فشل حفظ الترتيب';
+
+  @override
+  String get allOrders => 'كل الطلبات';
+
+  @override
+  String get loyaltyDiscount => 'خصم النقاط';
+
+  @override
+  String get subtotal => 'المجموع الفرعي';
+
+  @override
+  String get updateName => 'تعديل الاسم';
+
+  @override
+  String get newName => 'الاسم الجديد';
+
+  @override
+  String get enterNewName => 'اكتب اسمك الجديد';
+
+  @override
+  String get nameUpdatedSuccessfully => 'تم تعديل الاسم بنجاح';
+
+  @override
+  String get failedToUpdateName => 'فشل تعديل الاسم';
+
+  @override
+  String get noOrdersFound => 'مفيش طلبات';
+
+  @override
+  String get createStrongPassword => 'اختار باسورد قوي';
+
+  @override
+  String get passwordRequirements => 'لازم يكون 8 حروف على الأقل';
+
+  @override
+  String get passwordChangedSuccessfully => 'تم تغيير الباسورد بنجاح';
+
+  @override
+  String get failedToChangePassword => 'فشل تغيير الباسورد';
+
+  @override
+  String get yourDisplayName => 'اسمك';
 }

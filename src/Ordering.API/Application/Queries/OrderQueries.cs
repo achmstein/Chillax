@@ -27,6 +27,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
             CustomerNote = order.CustomerNote,
             Status = order.OrderStatus.ToString(),
             Total = order.GetTotal(),
+            PointsToRedeem = order.PointsToRedeem,
             OrderItems = order.OrderItems.Select(oi => new Orderitem
             {
                 ProductName = oi.ProductName,
@@ -62,6 +63,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Date = o.OrderDate,
                 Status = o.OrderStatus.ToString(),
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
+                PointsToRedeem = o.PointsToRedeem,
                 RoomName = o.RoomName
             })
             .ToListAsync();
@@ -87,9 +89,41 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Date = o.OrderDate,
                 Status = o.OrderStatus.ToString(),
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
+                PointsToRedeem = o.PointsToRedeem,
                 RoomName = o.RoomName,
                 UserName = o.Buyer != null ? o.Buyer.Name : null
             })
             .ToListAsync();
+    }
+
+    public async Task<PaginatedResult<OrderSummary>> GetAllOrdersAsync(int pageIndex, int pageSize)
+    {
+        var query = context.Orders.Include(o => o.Buyer);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(o => o.OrderDate)
+            .Skip(pageIndex * pageSize)
+            .Take(pageSize)
+            .Select(o => new OrderSummary
+            {
+                OrderNumber = o.Id,
+                Date = o.OrderDate,
+                Status = o.OrderStatus.ToString(),
+                Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
+                PointsToRedeem = o.PointsToRedeem,
+                RoomName = o.RoomName,
+                UserName = o.Buyer != null ? o.Buyer.Name : null
+            })
+            .ToListAsync();
+
+        return new PaginatedResult<OrderSummary>
+        {
+            Items = items,
+            PageIndex = pageIndex,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 }

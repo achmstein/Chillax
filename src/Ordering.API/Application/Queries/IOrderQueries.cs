@@ -10,6 +10,11 @@ public interface IOrderQueries
     /// Get all pending orders (Submitted status) for admin review
     /// </summary>
     Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync();
+
+    /// <summary>
+    /// Get all orders paginated (admin) regardless of status
+    /// </summary>
+    Task<PaginatedResult<OrderSummary>> GetAllOrdersAsync(int pageIndex, int pageSize);
 }
 
 /// <summary>

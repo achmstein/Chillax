@@ -345,5 +345,25 @@
   "failedToSaveItem": "فشل حفظ الصنف",
   "deleteCustomizationConfirm": "مسح التخصيص ده؟",
   "deleteOptionConfirm": "مسح الخيار ده؟",
-  "optionsCount": "{count} {count, plural, =1{خيار} other{خيارات}}"
+  "optionsCount": "{count} {count, plural, =1{خيار} other{خيارات}}",
+
+  "reorder": "ترتيب",
+  "saveOrder": "حفظ الترتيب",
+  "orderSavedSuccess": "تم حفظ الترتيب بنجاح",
+  "failedToSaveOrder": "فشل حفظ الترتيب",
+
+  "allOrders": "كل الطلبات",
+  "loyaltyDiscount": "خصم النقاط",
+  "subtotal": "المجموع الفرعي",
+  "updateName": "تعديل الاسم",
+  "newName": "الاسم الجديد",
+  "enterNewName": "اكتب اسمك الجديد",
+  "nameUpdatedSuccessfully": "تم تعديل الاسم بنجاح",
+  "failedToUpdateName": "فشل تعديل الاسم",
+  "noOrdersFound": "مفيش طلبات",
+  "createStrongPassword": "اختار باسورد قوي",
+  "passwordRequirements": "لازم يكون 8 حروف على الأقل",
+  "passwordChangedSuccessfully": "تم تغيير الباسورد بنجاح",
+  "failedToChangePassword": "فشل تغيير الباسورد",
+  "yourDisplayName": "اسمك"
 }

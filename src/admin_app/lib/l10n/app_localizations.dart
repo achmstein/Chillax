@@ -1999,6 +1999,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{option} other{options}}'**
   String optionsCount(int count);
+
+  /// No description provided for @reorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder'**
+  String get reorder;
+
+  /// No description provided for @saveOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Order'**
+  String get saveOrder;
+
+  /// No description provided for @orderSavedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Order saved successfully'**
+  String get orderSavedSuccess;
+
+  /// No description provided for @failedToSaveOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save order'**
+  String get failedToSaveOrder;
+
+  /// No description provided for @allOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'All Orders'**
+  String get allOrders;
+
+  /// No description provided for @loyaltyDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Loyalty Discount'**
+  String get loyaltyDiscount;
+
+  /// No description provided for @subtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get subtotal;
+
+  /// No description provided for @updateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Name'**
+  String get updateName;
+
+  /// No description provided for @newName.
+  ///
+  /// In en, this message translates to:
+  /// **'New Name'**
+  String get newName;
+
+  /// No description provided for @enterNewName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new name'**
+  String get enterNewName;
+
+  /// No description provided for @nameUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Name updated successfully'**
+  String get nameUpdatedSuccessfully;
+
+  /// No description provided for @failedToUpdateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update name'**
+  String get failedToUpdateName;
+
+  /// No description provided for @noOrdersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders found'**
+  String get noOrdersFound;
+
+  /// No description provided for @createStrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a strong password'**
+  String get createStrongPassword;
+
+  /// No description provided for @passwordRequirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be at least 8 characters'**
+  String get passwordRequirements;
+
+  /// No description provided for @passwordChangedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed successfully'**
+  String get passwordChangedSuccessfully;
+
+  /// No description provided for @failedToChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to change password'**
+  String get failedToChangePassword;
+
+  /// No description provided for @yourDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your display name'**
+  String get yourDisplayName;
 }
 
 class _AppLocalizationsDelegate

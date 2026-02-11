@@ -475,5 +475,25 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+
+  "reorder": "Reorder",
+  "saveOrder": "Save Order",
+  "orderSavedSuccess": "Order saved successfully",
+  "failedToSaveOrder": "Failed to save order",
+
+  "allOrders": "All Orders",
+  "loyaltyDiscount": "Loyalty Discount",
+  "subtotal": "Subtotal",
+  "updateName": "Update Name",
+  "newName": "New Name",
+  "enterNewName": "Enter your new name",
+  "nameUpdatedSuccessfully": "Name updated successfully",
+  "failedToUpdateName": "Failed to update name",
+  "noOrdersFound": "No orders found",
+  "createStrongPassword": "Create a strong password",
+  "passwordRequirements": "Must be at least 8 characters",
+  "passwordChangedSuccessfully": "Password changed successfully",
+  "failedToChangePassword": "Failed to change password",
+  "yourDisplayName": "Your display name"
 }

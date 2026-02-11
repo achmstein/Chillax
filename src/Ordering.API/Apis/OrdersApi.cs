@@ -39,6 +39,11 @@ public static class OrdersApi
             .WithSummary("Get all pending orders (admin)")
             .RequireAuthorization("Admin");
 
+        api.MapGet("/all", GetAllOrdersAsync)
+            .WithName("GetAllOrders")
+            .WithSummary("Get all orders paginated (admin)")
+            .RequireAuthorization("Admin");
+
         api.MapGet("/user/{userId}", GetOrdersByUserIdAsync)
             .WithName("GetOrdersByUserId")
             .WithSummary("Get orders for a specific user (admin)")
@@ -223,6 +228,15 @@ public static class OrdersApi
         [AsParameters] OrderServices services = default!)
     {
         var orders = await services.Queries.GetOrdersFromUserAsync(userId, pageIndex, pageSize);
+        return TypedResults.Ok(orders);
+    }
+
+    public static async Task<Ok<PaginatedResult<OrderSummary>>> GetAllOrdersAsync(
+        int pageIndex = 0,
+        int pageSize = 20,
+        [AsParameters] OrderServices services = default!)
+    {
+        var orders = await services.Queries.GetAllOrdersAsync(pageIndex, pageSize);
         return TypedResults.Ok(orders);
     }
 

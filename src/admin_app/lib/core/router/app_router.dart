@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_service.dart';
 import '../widgets/admin_scaffold.dart';
 import '../../features/orders/screens/orders_screen.dart';
+import '../../features/orders/screens/order_history_screen.dart';
 import '../../features/service_requests/screens/service_requests_screen.dart';
 import '../../features/rooms/screens/rooms_screen.dart';
 import '../../features/rooms/screens/room_detail_screen.dart';
@@ -16,8 +17,9 @@ import '../../features/loyalty/screens/loyalty_screen.dart';
 import '../../features/loyalty/screens/loyalty_account_detail_screen.dart';
 import '../../features/accounts/screens/accounts_screen.dart';
 import '../../features/accounts/screens/account_detail_screen.dart';
-import '../../features/settings/screens/settings_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/update_name_screen.dart';
+import '../../features/profile/screens/change_password_screen.dart';
 import '../../features/users/screens/users_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 
@@ -104,6 +106,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/orders';
       }
 
+      // Redirect old /settings route to /profile
+      if (currentLocation == '/settings') {
+        return '/profile';
+      }
+
       return null;
     },
     routes: [
@@ -137,6 +144,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: OrdersScreen(),
             ),
+            routes: [
+              GoRoute(
+                path: 'history',
+                builder: (context, state) => const OrderHistoryScreen(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/service-requests',
@@ -234,16 +247,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/settings',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: SettingsScreen(),
-            ),
-          ),
-          GoRoute(
             path: '/profile',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: ProfileScreen(),
             ),
+            routes: [
+              GoRoute(
+                path: 'update-name',
+                builder: (context, state) => const UpdateNameScreen(),
+              ),
+              GoRoute(
+                path: 'change-password',
+                builder: (context, state) => const ChangePasswordScreen(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/users',

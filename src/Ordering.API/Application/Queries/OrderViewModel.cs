@@ -34,6 +34,7 @@ public record Order
     public string? CustomerNote { get; init; }
     public List<Orderitem> OrderItems { get; set; } = new();
     public decimal Total { get; set; }
+    public int PointsToRedeem { get; init; }
     public OrderRatingDto? Rating { get; init; }
 }
 
@@ -43,6 +44,7 @@ public record OrderSummary
     public DateTime Date { get; init; }
     public string Status { get; init; } = string.Empty;
     public double Total { get; init; }
+    public int PointsToRedeem { get; init; }
     public string? RoomName { get; init; }
     public string? UserName { get; init; }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
@@ -69,6 +70,23 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
                   ),
                 ),
               ],
+              const Spacer(),
+              GestureDetector(
+                onTap: () => context.push('/orders/history'),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colors.secondary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.history,
+                    size: 20,
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -379,6 +397,24 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                   color: theme.colors.mutedForeground,
                   fontStyle: FontStyle.italic,
                 ),
+              ),
+            ],
+
+            // Loyalty discount
+            if (orderDetails.pointsToRedeem > 0) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.stars, size: 14, color: Colors.green.shade600),
+                  const SizedBox(width: 4),
+                  AppText(
+                    '${l10n.loyaltyDiscount}: -${l10n.priceFormat(orderDetails.loyaltyDiscount.toStringAsFixed(0))}',
+                    style: theme.typography.xs.copyWith(
+                      color: Colors.green.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ],
           ],

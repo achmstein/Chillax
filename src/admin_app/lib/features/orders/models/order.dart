@@ -80,6 +80,7 @@ class Order {
   final LocalizedText? roomName;
   final String? customerNote;
   final double total;
+  final int pointsToRedeem;
   final List<OrderItem> items;
 
   Order({
@@ -92,8 +93,11 @@ class Order {
     this.roomName,
     this.customerNote,
     required this.total,
+    this.pointsToRedeem = 0,
     this.items = const [],
   });
+
+  double get loyaltyDiscount => pointsToRedeem / 100.0;
 
   factory Order.fromJson(Map<String, dynamic> json) {
     // Handle status as either int or string (backend returns string)
@@ -116,6 +120,7 @@ class Order {
       roomName: LocalizedText.parseNullable(roomNameValue),
       customerNote: json['customerNote'] ?? json['CustomerNote'] as String?,
       total: ((json['total'] ?? json['Total']) as num).toDouble(),
+      pointsToRedeem: (json['pointsToRedeem'] ?? json['PointsToRedeem'] ?? 0) as int,
       items: (orderItems as List<dynamic>?)
               ?.map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
