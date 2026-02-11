@@ -43,26 +43,20 @@ public static class AuthenticationExtensions
                 // Don't remap claim names - keep original JWT claim names
                 options.MapInboundClaims = false;
 
-                // Keycloak issues tokens with external URL but Aspire uses internal service discovery
-                var validIssuers = new List<string>
-                {
-                    $"http://localhost:8080/realms/{realm}",
-                    $"http://10.0.2.2:8080/realms/{realm}",  // Android emulator
-                    $"http://keycloak:8080/realms/{realm}",  // Docker internal
-                    keycloakRealmUrl ?? $"http://localhost:8080/realms/{realm}"
-                };
-
-                // Add external URL issuer (for production where tokens are issued via public URL)
-                var externalUrl = identitySection["ExternalUrl"];
-                if (!string.IsNullOrEmpty(externalUrl))
-                {
-                    validIssuers.Add(externalUrl);
-                }
+                // Validate issuer by checking it ends with the expected realm path.
+                // The token signature (via JWKS) already proves it came from our Keycloak,
+                // so we just verify the realm matches regardless of hostname/IP.
+                var expectedRealmSuffix = $"/realms/{realm}";
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuers = validIssuers,
+                    IssuerValidator = (issuer, _, _) =>
+                    {
+                        if (issuer.EndsWith(expectedRealmSuffix, StringComparison.OrdinalIgnoreCase))
+                            return issuer;
+                        throw new SecurityTokenInvalidIssuerException($"Invalid issuer: {issuer}");
+                    },
 
                     // Disable audience validation for flexibility
                     // Keycloak uses client_id as audience
