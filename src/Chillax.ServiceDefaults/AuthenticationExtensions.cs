@@ -27,7 +27,10 @@ public static class AuthenticationExtensions
         // Check if Keycloak is configured
         if (string.IsNullOrEmpty(keycloakRealmUrl))
         {
-            // No authentication configured
+            // No Keycloak URL, but still register auth/authorization services
+            // so UseAuthorization() doesn't fail (e.g. during Docker build)
+            services.AddAuthentication();
+            services.AddAuthorization();
             return services;
         }
 
