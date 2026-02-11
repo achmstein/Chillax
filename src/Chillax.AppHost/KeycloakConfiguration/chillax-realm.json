@@ -590,8 +590,8 @@
       "linkOnly": false,
       "firstBrokerLoginFlowAlias": "first broker login",
       "config": {
-        "clientId": "${FACEBOOK_CLIENT_ID:your-facebook-app-id}",
-        "clientSecret": "${FACEBOOK_CLIENT_SECRET:your-facebook-app-secret}",
+        "clientId": "1337547993982679",
+        "clientSecret": "b981c9186e425c9839ebb07a94dd53d8",
         "syncMode": "IMPORT",
         "defaultScope": "email public_profile"
       }

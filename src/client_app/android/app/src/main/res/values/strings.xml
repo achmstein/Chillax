@@ -3,9 +3,7 @@
     <string name="app_name">Chillax</string>
 
     <!-- Facebook Login Configuration -->
-    <!-- Replace YOUR_FACEBOOK_APP_ID with your Facebook App ID (e.g., 123456789012345) -->
-    <string name="facebook_app_id">YOUR_FACEBOOK_APP_ID</string>
-    <string name="fb_login_protocol_scheme">fbYOUR_FACEBOOK_APP_ID</string>
-    <!-- Replace YOUR_FACEBOOK_CLIENT_TOKEN with your Facebook Client Token from Settings > Advanced -->
-    <string name="facebook_client_token">YOUR_FACEBOOK_CLIENT_TOKEN</string>
+    <string name="facebook_app_id">1337547993982679</string>
+    <string name="fb_login_protocol_scheme">fb1337547993982679</string>
+    <string name="facebook_client_token">e81509fe6ff64168620c924577f6bc4f</string>
 </resources>
