@@ -19,20 +19,16 @@ public static class AuthenticationExtensions
         var configuration = builder.Configuration;
 
         // Get Keycloak configuration from environment variables (set by Aspire)
-        var keycloakRealmUrl = configuration["Identity__Url"];
-        var realm = configuration["Keycloak__Realm"] ?? "chillax";
+        // Note: env vars with __ are converted to : by ASP.NET Core configuration
+        var identitySection = configuration.GetSection("Identity");
+        var keycloakRealmUrl = identitySection["Url"];
+        var realm = configuration.GetSection("Keycloak")["Realm"] ?? "chillax";
 
         // Check if Keycloak is configured
         if (string.IsNullOrEmpty(keycloakRealmUrl))
         {
-            // Fallback: check for old Identity section for backwards compatibility
-            var identitySection = configuration.GetSection("Identity");
-            if (!identitySection.Exists())
-            {
-                // No authentication configured
-                return services;
-            }
-            keycloakRealmUrl = identitySection["Url"];
+            // No authentication configured
+            return services;
         }
 
         // Prevent mapping "sub" claim to nameidentifier
@@ -57,7 +53,7 @@ public static class AuthenticationExtensions
                 };
 
                 // Add external URL issuer (for production where tokens are issued via public URL)
-                var externalUrl = configuration["Identity__ExternalUrl"];
+                var externalUrl = identitySection["ExternalUrl"];
                 if (!string.IsNullOrEmpty(externalUrl))
                 {
                     validIssuers.Add(externalUrl);
