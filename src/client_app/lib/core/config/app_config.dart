@@ -33,10 +33,7 @@ class AppConfig {
   // Social login configuration
   // Google: This should match the Web Client ID configured in Keycloak
   // Set via environment or replace with actual value from Google Cloud Console
-  static const String googleServerClientId = String.fromEnvironment(
-    'GOOGLE_SERVER_CLIENT_ID',
-    defaultValue: 'your-google-web-client-id.apps.googleusercontent.com',
-  );
+  static const String googleServerClientId = '781709613952-k0s4k6mg9nq82kf16td3snotikpv7469.apps.googleusercontent.com';
 
   static const List<String> scopes = [
     'openid',

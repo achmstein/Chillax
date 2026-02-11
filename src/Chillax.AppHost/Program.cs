@@ -42,7 +42,8 @@ var keycloak = builder.AddKeycloak("keycloak", port: 8080)
     .WithRealmImport("./KeycloakConfiguration/chillax-realm.json")
     .WithEnvironment("KC_HTTP_ENABLED", "true")
     .WithEnvironment("KC_HOSTNAME_STRICT", "false")
-    .WithEnvironment("KC_PROXY_HEADERS", "xforwarded");
+    .WithEnvironment("KC_PROXY_HEADERS", "xforwarded")
+    .WithEnvironment("KC_FEATURES", "token-exchange,admin-fine-grained-authz:v1");
 
 // Build Keycloak realm URL for services
 var keycloakEndpoint = keycloak.GetEndpoint("http");

@@ -184,9 +184,9 @@ class AuthService extends Notifier<AuthState> {
         }
 
         final googleAuth = await googleUser.authentication;
-        socialToken = googleAuth.idToken;
+        socialToken = googleAuth.accessToken;
         providerAlias = 'google';
-        debugPrint('Google sign in successful, got ID token');
+        debugPrint('Google sign in successful, got access token');
       } else {
         // Use native Facebook Login
         final result = await FacebookAuth.instance.login(

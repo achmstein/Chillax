@@ -570,8 +570,8 @@
       "linkOnly": false,
       "firstBrokerLoginFlowAlias": "first broker login",
       "config": {
-        "clientId": "${GOOGLE_CLIENT_ID:your-google-client-id}",
-        "clientSecret": "${GOOGLE_CLIENT_SECRET:your-google-client-secret}",
+        "clientId": "781709613952-k0s4k6mg9nq82kf16td3snotikpv7469.apps.googleusercontent.com",
+        "clientSecret": "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",
         "useJwksUrl": "true",
         "syncMode": "IMPORT",
         "defaultScope": "openid profile email"

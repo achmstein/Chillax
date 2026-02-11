@@ -137,6 +137,32 @@ For more information on contributing to this repo, read [the contribution docume
 
 The sample catalog data is defined in [catalog.json](https://github.com/dotnet/eShop/blob/main/src/Catalog.API/Setup/catalog.json). Those product names, descriptions, and brand names are fictional and were generated using [GPT-35-Turbo](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/chatgpt), and the corresponding [product images](https://github.com/dotnet/eShop/tree/main/src/Catalog.API/Pics) were generated using [DALL·E 3](https://openai.com/dall-e-3).
 
+## Keycloak: Google Login Token Exchange Setup
+
+The mobile app uses native Google Sign-In and exchanges the Google access token for Keycloak tokens via the [Token Exchange](https://www.keycloak.org/securing-apps/token-exchange) grant. This requires one-time manual configuration in the Keycloak Admin Console after the realm is created.
+
+### Prerequisites
+
+- Keycloak is running with the feature flags: `token-exchange,admin-fine-grained-authz:v1`
+  (configured in `Chillax.AppHost/Program.cs` via `KC_FEATURES`)
+- The `google` identity provider is configured in the realm (via `chillax-realm.json`)
+- A Google OAuth Web Client ID and Secret are set in the identity provider config
+
+### Steps
+
+1. Open the Keycloak Admin Console at `http://localhost:8080/admin`
+2. Select the **chillax** realm
+3. Go to **Identity Providers** > **Google**
+4. Click the **Permissions** tab
+5. Toggle **Permissions Enabled** to **ON**
+6. Click the **token-exchange** link in the permission list
+7. Click **Assign policy** > **Create policy** > select type **Client**
+8. Name it `mobile-app-policy`, select **mobile-app** as the client, and save
+
+> **Note:** This configuration is persisted in the Keycloak data volume. It only needs to be done once per environment. If the Keycloak volume is deleted, repeat these steps after the realm is re-imported.
+
+> **Why not in realm.json?** The token exchange permission references entities by auto-generated UUIDs (identity provider ID, client ID) that differ on each fresh deployment, so it cannot be reliably pre-configured in the realm import file.
+
 ## eShop on Azure
 
 For a version of this app configured for deployment on Azure, please view [the eShop on Azure](https://github.com/Azure-Samples/eShopOnAzure) repo.
