@@ -63,6 +63,11 @@ jobs:
           sed -i 's/^NOTIFICATION_API_PORT=$/NOTIFICATION_API_PORT=8080/' deploy-artifacts/.env
           sed -i 's/^ACCOUNTS_API_PORT=$/ACCOUNTS_API_PORT=8080/' deploy-artifacts/.env
 
+          # Add external identity URL for JWT issuer validation in production
+          # Tokens are issued via the public URL, so backend services need to accept it
+          EXTERNAL_ISSUER="http://${{ secrets.SERVER_HOST }}/realms/chillax"
+          sed -i "/Identity__Url/a\\      Identity__ExternalUrl: \"${EXTERNAL_ISSUER}\"" deploy-artifacts/docker-compose.yaml
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
