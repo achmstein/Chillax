@@ -61,11 +61,16 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               AppText(l10n.categories, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               const Spacer(),
               if (state.isReorderingCategories) ...[
-                TextButton(
-                  onPressed: () => notifier.cancelCategoryReorder(),
-                  child: AppText(l10n.cancel),
+                GestureDetector(
+                  onTap: () => notifier.cancelCategoryReorder(),
+                  child: AppText(
+                    l10n.cancel,
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 16),
                 IconButton(
                   icon: const Icon(Icons.check, size: 22),
                   onPressed: () async {

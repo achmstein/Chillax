@@ -60,11 +60,16 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
               ],
               const Spacer(),
               if (state.isReorderingItems) ...[
-                TextButton(
-                  onPressed: () => ref.read(menuProvider.notifier).cancelItemReorder(),
-                  child: AppText(l10n.cancel),
+                GestureDetector(
+                  onTap: () => ref.read(menuProvider.notifier).cancelItemReorder(),
+                  child: AppText(
+                    l10n.cancel,
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 16),
                 IconButton(
                   icon: const Icon(Icons.check, size: 22),
                   onPressed: () async {

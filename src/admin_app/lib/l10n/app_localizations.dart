@@ -998,6 +998,12 @@ abstract class AppLocalizations {
   /// **'Room'**
   String get room;
 
+  /// No description provided for @dateAtTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} at {time}'**
+  String dateAtTime(String date, String time);
+
   /// No description provided for @time.
   ///
   /// In en, this message translates to:

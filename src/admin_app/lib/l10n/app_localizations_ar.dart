@@ -484,7 +484,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get done => 'خلص';
 
   @override
-  String get room => 'الغرفة';
+  String get room => 'الاوضة';
+
+  @override
+  String dateAtTime(String date, String time) {
+    return '$date الساعة $time';
+  }
 
   @override
   String get time => 'الوقت';

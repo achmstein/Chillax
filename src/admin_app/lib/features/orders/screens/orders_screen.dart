@@ -253,7 +253,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.meeting_room, size: 14, color: theme.colors.mutedForeground),
+                            Icon(Icons.videogame_asset_outlined, size: 14, color: theme.colors.mutedForeground),
                             const SizedBox(width: 4),
                             AppText(
                               widget.order.roomName!.localized(context),

@@ -489,6 +489,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get room => 'Room';
 
   @override
+  String dateAtTime(String date, String time) {
+    return '$date at $time';
+  }
+
+  @override
   String get time => 'Time';
 
   @override

@@ -205,7 +205,7 @@ class _HistoryOrderTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.meeting_room, size: 12, color: theme.colors.mutedForeground),
+                        Icon(Icons.videogame_asset_outlined, size: 12, color: theme.colors.mutedForeground),
                         const SizedBox(width: 4),
                         AppText(
                           order.roomName!.localized(context),

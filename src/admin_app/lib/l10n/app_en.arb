@@ -209,6 +209,13 @@
   "inProgress": "In Progress",
   "done": "Done",
   "room": "Room",
+  "dateAtTime": "{date} at {time}",
+  "@dateAtTime": {
+    "placeholders": {
+      "date": { "type": "String" },
+      "time": { "type": "String" }
+    }
+  },
   "time": "Time",
   "tap": "TAP",
   "doneLabel": "DONE",

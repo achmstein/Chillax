@@ -244,8 +244,7 @@ class _TransactionHistorySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final locale = Localizations.localeOf(context);
-    final dateFormat = DateFormat('MMM d', locale.languageCode);
-    final timeFormat = DateFormat('h:mm a', locale.languageCode);
+    final dateTimeFormat = DateFormat('dd MMMM hh:mm a', locale.languageCode);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +322,7 @@ class _TransactionHistorySection extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       AppText(
-                                        '${dateFormat.format(tx.createdAt.toLocal())} at ${timeFormat.format(tx.createdAt.toLocal())}',
+                                        dateTimeFormat.format(tx.createdAt.toLocal()),
                                         style: theme.typography.xs.copyWith(
                                           color: theme.colors.mutedForeground,
                                         ),

@@ -200,7 +200,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                 ),
                 const SizedBox(height: 16),
                 // Details
-                _DetailRow(icon: Icons.meeting_room, label: l10n.room, value: request.roomName.localized(context)),
+                _DetailRow(icon: Icons.videogame_asset_outlined, label: l10n.room, value: request.roomName.localized(context)),
                 const SizedBox(height: 8),
                 _DetailRow(icon: Icons.person_outline, label: l10n.customer, value: request.userName),
                 const SizedBox(height: 8),

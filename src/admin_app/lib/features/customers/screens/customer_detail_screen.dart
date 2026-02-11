@@ -166,7 +166,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       Expanded(
                         child: FButton(
                           style: FButtonStyle.outline(),
-                          onPress: () => context.go('/loyalty'),
+                          onPress: () => context.push('/loyalty/account/${customer.id}'),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -420,8 +420,7 @@ class _OrderHistorySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final locale = Localizations.localeOf(context);
-    final dateFormat = DateFormat('MMM d', locale.languageCode);
-    final timeFormat = DateFormat('h:mm a', locale.languageCode);
+    final dateTimeFormat = DateFormat('dd MMMM hh:mm a', locale.languageCode);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,7 +504,7 @@ class _OrderHistorySection extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       AppText(
-                                        '${dateFormat.format(order.date.toLocal())} at ${timeFormat.format(order.date.toLocal())}',
+                                        dateTimeFormat.format(order.date.toLocal()),
                                         style: theme.typography.xs.copyWith(
                                           color: theme.colors.mutedForeground,
                                         ),
