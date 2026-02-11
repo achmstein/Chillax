@@ -9,6 +9,7 @@ import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/widgets/main_scaffold.dart';
 import '../../notifications/services/notification_service.dart';
 import '../../service_request/models/service_request.dart';
 import '../../service_request/services/service_request_service.dart';
@@ -28,19 +29,47 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   final _codeFocusNode = FocusNode();
   bool _isJoining = false;
   String? _joinError;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // Refresh when navigating to rooms tab
+    ref.listenManual(currentRouteProvider, (previous, next) {
+      if (next == '/rooms' && previous != '/rooms') {
+        ref.read(mySessionsProvider.notifier).refresh();
+        ref.invalidate(roomsProvider);
+        _startPolling();
+      } else if (previous == '/rooms' && next != '/rooms') {
+        _stopPolling();
+      }
+    });
+
+    _startPolling();
   }
 
   @override
   void dispose() {
+    _stopPolling();
     WidgetsBinding.instance.removeObserver(this);
     _codeController.dispose();
     _codeFocusNode.dispose();
     super.dispose();
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      ref.read(mySessionsProvider.notifier).refresh();
+      ref.invalidate(roomsProvider);
+    });
+  }
+
+  void _stopPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
   }
 
   @override
@@ -261,14 +290,15 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         ),
       ),
       data: (rooms) {
+        final colors = context.theme.colors;
         final allUnavailable = rooms.isNotEmpty &&
             rooms.every((r) => !r.canBookNow);
         // Only show notify banner if all rooms unavailable AND user has no reservation
         final showNotifyBanner = allUnavailable && reservedSession == null;
 
         return RefreshIndicator(
-          color: AppTheme.primaryColor,
-          backgroundColor: context.theme.colors.background,
+          color: colors.primary,
+          backgroundColor: colors.background,
           onRefresh: () async {
             ref.invalidate(roomsProvider);
             await ref.read(mySessionsProvider.notifier).refresh();
@@ -378,9 +408,11 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
   Widget build(BuildContext context) {
     final session = widget.session;
 
+    final colors = context.theme.colors;
+
     return RefreshIndicator(
-      color: AppTheme.primaryColor,
-      backgroundColor: context.theme.colors.background,
+      color: colors.primary,
+      backgroundColor: colors.background,
       onRefresh: () => ref.read(mySessionsProvider.notifier).refresh(),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),

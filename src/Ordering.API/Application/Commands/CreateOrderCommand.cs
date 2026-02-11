@@ -3,6 +3,7 @@ namespace Chillax.Ordering.API.Application.Commands;
 
 using Chillax.Ordering.API.Application.Models;
 using Chillax.Ordering.API.Extensions;
+using Chillax.Ordering.Domain.Seedwork;
 
 /// <summary>
 /// Command to create a new cafe order.
@@ -21,10 +22,10 @@ public class CreateOrderCommand : IRequest<bool>
     public string UserName { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Room name for the session (e.g., "VIP")
+    /// Room name for the session (e.g., "VIP") - localized
     /// </summary>
     [DataMember]
-    public string? RoomName { get; private set; }
+    public LocalizedText? RoomName { get; private set; }
 
     /// <summary>
     /// Special instructions from customer (optional)
@@ -38,6 +39,12 @@ public class CreateOrderCommand : IRequest<bool>
     [DataMember]
     public int PointsToRedeem { get; private set; }
 
+    /// <summary>
+    /// Loyalty discount in currency, computed by the Loyalty API
+    /// </summary>
+    [DataMember]
+    public double LoyaltyDiscount { get; private set; }
+
     [DataMember]
     public IEnumerable<OrderItemDTO> OrderItems => _orderItems;
 
@@ -50,9 +57,10 @@ public class CreateOrderCommand : IRequest<bool>
         List<BasketItem> basketItems,
         string userId,
         string userName,
-        string? roomName = null,
+        LocalizedText? roomName = null,
         string? customerNote = null,
-        int pointsToRedeem = 0)
+        int pointsToRedeem = 0,
+        double loyaltyDiscount = 0)
     {
         _orderItems = basketItems.ToOrderItemsDTO().ToList();
         UserId = userId;
@@ -60,5 +68,6 @@ public class CreateOrderCommand : IRequest<bool>
         RoomName = roomName;
         CustomerNote = customerNote;
         PointsToRedeem = pointsToRedeem;
+        LoyaltyDiscount = loyaltyDiscount;
     }
 }

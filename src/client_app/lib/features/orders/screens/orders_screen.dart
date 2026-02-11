@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
@@ -306,7 +307,7 @@ class _OrderTileState extends ConsumerState<OrderTile>
                           if (widget.order.roomName != null) ...[
                             const SizedBox(width: 8),
                             AppText(
-                              '• ${widget.order.roomName}',
+                              '• ${widget.order.roomName!.localized(context)}',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: colors.mutedForeground,
@@ -318,9 +319,26 @@ class _OrderTileState extends ConsumerState<OrderTile>
                     ],
                   ),
                 ),
-                AppText(
-                  l10n.priceFormat(widget.order.total.toStringAsFixed(2)),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colors.foreground),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    AppText(
+                      l10n.priceFormat((widget.order.total - widget.order.loyaltyDiscount).toStringAsFixed(2)),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colors.foreground),
+                    ),
+                    if (widget.order.loyaltyDiscount > 0)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.stars, size: 12, color: Colors.green.shade600),
+                          const SizedBox(width: 2),
+                          AppText(
+                            l10n.discountFormat(widget.order.loyaltyDiscount.toStringAsFixed(2)),
+                            style: TextStyle(fontSize: 12, color: Colors.green.shade600),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 8),
                 Icon(

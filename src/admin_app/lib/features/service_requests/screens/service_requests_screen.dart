@@ -59,7 +59,9 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
         // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Row(
             children: [
               AppText(l10n.requests, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
               if (state.pendingRequests.isNotEmpty) ...[
@@ -81,6 +83,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
               ],
             ],
           ),
+          ),
         ),
 
         // List
@@ -89,6 +92,8 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
             isLoading: state.isLoading && state.requests.isEmpty,
             shimmer: const ShimmerLoadingList(),
             child: RefreshIndicator(
+              color: theme.colors.primary,
+              backgroundColor: theme.colors.background,
               onRefresh: () => ref.read(serviceRequestsProvider.notifier).loadRequests(),
               child: _buildRequestsList(context, state, theme),
             ),

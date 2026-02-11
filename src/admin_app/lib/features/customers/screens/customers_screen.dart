@@ -59,19 +59,22 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              AppText(l10n.customers, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
-              if (state.totalCount > 0) ...[
-                const SizedBox(width: 8),
-                AppText(
-                  '${state.totalCount}',
-                  style: theme.typography.sm.copyWith(
-                    color: theme.colors.mutedForeground,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Row(
+              children: [
+                AppText(l10n.customers, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+                if (state.totalCount > 0) ...[
+                  const SizedBox(width: 8),
+                  AppText(
+                    '${state.totalCount}',
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
 
@@ -97,6 +100,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     title: l10n.noCustomersFound,
                   )
                 : RefreshIndicator(
+                    color: theme.colors.primary,
+                    backgroundColor: theme.colors.background,
                     onRefresh: () => notifier.loadCustomers(),
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 8),

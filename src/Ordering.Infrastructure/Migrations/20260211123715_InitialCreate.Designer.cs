@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ordering.Infrastructure.Migrations
 {
     [DbContext(typeof(OrderingContext))]
-    [Migration("20260201132258_InitialCreate")]
+    [Migration("20260211123715_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -113,6 +113,9 @@ namespace Ordering.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<double>("LoyaltyDiscount")
+                        .HasColumnType("double precision");
+
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -123,9 +126,6 @@ namespace Ordering.Infrastructure.Migrations
 
                     b.Property<int>("PointsToRedeem")
                         .HasColumnType("integer");
-
-                    b.Property<string>("RoomName")
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -233,7 +233,28 @@ namespace Ordering.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("BuyerId");
 
+                    b.OwnsOne("Chillax.Ordering.Domain.Seedwork.LocalizedText", "RoomName", b1 =>
+                        {
+                            b1.Property<int>("OrderId");
+
+                            b1.Property<string>("Ar");
+
+                            b1.Property<string>("En")
+                                .IsRequired();
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("orders", "ordering");
+
+                            b1.ToJson("RoomName");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
                     b.Navigation("Buyer");
+
+                    b.Navigation("RoomName");
                 });
 
             modelBuilder.Entity("Chillax.Ordering.Domain.AggregatesModel.OrderAggregate.OrderItem", b =>

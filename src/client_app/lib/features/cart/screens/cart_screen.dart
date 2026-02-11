@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -26,11 +28,46 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   final TextEditingController _noteController = TextEditingController();
   int _pointsToRedeem = 0;
   bool _usePoints = false;
+  double? _serverDiscount;
+  bool _loyaltyError = false;
+  Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh loyalty balance so points earned from confirmed orders are up to date
+    Future.microtask(() => ref.read(loyaltyProvider.notifier).loadLoyaltyInfo());
+  }
 
   @override
   void dispose() {
     _noteController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _fetchServerDiscount(int points) {
+    _debounceTimer?.cancel();
+    if (points <= 0) {
+      setState(() => _serverDiscount = null);
+      return;
+    }
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      final value = await ref.read(loyaltyProvider.notifier).getPointsValue(points);
+      if (mounted) {
+        if (value == null) {
+          // Server unreachable — disable loyalty for this session
+          setState(() {
+            _loyaltyError = true;
+            _usePoints = false;
+            _pointsToRedeem = 0;
+            _serverDiscount = null;
+          });
+        } else {
+          setState(() => _serverDiscount = value);
+        }
+      }
+    });
   }
 
   void _showNoteSheet(BuildContext context, AppLocalizations l10n) {
@@ -295,14 +332,14 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final loyaltyState = ref.watch(loyaltyProvider);
     final loyaltyInfo = loyaltyState.loyaltyInfo;
 
-    // Don't show if no loyalty account or no points
-    if (loyaltyInfo == null || loyaltyInfo.pointsBalance <= 0) {
+    // Don't show if no loyalty account, no points, or loyalty service unavailable
+    if (loyaltyInfo == null || loyaltyInfo.pointsBalance <= 0 || _loyaltyError) {
       return const SizedBox.shrink();
     }
 
     final numberFormat = NumberFormat('#,###');
     final maxRedeemable = ref.read(loyaltyProvider.notifier).getMaxRedeemablePoints(orderTotal);
-    final discount = LoyaltyNotifier.pointsToDiscount(_pointsToRedeem);
+    final discount = _serverDiscount ?? 0.0;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -346,8 +383,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                             _pointsToRedeem = maxRedeemable;
                           } else {
                             _pointsToRedeem = 0;
+                            _serverDiscount = null;
                           }
                         });
+                        _fetchServerDiscount(value ? maxRedeemable : 0);
                       }
                     : null,
               ),
@@ -374,9 +413,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         max: maxRedeemable.toDouble(),
                         divisions: maxRedeemable > 0 ? (maxRedeemable / 10).ceil() : 1,
                         onChanged: (value) {
+                          final rounded = value.round();
                           setState(() {
-                            _pointsToRedeem = value.round();
+                            _pointsToRedeem = rounded;
                           });
+                          _fetchServerDiscount(rounded);
                         },
                       ),
                     ),
@@ -411,7 +452,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
   Widget _buildTotalSection(double orderTotal, dynamic colors) {
     final l10n = AppLocalizations.of(context)!;
-    final discount = LoyaltyNotifier.pointsToDiscount(_pointsToRedeem);
+    final discount = _serverDiscount ?? 0.0;
     final finalTotal = orderTotal - discount;
 
     return Column(
@@ -548,13 +589,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final l10n = AppLocalizations.of(context)!;
     final note = _noteController.text.isNotEmpty ? _noteController.text : null;
 
-    // Get active room session's room name (if any)
-    String? roomName;
+    // Get active room session's room name (if any) - send as localized object
+    Map<String, dynamic>? roomName;
     final sessionsState = ref.read(mySessionsProvider);
     sessionsState.whenData((sessions) {
       final activeSession = sessions.where((s) => s.status == SessionStatus.active).firstOrNull;
       if (activeSession != null) {
-        roomName = activeSession.roomName.en;
+        roomName = activeSession.roomName.toJson();
       }
     });
 
@@ -563,6 +604,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           roomName: roomName,
           customerNote: note,
           pointsToRedeem: _pointsToRedeem,
+          loyaltyDiscount: _serverDiscount ?? 0,
         );
 
     if (success && mounted) {
@@ -570,6 +612,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       setState(() {
         _pointsToRedeem = 0;
         _usePoints = false;
+        _serverDiscount = null;
+        _loyaltyError = false;
       });
 
       // Refresh loyalty info to show updated balance after order is confirmed

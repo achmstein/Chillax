@@ -21,9 +21,9 @@ public class Order
     public string? Description { get; private set; }
 
     /// <summary>
-    /// Room name for the session (e.g., "VIP", "Room 1")
+    /// Room name for the session (e.g., "VIP", "Room 1") - localized
     /// </summary>
-    public string? RoomName { get; private set; }
+    public LocalizedText? RoomName { get; private set; }
 
     /// <summary>
     /// Special instructions or notes from the customer
@@ -34,6 +34,11 @@ public class Order
     /// Loyalty points to redeem for this order (redeemed when order is confirmed)
     /// </summary>
     public int PointsToRedeem { get; private set; }
+
+    /// <summary>
+    /// Loyalty discount in currency, computed by the Loyalty API at order time
+    /// </summary>
+    public double LoyaltyDiscount { get; private set; }
 
     // Draft orders have this set to true
 #pragma warning disable CS0414
@@ -65,7 +70,7 @@ public class Order
         _isDraft = false;
     }
 
-    public Order(string userId, string userName, string? roomName = null, string? customerNote = null, int? buyerId = null, int pointsToRedeem = 0) : this()
+    public Order(string userId, string userName, LocalizedText? roomName = null, string? customerNote = null, int? buyerId = null, int pointsToRedeem = 0, double loyaltyDiscount = 0) : this()
     {
         BuyerId = buyerId;
         OrderStatus = OrderStatus.AwaitingValidation;
@@ -73,6 +78,7 @@ public class Order
         RoomName = roomName;
         CustomerNote = customerNote;
         PointsToRedeem = pointsToRedeem;
+        LoyaltyDiscount = loyaltyDiscount;
         Description = "Order awaiting item availability validation.";
 
         // Add the OrderStartedDomainEvent to the domain events collection

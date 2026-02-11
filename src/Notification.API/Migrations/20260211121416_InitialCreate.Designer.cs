@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillax.Notification.API.Migrations
 {
     [DbContext(typeof(NotificationContext))]
-    [Migration("20260202133723_InitialCreate")]
+    [Migration("20260211121416_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

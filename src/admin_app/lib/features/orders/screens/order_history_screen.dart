@@ -81,6 +81,8 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
             isLoading: state.isLoading && state.orders.isEmpty,
             shimmer: const ShimmerLoadingList(),
             child: RefreshIndicator(
+              color: theme.colors.primary,
+              backgroundColor: theme.colors.background,
               onRefresh: () => ref.read(orderHistoryProvider.notifier).loadOrderHistory(),
               child: state.orders.isEmpty && !state.isLoading
                   ? ListView(
@@ -191,23 +193,29 @@ class _HistoryOrderTile extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (order.roomName != null) ...[
-                        AppText(
-                          order.roomName!.localized(context),
-                          style: theme.typography.xs.copyWith(
-                            color: theme.colors.mutedForeground,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
                       AppText(
-                        l10n.priceFormat(order.total.toStringAsFixed(0)),
+                        l10n.priceFormat(order.total.toStringAsFixed(2)),
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
+                  if (order.roomName != null) ...[
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.meeting_room, size: 12, color: theme.colors.mutedForeground),
+                        const SizedBox(width: 4),
+                        AppText(
+                          order.roomName!.localized(context),
+                          style: theme.typography.xs.copyWith(
+                            color: theme.colors.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   if (order.pointsToRedeem > 0) ...[
                     const SizedBox(height: 2),
                     Row(
@@ -215,7 +223,7 @@ class _HistoryOrderTile extends StatelessWidget {
                         Icon(Icons.stars, size: 12, color: Colors.green.shade600),
                         const SizedBox(width: 4),
                         AppText(
-                          '-${l10n.priceFormat(order.loyaltyDiscount.toStringAsFixed(0))}',
+                          '-${l10n.priceFormat(order.loyaltyDiscount.toStringAsFixed(2))}',
                           style: theme.typography.xs.copyWith(
                             color: Colors.green.shade600,
                           ),
@@ -264,12 +272,8 @@ class _HistoryOrderTile extends StatelessWidget {
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (context) => Container(
+      builder: (context) => SizedBox(
         height: MediaQuery.of(context).size.height * 0.85,
-        decoration: BoxDecoration(
-          color: context.theme.colors.background,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
         child: OrderDetailSheet(order: order),
       ),
     );

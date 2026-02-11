@@ -147,7 +147,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: 'history',
-                builder: (context, state) => const OrderHistoryScreen(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: OrderHistoryScreen(),
+                ),
               ),
             ],
           ),
@@ -254,11 +256,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: 'update-name',
-                builder: (context, state) => const UpdateNameScreen(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: UpdateNameScreen(),
+                ),
               ),
               GoRoute(
                 path: 'change-password',
-                builder: (context, state) => const ChangePasswordScreen(),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: ChangePasswordScreen(),
+                ),
               ),
             ],
           ),

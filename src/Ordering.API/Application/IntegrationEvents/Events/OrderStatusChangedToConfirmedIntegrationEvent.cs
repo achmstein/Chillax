@@ -1,4 +1,6 @@
 #nullable enable
+using Chillax.Ordering.Domain.Seedwork;
+
 namespace Chillax.Ordering.API.Application.IntegrationEvents.Events;
 
 /// <summary>
@@ -11,12 +13,12 @@ public record OrderStatusChangedToConfirmedIntegrationEvent : IntegrationEvent
     public OrderStatus OrderStatus { get; }
     public string BuyerName { get; }
     public string BuyerIdentityGuid { get; }
-    public string? RoomName { get; }
+    public LocalizedText? RoomName { get; }
     public decimal OrderTotal { get; }
     public int PointsToRedeem { get; }
 
     public OrderStatusChangedToConfirmedIntegrationEvent(
-        int orderId, OrderStatus orderStatus, string buyerName, string buyerIdentityGuid, string? roomName, decimal orderTotal, int pointsToRedeem = 0)
+        int orderId, OrderStatus orderStatus, string buyerName, string buyerIdentityGuid, LocalizedText? roomName, decimal orderTotal, int pointsToRedeem = 0)
     {
         OrderId = orderId;
         OrderStatus = orderStatus;

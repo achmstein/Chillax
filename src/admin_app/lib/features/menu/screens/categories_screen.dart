@@ -102,6 +102,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             isLoading: state.isLoading && state.categories.isEmpty,
             shimmer: const ShimmerLoadingList(showLeadingCircle: false),
             child: RefreshIndicator(
+              color: theme.colors.primary,
+              backgroundColor: theme.colors.background,
               onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
               child: state.categories.isEmpty
                   ? ListView(

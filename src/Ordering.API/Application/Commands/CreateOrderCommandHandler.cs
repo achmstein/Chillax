@@ -33,7 +33,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, boo
             message.UserName,
             message.RoomName,
             message.CustomerNote,
-            pointsToRedeem: message.PointsToRedeem);
+            pointsToRedeem: message.PointsToRedeem,
+            loyaltyDiscount: message.LoyaltyDiscount);
 
         foreach (var item in message.OrderItems)
         {

@@ -30,11 +30,12 @@ public record Order
     public DateTime Date { get; init; }
     public string Status { get; init; } = string.Empty;
     public string? Description { get; init; }
-    public string? RoomName { get; init; }
+    public LocalizedText? RoomName { get; init; }
     public string? CustomerNote { get; init; }
     public List<Orderitem> OrderItems { get; set; } = new();
     public decimal Total { get; set; }
     public int PointsToRedeem { get; init; }
+    public double LoyaltyDiscount { get; init; }
     public OrderRatingDto? Rating { get; init; }
 }
 
@@ -45,6 +46,7 @@ public record OrderSummary
     public string Status { get; init; } = string.Empty;
     public double Total { get; init; }
     public int PointsToRedeem { get; init; }
-    public string? RoomName { get; init; }
+    public double LoyaltyDiscount { get; init; }
+    public LocalizedText? RoomName { get; init; }
     public string? UserName { get; init; }
 }

@@ -81,6 +81,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
             isLoading: state.isLoading && state.rooms.isEmpty,
             shimmer: const ShimmerLoadingList(),
             child: RefreshIndicator(
+              color: theme.colors.primary,
+              backgroundColor: theme.colors.background,
               onRefresh: () => ref.read(roomsProvider.notifier).loadRooms(),
               child: _RoomStatusSection(
                 rooms: state.rooms,

@@ -123,6 +123,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     subtitle: l10n.addChargeToCreate,
                   )
                 : RefreshIndicator(
+                    color: theme.colors.primary,
+                    backgroundColor: theme.colors.background,
                     onRefresh: () => notifier.loadAccounts(),
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 8),

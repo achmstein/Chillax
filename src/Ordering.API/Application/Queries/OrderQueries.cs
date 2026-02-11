@@ -28,6 +28,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
             Status = order.OrderStatus.ToString(),
             Total = order.GetTotal(),
             PointsToRedeem = order.PointsToRedeem,
+            LoyaltyDiscount = order.LoyaltyDiscount,
             OrderItems = order.OrderItems.Select(oi => new Orderitem
             {
                 ProductName = oi.ProductName,
@@ -54,6 +55,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
         var totalCount = await query.CountAsync();
 
         var items = await query
+            .AsNoTracking()
             .OrderByDescending(o => o.OrderDate)
             .Skip(pageIndex * pageSize)
             .Take(pageSize)
@@ -64,6 +66,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Status = o.OrderStatus.ToString(),
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
                 PointsToRedeem = o.PointsToRedeem,
+                LoyaltyDiscount = o.LoyaltyDiscount,
                 RoomName = o.RoomName
             })
             .ToListAsync();
@@ -80,6 +83,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
     public async Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync()
     {
         return await context.Orders
+            .AsNoTracking()
             .Include(o => o.Buyer)
             .Where(o => o.OrderStatus == Ordering.Domain.AggregatesModel.OrderAggregate.OrderStatus.Submitted)
             .OrderByDescending(o => o.OrderDate)
@@ -90,6 +94,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Status = o.OrderStatus.ToString(),
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
                 PointsToRedeem = o.PointsToRedeem,
+                LoyaltyDiscount = o.LoyaltyDiscount,
                 RoomName = o.RoomName,
                 UserName = o.Buyer != null ? o.Buyer.Name : null
             })
@@ -98,7 +103,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
 
     public async Task<PaginatedResult<OrderSummary>> GetAllOrdersAsync(int pageIndex, int pageSize)
     {
-        var query = context.Orders.Include(o => o.Buyer);
+        var query = context.Orders.AsNoTracking().Include(o => o.Buyer);
 
         var totalCount = await query.CountAsync();
 
@@ -113,6 +118,7 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Status = o.OrderStatus.ToString(),
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
                 PointsToRedeem = o.PointsToRedeem,
+                LoyaltyDiscount = o.LoyaltyDiscount,
                 RoomName = o.RoomName,
                 UserName = o.Buyer != null ? o.Buyer.Name : null
             })

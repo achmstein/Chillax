@@ -50,9 +50,10 @@ class OrderService {
     required List<CartItem> items,
     required String userId,
     required String userName,
-    String? roomName,
+    Map<String, dynamic>? roomName,
     String? customerNote,
     int pointsToRedeem = 0,
+    double loyaltyDiscount = 0,
   }) async {
     await _apiClient.post<void>(
       '',
@@ -62,6 +63,7 @@ class OrderService {
         'roomName': roomName,
         'customerNote': customerNote,
         'pointsToRedeem': pointsToRedeem,
+        'loyaltyDiscount': loyaltyDiscount,
         'items': items.map((item) => item.toJson()).toList(),
       },
       headers: {'x-requestid': _uuid.v4()},
@@ -251,9 +253,10 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
   /// Submit order
   Future<bool> submitOrder({
     required List<CartItem> items,
-    String? roomName,
+    Map<String, dynamic>? roomName,
     String? customerNote,
     int pointsToRedeem = 0,
+    double loyaltyDiscount = 0,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -265,6 +268,7 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
         roomName: roomName,
         customerNote: customerNote,
         pointsToRedeem: pointsToRedeem,
+        loyaltyDiscount: loyaltyDiscount,
       );
 
       // Save user preferences for items with customizations

@@ -52,9 +52,6 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
-      ),
       decoration: BoxDecoration(
         color: theme.colors.background,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -64,32 +61,28 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Drag handle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+
             // Header
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  // Drag handle
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 40,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: theme.colors.border,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        AppText(
-                          widget.isEditing ? l10n.editCustomization : l10n.addCustomization,
-                          style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    child: AppText(
+                      widget.isEditing ? l10n.editCustomization : l10n.addCustomization,
+                      style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
                   IconButton(

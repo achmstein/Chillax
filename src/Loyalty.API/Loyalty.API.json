@@ -498,6 +498,53 @@
         }
       }
     },
+    "/api/loyalty/points-value": {
+      "get": {
+        "tags": [
+          "Points"
+        ],
+        "summary": "Get discount value for points",
+        "description": "Convert loyalty points to their currency discount value",
+        "operationId": "GetPointsValue",
+        "parameters": [
+          {
+            "name": "points",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "api-version",
+            "in": "query",
+            "description": "The API version, in the format 'major.minor'.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "1.0"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointsValueDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/loyalty/stats": {
       "get": {
         "tags": [
@@ -754,6 +801,40 @@
           }
         }
       },
+      "PointsValueDto": {
+        "required": [
+          "points",
+          "discountValue",
+          "redemptionRate"
+        ],
+        "type": "object",
+        "properties": {
+          "points": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "discountValue": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "redemptionRate": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -867,6 +948,9 @@
     },
     {
       "name": "Tiers"
+    },
+    {
+      "name": "Points"
     },
     {
       "name": "Stats"

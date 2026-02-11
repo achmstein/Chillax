@@ -635,7 +635,7 @@ abstract class AppLocalizations {
   /// No description provided for @callWaiter.
   ///
   /// In en, this message translates to:
-  /// **'Call Waiter'**
+  /// **'Waiter'**
   String get callWaiter;
 
   /// No description provided for @controller.

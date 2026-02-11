@@ -180,7 +180,7 @@ class SessionPreview {
 class JoinSessionResult {
   final int reservationId;
   final int roomId;
-  final String roomName;
+  final LocalizedText roomName;
   final bool isOwner;
   final DateTime startTime;
 
@@ -196,7 +196,7 @@ class JoinSessionResult {
     return JoinSessionResult(
       reservationId: json['reservationId'] as int,
       roomId: json['roomId'] as int,
-      roomName: json['roomName'] as String,
+      roomName: Room._parseLocalizedText(json['roomName']),
       isOwner: json['isOwner'] as bool,
       startTime: DateTime.parse(json['startTime'] as String),
     );

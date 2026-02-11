@@ -71,21 +71,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
                 ),
               ],
               const Spacer(),
-              GestureDetector(
-                onTap: () => context.push('/orders/history'),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.colors.secondary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.history,
-                    size: 20,
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
+              IconButton(
+                icon: const Icon(Icons.history, size: 22),
+                onPressed: () => context.push('/orders/history'),
               ),
             ],
           ),
@@ -97,6 +85,8 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
             isLoading: state.isLoading && state.orders.isEmpty,
             shimmer: const ShimmerLoadingList(),
             child: RefreshIndicator(
+              color: theme.colors.primary,
+              backgroundColor: theme.colors.background,
               onRefresh: () => ref.read(ordersProvider.notifier).loadOrders(),
               child: state.orders.isEmpty
                   ? ListView(
@@ -243,13 +233,6 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (widget.order.roomName != null) ...[
-                            const SizedBox(width: 8),
-                            FBadge(
-                              style: FBadgeStyle.secondary(),
-                              child: AppText(widget.order.roomName!.localized(context)),
-                            ),
-                          ],
                           const SizedBox(width: 8),
                           AppText(
                             _getTimeAgo(widget.order.date, l10n),
@@ -262,10 +245,25 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                       const SizedBox(height: 4),
                       AppText(
                         itemsCount != null
-                            ? '${l10n.itemCount(itemsCount)} • ${l10n.priceFormat(widget.order.total.toStringAsFixed(0))}'
-                            : l10n.priceFormat(widget.order.total.toStringAsFixed(0)),
+                            ? '${l10n.itemCount(itemsCount)} • ${l10n.priceFormat(widget.order.total.toStringAsFixed(2))}'
+                            : l10n.priceFormat(widget.order.total.toStringAsFixed(2)),
                         style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
                       ),
+                      if (widget.order.roomName != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.meeting_room, size: 14, color: theme.colors.mutedForeground),
+                            const SizedBox(width: 4),
+                            AppText(
+                              widget.order.roomName!.localized(context),
+                              style: theme.typography.xs.copyWith(
+                                color: theme.colors.mutedForeground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -408,7 +406,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
                   Icon(Icons.stars, size: 14, color: Colors.green.shade600),
                   const SizedBox(width: 4),
                   AppText(
-                    '${l10n.loyaltyDiscount}: -${l10n.priceFormat(orderDetails.loyaltyDiscount.toStringAsFixed(0))}',
+                    '${l10n.loyaltyDiscount}: -${l10n.priceFormat(orderDetails.loyaltyDiscount.toStringAsFixed(2))}',
                     style: theme.typography.xs.copyWith(
                       color: Colors.green.shade600,
                       fontWeight: FontWeight.w500,

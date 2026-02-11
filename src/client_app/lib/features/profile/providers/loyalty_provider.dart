@@ -135,7 +135,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     }
   }
 
-  /// Calculate discount from points (100 points = £1)
+  /// Local fallback conversion rate (100 points = 1 EGP)
   static const int pointsPerPound = 100;
 
   /// Get maximum points that can be redeemed for a given order total
@@ -152,9 +152,20 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
         : maxPointsForOrder;
   }
 
-  /// Convert points to discount amount
-  static double pointsToDiscount(int points) {
-    return points / pointsPerPound;
+  /// Get discount value from server for the given points.
+  /// Returns null if the server is unreachable.
+  Future<double?> getPointsValue(int points) async {
+    if (points <= 0) return 0;
+    try {
+      final response = await _apiClient.get(
+        '/points-value',
+        queryParameters: {'api-version': '1.0', 'points': points},
+      );
+      final data = response.data as Map<String, dynamic>;
+      return (data['discountValue'] as num).toDouble();
+    } catch (e) {
+      return null;
+    }
   }
 }
 

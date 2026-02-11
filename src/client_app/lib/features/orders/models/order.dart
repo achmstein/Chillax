@@ -83,9 +83,11 @@ class Order {
   final DateTime date;
   final OrderStatus status;
   final String? description;
-  final String? roomName;
+  final LocalizedText? roomName;
   final String? customerNote;
   final double total;
+  final int pointsToRedeem;
+  final double loyaltyDiscount;
   final List<OrderItem> items;
   final OrderRating? rating;
 
@@ -97,6 +99,8 @@ class Order {
     this.roomName,
     this.customerNote,
     required this.total,
+    this.pointsToRedeem = 0,
+    this.loyaltyDiscount = 0,
     this.items = const [],
     this.rating,
   });
@@ -120,9 +124,11 @@ class Order {
       date: DateTime.parse(json['date'] as String),
       status: status,
       description: json['description'] as String?,
-      roomName: json['roomName'] as String?,
+      roomName: json['roomName'] != null ? OrderItem._parseLocalizedText(json['roomName']) : null,
       customerNote: json['customerNote'] as String?,
       total: (json['total'] as num).toDouble(),
+      pointsToRedeem: (json['pointsToRedeem'] ?? 0) as int,
+      loyaltyDiscount: ((json['loyaltyDiscount'] ?? 0) as num).toDouble(),
       items: (json['orderItems'] as List<dynamic>?)
               ?.map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -171,7 +177,7 @@ class PaginatedOrders {
 
 /// Create order request
 class CreateOrderRequest {
-  final String? roomName;
+  final Map<String, dynamic>? roomName;
   final String? customerNote;
 
   CreateOrderRequest({

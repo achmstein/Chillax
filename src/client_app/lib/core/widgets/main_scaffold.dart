@@ -5,14 +5,44 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'app_text.dart';
 
+/// Tracks the current route for tab-aware refreshing
+class CurrentRouteNotifier extends Notifier<String> {
+  @override
+  String build() => '/menu';
+
+  void setRoute(String route) {
+    state = route;
+  }
+}
+
+final currentRouteProvider = NotifierProvider<CurrentRouteNotifier, String>(
+  CurrentRouteNotifier.new,
+);
+
 /// Main scaffold with bottom navigation using Forui
-class MainScaffold extends ConsumerWidget {
+class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
 
   const MainScaffold({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends ConsumerState<MainScaffold> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final location = GoRouterState.of(context).matchedLocation;
+    Future.microtask(() {
+      if (mounted) {
+        ref.read(currentRouteProvider.notifier).setRoute(location);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentIndex = _calculateSelectedIndex(context);
     final l10n = AppLocalizations.of(context)!;
 
@@ -64,7 +94,7 @@ class MainScaffold extends ConsumerWidget {
       ),
       child: SafeArea(
         bottom: false,
-        child: child,
+        child: widget.child,
       ),
     );
   }

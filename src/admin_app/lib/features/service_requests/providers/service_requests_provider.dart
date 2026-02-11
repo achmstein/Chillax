@@ -48,6 +48,7 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
 
   /// Load pending service requests
   Future<void> loadRequests() async {
+    if (state.isLoading) return;
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -60,7 +61,7 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
       state = state.copyWith(requests: requests, isLoading: false);
     } catch (e) {
       debugPrint('Failed to load service requests: $e');
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 

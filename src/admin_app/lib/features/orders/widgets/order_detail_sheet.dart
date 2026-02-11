@@ -8,44 +8,95 @@ import '../../../l10n/app_localizations.dart';
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
 
-class OrderDetailSheet extends ConsumerWidget {
+class OrderDetailSheet extends ConsumerStatefulWidget {
   final Order order;
 
   const OrderDetailSheet({super.key, required this.order});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OrderDetailSheet> createState() => _OrderDetailSheetState();
+}
+
+class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
+  Order? _fullOrder;
+  bool _isLoadingDetails = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFullOrder();
+  }
+
+  Future<void> _loadFullOrder() async {
+    if (widget.order.items.isNotEmpty) {
+      _fullOrder = widget.order;
+      return;
+    }
+    setState(() => _isLoadingDetails = true);
+    try {
+      final detailedOrder = await ref.read(orderDetailsProvider(widget.order.id).future);
+      if (mounted) {
+        setState(() {
+          _fullOrder = detailedOrder;
+          _isLoadingDetails = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoadingDetails = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final order = _fullOrder ?? widget.order;
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final dateFormat = DateFormat.yMd(locale.languageCode).add_Hm();
 
-    return SizedBox(
-      width: 400,
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Drag handle
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colors.mutedForeground,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+
           // Header
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AppText(
-                  l10n.orderNumber(order.id),
-                  style: theme.typography.xl.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: AppText(
+                    l10n.orderNumber(order.id),
+                    style: theme.typography.lg.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                FButton.icon(
-                  style: FButtonStyle.ghost(),
-                  child: const Icon(Icons.close),
-                  onPress: () => Navigator.of(context).pop(),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Icon(Icons.close, color: theme.colors.mutedForeground),
                 ),
               ],
             ),
           ),
-          const FDivider(),
 
           // Content
           Expanded(
@@ -59,19 +110,17 @@ class OrderDetailSheet extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status and info
-                  Row(
-                    children: [
-                      _buildStatusBadge(order.status, l10n),
-                      if (order.roomName != null) ...[
-                        const SizedBox(width: 8),
-                        FBadge(style: FBadgeStyle.secondary(),
-                          child: AppText(order.roomName!.localized(context)),
-                        ),
-                      ],
-                    ],
-                  ),
+                  // Status
+                  _buildStatusBadge(order.status, l10n),
                   const SizedBox(height: 16),
+
+                  // Customer name
+                  if (order.userName != null && order.userName!.isNotEmpty)
+                    _buildInfoRow(theme, l10n.customer, order.userName!),
+
+                  // Room name
+                  if (order.roomName != null)
+                    _buildInfoRow(theme, l10n.room, order.roomName!.localized(context)),
 
                   // Date
                   _buildInfoRow(theme, l10n.date, dateFormat.format(order.date)),
@@ -119,14 +168,40 @@ class OrderDetailSheet extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...order.items.map((item) => _buildOrderItem(context, theme, item, l10n)),
+                  if (_isLoadingDetails)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  else if (order.items.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: AppText(
+                        '-',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.mutedForeground,
+                        ),
+                      ),
+                    )
+                  else
+                    ...order.items.map((item) => _buildOrderItem(context, theme, item, l10n)),
 
                   const SizedBox(height: 16),
                   const FDivider(),
                   const SizedBox(height: 16),
 
                   // Subtotal + Loyalty Discount + Total
-                  if (order.pointsToRedeem > 0) ...[
+                  if (order.pointsToRedeem > 0) ...(() {
+                    final subtotal = order.total;
+                    final discount = order.loyaltyDiscount;
+                    final total = subtotal - discount;
+                    return [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -137,7 +212,7 @@ class OrderDetailSheet extends ConsumerWidget {
                           ),
                         ),
                         AppText(
-                          l10n.priceFormat((order.total + order.loyaltyDiscount).toStringAsFixed(0)),
+                          l10n.priceFormat(subtotal.toStringAsFixed(2)),
                           style: theme.typography.sm,
                         ),
                       ],
@@ -159,7 +234,7 @@ class OrderDetailSheet extends ConsumerWidget {
                           ],
                         ),
                         AppText(
-                          '-${l10n.priceFormat(order.loyaltyDiscount.toStringAsFixed(0))}',
+                          '-${l10n.priceFormat(discount.toStringAsFixed(2))}',
                           style: theme.typography.sm.copyWith(
                             color: Colors.green.shade600,
                             fontWeight: FontWeight.w500,
@@ -168,9 +243,30 @@ class OrderDetailSheet extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                  ],
 
                   // Total
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppText(
+                          l10n.total,
+                          style: theme.typography.lg.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        AppText(
+                          l10n.priceFormat(total.toStringAsFixed(2)),
+                          style: theme.typography.lg.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    ];
+                  })() else
+
+                  // Total (no discount)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -181,7 +277,7 @@ class OrderDetailSheet extends ConsumerWidget {
                         ),
                       ),
                       AppText(
-                        l10n.priceFormat(order.total.toStringAsFixed(0)),
+                        l10n.priceFormat(order.total.toStringAsFixed(2)),
                         style: theme.typography.lg.copyWith(
                           fontWeight: FontWeight.bold,
                           color: theme.colors.primary,
@@ -196,13 +292,12 @@ class OrderDetailSheet extends ConsumerWidget {
 
           // Actions
           if (order.status == OrderStatus.submitted) ...[
-            const FDivider(),
             Padding(
               padding: EdgeInsets.only(
                 left: 16,
                 right: 16,
-                top: 16,
-                bottom: 16 + MediaQuery.of(context).viewPadding.bottom,
+                top: 12,
+                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
               ),
               child: Row(
                 children: [
@@ -321,7 +416,7 @@ class OrderDetailSheet extends ConsumerWidget {
   }
 
   Future<void> _confirmOrder(BuildContext context, WidgetRef ref) async {
-    await ref.read(ordersProvider.notifier).confirmOrder(order.id);
+    await ref.read(ordersProvider.notifier).confirmOrder(widget.order.id);
     if (context.mounted) {
       Navigator.of(context).pop();
     }
@@ -350,7 +445,7 @@ class OrderDetailSheet extends ConsumerWidget {
     );
 
     if (confirmed == true) {
-      await ref.read(ordersProvider.notifier).cancelOrder(order.id);
+      await ref.read(ordersProvider.notifier).cancelOrder(widget.order.id);
       if (context.mounted) {
         Navigator.of(context).pop();
       }

@@ -151,9 +151,9 @@
   "points": "نقطة",
   "lifetime": "إجمالي",
 
-  "requests": "الطلبات",
+  "requests": "الخدمات",
   "allClear": "تمام",
-  "noPendingRequests": "مفيش طلبات معلقة",
+  "noPendingRequests": "مفيش خدمات معلقة",
   "acknowledge": "استلام",
   "markComplete": "تم",
   "pendingStatus": "معلّق",

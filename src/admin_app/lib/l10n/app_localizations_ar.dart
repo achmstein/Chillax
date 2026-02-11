@@ -460,13 +460,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lifetime => 'إجمالي';
 
   @override
-  String get requests => 'الطلبات';
+  String get requests => 'الخدمات';
 
   @override
   String get allClear => 'تمام';
 
   @override
-  String get noPendingRequests => 'مفيش طلبات معلقة';
+  String get noPendingRequests => 'مفيش خدمات معلقة';
 
   @override
   String get acknowledge => 'استلام';

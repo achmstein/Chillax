@@ -75,10 +75,13 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
         // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              AppText(l10n.loyalty, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
-            ],
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Row(
+              children: [
+                AppText(l10n.loyalty, style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
+              ],
+            ),
           ),
         ),
 
@@ -88,6 +91,8 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
             isLoading: state.isLoading && state.accounts.isEmpty,
             shimmer: const ShimmerLoadingList(),
             child: RefreshIndicator(
+              color: theme.colors.primary,
+              backgroundColor: theme.colors.background,
               onRefresh: () => ref.read(loyaltyProvider.notifier).loadAll(),
               child: ListView(
                 padding: kScreenPadding,

@@ -1,5 +1,6 @@
 #nullable enable
 using Microsoft.AspNetCore.Http.HttpResults;
+using Chillax.Ordering.Domain.Seedwork;
 using Order = Chillax.Ordering.API.Application.Queries.Order;
 
 public static class OrdersApi
@@ -80,7 +81,8 @@ public static class OrdersApi
                 request.UserName,
                 request.RoomName,
                 request.CustomerNote,
-                request.PointsToRedeem);
+                request.PointsToRedeem,
+                request.LoyaltyDiscount);
 
             var requestCreateOrder = new IdentifiedCommand<CreateOrderCommand, bool>(createOrderCommand, requestId);
 
@@ -256,9 +258,10 @@ public static class OrdersApi
 public record CreateOrderRequest(
     string UserId,
     string UserName,
-    string? RoomName,
+    LocalizedText? RoomName,
     string? CustomerNote,
     int PointsToRedeem,
+    double LoyaltyDiscount,
     List<BasketItem> Items);
 
 /// <summary>

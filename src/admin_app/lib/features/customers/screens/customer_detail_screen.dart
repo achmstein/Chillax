@@ -463,6 +463,8 @@ class _OrderHistorySection extends StatelessWidget {
                       ),
                     )
                   : RefreshIndicator(
+                      color: theme.colors.primary,
+                      backgroundColor: theme.colors.background,
                       onRefresh: onRefresh,
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 20),

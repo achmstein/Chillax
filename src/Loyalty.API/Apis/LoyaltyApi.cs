@@ -11,6 +11,9 @@ namespace Chillax.Loyalty.API.Apis;
 
 public static class LoyaltyApi
 {
+    /// 100 loyalty points = 1 EGP
+    public const int RedemptionPointsPerUnit = 100;
+
     public static IEndpointRouteBuilder MapLoyaltyApi(this IEndpointRouteBuilder app)
     {
         var vApi = app.NewVersionedApi("Loyalty");
@@ -73,6 +76,13 @@ public static class LoyaltyApi
             .WithSummary("Get tier information")
             .WithDescription("Get loyalty tier thresholds and benefits")
             .WithTags("Tiers");
+
+        // Points value endpoint (public)
+        api.MapGet("/points-value", GetPointsValue)
+            .WithName("GetPointsValue")
+            .WithSummary("Get discount value for points")
+            .WithDescription("Convert loyalty points to their currency discount value")
+            .WithTags("Points");
 
         // Stats endpoints
         api.MapGet("/stats", GetStats)
@@ -270,6 +280,13 @@ public static class LoyaltyApi
         return TypedResults.Ok(new TransactionDto(transaction));
     }
 
+    // Points value endpoint
+    public static Ok<PointsValueDto> GetPointsValue([FromQuery] int points)
+    {
+        var discountValue = (double)points / RedemptionPointsPerUnit;
+        return TypedResults.Ok(new PointsValueDto(points, discountValue, RedemptionPointsPerUnit));
+    }
+
     // Tier endpoints
     public static Ok<TierInfoDto[]> GetTierInfo()
     {
@@ -360,6 +377,8 @@ public record TransactionDto(
 }
 
 public record TierInfoDto(string Name, int PointsRequired, string Benefits);
+
+public record PointsValueDto(int Points, double DiscountValue, int RedemptionRate);
 
 public record LoyaltyStatsDto(
     int TotalAccounts,

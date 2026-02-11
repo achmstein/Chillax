@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Security.Claims;
 using Chillax.Notification.API.IntegrationEvents.Events;
 using Chillax.Notification.API.Model;

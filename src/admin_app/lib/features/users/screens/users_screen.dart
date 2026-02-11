@@ -118,6 +118,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                     title: l10n.noUsersFound,
                   )
                 : RefreshIndicator(
+                    color: theme.colors.primary,
+                    backgroundColor: theme.colors.background,
                     onRefresh: () => notifier.loadUsers(),
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 8),

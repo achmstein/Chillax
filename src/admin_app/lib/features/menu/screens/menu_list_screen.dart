@@ -168,6 +168,8 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                         },
                       )
                     : RefreshIndicator(
+                        color: theme.colors.primary,
+                        backgroundColor: theme.colors.background,
                         onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
                         child: ListView.builder(
                           padding: const EdgeInsets.symmetric(vertical: 8),

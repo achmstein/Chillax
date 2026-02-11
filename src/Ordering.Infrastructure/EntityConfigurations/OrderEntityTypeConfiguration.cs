@@ -24,6 +24,9 @@ class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
             .Property(o => o.CustomerNote)
             .HasMaxLength(500);
 
+        // Configure RoomName as JSON column (localized text)
+        orderConfiguration.OwnsOne(o => o.RoomName, b => b.ToJson());
+
         orderConfiguration.HasOne(o => o.Buyer)
             .WithMany()
             .HasForeignKey(o => o.BuyerId);

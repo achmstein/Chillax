@@ -90,9 +90,10 @@ namespace Ordering.Infrastructure.Migrations
                     BuyerId = table.Column<int>(type: "integer", nullable: true),
                     OrderStatus = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    RoomName = table.Column<string>(type: "text", nullable: true),
                     CustomerNote = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    PointsToRedeem = table.Column<int>(type: "integer", nullable: false)
+                    PointsToRedeem = table.Column<int>(type: "integer", nullable: false),
+                    LoyaltyDiscount = table.Column<double>(type: "double precision", nullable: false),
+                    RoomName = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
