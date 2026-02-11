@@ -48,15 +48,25 @@ public static class AuthenticationExtensions
                 options.MapInboundClaims = false;
 
                 // Keycloak issues tokens with external URL but Aspire uses internal service discovery
+                var validIssuers = new List<string>
+                {
+                    $"http://localhost:8080/realms/{realm}",
+                    $"http://10.0.2.2:8080/realms/{realm}",  // Android emulator
+                    $"http://keycloak:8080/realms/{realm}",  // Docker internal
+                    keycloakRealmUrl ?? $"http://localhost:8080/realms/{realm}"
+                };
+
+                // Add external URL issuer (for production where tokens are issued via public URL)
+                var externalUrl = configuration["Identity__ExternalUrl"];
+                if (!string.IsNullOrEmpty(externalUrl))
+                {
+                    validIssuers.Add(externalUrl);
+                }
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuers = [
-                        $"http://localhost:8080/realms/{realm}",
-                        $"http://10.0.2.2:8080/realms/{realm}",  // Android emulator
-                        $"http://keycloak:8080/realms/{realm}",  // Docker internal
-                        keycloakRealmUrl ?? $"http://localhost:8080/realms/{realm}"
-                    ],
+                    ValidIssuers = validIssuers,
 
                     // Disable audience validation for flexibility
                     // Keycloak uses client_id as audience
