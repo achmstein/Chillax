@@ -43,6 +43,11 @@ public interface IReservationRepository : IRepository<Reservation>
     Task<Reservation?> GetByAccessCodeAsync(string accessCode);
 
     /// <summary>
+    /// Check if an access code is already in use by an active session
+    /// </summary>
+    Task<bool> IsAccessCodeInUseAsync(string accessCode);
+
+    /// <summary>
     /// Get reservation with session members loaded
     /// </summary>
     Task<Reservation?> GetWithMembersAsync(int reservationId);

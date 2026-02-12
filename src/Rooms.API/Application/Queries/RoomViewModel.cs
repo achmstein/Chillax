@@ -38,6 +38,10 @@ public record ReservationViewModel
     public DateTime? ActualStartTime { get; init; }
     public DateTime? EndTime { get; init; }
     public decimal? TotalCost { get; init; }
+    /// <summary>
+    /// Duration rounded to nearest quarter hour (e.g. 2.25, 3.5) for POS display
+    /// </summary>
+    public decimal? RoundedHours { get; init; }
     public ReservationStatus Status { get; init; }
     public string? Notes { get; init; }
     /// <summary>
@@ -48,6 +52,15 @@ public record ReservationViewModel
     /// When this reservation expires if not started (only for Reserved status)
     /// </summary>
     public DateTime? ExpiresAt { get; init; }
+    public List<SessionMemberViewModel> Members { get; init; } = new();
+}
+
+public record SessionMemberViewModel
+{
+    public string CustomerId { get; init; } = "";
+    public string? CustomerName { get; init; }
+    public DateTime JoinedAt { get; init; }
+    public string Role { get; init; } = "Member";
 }
 
 /// <summary>

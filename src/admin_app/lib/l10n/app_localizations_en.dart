@@ -1084,4 +1084,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yourDisplayName => 'Your display name';
+
+  @override
+  String get popular => 'Popular';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get orderNotifications => 'Order Notifications';
+
+  @override
+  String get reservationNotifications => 'Reservation Notifications';
+
+  @override
+  String get serviceRequestNotifications => 'Service Request Notifications';
+
+  @override
+  String get assignCustomer => 'Assign Customer';
+
+  @override
+  String get customerAssigned => 'Customer assigned';
+
+  @override
+  String get failedToAssignCustomer => 'Failed to assign customer';
+
+  @override
+  String get addCustomer => 'Add Customer';
+
+  @override
+  String get removeCustomer => 'Remove Customer';
+
+  @override
+  String get memberRemoved => 'Member removed';
+
+  @override
+  String get failedToRemoveMember => 'Failed to remove member';
+
+  @override
+  String get members => 'Members';
+
+  @override
+  String get editName => 'Edit Name';
+
+  @override
+  String get resetPassword => 'Reset Password';
+
+  @override
+  String get passwordResetSuccess => 'Password reset successfully';
+
+  @override
+  String get failedToResetPassword => 'Failed to reset password';
 }

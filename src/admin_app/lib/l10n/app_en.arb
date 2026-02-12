@@ -502,5 +502,24 @@
   "passwordRequirements": "Must be at least 8 characters",
   "passwordChangedSuccessfully": "Password changed successfully",
   "failedToChangePassword": "Failed to change password",
-  "yourDisplayName": "Your display name"
+  "yourDisplayName": "Your display name",
+  "popular": "Popular",
+  "notifications": "Notifications",
+  "orderNotifications": "Order Notifications",
+  "reservationNotifications": "Reservation Notifications",
+  "serviceRequestNotifications": "Service Request Notifications",
+  "assignCustomer": "Assign Customer",
+  "customerAssigned": "Customer assigned",
+  "failedToAssignCustomer": "Failed to assign customer",
+
+  "addCustomer": "Add Customer",
+  "removeCustomer": "Remove Customer",
+  "memberRemoved": "Member removed",
+  "failedToRemoveMember": "Failed to remove member",
+  "members": "Members",
+
+  "editName": "Edit Name",
+  "resetPassword": "Reset Password",
+  "passwordResetSuccess": "Password reset successfully",
+  "failedToResetPassword": "Failed to reset password"
 }

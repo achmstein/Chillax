@@ -30,7 +30,7 @@ public class Reservation : Entity, IAggregateRoot
     public string? CustomerName { get; private set; }
 
     /// <summary>
-    /// 6-digit access code for joining the session
+    /// 4-digit access code for joining the session
     /// </summary>
     public string? AccessCode { get; private set; }
 
@@ -216,7 +216,7 @@ public class Reservation : Entity, IAggregateRoot
     }
 
     /// <summary>
-    /// Calculate cost based on duration (rounds up to nearest 30 minutes)
+    /// Calculate cost based on duration (rounds to nearest quarter hour)
     /// </summary>
     private decimal CalculateCost()
     {
@@ -226,11 +226,25 @@ public class Reservation : Entity, IAggregateRoot
         var duration = EndTime.Value - ActualStartTime.Value;
         var totalMinutes = duration.TotalMinutes;
 
-        // Round up to nearest 30 minutes
-        var halfHours = Math.Ceiling(totalMinutes / 30);
-        var hours = (decimal)halfHours / 2;
+        // Round to nearest quarter hour (15 minutes)
+        var quarters = Math.Round(totalMinutes / 15, MidpointRounding.AwayFromZero);
+        var hours = (decimal)quarters * 0.25m;
 
         return hours * HourlyRate;
+    }
+
+    /// <summary>
+    /// Get duration rounded to nearest quarter hour (e.g. 2.25, 3.5) for POS billing
+    /// Returns null if session hasn't started or ended
+    /// </summary>
+    public decimal? GetRoundedHours()
+    {
+        if (ActualStartTime == null || EndTime == null)
+            return null;
+
+        var totalMinutes = (EndTime.Value - ActualStartTime.Value).TotalMinutes;
+        var quarters = Math.Round(totalMinutes / 15, MidpointRounding.AwayFromZero);
+        return (decimal)quarters * 0.25m;
     }
 
     /// <summary>
@@ -313,15 +327,13 @@ public class Reservation : Entity, IAggregateRoot
     }
 
     /// <summary>
-    /// Generate a new 6-digit access code for the session (format: AABBCC like 668899)
+    /// Generate a new access code in AABB format (paired digits, e.g. "1133")
     /// </summary>
     public void GenerateAccessCode()
     {
-        // Generate 3 random digits for the pairs
-        var d1 = Random.Shared.Next(1, 10); // 1-9 to avoid leading zero
-        var d2 = Random.Shared.Next(0, 10); // 0-9
-        var d3 = Random.Shared.Next(0, 10); // 0-9
-        AccessCode = $"{d1}{d1}{d2}{d2}{d3}{d3}";
+        var a = Random.Shared.Next(0, 10);
+        var b = Random.Shared.Next(0, 10);
+        AccessCode = $"{a}{a}{b}{b}";
         AccessCodeGeneratedAt = DateTime.UtcNow;
     }
 

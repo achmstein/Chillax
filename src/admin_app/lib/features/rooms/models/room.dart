@@ -101,6 +101,32 @@ class Room {
   }
 }
 
+/// Session member model
+class SessionMember {
+  final String customerId;
+  final String? customerName;
+  final DateTime joinedAt;
+  final String role; // "Owner" or "Member"
+
+  SessionMember({
+    required this.customerId,
+    this.customerName,
+    required this.joinedAt,
+    required this.role,
+  });
+
+  bool get isOwner => role == 'Owner';
+
+  factory SessionMember.fromJson(Map<String, dynamic> json) {
+    return SessionMember(
+      customerId: json['customerId'] as String,
+      customerName: json['customerName'] as String?,
+      joinedAt: DateTime.parse(json['joinedAt'] as String),
+      role: json['role'] as String? ?? 'Member',
+    );
+  }
+}
+
 /// Room session model
 class RoomSession {
   final int id;
@@ -116,6 +142,8 @@ class RoomSession {
   final double hourlyRate;
   final String? accessCode;
   final DateTime? expiresAt;
+  final double? roundedHours;
+  final List<SessionMember> members;
 
   RoomSession({
     required this.id,
@@ -131,6 +159,8 @@ class RoomSession {
     this.hourlyRate = 0,
     this.accessCode,
     this.expiresAt,
+    this.roundedHours,
+    this.members = const [],
   });
 
   /// Calculate duration if session has started
@@ -199,6 +229,11 @@ class RoomSession {
     final createdAt = json['createdAt'];
     final startTime = json['startTime'] ?? json['actualStartTime'];
 
+    final membersJson = json['members'] as List<dynamic>?;
+    final members = membersJson
+        ?.map((e) => SessionMember.fromJson(e as Map<String, dynamic>))
+        .toList() ?? [];
+
     return RoomSession(
       id: json['id'] as int,
       roomId: json['roomId'] as int,
@@ -219,6 +254,8 @@ class RoomSession {
       expiresAt: json['expiresAt'] != null
           ? DateTime.parse(json['expiresAt'] as String)
           : null,
+      roundedHours: (json['roundedHours'] as num?)?.toDouble(),
+      members: members,
     );
   }
 }

@@ -166,6 +166,48 @@ class RoomsNotifier extends Notifier<RoomsState> {
     }
   }
 
+  /// Assign a customer to an active walk-in session
+  Future<bool> assignCustomerToSession(int sessionId, String customerId, String? customerName) async {
+    try {
+      await _api.post('sessions/$sessionId/assign-customer', data: {
+        'customerId': customerId,
+        'customerName': customerName,
+      });
+      await loadRooms();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to assign customer to session: $e');
+      return false;
+    }
+  }
+
+  /// Add a member to an active session
+  Future<bool> addMemberToSession(int sessionId, String customerId, String? customerName) async {
+    try {
+      await _api.post('sessions/$sessionId/members', data: {
+        'customerId': customerId,
+        'customerName': customerName,
+      });
+      await loadRooms();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to add member to session: $e');
+      return false;
+    }
+  }
+
+  /// Remove a member from an active session
+  Future<bool> removeMemberFromSession(int sessionId, String customerId) async {
+    try {
+      await _api.delete('sessions/$sessionId/members/$customerId');
+      await loadRooms();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to remove member from session: $e');
+      return false;
+    }
+  }
+
   /// Start a walk-in session directly (without reservation)
   Future<bool> startWalkInSession(int roomId) async {
     try {

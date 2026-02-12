@@ -79,6 +79,7 @@ public class RoomQueries : IRoomQueries
     {
         var reservations = await _context.Reservations
             .Include(r => r.Room)
+            .Include(r => r.SessionMembers)
             .Where(r => r.Status == ReservationStatus.Active || r.Status == ReservationStatus.Reserved)
             .OrderBy(r => r.CreatedAt)
             .ToListAsync();
@@ -90,6 +91,7 @@ public class RoomQueries : IRoomQueries
     {
         var reservation = await _context.Reservations
             .Include(r => r.Room)
+            .Include(r => r.SessionMembers)
             .FirstOrDefaultAsync(r => r.Id == reservationId);
 
         return reservation == null ? null : MapToViewModel(reservation);
@@ -165,10 +167,18 @@ public class RoomQueries : IRoomQueries
             ActualStartTime = reservation.ActualStartTime,
             EndTime = reservation.EndTime,
             TotalCost = reservation.TotalCost,
+            RoundedHours = reservation.GetRoundedHours(),
             Status = reservation.Status,
             Notes = reservation.Notes,
             AccessCode = reservation.AccessCode,
-            ExpiresAt = reservation.GetExpirationTime()
+            ExpiresAt = reservation.GetExpirationTime(),
+            Members = reservation.SessionMembers?.Select(m => new SessionMemberViewModel
+            {
+                CustomerId = m.CustomerId,
+                CustomerName = m.CustomerName,
+                JoinedAt = m.JoinedAt,
+                Role = m.Role.ToString()
+            }).ToList() ?? new()
         };
     }
 

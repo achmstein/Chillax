@@ -9,7 +9,7 @@
   "available": "متاح",
   "pendingOrders": "الطلبات المعلقة",
   "activeSessions": "الجلسات النشطة",
-  "availableRooms": "الغرف المتاحة",
+  "availableRooms": "الاوض المتاحة",
   "viewAll": "عرض الكل",
   "noPendingOrders": "مفيش طلبات معلقة",
   "noActiveSessions": "مفيش جلسات نشطة",
@@ -59,10 +59,10 @@
   "noKeep": "لا، خليه",
   "yesCancel": "أيوه، الغيه",
 
-  "rooms": "الغرف",
+  "rooms": "الاوض",
   "addRoom": "إضافة غرفة",
   "editRoom": "تعديل الغرفة",
-  "noRoomsConfigured": "مفيش غرف متضافة",
+  "noRoomsConfigured": "مفيش اوض متضافة",
   "addRoomToGetStarted": "ضيف غرفة عشان تبدأ",
   "endSession": "إنهاء الجلسة؟",
   "endSessionConfirmation": "متأكد إنك عايز تنهي الجلسة دي؟ هيتحاسب العميل على الوقت اللي استخدمه.",
@@ -366,5 +366,24 @@
   "passwordRequirements": "لازم يكون 8 حروف على الأقل",
   "passwordChangedSuccessfully": "تم تغيير الباسورد بنجاح",
   "failedToChangePassword": "فشل تغيير الباسورد",
-  "yourDisplayName": "اسمك"
+  "yourDisplayName": "اسمك",
+  "popular": "الاكثر طلباً",
+  "notifications": "الإشعارات",
+  "orderNotifications": "إشعارات الطلبات",
+  "reservationNotifications": "إشعارات الحجوزات",
+  "serviceRequestNotifications": "إشعارات الخدمات",
+  "assignCustomer": "تعيين عميل",
+  "customerAssigned": "تم تعيين العميل",
+  "failedToAssignCustomer": "فشل تعيين العميل",
+
+  "addCustomer": "إضافة عميل",
+  "removeCustomer": "إزالة عميل",
+  "memberRemoved": "تم إزالة العضو",
+  "failedToRemoveMember": "فشل إزالة العضو",
+  "members": "الأعضاء",
+
+  "editName": "تعديل الاسم",
+  "resetPassword": "إعادة تعيين الباسورد",
+  "passwordResetSuccess": "تم إعادة تعيين الباسورد بنجاح",
+  "failedToResetPassword": "فشل إعادة تعيين الباسورد"
 }

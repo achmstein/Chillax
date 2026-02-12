@@ -593,7 +593,7 @@
           "Sessions"
         ],
         "summary": "Join a session",
-        "description": "Join an active session using the 6-digit access code",
+        "description": "Join an active session using the 4-digit access code",
         "operationId": "JoinSession",
         "requestBody": {
           "content": {
@@ -750,7 +750,7 @@
           {
             "name": "code",
             "in": "path",
-            "description": "The 6-digit access code",
+            "description": "The 4-digit access code",
             "required": true,
             "schema": {
               "type": "string"
@@ -835,6 +835,185 @@
                   "items": {
                     "$ref": "#/components/schemas/ReservationViewModel"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
+      }
+    },
+    "/api/rooms/sessions/{sessionId}/assign-customer": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Assign a customer to a walk-in session",
+        "description": "Assign a customer to an active walk-in session that has no owner (Admin only)",
+        "operationId": "AssignCustomerToSession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "description": "The session ID",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignCustomerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
+      }
+    },
+    "/api/rooms/sessions/{sessionId}/members": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Add a member to a session",
+        "description": "Add a customer as a member to an active session (Admin only)",
+        "operationId": "AddMemberToSession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "description": "The session ID",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMemberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
+      }
+    },
+    "/api/rooms/sessions/{sessionId}/members/{customerId}": {
+      "delete": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Remove a member from a session",
+        "description": "Remove a non-owner member from an active session (Admin only)",
+        "operationId": "RemoveMemberFromSession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "description": "The session ID",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "path",
+            "description": "The customer ID to remove",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -962,6 +1141,42 @@
   },
   "components": {
     "schemas": {
+      "AddMemberRequest": {
+        "required": [
+          "customerId",
+          "customerName"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AssignCustomerRequest": {
+        "required": [
+          "customerId",
+          "customerName"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "CreateRoomRequest": {
         "required": [
           "name",
@@ -1166,6 +1381,15 @@
             ],
             "format": "double"
           },
+          "roundedHours": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
           "status": {
             "$ref": "#/components/schemas/ReservationStatus"
           },
@@ -1187,6 +1411,12 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionMemberViewModel"
+            }
           }
         }
       },
@@ -1247,6 +1477,27 @@
           },
           "displayStatus": {
             "$ref": "#/components/schemas/RoomDisplayStatus"
+          }
+        }
+      },
+      "SessionMemberViewModel": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "role": {
+            "type": "string"
           }
         }
       },

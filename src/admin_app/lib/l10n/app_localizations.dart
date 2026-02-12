@@ -2113,6 +2113,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your display name'**
   String get yourDisplayName;
+
+  /// No description provided for @popular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get popular;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @orderNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Notifications'**
+  String get orderNotifications;
+
+  /// No description provided for @reservationNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservation Notifications'**
+  String get reservationNotifications;
+
+  /// No description provided for @serviceRequestNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Request Notifications'**
+  String get serviceRequestNotifications;
+
+  /// No description provided for @assignCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign Customer'**
+  String get assignCustomer;
+
+  /// No description provided for @customerAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer assigned'**
+  String get customerAssigned;
+
+  /// No description provided for @failedToAssignCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to assign customer'**
+  String get failedToAssignCustomer;
+
+  /// No description provided for @addCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Customer'**
+  String get addCustomer;
+
+  /// No description provided for @removeCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Customer'**
+  String get removeCustomer;
+
+  /// No description provided for @memberRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Member removed'**
+  String get memberRemoved;
+
+  /// No description provided for @failedToRemoveMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove member'**
+  String get failedToRemoveMember;
+
+  /// No description provided for @members.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get members;
+
+  /// No description provided for @editName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Name'**
+  String get editName;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPassword;
+
+  /// No description provided for @passwordResetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset successfully'**
+  String get passwordResetSuccess;
+
+  /// No description provided for @failedToResetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reset password'**
+  String get failedToResetPassword;
 }
 
 class _AppLocalizationsDelegate

@@ -30,7 +30,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activeSessions => 'الجلسات النشطة';
 
   @override
-  String get availableRooms => 'الغرف المتاحة';
+  String get availableRooms => 'الاوض المتاحة';
 
   @override
   String get viewAll => 'عرض الكل';
@@ -182,7 +182,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get yesCancel => 'أيوه، الغيه';
 
   @override
-  String get rooms => 'الغرف';
+  String get rooms => 'الاوض';
 
   @override
   String get addRoom => 'إضافة غرفة';
@@ -191,7 +191,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get editRoom => 'تعديل الغرفة';
 
   @override
-  String get noRoomsConfigured => 'مفيش غرف متضافة';
+  String get noRoomsConfigured => 'مفيش اوض متضافة';
 
   @override
   String get addRoomToGetStarted => 'ضيف غرفة عشان تبدأ';
@@ -1079,4 +1079,55 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get yourDisplayName => 'اسمك';
+
+  @override
+  String get popular => 'الاكثر طلباً';
+
+  @override
+  String get notifications => 'الإشعارات';
+
+  @override
+  String get orderNotifications => 'إشعارات الطلبات';
+
+  @override
+  String get reservationNotifications => 'إشعارات الحجوزات';
+
+  @override
+  String get serviceRequestNotifications => 'إشعارات الخدمات';
+
+  @override
+  String get assignCustomer => 'تعيين عميل';
+
+  @override
+  String get customerAssigned => 'تم تعيين العميل';
+
+  @override
+  String get failedToAssignCustomer => 'فشل تعيين العميل';
+
+  @override
+  String get addCustomer => 'إضافة عميل';
+
+  @override
+  String get removeCustomer => 'إزالة عميل';
+
+  @override
+  String get memberRemoved => 'تم إزالة العضو';
+
+  @override
+  String get failedToRemoveMember => 'فشل إزالة العضو';
+
+  @override
+  String get members => 'الأعضاء';
+
+  @override
+  String get editName => 'تعديل الاسم';
+
+  @override
+  String get resetPassword => 'إعادة تعيين الباسورد';
+
+  @override
+  String get passwordResetSuccess => 'تم إعادة تعيين الباسورد بنجاح';
+
+  @override
+  String get failedToResetPassword => 'فشل إعادة تعيين الباسورد';
 }

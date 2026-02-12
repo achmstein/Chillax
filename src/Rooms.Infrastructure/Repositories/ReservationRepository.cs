@@ -98,6 +98,14 @@ public class ReservationRepository : IReservationRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<bool> IsAccessCodeInUseAsync(string accessCode)
+    {
+        return await _context.Reservations
+            .Where(r => r.AccessCode == accessCode)
+            .Where(r => r.Status == ReservationStatus.Active)
+            .AnyAsync();
+    }
+
     public async Task<Reservation?> GetWithMembersAsync(int reservationId)
     {
         return await _context.Reservations

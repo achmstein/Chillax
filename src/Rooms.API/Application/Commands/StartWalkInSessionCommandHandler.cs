@@ -42,6 +42,12 @@ public class StartWalkInSessionCommandHandler : IRequestHandler<StartWalkInSessi
             room.HourlyRate,
             request.Notes);
 
+        // Ensure unique access code among active sessions
+        for (var i = 0; i < 10 && await _reservationRepository.IsAccessCodeInUseAsync(reservation.AccessCode!); i++)
+        {
+            reservation.GenerateAccessCode();
+        }
+
         _reservationRepository.Add(reservation);
 
         // Update room physical status

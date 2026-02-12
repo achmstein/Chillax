@@ -5,8 +5,10 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/models/localized_text.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../customers/models/customer.dart';
 import '../models/room.dart';
 import '../providers/rooms_provider.dart';
 import '../widgets/room_form_sheet.dart';
@@ -91,6 +93,12 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
               onStartSession: session != null ? () => _startSession(session.id) : null,
               onEndSession: session != null ? () => _endSession(context, session.id) : null,
               onCancelReservation: session != null ? () => _cancelReservation(context, session.id) : null,
+              onAddCustomer: session != null && isActive
+                  ? () => _showAddCustomerSheet(context, session)
+                  : null,
+              onRemoveMember: session != null && isActive
+                  ? (customerId) => _removeMember(context, session.id, customerId)
+                  : null,
             ),
 
             // BOTTOM HALF: History
@@ -218,6 +226,61 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     }
   }
 
+  void _showAddCustomerSheet(BuildContext context, RoomSession session) {
+    // Collect already-assigned customer IDs to filter them out
+    final existingCustomerIds = <String>{};
+    if (session.customerId != null) existingCustomerIds.add(session.customerId!);
+    for (final member in session.members) {
+      existingCustomerIds.add(member.customerId);
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (sheetContext) => _AssignCustomerSheet(
+        excludeCustomerIds: existingCustomerIds,
+        onCustomerSelected: (customer) async {
+          Navigator.pop(sheetContext);
+          final l10n = AppLocalizations.of(context)!;
+          bool success;
+          if (session.customerId == null) {
+            // No owner yet - assign as owner
+            success = await ref.read(roomsProvider.notifier).assignCustomerToSession(
+              session.id,
+              customer.id,
+              customer.displayName,
+            );
+          } else {
+            // Already has owner - add as member
+            success = await ref.read(roomsProvider.notifier).addMemberToSession(
+              session.id,
+              customer.id,
+              customer.displayName,
+            );
+          }
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(success ? l10n.customerAssigned : l10n.failedToAssignCustomer)),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Future<void> _removeMember(BuildContext context, int sessionId, String customerId) async {
+    final l10n = AppLocalizations.of(context)!;
+    final success = await ref.read(roomsProvider.notifier).removeMemberFromSession(sessionId, customerId);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success ? l10n.memberRemoved : l10n.failedToRemoveMember)),
+      );
+    }
+  }
+
   Future<void> _deleteRoom(BuildContext context, Room room) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
@@ -262,6 +325,8 @@ class _CurrentStateSection extends StatelessWidget {
   final VoidCallback? onStartSession;
   final VoidCallback? onEndSession;
   final VoidCallback? onCancelReservation;
+  final VoidCallback? onAddCustomer;
+  final ValueChanged<String>? onRemoveMember;
 
   const _CurrentStateSection({
     required this.room,
@@ -274,6 +339,8 @@ class _CurrentStateSection extends StatelessWidget {
     this.onStartSession,
     this.onEndSession,
     this.onCancelReservation,
+    this.onAddCustomer,
+    this.onRemoveMember,
   });
 
   @override
@@ -346,38 +413,17 @@ class _CurrentStateSection extends StatelessWidget {
                       color: theme.colors.foreground,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  AppText(
-                    l10n.priceFormat(session!.liveCost.toStringAsFixed(0)),
-                    style: theme.typography.xl.copyWith(
-                      color: theme.colors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Session info row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (session!.userName != null) ...[
-                  Icon(Icons.person_outline, size: 16, color: theme.colors.mutedForeground),
-                  const SizedBox(width: 4),
-                  AppText(
-                    session!.userName!,
-                    style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
-                  ),
-                ],
-                if (session!.userName != null && session!.accessCode != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: AppText('•', style: TextStyle(color: theme.colors.mutedForeground)),
-                  ),
-                if (session!.accessCode != null) ...[
+            // Access code row
+            if (session!.accessCode != null) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Icon(Icons.key_outlined, size: 16, color: theme.colors.mutedForeground),
                   const SizedBox(width: 4),
                   AppText(
@@ -389,10 +435,75 @@ class _CurrentStateSection extends StatelessWidget {
                     ),
                   ),
                 ],
-              ],
-            ),
+              ),
+            ],
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Members list
+            if (session!.members.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: session!.members.map((member) {
+                    return Chip(
+                      avatar: Icon(
+                        member.isOwner ? Icons.star : Icons.person,
+                        size: 16,
+                        color: member.isOwner ? Colors.amber : theme.colors.mutedForeground,
+                      ),
+                      label: AppText(
+                        member.customerName ?? member.customerId,
+                        style: theme.typography.sm,
+                      ),
+                      deleteIcon: member.isOwner ? null : const Icon(Icons.close, size: 16),
+                      onDeleted: member.isOwner || onRemoveMember == null
+                          ? null
+                          : () => onRemoveMember!(member.customerId),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ] else if (session!.userName != null) ...[
+              // Fallback: show single user name if no members loaded
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_outline, size: 16, color: theme.colors.mutedForeground),
+                  const SizedBox(width: 4),
+                  AppText(
+                    session!.userName!,
+                    style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Add Customer button (always available for active sessions)
+            if (onAddCustomer != null) ...[
+              Center(
+                child: FButton(
+                  style: FButtonStyle.outline(),
+                  onPress: onAddCustomer,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person_add_outlined, size: 18),
+                      const SizedBox(width: 8),
+                      AppText(l10n.addCustomer),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
 
             // End button
             Center(
@@ -715,27 +826,35 @@ class _HistorySection extends StatelessWidget {
                                       ),
                               ),
 
-                              // Duration
-                              AppText(
-                                session.formattedDuration,
-                                style: theme.typography.sm.copyWith(
-                                  fontFamily: 'monospace',
-                                  color: theme.colors.mutedForeground,
-                                ),
-                              ),
-
-                              const SizedBox(width: 16),
-
-                              // Cost
-                              SizedBox(
-                                width: 60,
-                                child: AppText(
-                                  l10n.priceFormat((session.totalCost ?? session.liveCost).toStringAsFixed(0)),
-                                  style: theme.typography.sm.copyWith(
-                                    fontWeight: FontWeight.w500,
+                              // Duration + calculation
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  AppText(
+                                    session.formattedDuration,
+                                    style: theme.typography.sm.copyWith(
+                                      fontFamily: 'monospace',
+                                      color: theme.colors.mutedForeground,
+                                    ),
                                   ),
-                                  textAlign: TextAlign.right,
-                                ),
+                                  if (session.roundedHours != null) ...[
+                                    const SizedBox(height: 2),
+                                    AppText(
+                                      '${_formatRoundedHours(session.roundedHours!)} × ${session.hourlyRate.toStringAsFixed(0)} = ${l10n.priceFormat((session.totalCost ?? (session.roundedHours! * session.hourlyRate)).toStringAsFixed(0))}',
+                                      style: theme.typography.xs.copyWith(
+                                        color: theme.colors.mutedForeground,
+                                      ),
+                                    ),
+                                  ] else if (session.totalCost != null) ...[
+                                    const SizedBox(height: 2),
+                                    AppText(
+                                      l10n.priceFormat(session.totalCost!.toStringAsFixed(0)),
+                                      style: theme.typography.xs.copyWith(
+                                        color: theme.colors.mutedForeground,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ],
                           ),
@@ -746,6 +865,15 @@ class _HistorySection extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Format rounded hours: show "3h" for whole, "3.25h" / "3.5h" / "3.75h" for fractions
+String _formatRoundedHours(double hours) {
+  if (hours % 1 == 0) return '${hours.toInt()}h';
+  // Remove trailing zeros: 3.50 -> 3.5, 2.25 -> 2.25
+  final str = hours.toStringAsFixed(2);
+  final trimmed = str.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+  return '${trimmed}h';
 }
 
 /// Countdown timer widget for reservation expiration
@@ -807,6 +935,201 @@ class _ExpirationCountdown extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Bottom sheet for searching and assigning a customer to an active session
+class _AssignCustomerSheet extends ConsumerStatefulWidget {
+  final ValueChanged<Customer> onCustomerSelected;
+  final Set<String> excludeCustomerIds;
+
+  const _AssignCustomerSheet({
+    required this.onCustomerSelected,
+    this.excludeCustomerIds = const {},
+  });
+
+  @override
+  ConsumerState<_AssignCustomerSheet> createState() => _AssignCustomerSheetState();
+}
+
+class _AssignCustomerSheetState extends ConsumerState<_AssignCustomerSheet> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+  List<Customer> _results = [];
+  bool _isSearching = false;
+  late final ApiClient _identityApi;
+
+  @override
+  void initState() {
+    super.initState();
+    _identityApi = ref.read(identityApiProvider);
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    _debounce?.cancel();
+    final query = _searchController.text.trim();
+    if (query.isEmpty) {
+      setState(() {
+        _results = [];
+        _isSearching = false;
+      });
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 300), () => _search(query));
+  }
+
+  Future<void> _search(String query) async {
+    setState(() => _isSearching = true);
+    try {
+      final response = await _identityApi.get('/users', queryParameters: {
+        'search': query,
+        'max': 20,
+      });
+      final data = response.data as List<dynamic>;
+      final users = data
+          .map((e) => Customer.fromJson(e as Map<String, dynamic>))
+          .where((c) => !widget.excludeCustomerIds.contains(c.id))
+          .toList();
+      if (mounted) {
+        setState(() {
+          _results = users;
+          _isSearching = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _results = [];
+          _isSearching = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
+
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset + bottomPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colors.mutedForeground,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppText(
+                        l10n.addCustomer,
+                        style: theme.typography.lg.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(Icons.close, color: theme.colors.mutedForeground),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Search field
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: FTextField(
+                  control: FTextFieldControl.managed(controller: _searchController),
+                  hint: l10n.searchCustomerByName,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Results
+              if (_isSearching)
+                const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_results.isNotEmpty)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 300),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _results.length,
+                    itemBuilder: (context, index) {
+                      final customer = _results[index];
+                      return ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        leading: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: theme.colors.secondary,
+                          child: AppText(
+                            customer.initials,
+                            style: theme.typography.xs.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        title: AppText(customer.displayName, style: theme.typography.sm),
+                        subtitle: customer.email != null
+                            ? AppText(customer.email!,
+                                style: theme.typography.xs
+                                    .copyWith(color: theme.colors.mutedForeground))
+                            : null,
+                        onTap: () => widget.onCustomerSelected(customer),
+                      );
+                    },
+                  ),
+                )
+              else if (_searchController.text.trim().isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: AppText(
+                    l10n.noCustomersFound,
+                    style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
+                  ),
+                ),
+
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
       ),
     );
   }

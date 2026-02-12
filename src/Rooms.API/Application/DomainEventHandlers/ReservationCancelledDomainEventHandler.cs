@@ -39,8 +39,10 @@ public class ReservationCancelledDomainEventHandler : INotificationHandler<Reser
 
         await _eventBus.PublishAsync(cancellationEvent);
 
-        // If was active, also publish room available event
-        if (notification.PreviousStatus == ReservationStatus.Active)
+        // Publish room available event for any cancellation that frees the room
+        // (both Reserved and Active statuses occupy the room)
+        if (notification.PreviousStatus == ReservationStatus.Active ||
+            notification.PreviousStatus == ReservationStatus.Reserved)
         {
             var roomAvailableEvent = new RoomBecameAvailableIntegrationEvent(
                 reservation.RoomId,

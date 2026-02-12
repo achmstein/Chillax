@@ -110,7 +110,7 @@ public static class RoomsApi
         api.MapPost("/sessions/join", JoinSession)
             .WithName("JoinSession")
             .WithSummary("Join a session")
-            .WithDescription("Join an active session using the 6-digit access code")
+            .WithDescription("Join an active session using the 4-digit access code")
             .WithTags("Sessions")
             .RequireAuthorization();
 
@@ -147,6 +147,27 @@ public static class RoomsApi
             .WithName("GetActiveSessions")
             .WithSummary("Get active sessions")
             .WithDescription("Get all currently active sessions (Admin only)")
+            .WithTags("Sessions")
+            .RequireAuthorization("Admin");
+
+        api.MapPost("/sessions/{sessionId:int}/assign-customer", AssignCustomerToSession)
+            .WithName("AssignCustomerToSession")
+            .WithSummary("Assign a customer to a walk-in session")
+            .WithDescription("Assign a customer to an active walk-in session that has no owner (Admin only)")
+            .WithTags("Sessions")
+            .RequireAuthorization("Admin");
+
+        api.MapPost("/sessions/{sessionId:int}/members", AddMemberToSession)
+            .WithName("AddMemberToSession")
+            .WithSummary("Add a member to a session")
+            .WithDescription("Add a customer as a member to an active session (Admin only)")
+            .WithTags("Sessions")
+            .RequireAuthorization("Admin");
+
+        api.MapDelete("/sessions/{sessionId:int}/members/{customerId}", RemoveMemberFromSession)
+            .WithName("RemoveMemberFromSession")
+            .WithSummary("Remove a member from a session")
+            .WithDescription("Remove a non-owner member from an active session (Admin only)")
             .WithTags("Sessions")
             .RequireAuthorization("Admin");
 
@@ -510,9 +531,78 @@ public static class RoomsApi
         }
     }
 
+    public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> AssignCustomerToSession(
+        [FromServices] IReservationRepository reservationRepository,
+        [Description("The session ID")] int sessionId,
+        AssignCustomerRequest request)
+    {
+        try
+        {
+            var reservation = await reservationRepository.GetAsync(sessionId);
+            if (reservation == null)
+                return TypedResults.NotFound();
+
+            reservation.AssignCustomer(request.CustomerId, request.CustomerName);
+            reservationRepository.Update(reservation);
+            await reservationRepository.UnitOfWork.SaveEntitiesAsync();
+
+            return TypedResults.Ok();
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
+    public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> AddMemberToSession(
+        [FromServices] IReservationRepository reservationRepository,
+        [Description("The session ID")] int sessionId,
+        AddMemberRequest request)
+    {
+        try
+        {
+            var reservation = await reservationRepository.GetWithMembersAsync(sessionId);
+            if (reservation == null)
+                return TypedResults.NotFound();
+
+            reservation.AddMember(request.CustomerId, request.CustomerName);
+            reservationRepository.Update(reservation);
+            await reservationRepository.UnitOfWork.SaveEntitiesAsync();
+
+            return TypedResults.Ok();
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
+    public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> RemoveMemberFromSession(
+        [FromServices] IReservationRepository reservationRepository,
+        [Description("The session ID")] int sessionId,
+        [Description("The customer ID to remove")] string customerId)
+    {
+        try
+        {
+            var reservation = await reservationRepository.GetWithMembersAsync(sessionId);
+            if (reservation == null)
+                return TypedResults.NotFound();
+
+            reservation.RemoveMember(customerId);
+            reservationRepository.Update(reservation);
+            await reservationRepository.UnitOfWork.SaveEntitiesAsync();
+
+            return TypedResults.Ok();
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
     public static async Task<Results<Ok<SessionPreviewViewModel>, NotFound>> GetSessionByCode(
         [FromServices] IRoomQueries queries,
-        [Description("The 6-digit access code")] string code)
+        [Description("The 4-digit access code")] string code)
     {
         var preview = await queries.GetSessionPreviewByCodeAsync(code);
         if (preview == null)
@@ -540,6 +630,10 @@ public record ReserveRoomRequest(
 public record WalkInSessionRequest(string? Notes = null);
 
 public record JoinSessionRequest(string AccessCode);
+
+public record AssignCustomerRequest(string CustomerId, string? CustomerName);
+
+public record AddMemberRequest(string CustomerId, string? CustomerName);
 
 public record CreateRoomRequest(
     LocalizedText Name,
