@@ -54,6 +54,7 @@ namespace Catalog.API.Infrastructure.Migrations
                     CatalogTypeId = table.Column<int>(type: "integer", nullable: false),
                     IsAvailable = table.Column<bool>(type: "boolean", nullable: false),
                     PreparationTimeMinutes = table.Column<int>(type: "integer", nullable: true),
+                    IsPopular = table.Column<bool>(type: "boolean", nullable: false),
                     DisplayOrder = table.Column<int>(type: "integer", nullable: false),
                     Description = table.Column<string>(type: "jsonb", nullable: false),
                     Name = table.Column<string>(type: "jsonb", nullable: false)

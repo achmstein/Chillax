@@ -233,6 +233,9 @@ internal static class Extensions
             var notificationCluster = yarp.AddCluster(notificationApi);
             yarp.AddRoute("/api/notifications/{*any}", notificationCluster);
 
+            // SignalR hub route (WebSocket proxy)
+            yarp.AddRoute("/hub/{*any}", notificationCluster);
+
             // Accounts routes
             var accountsCluster = yarp.AddCluster(accountsApi);
             yarp.AddRoute("/api/accounts/{*any}", accountsCluster)

@@ -105,23 +105,25 @@ class MenuNotifier extends Notifier<MenuState> {
   }
 
   Future<bool> updateItemAvailability(int itemId, bool isAvailable) async {
+    // Optimistic update - immediately reflect the change in UI
+    final previousItems = state.items;
+    final optimisticItems = state.items.map((item) {
+      if (item.id == itemId) {
+        return item.copyWith(isAvailable: isAvailable);
+      }
+      return item;
+    }).toList();
+    state = state.copyWith(items: optimisticItems);
+
     try {
-      await _api.patch('items/$itemId', data: {
+      await _api.patch('items/$itemId/availability', data: {
         'isAvailable': isAvailable,
       });
-
-      // Update local state
-      final items = state.items.map((item) {
-        if (item.id == itemId) {
-          return item.copyWith(isAvailable: isAvailable);
-        }
-        return item;
-      }).toList();
-
-      state = state.copyWith(items: items);
       return true;
     } catch (e) {
-      debugPrint('Failed to update item: $e');
+      debugPrint('Failed to update item availability: $e');
+      // Revert on failure
+      state = state.copyWith(items: previousItems);
       return false;
     }
   }

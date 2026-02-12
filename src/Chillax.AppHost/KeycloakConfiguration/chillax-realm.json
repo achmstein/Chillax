@@ -55,10 +55,10 @@
   ],
   "accessTokenLifespan": 7200,
   "accessTokenLifespanForImplicitFlow": 7200,
-  "ssoSessionIdleTimeout": 1800,
-  "ssoSessionMaxLifespan": 36000,
-  "offlineSessionIdleTimeout": 2592000,
-  "offlineSessionMaxLifespan": 5184000,
+  "ssoSessionIdleTimeout": 0,
+  "ssoSessionMaxLifespan": 0,
+  "offlineSessionIdleTimeout": 0,
+  "offlineSessionMaxLifespan": 0,
   "roles": {
     "realm": [
       {
@@ -578,9 +578,9 @@
       }
     },
     {
-      "alias": "facebook",
-      "displayName": "Facebook",
-      "providerId": "facebook",
+      "alias": "apple",
+      "displayName": "Apple",
+      "providerId": "oidc",
       "enabled": true,
       "updateProfileFirstLoginMode": "on",
       "trustEmail": true,
@@ -590,10 +590,17 @@
       "linkOnly": false,
       "firstBrokerLoginFlowAlias": "first broker login",
       "config": {
-        "clientId": "1337547993982679",
-        "clientSecret": "b981c9186e425c9839ebb07a94dd53d8",
+        "clientId": "YOUR_APPLE_SERVICE_ID",
+        "clientSecret": "YOUR_APPLE_KEY_CONTENTS",
         "syncMode": "IMPORT",
-        "defaultScope": "email public_profile"
+        "defaultScope": "openid name email",
+        "authorizationUrl": "https://appleid.apple.com/auth/authorize",
+        "tokenUrl": "https://appleid.apple.com/auth/token",
+        "jwksUrl": "https://appleid.apple.com/auth/keys",
+        "issuer": "https://appleid.apple.com",
+        "useJwksUrl": "true",
+        "validateSignature": "true",
+        "clientAuthMethod": "client_secret_post"
       }
     }
   ],
@@ -609,12 +616,12 @@
       }
     },
     {
-      "name": "facebook-username-mapper",
-      "identityProviderAlias": "facebook",
+      "name": "apple-username-mapper",
+      "identityProviderAlias": "apple",
       "identityProviderMapper": "hardcoded-user-session-attribute-idp-mapper",
       "config": {
         "syncMode": "INHERIT",
-        "attribute.value": "facebook",
+        "attribute.value": "apple",
         "attribute": "idp"
       }
     }

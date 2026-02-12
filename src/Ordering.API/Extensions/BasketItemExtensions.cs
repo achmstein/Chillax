@@ -37,8 +37,8 @@ public static class BasketItemExtensions
 
     private static LocalizedText BuildLocalizedCustomizations(List<BasketItemCustomization> customizations)
     {
-        var enParts = customizations.Select(c => $"{c.CustomizationName.En}: {c.OptionName.En}");
-        var arParts = customizations.Select(c => $"{c.CustomizationName.Ar ?? c.CustomizationName.En}: {c.OptionName.Ar ?? c.OptionName.En}");
+        var enParts = customizations.Select(c => c.OptionName.En);
+        var arParts = customizations.Select(c => c.OptionName.Ar ?? c.OptionName.En);
 
         return new LocalizedText(
             string.Join(", ", enParts),

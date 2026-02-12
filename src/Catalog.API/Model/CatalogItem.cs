@@ -38,6 +38,11 @@ public class CatalogItem
     public int? PreparationTimeMinutes { get; set; }
 
     /// <summary>
+    /// Whether this item should appear in the "Most Popular" section
+    /// </summary>
+    public bool IsPopular { get; set; }
+
+    /// <summary>
     /// Display order within the category (lower numbers appear first)
     /// </summary>
     public int DisplayOrder { get; set; }

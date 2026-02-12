@@ -1,14 +1,17 @@
 using Chillax.EventBus.Abstractions;
+using Chillax.Notification.API.Hubs;
 using Chillax.Notification.API.IntegrationEvents.Events;
 using Chillax.Notification.API.Localization;
 using Chillax.Notification.API.Model;
 using Chillax.Notification.API.Services;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Chillax.Notification.API.IntegrationEvents.EventHandling;
 
 public class ReservationCancelledIntegrationEventHandler(
     NotificationContext context,
     IFcmService fcmService,
+    IHubContext<NotificationHub> hubContext,
     ILogger<ReservationCancelledIntegrationEventHandler> logger) : IIntegrationEventHandler<ReservationCancelledIntegrationEvent>
 {
     public async Task Handle(ReservationCancelledIntegrationEvent @event)
@@ -61,5 +64,13 @@ public class ReservationCancelledIntegrationEventHandler(
 
         logger.LogInformation("Sent {SuccessCount}/{TotalCount} admin cancellation notifications successfully",
             totalSuccess, subscriptions.Count);
+
+        // Broadcast via SignalR to connected clients
+        await hubContext.Clients.Group("rooms").SendAsync("RoomStatusChanged", new
+        {
+            type = "reservation_cancelled",
+            roomId = @event.RoomId,
+            reservationId = @event.ReservationId
+        });
     }
 }

@@ -1,13 +1,16 @@
+using Chillax.Notification.API.Hubs;
 using Chillax.Notification.API.IntegrationEvents.Events;
 using Chillax.Notification.API.Localization;
 using Chillax.Notification.API.Model;
 using Chillax.Notification.API.Services;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Chillax.Notification.API.IntegrationEvents.EventHandling;
 
 public class ServiceRequestCreatedIntegrationEventHandler(
     NotificationContext context,
     IFcmService fcmService,
+    IHubContext<NotificationHub> hubContext,
     ILogger<ServiceRequestCreatedIntegrationEventHandler> logger) :
     IIntegrationEventHandler<ServiceRequestCreatedIntegrationEvent>
 {
@@ -59,6 +62,15 @@ public class ServiceRequestCreatedIntegrationEventHandler(
         logger.LogInformation(
             "Sent {SuccessCount}/{TotalCount} total service request notifications for {RequestType} in {RoomName}",
             totalSuccess, subscriptions.Count, @event.RequestType, @event.RoomName.En);
+
+        // Broadcast via SignalR to admin group
+        await hubContext.Clients.Group("admin").SendAsync("ServiceRequestCreated", new
+        {
+            type = "service_request",
+            requestId = @event.RequestId,
+            requestType = @event.RequestType.ToString(),
+            roomId = @event.RoomId
+        });
     }
 
     private static (string title, string body) GetLocalizedNotificationContent(

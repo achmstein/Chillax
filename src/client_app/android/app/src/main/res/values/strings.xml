@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Chillax</string>
-
-    <!-- Facebook Login Configuration -->
-    <string name="facebook_app_id">1337547993982679</string>
-    <string name="fb_login_protocol_scheme">fb1337547993982679</string>
-    <string name="facebook_client_token">e81509fe6ff64168620c924577f6bc4f</string>
 </resources>

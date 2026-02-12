@@ -18,7 +18,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _isSocialLoading = false;
+  SocialProvider? _loadingProvider;
   String? _error;
 
   @override
@@ -72,7 +72,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleSocialSignIn(SocialProvider provider) async {
     final l10n = AppLocalizations.of(context)!;
     setState(() {
-      _isSocialLoading = true;
+      _loadingProvider = provider;
       _error = null;
     });
 
@@ -94,7 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isSocialLoading = false;
+          _loadingProvider = null;
         });
       }
     }
@@ -160,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 // Sign in button
                 FButton(
-                  onPress: _isLoading || _isSocialLoading ? null : _handleSignIn,
+                  onPress: _isLoading || _loadingProvider != null ? null : _handleSignIn,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
@@ -208,10 +208,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Expanded(
                       child: FButton(
                         style: FButtonStyle.outline(),
-                        onPress: _isLoading || _isSocialLoading
+                        onPress: _isLoading || _loadingProvider != null
                             ? null
                             : () => _handleSocialSignIn(SocialProvider.google),
-                        child: _isSocialLoading
+                        child: _loadingProvider == SocialProvider.google
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
@@ -227,23 +227,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     width: 20,
                                     height: 20,
                                     errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.g_mobiledata, size: 20),
+                                        Icon(Icons.g_mobiledata, size: 20,
+                                          color: _loadingProvider != null ? colors.mutedForeground : null),
                                   ),
                                   const SizedBox(width: 8),
-                                  AppText(l10n.google),
+                                  AppText(
+                                    l10n.google,
+                                    style: _loadingProvider != null
+                                        ? TextStyle(color: colors.mutedForeground)
+                                        : null,
+                                  ),
                                 ],
                               ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Facebook button
+                    // Apple button
                     Expanded(
                       child: FButton(
                         style: FButtonStyle.outline(),
-                        onPress: _isLoading || _isSocialLoading
+                        onPress: _isLoading || _loadingProvider != null
                             ? null
-                            : () => _handleSocialSignIn(SocialProvider.facebook),
-                        child: _isSocialLoading
+                            : () => _handleSocialSignIn(SocialProvider.apple),
+                        child: _loadingProvider == SocialProvider.apple
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
@@ -254,15 +260,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.network(
-                                    'https://www.facebook.com/favicon.ico',
-                                    width: 20,
-                                    height: 20,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.facebook, size: 20),
-                                  ),
+                                  Icon(Icons.apple, size: 20,
+                                    color: _loadingProvider != null ? colors.mutedForeground : colors.foreground),
                                   const SizedBox(width: 8),
-                                  AppText(l10n.facebook),
+                                  AppText(
+                                    l10n.apple,
+                                    style: _loadingProvider != null
+                                        ? TextStyle(color: colors.mutedForeground)
+                                        : null,
+                                  ),
                                 ],
                               ),
                       ),

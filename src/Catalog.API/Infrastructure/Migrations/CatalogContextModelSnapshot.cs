@@ -39,6 +39,9 @@ namespace Catalog.API.Infrastructure.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsPopular")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("PictureFileName")
                         .HasColumnType("text");
 

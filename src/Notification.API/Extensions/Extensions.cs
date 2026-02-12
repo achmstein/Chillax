@@ -21,6 +21,9 @@ public static class Extensions
         // Add FCM service
         builder.Services.AddSingleton<IFcmService, FcmService>();
 
+        // Add SignalR for realtime updates
+        builder.Services.AddSignalR();
+
         // Add RabbitMQ event bus with subscriptions
         builder.AddRabbitMqEventBus("eventbus")
             .ConfigureJsonOptions(options =>

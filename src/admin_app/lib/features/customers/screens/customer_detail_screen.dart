@@ -232,12 +232,38 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               ],
             ),
           ),
-          if (customer != null)
+          if (customer != null) ...[
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 22),
+              onPressed: () => _showEditNameSheet(context, customer),
+              tooltip: l10n.editName,
+            ),
             IconButton(
               icon: const Icon(Icons.add_circle_outline, size: 22),
               onPressed: () => _showChargeSheet(context, customer),
               tooltip: l10n.addCharge,
             ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, size: 22),
+              onSelected: (value) {
+                if (value == 'reset_password') {
+                  _showResetPasswordSheet(context, customer);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'reset_password',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lock_reset, size: 20),
+                      const SizedBox(width: 8),
+                      Text(l10n.resetPassword),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -351,6 +377,205 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                           }
                         },
                         child: AppText(l10n.addCharge),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditNameSheet(BuildContext context, Customer customer) {
+    final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
+    final nameController = TextEditingController(text: customer.displayName);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: theme.colors.background,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16 + MediaQuery.of(context).viewPadding.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.colors.mutedForeground,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                AppText(
+                  l10n.editName,
+                  style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+
+                AppText(l10n.newName, style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
+                FTextField(
+                  control: FTextFieldControl.managed(controller: nameController),
+                  hint: l10n.enterNewName,
+                ),
+                const SizedBox(height: 24),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: FButton(
+                        style: FButtonStyle.outline(),
+                        onPress: () => Navigator.pop(context),
+                        child: AppText(l10n.cancel),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FButton(
+                        onPress: () async {
+                          final newName = nameController.text.trim();
+                          if (newName.isEmpty) return;
+
+                          final success = await ref.read(customersProvider.notifier)
+                              .updateCustomerName(customer.id, newName);
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: AppText(success ? l10n.nameUpdatedSuccessfully : l10n.failedToUpdateName),
+                              ),
+                            );
+                          }
+                        },
+                        child: AppText(l10n.save),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showResetPasswordSheet(BuildContext context, Customer customer) {
+    final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
+    final passwordController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: theme.colors.background,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16 + MediaQuery.of(context).viewPadding.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.colors.mutedForeground,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                AppText(
+                  l10n.resetPassword,
+                  style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+
+                AppText(l10n.newPassword, style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
+                FTextField.password(
+                  control: FTextFieldControl.managed(controller: passwordController),
+                  hint: l10n.enterNewPassword,
+                ),
+                const SizedBox(height: 24),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: FButton(
+                        style: FButtonStyle.outline(),
+                        onPress: () => Navigator.pop(context),
+                        child: AppText(l10n.cancel),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FButton(
+                        onPress: () async {
+                          final newPassword = passwordController.text;
+                          if (newPassword.length < 8) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: AppText(l10n.passwordMinLength)),
+                            );
+                            return;
+                          }
+
+                          final success = await ref.read(customersProvider.notifier)
+                              .resetCustomerPassword(customer.id, newPassword);
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: AppText(success ? l10n.passwordResetSuccess : l10n.failedToResetPassword),
+                              ),
+                            );
+                          }
+                        },
+                        child: AppText(l10n.resetPassword),
                       ),
                     ),
                   ],

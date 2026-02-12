@@ -1,5 +1,6 @@
 using Chillax.Notification.API.Apis;
 using Chillax.Notification.API.Extensions;
+using Chillax.Notification.API.Hubs;
 using Chillax.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,5 +19,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapNotificationApi();
+app.MapHub<NotificationHub>("/hub/notifications");
 
 app.Run();

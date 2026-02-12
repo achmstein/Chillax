@@ -62,7 +62,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
       final response = await _apiClient.get(
         '/accounts/${_authState.userId}',
         queryParameters: {'api-version': '1.0'},
-      );
+      ).timeout(const Duration(seconds: 3));
 
       final loyaltyInfo = LoyaltyInfo.fromJson(response.data as Map<String, dynamic>);
       state = state.copyWith(
@@ -74,6 +74,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
       if (e.toString().contains('404')) {
         state = state.copyWith(isLoading: false);
       } else {
+        // Fail silently - loyalty is optional, cart should still work
         state = state.copyWith(
           isLoading: false,
           error: 'Failed to load loyalty info',

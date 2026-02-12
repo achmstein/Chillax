@@ -169,17 +169,38 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
                           ),
                         )
                       else
-                        ..._options.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final option = entry.value;
-                          return _OptionCard(
-                            key: ValueKey(option.id),
-                            option: option,
-                            index: index,
-                            onDelete: () => _removeOption(index),
-                            onSetDefault: () => _setDefaultOption(index),
-                          );
-                        }),
+                        ReorderableListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          buildDefaultDragHandles: false,
+                          itemCount: _options.length,
+                          onReorder: (oldIndex, newIndex) {
+                            setState(() {
+                              if (newIndex > oldIndex) newIndex -= 1;
+                              final item = _options.removeAt(oldIndex);
+                              _options.insert(newIndex, item);
+                            });
+                          },
+                          proxyDecorator: (child, index, animation) {
+                            return Material(
+                              color: theme.colors.background,
+                              elevation: 2,
+                              shadowColor: theme.colors.border,
+                              borderRadius: BorderRadius.circular(8),
+                              child: child,
+                            );
+                          },
+                          itemBuilder: (context, index) {
+                            final option = _options[index];
+                            return _OptionCard(
+                              key: ValueKey(option.id),
+                              option: option,
+                              index: index,
+                              onDelete: () => _removeOption(index),
+                              onSetDefault: () => _setDefaultOption(index),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -356,6 +377,20 @@ class _OptionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Drag handle for reordering
+          Center(
+            child: ReorderableDragStartListener(
+              index: index,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Icon(
+                  Icons.drag_handle,
+                  size: 20,
+                  color: theme.colors.mutedForeground,
+                ),
+              ),
+            ),
+          ),
           // EN field
           _CompactTextField(
             controller: option.nameEnController,

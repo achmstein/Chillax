@@ -1,14 +1,17 @@
 using Chillax.EventBus.Abstractions;
+using Chillax.Notification.API.Hubs;
 using Chillax.Notification.API.IntegrationEvents.Events;
 using Chillax.Notification.API.Localization;
 using Chillax.Notification.API.Model;
 using Chillax.Notification.API.Services;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Chillax.Notification.API.IntegrationEvents.EventHandling;
 
 public class RoomBecameAvailableIntegrationEventHandler(
     NotificationContext context,
     IFcmService fcmService,
+    IHubContext<NotificationHub> hubContext,
     ILogger<RoomBecameAvailableIntegrationEventHandler> logger) : IIntegrationEventHandler<RoomBecameAvailableIntegrationEvent>
 {
     public async Task Handle(RoomBecameAvailableIntegrationEvent @event)
@@ -62,5 +65,12 @@ public class RoomBecameAvailableIntegrationEventHandler(
         await context.SaveChangesAsync();
 
         logger.LogInformation("Deleted {Count} subscriptions after notification", subscriptions.Count);
+
+        // Broadcast via SignalR to connected clients
+        await hubContext.Clients.Group("rooms").SendAsync("RoomStatusChanged", new
+        {
+            type = "room_available",
+            roomId = @event.RoomId
+        });
     }
 }

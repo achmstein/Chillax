@@ -14,6 +14,7 @@ import '../../notifications/services/notification_service.dart';
 import '../../service_request/models/service_request.dart';
 import '../../service_request/services/service_request_service.dart';
 import '../models/room.dart';
+import '../../../core/services/signalr_service.dart';
 import '../services/room_service.dart';
 
 /// Rooms screen for viewing and reserving PlayStation rooms
@@ -48,11 +49,15 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     });
 
     _startPolling();
+
+    // Join SignalR rooms group for realtime updates
+    ref.read(signalRServiceProvider).joinRoomsGroup();
   }
 
   @override
   void dispose() {
     _stopPolling();
+    ref.read(signalRServiceProvider).leaveRoomsGroup();
     WidgetsBinding.instance.removeObserver(this);
     _codeController.dispose();
     _codeFocusNode.dispose();
@@ -84,8 +89,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   Future<void> _joinSession() async {
     final l10n = AppLocalizations.of(context)!;
     final code = _codeController.text.trim();
-    if (code.length != 6) {
-      setState(() => _joinError = l10n.enterSixDigitCode);
+    if (code.length != 4) {
+      setState(() => _joinError = l10n.enterFourDigitCode);
       return;
     }
 
@@ -202,11 +207,11 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                   focusNode: _codeFocusNode,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
-                  maxLength: 6,
+                  maxLength: 4,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 8,
+                    letterSpacing: 10,
                   ),
                   decoration: InputDecoration(
                     counterText: '',

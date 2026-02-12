@@ -1,14 +1,17 @@
 using Chillax.EventBus.Abstractions;
+using Chillax.Notification.API.Hubs;
 using Chillax.Notification.API.IntegrationEvents.Events;
 using Chillax.Notification.API.Localization;
 using Chillax.Notification.API.Model;
 using Chillax.Notification.API.Services;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Chillax.Notification.API.IntegrationEvents.EventHandling;
 
 public class OrderSubmittedIntegrationEventHandler(
     NotificationContext context,
     IFcmService fcmService,
+    IHubContext<NotificationHub> hubContext,
     ILogger<OrderSubmittedIntegrationEventHandler> logger) : IIntegrationEventHandler<OrderStatusChangedToSubmittedIntegrationEvent>
 {
     public async Task Handle(OrderStatusChangedToSubmittedIntegrationEvent @event)
@@ -61,5 +64,22 @@ public class OrderSubmittedIntegrationEventHandler(
             totalSuccess, subscriptions.Count);
 
         // Note: Admin subscriptions are persistent - do NOT delete them
+
+        // Broadcast via SignalR to admin group and the buyer's personal group
+        await hubContext.Clients.Group("admin").SendAsync("OrderStatusChanged", new
+        {
+            type = "order_submitted",
+            orderId = @event.OrderId,
+            buyerName = @event.BuyerName
+        });
+
+        if (!string.IsNullOrEmpty(@event.BuyerIdentityGuid))
+        {
+            await hubContext.Clients.Group($"user:{@event.BuyerIdentityGuid}").SendAsync("OrderStatusChanged", new
+            {
+                type = "order_submitted",
+                orderId = @event.OrderId
+            });
+        }
     }
 }

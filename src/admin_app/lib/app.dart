@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/router/app_router.dart';
+import 'core/services/signalr_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/auth/auth_service.dart';
 import 'features/service_requests/providers/service_requests_provider.dart';
@@ -21,12 +22,35 @@ class ChillaxAdminApp extends ConsumerStatefulWidget {
   ConsumerState<ChillaxAdminApp> createState() => _ChillaxAdminAppState();
 }
 
-class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
+class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsBindingObserver {
+  final List<StreamSubscription> _signalRSubscriptions = [];
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeApp();
     _setupFCMHandlers();
+  }
+
+  @override
+  void dispose() {
+    for (final sub in _signalRSubscriptions) {
+      sub.cancel();
+    }
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final authService = ref.read(authServiceProvider.notifier);
+      // Proactively refresh token on app resume (may have expired while in background)
+      authService.refreshToken();
+      // Re-register notifications on app resume (FCM token may have changed)
+      authService.reregisterNotifications();
+    }
   }
 
   Future<void> _initializeApp() async {
@@ -34,6 +58,33 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> {
     await ref.read(authServiceProvider.notifier).initialize();
     // Remove the native splash screen after auth is initialized
     FlutterNativeSplash.remove();
+
+    // Connect SignalR if authenticated
+    if (ref.read(authServiceProvider).isAuthenticated) {
+      _connectSignalR();
+    }
+  }
+
+  void _connectSignalR() {
+    final signalR = ref.read(signalRServiceProvider);
+    signalR.connect();
+
+    // Listen for realtime events and refresh providers
+    _signalRSubscriptions.add(
+      signalR.onRoomStatusChanged.listen((_) {
+        ref.read(roomsProvider.notifier).loadRooms();
+      }),
+    );
+    _signalRSubscriptions.add(
+      signalR.onOrderStatusChanged.listen((_) {
+        ref.read(ordersProvider.notifier).loadOrders();
+      }),
+    );
+    _signalRSubscriptions.add(
+      signalR.onServiceRequestCreated.listen((_) {
+        ref.read(serviceRequestsProvider.notifier).loadRequests();
+      }),
+    );
   }
 
   void _setupFCMHandlers() {

@@ -96,6 +96,28 @@ class CustomersNotifier extends Notifier<CustomersState> {
       return null;
     }
   }
+
+  Future<bool> updateCustomerName(String customerId, String newName) async {
+    try {
+      await _api.put('/users/$customerId/name', data: {'newName': newName});
+      // Reload customers to reflect the name change
+      await loadCustomers();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to update customer name: $e');
+      return false;
+    }
+  }
+
+  Future<bool> resetCustomerPassword(String customerId, String newPassword) async {
+    try {
+      await _api.put('/users/$customerId/password', data: {'newPassword': newPassword});
+      return true;
+    } catch (e) {
+      debugPrint('Failed to reset customer password: $e');
+      return false;
+    }
+  }
 }
 
 /// Customers provider

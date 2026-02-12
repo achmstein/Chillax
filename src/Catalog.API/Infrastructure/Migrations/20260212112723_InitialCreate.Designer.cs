@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Catalog.API.Infrastructure.Migrations
 {
     [DbContext(typeof(CatalogContext))]
-    [Migration("20260201135603_InitialCreate")]
+    [Migration("20260212112723_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -40,6 +40,9 @@ namespace Catalog.API.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsAvailable")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPopular")
                         .HasColumnType("boolean");
 
                     b.Property<string>("PictureFileName")

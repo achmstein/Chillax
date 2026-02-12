@@ -78,7 +78,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get google => 'جوجل';
 
   @override
-  String get facebook => 'فيسبوك';
+  String get apple => 'أبل';
 
   @override
   String get dontHaveAccount => 'معندكش حساب؟ ';
@@ -259,6 +259,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enterSixDigitCode => 'ادخل كود من 6 أرقام';
+
+  @override
+  String get enterFourDigitCode => 'ادخل كود من 4 أرقام';
 
   @override
   String get enterCode => 'ادخل الكود';
@@ -850,4 +853,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get callUs => 'كلمنا';
+
+  @override
+  String get mostPopular => 'الأكثر طلباً';
 }

@@ -15,6 +15,7 @@ public record CatalogItemDto
     public int CatalogTypeId { get; init; }
     public LocalizedText CatalogTypeName { get; init; } = new();
     public bool IsAvailable { get; init; }
+    public bool IsPopular { get; init; }
     public int? PreparationTimeMinutes { get; init; }
     public int DisplayOrder { get; init; }
     public List<ItemCustomizationDto> Customizations { get; init; } = new();
@@ -106,6 +107,14 @@ public record ReorderItemDto
 {
     public int Id { get; init; }
     public int DisplayOrder { get; init; }
+}
+
+/// <summary>
+/// Request to explicitly set item availability
+/// </summary>
+public record SetAvailabilityRequest
+{
+    public bool IsAvailable { get; init; }
 }
 
 /// <summary>

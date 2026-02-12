@@ -632,6 +632,122 @@ app.MapPost("/api/identity/update-name", async (UpdateNameRequest request, HttpC
     return Results.Problem($"Failed to update name: {errorContent}", statusCode: (int)updateResponse.StatusCode);
 }).RequireAuthorization();
 
+// Admin: Update customer name endpoint
+app.MapPut("/api/identity/users/{userId}/name", async (string userId, UpdateNameRequest request, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    // Update user name via Admin API
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var userEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}";
+
+    // Split name into first/last if space present (matching registration pattern)
+    var nameParts = request.NewName?.Split(' ', 2) ?? [];
+    var firstName = nameParts.Length > 0 ? nameParts[0] : request.NewName;
+    var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+
+    var namePayload = new
+    {
+        firstName = firstName,
+        lastName = lastName
+    };
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    var updateResponse = await client.PutAsJsonAsync(userEndpoint, namePayload);
+
+    if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        return Results.Ok(new { message = "Name updated successfully" });
+    }
+
+    if (updateResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+
+    var errorContent = await updateResponse.Content.ReadAsStringAsync();
+    return Results.Problem($"Failed to update name: {errorContent}", statusCode: (int)updateResponse.StatusCode);
+}).RequireAuthorization("Admin");
+
+// Admin: Reset customer password endpoint
+app.MapPut("/api/identity/users/{userId}/password", async (string userId, ChangePasswordRequest request, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    // Reset password via Admin API
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var passwordEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}/reset-password";
+
+    var passwordPayload = new
+    {
+        type = "password",
+        value = request.NewPassword,
+        temporary = false
+    };
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    var resetResponse = await client.PutAsJsonAsync(passwordEndpoint, passwordPayload);
+
+    if (resetResponse.IsSuccessStatusCode || resetResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        return Results.Ok(new { message = "Password reset successfully" });
+    }
+
+    if (resetResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+
+    var errorContent = await resetResponse.Content.ReadAsStringAsync();
+    return Results.Problem($"Failed to reset password: {errorContent}", statusCode: (int)resetResponse.StatusCode);
+}).RequireAuthorization("Admin");
+
 // Delete account endpoint (authenticated user - soft delete by disabling)
 app.MapDelete("/api/identity/delete-account", async (HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
 {

@@ -34,9 +34,9 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
   late TextEditingController _descriptionEnController;
   late TextEditingController _descriptionArController;
   late TextEditingController _priceController;
-  late TextEditingController _prepTimeController;
   int? _selectedCategoryId;
   bool _isAvailable = true;
+  bool _isPopular = false;
   bool _isSubmitting = false;
 
   // Image state
@@ -55,7 +55,6 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
     _descriptionEnController = TextEditingController();
     _descriptionArController = TextEditingController();
     _priceController = TextEditingController();
-    _prepTimeController = TextEditingController();
 
     // Load existing item data if editing
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -73,9 +72,9 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
           _descriptionEnController.text = item.description.en;
           _descriptionArController.text = item.description.ar ?? '';
           _priceController.text = item.price.toStringAsFixed(2);
-          _prepTimeController.text = item.preparationTimeMinutes?.toString() ?? '';
           _selectedCategoryId = item.catalogTypeId;
           _isAvailable = item.isAvailable;
+          _isPopular = item.isPopular;
           _existingImageUri = item.pictureUri;
           _customizations = List.from(item.customizations);
         });
@@ -90,7 +89,6 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
     _descriptionEnController.dispose();
     _descriptionArController.dispose();
     _priceController.dispose();
-    _prepTimeController.dispose();
     super.dispose();
   }
 
@@ -324,22 +322,6 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Preparation time field
-        AppText(
-          l10n.preparationTime,
-          style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        FTextField(
-          control: FTextFieldControl.managed(controller: _prepTimeController),
-          hint: l10n.prepTimeHint,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-          ],
-        ),
-        const SizedBox(height: 16),
-
         // Availability toggle
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -351,6 +333,22 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
             FSwitch(
               value: _isAvailable,
               onChange: (value) => setState(() => _isAvailable = value),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Popular toggle
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            AppText(
+              l10n.popular,
+              style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+            ),
+            FSwitch(
+              value: _isPopular,
+              onChange: (value) => setState(() => _isPopular = value),
             ),
           ],
         ),
@@ -422,17 +420,38 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
               border: Border.all(color: theme.colors.border),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Column(
-              children: _customizations.asMap().entries.map((entry) {
-                final index = entry.key;
-                final customization = entry.value;
+            child: ReorderableListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              itemCount: _customizations.length,
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) newIndex -= 1;
+                  final item = _customizations.removeAt(oldIndex);
+                  _customizations.insert(newIndex, item);
+                });
+              },
+              proxyDecorator: (child, index, animation) {
+                return Material(
+                  color: theme.colors.background,
+                  elevation: 2,
+                  shadowColor: theme.colors.border,
+                  borderRadius: BorderRadius.circular(8),
+                  child: child,
+                );
+              },
+              itemBuilder: (context, index) {
+                final customization = _customizations[index];
                 return _CustomizationTile(
+                  key: ObjectKey(customization),
                   customization: customization,
+                  index: index,
                   onTap: () => _addOrEditCustomization(context, customization: customization, index: index),
                   onDelete: () => _deleteCustomization(context, index),
                   showDivider: index < _customizations.length - 1,
                 );
-              }).toList(),
+              },
             ),
           ),
       ],
@@ -535,6 +554,11 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
     final category = state.categories.firstWhere((c) => c.id == _selectedCategoryId);
     final notifier = ref.read(menuProvider.notifier);
 
+    // Assign displayOrder from list position
+    _customizations = _customizations.asMap().entries.map(
+      (e) => e.value.copyWith(displayOrder: e.key),
+    ).toList();
+
     // Build the item
     final item = MenuItem(
       id: widget.itemId ?? 0,
@@ -544,7 +568,8 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
       catalogTypeId: _selectedCategoryId!,
       catalogTypeName: category.name,
       isAvailable: _isAvailable,
-      preparationTimeMinutes: int.tryParse(_prepTimeController.text),
+      isPopular: _isPopular,
+      preparationTimeMinutes: null,
       customizations: _customizations,
     );
 
@@ -626,12 +651,15 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
 
 class _CustomizationTile extends StatelessWidget {
   final ItemCustomization customization;
+  final int index;
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final bool showDivider;
 
   const _CustomizationTile({
+    super.key,
     required this.customization,
+    required this.index,
     required this.onTap,
     required this.onDelete,
     this.showDivider = true,
@@ -651,6 +679,15 @@ class _CustomizationTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             child: Row(
               children: [
+                ReorderableDragStartListener(
+                  index: index,
+                  child: Icon(
+                    Icons.drag_handle,
+                    size: 20,
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

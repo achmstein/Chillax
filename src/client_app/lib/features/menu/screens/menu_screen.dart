@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -22,6 +23,18 @@ final groupedMenuItemsProvider = FutureProvider.family<Map<MenuCategory, List<Me
   final items = await service.getMenuItems();
 
   final grouped = <MenuCategory, List<MenuItem>>{};
+
+  // Add "Most Popular" section at the top if there are popular items
+  final popularItems = items.where((item) => item.isPopular).toList();
+  if (popularItems.isNotEmpty) {
+    final popularCategory = MenuCategory(
+      id: -1,
+      name: LocalizedText(en: 'Most Popular', ar: 'الأكثر طلباً'),
+      displayOrder: -1,
+    );
+    grouped[popularCategory] = popularItems;
+  }
+
   for (final category in categories) {
     final categoryItems = items.where((item) => item.catalogTypeId == category.id).toList();
     if (categoryItems.isNotEmpty) {

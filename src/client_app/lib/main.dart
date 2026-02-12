@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,8 +8,11 @@ import 'core/router/app_router.dart';
 import 'core/auth/auth_service.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/services/firebase_service.dart';
+import 'core/services/signalr_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'features/orders/services/order_service.dart';
+import 'features/rooms/services/room_service.dart';
 
 void main() async {
   // Preserve the native splash screen
@@ -34,10 +38,20 @@ class ChillaxApp extends ConsumerStatefulWidget {
 }
 
 class _ChillaxAppState extends ConsumerState<ChillaxApp> {
+  final List<StreamSubscription> _signalRSubscriptions = [];
+
   @override
   void initState() {
     super.initState();
     _initializeApp();
+  }
+
+  @override
+  void dispose() {
+    for (final sub in _signalRSubscriptions) {
+      sub.cancel();
+    }
+    super.dispose();
   }
 
   Future<void> _initializeApp() async {
@@ -49,6 +63,28 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
 
     // Remove the native splash screen after initialization
     FlutterNativeSplash.remove();
+
+    // Connect SignalR if authenticated
+    if (ref.read(authServiceProvider).isAuthenticated) {
+      _connectSignalR();
+    }
+  }
+
+  void _connectSignalR() {
+    final signalR = ref.read(signalRServiceProvider);
+    signalR.connect();
+
+    // Listen for realtime events and refresh providers
+    _signalRSubscriptions.add(
+      signalR.onRoomStatusChanged.listen((_) {
+        ref.invalidate(roomsProvider);
+      }),
+    );
+    _signalRSubscriptions.add(
+      signalR.onOrderStatusChanged.listen((_) {
+        ref.read(ordersProvider.notifier).refresh();
+      }),
+    );
   }
 
   @override

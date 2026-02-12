@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/providers/locale_provider.dart';
@@ -10,12 +11,79 @@ import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/about_sheet.dart';
 
-/// Admin profile screen - restructured with account, appearance, and about sections
-class ProfileScreen extends ConsumerWidget {
+/// Admin profile screen - restructured with account, appearance, notifications, and about sections
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _ordersNotifications = true;
+  bool _reservationsNotifications = true;
+  bool _serviceRequestsNotifications = true;
+  bool _prefsLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPrefs();
+  }
+
+  Future<void> _loadNotificationPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _ordersNotifications = prefs.getBool('notify_orders') ?? true;
+        _reservationsNotifications = prefs.getBool('notify_reservations') ?? true;
+        _serviceRequestsNotifications = prefs.getBool('notify_service_requests') ?? true;
+        _prefsLoaded = true;
+      });
+    }
+  }
+
+  Future<void> _toggleOrderNotifications(bool enabled) async {
+    setState(() => _ordersNotifications = enabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notify_orders', enabled);
+    final authService = ref.read(authServiceProvider.notifier);
+    final preferredLanguage = prefs.getString('app_locale') ?? 'en';
+    if (enabled) {
+      await authService.registerForAdminNotifications(preferredLanguage: preferredLanguage);
+    } else {
+      await authService.unregisterFromAdminNotifications();
+    }
+  }
+
+  Future<void> _toggleReservationNotifications(bool enabled) async {
+    setState(() => _reservationsNotifications = enabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notify_reservations', enabled);
+    final authService = ref.read(authServiceProvider.notifier);
+    final preferredLanguage = prefs.getString('app_locale') ?? 'en';
+    if (enabled) {
+      await authService.registerForAdminReservationNotifications(preferredLanguage: preferredLanguage);
+    } else {
+      await authService.unregisterFromAdminReservationNotifications();
+    }
+  }
+
+  Future<void> _toggleServiceRequestNotifications(bool enabled) async {
+    setState(() => _serviceRequestsNotifications = enabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notify_service_requests', enabled);
+    final authService = ref.read(authServiceProvider.notifier);
+    final preferredLanguage = prefs.getString('app_locale') ?? 'en';
+    if (enabled) {
+      await authService.registerForServiceRequestNotifications(preferredLanguage: preferredLanguage);
+    } else {
+      await authService.unregisterFromServiceRequestNotifications();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authServiceProvider);
     final themeState = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
@@ -88,7 +156,41 @@ class ProfileScreen extends ConsumerWidget {
 
                 const SizedBox(height: 16),
 
-                // Group 2: Appearance & Info - Theme, Language, About
+                // Group 2: Notifications
+                if (_prefsLoaded)
+                  FTileGroup(
+                    label: AppText(l10n.notifications),
+                    children: [
+                      FTile(
+                        prefix: const Icon(FIcons.shoppingBag),
+                        title: AppText(l10n.orderNotifications),
+                        suffix: FSwitch(
+                          value: _ordersNotifications,
+                          onChange: _toggleOrderNotifications,
+                        ),
+                      ),
+                      FTile(
+                        prefix: const Icon(FIcons.calendarDays),
+                        title: AppText(l10n.reservationNotifications),
+                        suffix: FSwitch(
+                          value: _reservationsNotifications,
+                          onChange: _toggleReservationNotifications,
+                        ),
+                      ),
+                      FTile(
+                        prefix: const Icon(FIcons.bellRing),
+                        title: AppText(l10n.serviceRequestNotifications),
+                        suffix: FSwitch(
+                          value: _serviceRequestsNotifications,
+                          onChange: _toggleServiceRequestNotifications,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                const SizedBox(height: 16),
+
+                // Group 3: Appearance & Info - Theme, Language, About
                 FTileGroup(
                   children: [
                     FTile(
@@ -96,14 +198,14 @@ class ProfileScreen extends ConsumerWidget {
                       title: AppText(l10n.theme),
                       subtitle: AppText(_getThemeModeName(themeState.themeMode, l10n)),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () => _showThemeSelector(context, ref),
+                      onPress: () => _showThemeSelector(context),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.globe),
                       title: AppText(l10n.language),
                       subtitle: AppText(locale.languageCode == 'ar' ? l10n.arabic : l10n.english),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () => _showLanguageSelector(context, ref),
+                      onPress: () => _showLanguageSelector(context),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.info),
@@ -121,7 +223,7 @@ class ProfileScreen extends ConsumerWidget {
                   width: double.infinity,
                   child: FButton(
                     style: FButtonStyle.destructive(),
-                    onPress: () => _handleLogout(context, ref, l10n),
+                    onPress: () => _handleLogout(context, l10n),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -172,7 +274,7 @@ class ProfileScreen extends ConsumerWidget {
     }
   }
 
-  void _showThemeSelector(BuildContext context, WidgetRef ref) {
+  void _showThemeSelector(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final currentMode = ref.read(themeProvider).themeMode;
 
@@ -193,7 +295,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showLanguageSelector(BuildContext context, WidgetRef ref) {
+  void _showLanguageSelector(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final currentLocale = ref.read(localeProvider);
 
@@ -225,7 +327,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleLogout(BuildContext context, WidgetRef ref, AppLocalizations l10n) async {
+  Future<void> _handleLogout(BuildContext context, AppLocalizations l10n) async {
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(

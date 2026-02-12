@@ -1179,6 +1179,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SetAvailabilityRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -1874,6 +1890,9 @@
             ],
             "format": "int32"
           },
+          "isPopular": {
+            "type": "boolean"
+          },
           "displayOrder": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
@@ -1933,6 +1952,9 @@
             "$ref": "#/components/schemas/LocalizedText"
           },
           "isAvailable": {
+            "type": "boolean"
+          },
+          "isPopular": {
             "type": "boolean"
           },
           "preparationTimeMinutes": {
@@ -2335,6 +2357,14 @@
             "items": {
               "$ref": "#/components/schemas/SaveItemPreference"
             }
+          }
+        }
+      },
+      "SetAvailabilityRequest": {
+        "type": "object",
+        "properties": {
+          "isAvailable": {
+            "type": "boolean"
           }
         }
       },

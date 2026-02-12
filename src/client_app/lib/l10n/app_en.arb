@@ -29,7 +29,7 @@
 
   "orContinueWith": "or continue with",
   "google": "Google",
-  "facebook": "Facebook",
+  "apple": "Apple",
 
   "dontHaveAccount": "Don't have an account? ",
   "alreadyHaveAccount": "Already have an account? ",
@@ -116,6 +116,7 @@
   "failedToLoadDetails": "Failed to load details",
 
   "enterSixDigitCode": "Enter 6-digit code",
+  "enterFourDigitCode": "Enter 4-digit code",
   "enterCode": "Enter code",
   "invalidCode": "Invalid code",
   "joinedSession": "Joined session!",
@@ -413,5 +414,6 @@
   "newName": "New name",
   "failedToUpdateName": "Failed to update name. Please try again.",
 
-  "callUs": "Call Us"
+  "callUs": "Call Us",
+  "mostPopular": "Most Popular"
 }

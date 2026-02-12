@@ -546,6 +546,7 @@ public static class CatalogApi
             PictureFileName = product.PictureFileName,
             Price = product.Price,
             IsAvailable = product.IsAvailable,
+            IsPopular = product.IsPopular,
             PreparationTimeMinutes = product.PreparationTimeMinutes,
             DisplayOrder = product.DisplayOrder
         };
@@ -577,6 +578,7 @@ public static class CatalogApi
         catalogItem.Price = productToUpdate.Price;
         catalogItem.CatalogTypeId = productToUpdate.CatalogTypeId;
         catalogItem.IsAvailable = productToUpdate.IsAvailable;
+        catalogItem.IsPopular = productToUpdate.IsPopular;
         catalogItem.PreparationTimeMinutes = productToUpdate.PreparationTimeMinutes;
         catalogItem.DisplayOrder = productToUpdate.DisplayOrder;
 
@@ -616,7 +618,8 @@ public static class CatalogApi
     public static async Task<Results<Ok<CatalogItemDto>, NotFound>> ToggleItemAvailability(
         [AsParameters] CatalogServices services,
         HttpContext httpContext,
-        [Description("The id of the menu item")] int id)
+        [Description("The id of the menu item")] int id,
+        [FromBody] SetAvailabilityRequest? request = null)
     {
         var item = await services.Context.CatalogItems
             .Include(c => c.CatalogType)
@@ -629,7 +632,8 @@ public static class CatalogApi
             return TypedResults.NotFound();
         }
 
-        item.IsAvailable = !item.IsAvailable;
+        // If explicit value provided, use it; otherwise toggle (backwards compatible)
+        item.IsAvailable = request?.IsAvailable ?? !item.IsAvailable;
         await services.Context.SaveChangesAsync();
 
         var baseUrl = GetBaseUrl(httpContext);

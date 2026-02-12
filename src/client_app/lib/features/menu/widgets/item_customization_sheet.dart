@@ -220,10 +220,10 @@ class _ItemCustomizationSheetState
   void _addToCart() {
     final selectedCustomizations = <SelectedCustomization>[];
 
-    for (final entry in _selectedOptions.entries) {
-      final customization = widget.item.customizations
-          .firstWhere((c) => c.id == entry.key);
-      for (final optionId in entry.value) {
+    // Iterate customizations in displayOrder (as they come from API)
+    for (final customization in widget.item.customizations) {
+      final selectedOptionIds = _selectedOptions[customization.id] ?? [];
+      for (final optionId in selectedOptionIds) {
         final option = customization.options.firstWhere((o) => o.id == optionId);
         selectedCustomizations.add(SelectedCustomization(
           customizationId: customization.id,

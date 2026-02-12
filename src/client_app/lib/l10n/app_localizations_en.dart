@@ -78,7 +78,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get google => 'Google';
 
   @override
-  String get facebook => 'Facebook';
+  String get apple => 'Apple';
 
   @override
   String get dontHaveAccount => 'Don\'t have an account? ';
@@ -263,6 +263,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enterSixDigitCode => 'Enter 6-digit code';
+
+  @override
+  String get enterFourDigitCode => 'Enter 4-digit code';
 
   @override
   String get enterCode => 'Enter code';
@@ -864,4 +867,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get callUs => 'Call Us';
+
+  @override
+  String get mostPopular => 'Most Popular';
 }

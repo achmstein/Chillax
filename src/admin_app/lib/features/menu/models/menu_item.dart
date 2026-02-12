@@ -10,6 +10,7 @@ class MenuItem {
   final int catalogTypeId;
   final LocalizedText catalogTypeName;
   final bool isAvailable;
+  final bool isPopular;
   final int? preparationTimeMinutes;
   final int displayOrder;
   final List<ItemCustomization> customizations;
@@ -23,6 +24,7 @@ class MenuItem {
     required this.catalogTypeId,
     required this.catalogTypeName,
     this.isAvailable = true,
+    this.isPopular = false,
     this.preparationTimeMinutes,
     this.displayOrder = 0,
     this.customizations = const [],
@@ -37,6 +39,7 @@ class MenuItem {
     int? catalogTypeId,
     LocalizedText? catalogTypeName,
     bool? isAvailable,
+    bool? isPopular,
     int? preparationTimeMinutes,
     int? displayOrder,
     List<ItemCustomization>? customizations,
@@ -50,6 +53,7 @@ class MenuItem {
       catalogTypeId: catalogTypeId ?? this.catalogTypeId,
       catalogTypeName: catalogTypeName ?? this.catalogTypeName,
       isAvailable: isAvailable ?? this.isAvailable,
+      isPopular: isPopular ?? this.isPopular,
       preparationTimeMinutes: preparationTimeMinutes ?? this.preparationTimeMinutes,
       displayOrder: displayOrder ?? this.displayOrder,
       customizations: customizations ?? this.customizations,
@@ -66,6 +70,7 @@ class MenuItem {
       catalogTypeId: json['catalogTypeId'] as int,
       catalogTypeName: LocalizedText.parse(json['catalogTypeName'] ?? ''),
       isAvailable: json['isAvailable'] as bool? ?? true,
+      isPopular: json['isPopular'] as bool? ?? false,
       preparationTimeMinutes: json['preparationTimeMinutes'] as int?,
       displayOrder: json['displayOrder'] as int? ?? 0,
       customizations: (json['customizations'] as List<dynamic>?)
@@ -85,6 +90,7 @@ class MenuItem {
       'catalogTypeId': catalogTypeId,
       'catalogTypeName': catalogTypeName.toJson(),
       'isAvailable': isAvailable,
+      'isPopular': isPopular,
       'preparationTimeMinutes': preparationTimeMinutes,
       'displayOrder': displayOrder,
       'customizations': customizations.map((e) => e.toJson()).toList(),

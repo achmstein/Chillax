@@ -1,15 +1,18 @@
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../config/app_config.dart';
+import '../services/signalr_service.dart';
 
 /// Supported social login providers
-enum SocialProvider { google, facebook }
+enum SocialProvider { google, apple }
 
 /// Authentication state
 class AuthState {
@@ -57,7 +60,7 @@ class AuthState {
 }
 
 /// Authentication service using native OIDC with Resource Owner Password Credentials
-/// and native social login SDKs (Google Sign-In, Facebook Login)
+/// and native social login SDKs (Google Sign-In, Apple Sign In)
 class AuthService extends Notifier<AuthState> {
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 10),
@@ -167,6 +170,20 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
+  /// Generate a random nonce string for Apple Sign In
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  /// SHA256 hash of a string (used for Apple Sign In nonce on Android)
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   /// Sign in with social provider using native SDKs (no browser)
   Future<bool> signInWithProvider(SocialProvider provider) async {
     debugPrint('Attempting native social sign in with: ${provider.name}');
@@ -174,6 +191,7 @@ class AuthService extends Notifier<AuthState> {
     try {
       String? socialToken;
       String providerAlias;
+      String tokenType;
 
       if (provider == SocialProvider.google) {
         // Use native Google Sign-In
@@ -186,21 +204,25 @@ class AuthService extends Notifier<AuthState> {
         final googleAuth = await googleUser.authentication;
         socialToken = googleAuth.accessToken;
         providerAlias = 'google';
+        tokenType = 'urn:ietf:params:oauth:token-type:access_token';
         debugPrint('Google sign in successful, got access token');
       } else {
-        // Use native Facebook Login
-        final result = await FacebookAuth.instance.login(
-          permissions: ['email', 'public_profile'],
+        // Use Sign In with Apple
+        final rawNonce = _generateNonce();
+        final hashedNonce = _sha256ofString(rawNonce);
+
+        final credential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+          nonce: hashedNonce,
         );
 
-        if (result.status != LoginStatus.success) {
-          debugPrint('Facebook sign in failed: ${result.status}');
-          return false;
-        }
-
-        socialToken = result.accessToken?.tokenString;
-        providerAlias = 'facebook';
-        debugPrint('Facebook sign in successful, got access token');
+        socialToken = credential.identityToken;
+        providerAlias = 'apple';
+        tokenType = 'urn:ietf:params:oauth:token-type:id_token';
+        debugPrint('Apple sign in successful, got identity token');
       }
 
       if (socialToken == null) {
@@ -209,7 +231,7 @@ class AuthService extends Notifier<AuthState> {
       }
 
       // Exchange social token with Keycloak using token exchange grant
-      return await _exchangeSocialToken(socialToken, providerAlias);
+      return await _exchangeSocialToken(socialToken, providerAlias, tokenType);
     } catch (e) {
       debugPrint('Social sign in error: $e');
       return false;
@@ -217,7 +239,7 @@ class AuthService extends Notifier<AuthState> {
   }
 
   /// Exchange social provider token for Keycloak tokens
-  Future<bool> _exchangeSocialToken(String socialToken, String providerAlias) async {
+  Future<bool> _exchangeSocialToken(String socialToken, String providerAlias, String tokenType) async {
     debugPrint('Exchanging $providerAlias token with Keycloak');
 
     try {
@@ -227,7 +249,7 @@ class AuthService extends Notifier<AuthState> {
           'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
           'client_id': AppConfig.clientId,
           'subject_token': socialToken,
-          'subject_token_type': 'urn:ietf:params:oauth:token-type:access_token',
+          'subject_token_type': tokenType,
           'subject_issuer': providerAlias,
           'scope': AppConfig.scopes.join(' '),
         },
@@ -287,6 +309,9 @@ class AuthService extends Notifier<AuthState> {
   /// Sign out
   Future<void> signOut() async {
     try {
+      // Disconnect SignalR
+      await ref.read(signalRServiceProvider).disconnect();
+
       // Sign out from Keycloak
       if (state.refreshToken != null) {
         await _dio.post(
@@ -305,7 +330,6 @@ class AuthService extends Notifier<AuthState> {
       if (await _googleSignIn.isSignedIn()) {
         await _googleSignIn.signOut();
       }
-      await FacebookAuth.instance.logOut();
     } catch (e) {
       debugPrint('Sign out error: $e');
     } finally {
@@ -425,6 +449,9 @@ class AuthService extends Notifier<AuthState> {
       email: email,
       name: name,
     );
+
+    // Connect SignalR for realtime updates
+    ref.read(signalRServiceProvider).connect();
   }
 
   Future<void> _clearTokens() async {

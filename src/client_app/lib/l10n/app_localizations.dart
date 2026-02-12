@@ -236,11 +236,11 @@ abstract class AppLocalizations {
   /// **'Google'**
   String get google;
 
-  /// No description provided for @facebook.
+  /// No description provided for @apple.
   ///
   /// In en, this message translates to:
-  /// **'Facebook'**
-  String get facebook;
+  /// **'Apple'**
+  String get apple;
 
   /// No description provided for @dontHaveAccount.
   ///
@@ -583,6 +583,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter 6-digit code'**
   String get enterSixDigitCode;
+
+  /// No description provided for @enterFourDigitCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 4-digit code'**
+  String get enterFourDigitCode;
 
   /// No description provided for @enterCode.
   ///
@@ -1681,6 +1687,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Call Us'**
   String get callUs;
+
+  /// No description provided for @mostPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Popular'**
+  String get mostPopular;
 }
 
 class _AppLocalizationsDelegate

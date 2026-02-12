@@ -46,7 +46,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
 
   Future<void> _fetchPreview() async {
     final code = _codeController.text.trim();
-    if (code.length != 6) {
+    if (code.length != 4) {
       setState(() {
         _preview = null;
         _error = null;
@@ -85,7 +85,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
 
   Future<void> _joinSession() async {
     final code = _codeController.text.trim();
-    if (code.length != 6) return;
+    if (code.length != 4) return;
 
     setState(() {
       _isJoining = true;
@@ -265,21 +265,21 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
         focusNode: _focusNode,
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
-        maxLength: 6,
+        maxLength: 4,
         style: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          letterSpacing: 12,
+          letterSpacing: 16,
         ),
         decoration: InputDecoration(
           counterText: '',
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          hintText: '000000',
+          hintText: '0000',
           hintStyle: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            letterSpacing: 12,
+            letterSpacing: 16,
             color: colors.mutedForeground.withValues(alpha: 0.3),
           ),
         ),
@@ -287,7 +287,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
           FilteringTextInputFormatter.digitsOnly,
         ],
         onChanged: (value) {
-          if (value.length == 6) {
+          if (value.length == 4) {
             _focusNode.unfocus();
             _fetchPreview();
           } else {

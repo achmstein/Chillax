@@ -1,14 +1,17 @@
 using Chillax.EventBus.Abstractions;
+using Chillax.Notification.API.Hubs;
 using Chillax.Notification.API.IntegrationEvents.Events;
 using Chillax.Notification.API.Localization;
 using Chillax.Notification.API.Model;
 using Chillax.Notification.API.Services;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Chillax.Notification.API.IntegrationEvents.EventHandling;
 
 public class RoomReservedIntegrationEventHandler(
     NotificationContext context,
     IFcmService fcmService,
+    IHubContext<NotificationHub> hubContext,
     ILogger<RoomReservedIntegrationEventHandler> logger) : IIntegrationEventHandler<RoomReservedIntegrationEvent>
 {
     public async Task Handle(RoomReservedIntegrationEvent @event)
@@ -63,5 +66,13 @@ public class RoomReservedIntegrationEventHandler(
             totalSuccess, subscriptions.Count);
 
         // Note: Admin subscriptions are persistent - do NOT delete them
+
+        // Broadcast via SignalR to connected clients
+        await hubContext.Clients.Group("rooms").SendAsync("RoomStatusChanged", new
+        {
+            type = "room_reserved",
+            roomId = @event.RoomId,
+            reservationId = @event.ReservationId
+        });
     }
 }

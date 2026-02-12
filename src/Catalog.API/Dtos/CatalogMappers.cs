@@ -21,6 +21,7 @@ public static class CatalogMappers
             CatalogTypeId = item.CatalogTypeId,
             CatalogTypeName = item.CatalogType?.Name ?? new LocalizedText(),
             IsAvailable = item.IsAvailable,
+            IsPopular = item.IsPopular,
             PreparationTimeMinutes = item.PreparationTimeMinutes,
             DisplayOrder = item.DisplayOrder,
             Customizations = item.Customizations.OrderBy(c => c.DisplayOrder).Select(c => c.ToDto()).ToList()

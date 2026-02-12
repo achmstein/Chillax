@@ -10,6 +10,7 @@ class MenuItem {
   final int catalogTypeId;
   final LocalizedText catalogTypeName;
   final bool isAvailable;
+  final bool isPopular;
   final int? preparationTimeMinutes;
   final int displayOrder;
   final List<ItemCustomization> customizations;
@@ -23,6 +24,7 @@ class MenuItem {
     required this.catalogTypeId,
     required this.catalogTypeName,
     this.isAvailable = true,
+    this.isPopular = false,
     this.preparationTimeMinutes,
     this.displayOrder = 0,
     this.customizations = const [],
@@ -38,6 +40,7 @@ class MenuItem {
       catalogTypeId: json['catalogTypeId'] as int,
       catalogTypeName: _parseLocalizedText(json['catalogTypeName'] ?? '', json['catalogTypeNameAr']),
       isAvailable: json['isAvailable'] as bool? ?? true,
+      isPopular: json['isPopular'] as bool? ?? false,
       preparationTimeMinutes: json['preparationTimeMinutes'] as int?,
       displayOrder: json['displayOrder'] as int? ?? 0,
       customizations: (json['customizations'] as List<dynamic>?)

@@ -52,7 +52,7 @@ class NotificationService {
           'fcmToken': fcmToken,
           'preferredLanguage': preferredLanguage,
         },
-      );
+      ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 201) {
         debugPrint('Successfully subscribed to room availability notifications');
@@ -72,7 +72,8 @@ class NotificationService {
   /// Unsubscribe from room availability notifications
   Future<bool> unsubscribeFromRoomAvailability() async {
     try {
-      final response = await _apiClient.delete('subscriptions/room-availability');
+      final response = await _apiClient.delete('subscriptions/room-availability')
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 204) {
         debugPrint('Successfully unsubscribed from room availability notifications');
@@ -88,7 +89,8 @@ class NotificationService {
   /// Check if user is subscribed to room availability notifications
   Future<SubscriptionStatus> getRoomAvailabilitySubscription() async {
     try {
-      final response = await _apiClient.get('subscriptions/room-availability');
+      final response = await _apiClient.get('subscriptions/room-availability')
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200 && response.data != null) {
         return SubscriptionStatus.fromJson(response.data as Map<String, dynamic>);
@@ -131,36 +133,40 @@ class RoomAvailabilityNotifier extends Notifier<AsyncValue<bool>> {
 
   Future<bool> subscribe({String preferredLanguage = 'en'}) async {
     final previousState = state;
-    state = const AsyncValue.loading();
+    // Optimistic update - immediately show subscribed
+    state = const AsyncValue.data(true);
     try {
       final success = await _notificationService.subscribeToRoomAvailability(
         preferredLanguage: preferredLanguage,
       );
-      if (success) {
-        state = const AsyncValue.data(true);
-      } else {
+      if (!success) {
+        // Revert on failure
         state = previousState;
       }
       return success;
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      // Revert on error
+      state = previousState;
+      debugPrint('Subscribe error: $e');
       return false;
     }
   }
 
   Future<bool> unsubscribe() async {
     final previousState = state;
-    state = const AsyncValue.loading();
+    // Optimistic update - immediately show unsubscribed
+    state = const AsyncValue.data(false);
     try {
       final success = await _notificationService.unsubscribeFromRoomAvailability();
-      if (success) {
-        state = const AsyncValue.data(false);
-      } else {
+      if (!success) {
+        // Revert on failure
         state = previousState;
       }
       return success;
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      // Revert on error
+      state = previousState;
+      debugPrint('Unsubscribe error: $e');
       return false;
     }
   }
