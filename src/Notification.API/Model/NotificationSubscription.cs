@@ -15,5 +15,6 @@ public enum SubscriptionType
     RoomAvailability = 1,
     AdminOrderNotification = 2,
     ServiceRequests = 3,
-    AdminReservationNotification = 4
+    AdminReservationNotification = 4,
+    UserOrderNotification = 5
 }

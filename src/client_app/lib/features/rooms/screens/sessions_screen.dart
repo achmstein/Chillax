@@ -199,7 +199,7 @@ class _SessionTileState extends State<SessionTile> {
             ],
           ),
 
-          if (session.status == SessionStatus.active) ...[
+          if (session.duration != null) ...[
             const SizedBox(height: 4),
             Builder(
               builder: (context) {
@@ -218,19 +218,6 @@ class _SessionTileState extends State<SessionTile> {
             ),
           ],
 
-          if (session.totalCost != null) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(FIcons.poundSterling, size: 14, color: colors.mutedForeground),
-                const SizedBox(width: 4),
-                AppText(
-                  session.totalCost!.toStringAsFixed(2),
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: colors.foreground),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
     );

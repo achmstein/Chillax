@@ -35,8 +35,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh loyalty balance so points earned from confirmed orders are up to date
-    Future.microtask(() => ref.read(loyaltyProvider.notifier).loadLoyaltyInfo());
+    Future.microtask(() {
+      // Reset checkout state to clear stale loading/error from previous checkout
+      ref.read(checkoutProvider.notifier).reset();
+      // Refresh loyalty balance so points earned from confirmed orders are up to date
+      ref.read(loyaltyProvider.notifier).loadLoyaltyInfo();
+    });
   }
 
   @override

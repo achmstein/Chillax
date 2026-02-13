@@ -7,36 +7,34 @@ using Microsoft.Extensions.Logging;
 
 namespace Chillax.Rooms.API.Application.DomainEventHandlers;
 
-public class RoomReservedDomainEventHandler : INotificationHandler<RoomReservedDomainEvent>
+public class SessionStartedDomainEventHandler : INotificationHandler<SessionStartedDomainEvent>
 {
     private readonly IEventBus _eventBus;
-    private readonly ILogger<RoomReservedDomainEventHandler> _logger;
+    private readonly ILogger<SessionStartedDomainEventHandler> _logger;
 
-    public RoomReservedDomainEventHandler(
+    public SessionStartedDomainEventHandler(
         IEventBus eventBus,
-        ILogger<RoomReservedDomainEventHandler> logger)
+        ILogger<SessionStartedDomainEventHandler> logger)
     {
         _eventBus = eventBus;
         _logger = logger;
     }
 
-    public async Task Handle(RoomReservedDomainEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(SessionStartedDomainEvent notification, CancellationToken cancellationToken)
     {
         var reservation = notification.Reservation;
 
-        _logger.LogInformation("Room reserved: ReservationId={ReservationId}, RoomId={RoomId}, Customer={CustomerName}",
+        _logger.LogInformation("Session started: ReservationId={ReservationId}, RoomId={RoomId}, Customer={CustomerName}",
             reservation.Id, reservation.RoomId, reservation.CustomerName ?? "Unknown");
 
-        // Publish integration event to notify admin/staff
         var roomName = reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}");
-        var roomReservedEvent = new RoomReservedIntegrationEvent(
+        var sessionStartedEvent = new SessionStartedIntegrationEvent(
             reservation.Id,
             reservation.RoomId,
             roomName,
             reservation.CustomerId,
-            reservation.CustomerName,
-            reservation.ExpiresAt);
+            reservation.CustomerName);
 
-        await _eventBus.PublishAsync(roomReservedEvent);
+        await _eventBus.PublishAsync(sessionStartedEvent);
     }
 }

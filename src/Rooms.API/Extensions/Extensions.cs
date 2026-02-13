@@ -64,6 +64,7 @@ public static class Extensions
 
 [JsonSerializable(typeof(RoomBecameAvailableIntegrationEvent))]
 [JsonSerializable(typeof(SessionCompletedIntegrationEvent))]
+[JsonSerializable(typeof(SessionStartedIntegrationEvent))]
 public partial class RoomsIntegrationEventContext : JsonSerializerContext
 {
 }

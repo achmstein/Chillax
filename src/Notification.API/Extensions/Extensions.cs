@@ -32,7 +32,10 @@ public static class Extensions
             .AddSubscription<OrderStatusChangedToSubmittedIntegrationEvent, OrderSubmittedIntegrationEventHandler>()
             .AddSubscription<ServiceRequestCreatedIntegrationEvent, ServiceRequestCreatedIntegrationEventHandler>()
             .AddSubscription<RoomReservedIntegrationEvent, RoomReservedIntegrationEventHandler>()
-            .AddSubscription<ReservationCancelledIntegrationEvent, ReservationCancelledIntegrationEventHandler>();
+            .AddSubscription<ReservationCancelledIntegrationEvent, ReservationCancelledIntegrationEventHandler>()
+            .AddSubscription<OrderStatusChangedToCancelledIntegrationEvent, OrderCancelledIntegrationEventHandler>()
+            .AddSubscription<SessionStartedIntegrationEvent, SessionStartedIntegrationEventHandler>()
+            .AddSubscription<OrderStatusChangedToConfirmedIntegrationEvent, OrderConfirmedIntegrationEventHandler>();
     }
 }
 
@@ -41,6 +44,9 @@ public static class Extensions
 [JsonSerializable(typeof(ServiceRequestCreatedIntegrationEvent))]
 [JsonSerializable(typeof(RoomReservedIntegrationEvent))]
 [JsonSerializable(typeof(ReservationCancelledIntegrationEvent))]
+[JsonSerializable(typeof(OrderStatusChangedToCancelledIntegrationEvent))]
+[JsonSerializable(typeof(SessionStartedIntegrationEvent))]
+[JsonSerializable(typeof(OrderStatusChangedToConfirmedIntegrationEvent))]
 public partial class NotificationIntegrationEventContext : JsonSerializerContext
 {
 }

@@ -31,11 +31,13 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   bool _isJoining = false;
   String? _joinError;
   Timer? _pollTimer;
+  late final SignalRService _signalRService;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _signalRService = ref.read(signalRServiceProvider);
 
     // Refresh when navigating to rooms tab
     ref.listenManual(currentRouteProvider, (previous, next) {
@@ -51,13 +53,13 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     _startPolling();
 
     // Join SignalR rooms group for realtime updates
-    ref.read(signalRServiceProvider).joinRoomsGroup();
+    _signalRService.joinRoomsGroup();
   }
 
   @override
   void dispose() {
     _stopPolling();
-    ref.read(signalRServiceProvider).leaveRoomsGroup();
+    _signalRService.leaveRoomsGroup();
     WidgetsBinding.instance.removeObserver(this);
     _codeController.dispose();
     _codeFocusNode.dispose();

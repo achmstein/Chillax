@@ -870,4 +870,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mostPopular => 'Most Popular';
+
+  @override
+  String get fastOrder => 'Fast Order';
+
+  @override
+  String fastOrderConfirmation(String itemName) {
+    return 'Quick order $itemName with your preferences?';
+  }
+
+  @override
+  String get fastOrderPlaced => 'Order placed!';
+
+  @override
+  String get fastOrderNoSession => 'Join a session first to place a fast order';
+
+  @override
+  String get confirm => 'Confirm';
 }

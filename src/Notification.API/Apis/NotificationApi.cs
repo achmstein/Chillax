@@ -62,6 +62,19 @@ public static class NotificationApi
             .WithTags("Admin Subscriptions")
             .RequireAuthorization("Admin");
 
+        // User order notification endpoints (for customers)
+        api.MapPost("/subscriptions/user-orders", SubscribeToUserOrderNotifications)
+            .WithName("SubscribeToUserOrderNotifications")
+            .WithSummary("Subscribe to user order notifications")
+            .WithDescription("Register device to receive FCM notifications when your order status changes")
+            .WithTags("Subscriptions");
+
+        api.MapDelete("/subscriptions/user-orders", UnsubscribeFromUserOrderNotifications)
+            .WithName("UnsubscribeFromUserOrderNotifications")
+            .WithSummary("Unsubscribe from user order notifications")
+            .WithDescription("Unregister device from order status notifications")
+            .WithTags("Subscriptions");
+
         // Service request subscription (for staff/admin)
         api.MapPost("/subscriptions/service-requests", SubscribeToServiceRequests)
             .WithName("SubscribeToServiceRequests")
@@ -336,6 +349,74 @@ public static class NotificationApi
 
         var subscription = await context.Subscriptions
             .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.AdminReservationNotification);
+
+        if (subscription == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        context.Subscriptions.Remove(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.NoContent();
+    }
+
+    // User order notification handlers
+    public static async Task<Results<Ok<SubscriptionResponse>, Created<SubscriptionResponse>>> SubscribeToUserOrderNotifications(
+        NotificationContext context,
+        ClaimsPrincipal user,
+        SubscribeRequest request)
+    {
+        var userId = user.GetUserId()!;
+
+        var existing = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.UserOrderNotification);
+
+        if (existing != null)
+        {
+            var changed = false;
+            if (existing.FcmToken != request.FcmToken)
+            {
+                existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
+                await context.SaveChangesAsync();
+            }
+            return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
+        }
+
+        var subscription = new NotificationSubscription
+        {
+            UserId = userId,
+            FcmToken = request.FcmToken,
+            Type = SubscriptionType.UserOrderNotification,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.Subscriptions.Add(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.Created(
+            "/api/notifications/subscriptions/user-orders",
+            new SubscriptionResponse(subscription.Id, subscription.Type, subscription.CreatedAt));
+    }
+
+    public static async Task<Results<NoContent, NotFound>> UnsubscribeFromUserOrderNotifications(
+        NotificationContext context,
+        ClaimsPrincipal user)
+    {
+        var userId = user.GetUserId()!;
+
+        var subscription = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.UserOrderNotification);
 
         if (subscription == null)
         {

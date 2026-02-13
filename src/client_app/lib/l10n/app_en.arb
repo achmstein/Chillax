@@ -415,5 +415,16 @@
   "failedToUpdateName": "Failed to update name. Please try again.",
 
   "callUs": "Call Us",
-  "mostPopular": "Most Popular"
+  "mostPopular": "Most Popular",
+
+  "fastOrder": "Fast Order",
+  "fastOrderConfirmation": "Quick order {itemName} with your preferences?",
+  "@fastOrderConfirmation": {
+    "placeholders": {
+      "itemName": {"type": "String"}
+    }
+  },
+  "fastOrderPlaced": "Order placed!",
+  "fastOrderNoSession": "Join a session first to place a fast order",
+  "confirm": "Confirm"
 }

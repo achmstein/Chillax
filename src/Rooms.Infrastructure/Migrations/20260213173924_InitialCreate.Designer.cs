@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Rooms.Infrastructure.Migrations
 {
     [DbContext(typeof(RoomsContext))]
-    [Migration("20260201132308_InitialCreate")]
+    [Migration("20260213173924_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -98,6 +98,9 @@ namespace Rooms.Infrastructure.Migrations
                     b.Property<DateTime?>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<decimal>("HourlyRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -131,6 +134,8 @@ namespace Rooms.Infrastructure.Migrations
                     b.HasIndex("CustomerId", "Status");
 
                     b.HasIndex("RoomId", "Status");
+
+                    b.HasIndex("Status", "ExpiresAt");
 
                     b.ToTable("reservations", "rooms");
                 });

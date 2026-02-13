@@ -11,6 +11,7 @@ import 'core/services/firebase_service.dart';
 import 'core/services/signalr_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'features/notifications/services/notification_service.dart';
 import 'features/orders/services/order_service.dart';
 import 'features/rooms/services/room_service.dart';
 
@@ -64,10 +65,20 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     // Remove the native splash screen after initialization
     FlutterNativeSplash.remove();
 
-    // Connect SignalR if authenticated
+    // Connect SignalR and register for notifications if authenticated
     if (ref.read(authServiceProvider).isAuthenticated) {
       _connectSignalR();
+      _registerForOrderNotifications();
     }
+  }
+
+  void _registerForOrderNotifications() {
+    // Fire-and-forget: register device for order status push notifications
+    final locale = ref.read(localeProvider);
+    final lang = locale?.languageCode ?? 'en';
+    ref.read(notificationServiceProvider).registerForOrderNotifications(
+      preferredLanguage: lang,
+    );
   }
 
   void _connectSignalR() {
@@ -78,6 +89,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     _signalRSubscriptions.add(
       signalR.onRoomStatusChanged.listen((_) {
         ref.invalidate(roomsProvider);
+        ref.read(mySessionsProvider.notifier).refresh();
       }),
     );
     _signalRSubscriptions.add(

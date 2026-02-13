@@ -1,0 +1,73 @@
+using Chillax.EventBus.Abstractions;
+using Chillax.Notification.API.Hubs;
+using Chillax.Notification.API.IntegrationEvents.Events;
+using Chillax.Notification.API.Localization;
+using Chillax.Notification.API.Model;
+using Chillax.Notification.API.Services;
+using Microsoft.AspNetCore.SignalR;
+
+namespace Chillax.Notification.API.IntegrationEvents.EventHandling;
+
+public class OrderCancelledIntegrationEventHandler(
+    NotificationContext context,
+    IFcmService fcmService,
+    IHubContext<NotificationHub> hubContext,
+    ILogger<OrderCancelledIntegrationEventHandler> logger) : IIntegrationEventHandler<OrderStatusChangedToCancelledIntegrationEvent>
+{
+    public async Task Handle(OrderStatusChangedToCancelledIntegrationEvent @event)
+    {
+        logger.LogInformation("Handling OrderStatusChangedToCancelledIntegrationEvent for order {OrderId}, buyer {BuyerGuid}",
+            @event.OrderId, @event.BuyerIdentityGuid);
+
+        // Find the buyer's user order notification subscription
+        var subscriptions = await context.Subscriptions
+            .Where(s => s.UserId == @event.BuyerIdentityGuid && s.Type == SubscriptionType.UserOrderNotification)
+            .ToListAsync();
+
+        if (subscriptions.Count > 0)
+        {
+            foreach (var subscription in subscriptions)
+            {
+                var lang = subscription.PreferredLanguage;
+                var title = NotificationMessages.OrderCancelledTitle.GetText(lang);
+                var body = NotificationMessages.OrderCancelledBody(@event.OrderId).GetText(lang);
+
+                var success = await fcmService.SendNotificationAsync(
+                    subscription.FcmToken,
+                    title,
+                    body,
+                    new Dictionary<string, string>
+                    {
+                        { "type", "order_cancelled" },
+                        { "orderId", @event.OrderId.ToString() }
+                    });
+
+                logger.LogInformation("FCM notification to buyer {BuyerGuid} ({Lang}): {Result}",
+                    @event.BuyerIdentityGuid, lang, success ? "sent" : "failed");
+            }
+        }
+        else
+        {
+            logger.LogInformation("No user order notification subscription found for buyer {BuyerGuid}",
+                @event.BuyerIdentityGuid);
+        }
+
+        // Broadcast via SignalR to the buyer's personal group
+        if (!string.IsNullOrEmpty(@event.BuyerIdentityGuid))
+        {
+            await hubContext.Clients.Group($"user:{@event.BuyerIdentityGuid}").SendAsync("OrderStatusChanged", new
+            {
+                type = "order_cancelled",
+                orderId = @event.OrderId
+            });
+        }
+
+        // Also notify admin group
+        await hubContext.Clients.Group("admin").SendAsync("OrderStatusChanged", new
+        {
+            type = "order_cancelled",
+            orderId = @event.OrderId,
+            buyerName = @event.BuyerName
+        });
+    }
+}

@@ -27,6 +27,8 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
         builder.Property(r => r.CreatedAt)
             .IsRequired();
 
+        builder.Property(r => r.ExpiresAt);
+
         builder.Property(r => r.ActualStartTime);
 
         builder.Property(r => r.EndTime);
@@ -68,6 +70,7 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
         builder.HasIndex(r => new { r.RoomId, r.Status });
         builder.HasIndex(r => new { r.CustomerId, r.Status });
         builder.HasIndex(r => r.AccessCode);
+        builder.HasIndex(r => new { r.Status, r.ExpiresAt });
     }
 }
 

@@ -86,6 +86,45 @@ class NotificationService {
     }
   }
 
+  /// Register for order status notifications (e.g. order cancelled)
+  /// Called automatically after login - fire-and-forget
+  Future<bool> registerForOrderNotifications({String preferredLanguage = 'en'}) async {
+    try {
+      final fcmToken = await _firebaseService.getToken();
+      if (fcmToken == null) {
+        debugPrint('Cannot register for order notifications: FCM token not available');
+        return false;
+      }
+
+      final response = await _apiClient.post(
+        'subscriptions/user-orders',
+        data: {
+          'fcmToken': fcmToken,
+          'preferredLanguage': preferredLanguage,
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      final success = response.statusCode == 200 || response.statusCode == 201;
+      debugPrint('Order notification registration: ${success ? 'success' : 'failed'}');
+      return success;
+    } catch (e) {
+      debugPrint('Failed to register for order notifications: $e');
+      return false;
+    }
+  }
+
+  /// Unregister from order status notifications
+  /// Called on logout
+  Future<void> unregisterFromOrderNotifications() async {
+    try {
+      await _apiClient.delete('subscriptions/user-orders')
+          .timeout(const Duration(seconds: 5));
+      debugPrint('Unregistered from order notifications');
+    } catch (e) {
+      debugPrint('Failed to unregister from order notifications: $e');
+    }
+  }
+
   /// Check if user is subscribed to room availability notifications
   Future<SubscriptionStatus> getRoomAvailabilitySubscription() async {
     try {

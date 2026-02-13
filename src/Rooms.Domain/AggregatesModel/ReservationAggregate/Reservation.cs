@@ -48,6 +48,11 @@ public class Reservation : Entity, IAggregateRoot
     public DateTime CreatedAt { get; private set; }
 
     /// <summary>
+    /// When this reservation expires. Null means it never expires (admin-created reservations).
+    /// </summary>
+    public DateTime? ExpiresAt { get; private set; }
+
+    /// <summary>
     /// Actual session start time (when admin clicks start)
     /// </summary>
     public DateTime? ActualStartTime { get; private set; }
@@ -80,12 +85,13 @@ public class Reservation : Entity, IAggregateRoot
     /// </summary>
     public Reservation(
         int roomId,
-        string customerId,
+        string? customerId,
         string? customerName,
         decimal hourlyRate,
-        string? notes = null) : this()
+        string? notes = null,
+        bool isAdminCreated = false) : this()
     {
-        if (string.IsNullOrWhiteSpace(customerId))
+        if (!isAdminCreated && string.IsNullOrWhiteSpace(customerId))
             throw new RoomsDomainException("Customer ID is required");
 
         if (hourlyRate <= 0)
@@ -97,6 +103,7 @@ public class Reservation : Entity, IAggregateRoot
         HourlyRate = hourlyRate;
         Notes = notes;
         CreatedAt = DateTime.UtcNow;
+        ExpiresAt = isAdminCreated ? null : CreatedAt.AddMinutes(ReservationExpirationMinutes);
         Status = ReservationStatus.Reserved;
 
         AddDomainEvent(new RoomReservedDomainEvent(this));
@@ -176,6 +183,12 @@ public class Reservation : Entity, IAggregateRoot
         Status = ReservationStatus.Active;
 
         GenerateAccessCode();
+
+        // Add the reserving customer as Owner session member (consistent with AssignCustomer)
+        if (!string.IsNullOrWhiteSpace(CustomerId) && !_sessionMembers.Any(m => m.CustomerId == CustomerId))
+        {
+            _sessionMembers.Add(new SessionMember(Id, CustomerId, CustomerName, SessionMemberRole.Owner));
+        }
 
         AddDomainEvent(new SessionStartedDomainEvent(this));
     }
@@ -286,7 +299,7 @@ public class Reservation : Entity, IAggregateRoot
         if (Status != ReservationStatus.Reserved)
             return false;
 
-        return DateTime.UtcNow > CreatedAt.AddMinutes(ReservationExpirationMinutes);
+        return ExpiresAt != null && DateTime.UtcNow > ExpiresAt;
     }
 
     /// <summary>
@@ -297,19 +310,18 @@ public class Reservation : Entity, IAggregateRoot
         if (Status != ReservationStatus.Reserved)
             return null;
 
-        return CreatedAt.AddMinutes(ReservationExpirationMinutes);
+        return ExpiresAt;
     }
 
     /// <summary>
-    /// Get remaining time before expiration (null if not reserved or already expired)
+    /// Get remaining time before expiration (null if not reserved, already expired, or never expires)
     /// </summary>
     public TimeSpan? GetTimeUntilExpiration()
     {
-        if (Status != ReservationStatus.Reserved)
+        if (Status != ReservationStatus.Reserved || ExpiresAt == null)
             return null;
 
-        var expiresAt = CreatedAt.AddMinutes(ReservationExpirationMinutes);
-        var remaining = expiresAt - DateTime.UtcNow;
+        var remaining = ExpiresAt.Value - DateTime.UtcNow;
 
         return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
     }
@@ -435,8 +447,8 @@ public class Reservation : Entity, IAggregateRoot
         if (string.IsNullOrWhiteSpace(customerId))
             throw new RoomsDomainException("Customer ID is required");
 
-        if (Status != ReservationStatus.Active)
-            throw new RoomsDomainException("Can only assign customers to active sessions");
+        if (Status != ReservationStatus.Active && Status != ReservationStatus.Reserved)
+            throw new RoomsDomainException("Can only assign customers to active or reserved sessions");
 
         if (CustomerId != null)
             throw new RoomsDomainException("Session already has an assigned customer");

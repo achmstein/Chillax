@@ -89,6 +89,7 @@ namespace Rooms.Infrastructure.Migrations
                     AccessCode = table.Column<string>(type: "character varying(6)", maxLength: 6, nullable: true),
                     AccessCodeGeneratedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ActualStartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     HourlyRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
@@ -167,6 +168,12 @@ namespace Rooms.Infrastructure.Migrations
                 schema: "rooms",
                 table: "reservations",
                 column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_reservations_Status_ExpiresAt",
+                schema: "rooms",
+                table: "reservations",
+                columns: new[] { "Status", "ExpiresAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_rooms_PhysicalStatus",

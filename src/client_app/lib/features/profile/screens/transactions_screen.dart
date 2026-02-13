@@ -84,7 +84,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       setState(() {
                         _loadTransactions();
                       });
-                      await _transactionsFuture;
+                      await Future.wait([
+                        _transactionsFuture,
+                        ref.read(accountProvider.notifier).refresh(),
+                      ]);
                     },
                     child: ListView(
                       padding: const EdgeInsets.all(16),

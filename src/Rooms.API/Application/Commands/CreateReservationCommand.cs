@@ -10,7 +10,7 @@ public class CreateReservationCommand : IRequest<int>
     public int RoomId { get; private set; }
 
     [DataMember]
-    public string CustomerId { get; private set; } = string.Empty;
+    public string? CustomerId { get; private set; }
 
     [DataMember]
     public string? CustomerName { get; private set; }
@@ -23,7 +23,7 @@ public class CreateReservationCommand : IRequest<int>
 
     public CreateReservationCommand(
         int roomId,
-        string customerId,
+        string? customerId,
         string? customerName,
         string? notes = null,
         bool isAdmin = false)

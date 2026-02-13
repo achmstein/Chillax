@@ -4,13 +4,12 @@ using Chillax.Rooms.Domain.SeedWork;
 namespace Chillax.Rooms.API.Application.IntegrationEvents.Events;
 
 /// <summary>
-/// Integration event published when a customer reserves a room
-/// Used to notify admin/staff about new reservations
+/// Integration event published when admin starts a session (customer begins playing)
+/// Used to notify connected clients about room status change
 /// </summary>
-public record RoomReservedIntegrationEvent(
+public record SessionStartedIntegrationEvent(
     int ReservationId,
     int RoomId,
     LocalizedText RoomName,
     string? CustomerId,
-    string? CustomerName,
-    DateTime? ExpiresAt) : IntegrationEvent;
+    string? CustomerName) : IntegrationEvent;

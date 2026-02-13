@@ -74,10 +74,15 @@ class SignalRService {
 
       _hubConnection!.onreconnected(({connectionId}) {
         debugPrint('SignalR reconnected: $connectionId');
+        // Rejoin groups after reconnection
+        joinRoomsGroup();
       });
 
       await _hubConnection!.start();
       debugPrint('SignalR connected to $hubUrl');
+
+      // Join rooms group to receive room/session updates
+      await joinRoomsGroup();
     } catch (e) {
       debugPrint('SignalR connection failed: $e');
       _hubConnection = null;

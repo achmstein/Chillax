@@ -69,7 +69,6 @@ class AuthService extends Notifier<AuthState> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final FirebaseService _firebaseService = FirebaseService();
   StreamSubscription<String>? _fcmTokenRefreshSubscription;
-  Timer? _tokenRefreshTimer;
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
@@ -218,9 +217,7 @@ class AuthService extends Notifier<AuthState> {
   /// Sign out
   Future<void> signOut() async {
     try {
-      // Cancel timers and listeners
-      _tokenRefreshTimer?.cancel();
-      _tokenRefreshTimer = null;
+      // Cancel listeners
       _fcmTokenRefreshSubscription?.cancel();
       _fcmTokenRefreshSubscription = null;
 
@@ -283,7 +280,7 @@ class AuthService extends Notifier<AuthState> {
       // Only clear tokens if server explicitly rejected them (auth errors)
       // Don't clear on network errors - user might just be offline
       final statusCode = e.response?.statusCode;
-      if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+      if (statusCode == 400 || statusCode == 401) {
         await _clearTokens();
       }
       return false;
@@ -328,8 +325,6 @@ class AuthService extends Notifier<AuthState> {
       roles: roles,
     );
 
-    // Schedule proactive refresh before token expires
-    _scheduleProactiveTokenRefresh();
   }
 
   /// Register for admin order notifications
@@ -515,41 +510,6 @@ class AuthService extends Notifier<AuthState> {
     }
     if (prefs.getBool('notify_service_requests') ?? true) {
       await registerForServiceRequestNotifications(preferredLanguage: preferredLanguage);
-    }
-  }
-
-  /// Schedule proactive token refresh before the access token expires.
-  /// Refreshes at 80% of the token's lifetime.
-  void _scheduleProactiveTokenRefresh() {
-    _tokenRefreshTimer?.cancel();
-    final accessToken = state.accessToken;
-    if (accessToken == null) return;
-
-    try {
-      final claims = _parseJwt(accessToken);
-      final exp = claims['exp'] as int?;
-      if (exp == null) return;
-
-      final expiresAt = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
-      final now = DateTime.now();
-      final lifetime = expiresAt.difference(now);
-
-      if (lifetime.isNegative) {
-        // Token already expired, refresh now
-        refreshToken();
-        return;
-      }
-
-      // Refresh at 80% of remaining lifetime
-      final refreshDelay = lifetime * 0.8;
-      debugPrint('Auth: Scheduling proactive token refresh in ${refreshDelay.inMinutes} minutes');
-
-      _tokenRefreshTimer = Timer(refreshDelay, () async {
-        debugPrint('Auth: Proactive token refresh triggered');
-        await refreshToken();
-      });
-    } catch (e) {
-      debugPrint('Auth: Failed to schedule proactive token refresh: $e');
     }
   }
 

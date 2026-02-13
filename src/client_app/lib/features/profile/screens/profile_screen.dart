@@ -234,11 +234,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   void _handleSignOut(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    showFDialog(
+    showAdaptiveDialog(
       context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style.call,
-        animation: animation,
+      builder: (context) => FDialog(
         title: AppText(l10n.signOut, style: TextStyle(fontWeight: FontWeight.bold)),
         body: AppText(l10n.signOutConfirmation),
         direction: Axis.horizontal,

@@ -47,12 +47,11 @@ public class ReservationExpirationService : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<RoomsContext>();
 
-        var expirationThreshold = DateTime.UtcNow.AddMinutes(-Reservation.ReservationExpirationMinutes);
-
-        // Find all reserved (not started) reservations that have exceeded the timeout
+        // Find all reserved (not started) reservations that have exceeded their expiration time.
+        // Admin-created reservations have ExpiresAt = null and never expire.
         var expiredReservations = await context.Reservations
             .Where(r => r.Status == ReservationStatus.Reserved)
-            .Where(r => r.CreatedAt <= expirationThreshold)
+            .Where(r => r.ExpiresAt != null && r.ExpiresAt <= DateTime.UtcNow)
             .ToListAsync(cancellationToken);
 
         if (expiredReservations.Count == 0)

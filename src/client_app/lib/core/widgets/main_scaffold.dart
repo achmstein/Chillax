@@ -63,18 +63,18 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               ),
             ),
             FBottomNavigationBarItem(
-              icon: const Icon(FIcons.receipt),
+              icon: const Icon(FIcons.gamepad2),
               label: AppText(
-                l10n.orders,
+                l10n.rooms,
                 style: TextStyle(
                   fontWeight: currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
             FBottomNavigationBarItem(
-              icon: const Icon(FIcons.gamepad2),
+              icon: const Icon(FIcons.receipt),
               label: AppText(
-                l10n.rooms,
+                l10n.orders,
                 style: TextStyle(
                   fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -102,8 +102,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/menu')) return 0;
-    if (location.startsWith('/orders')) return 1;
-    if (location.startsWith('/rooms')) return 2;
+    if (location.startsWith('/rooms')) return 1;
+    if (location.startsWith('/orders')) return 2;
     if (location.startsWith('/profile')) return 3;
     return 0;
   }
@@ -114,10 +114,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         context.go('/menu');
         break;
       case 1:
-        context.go('/orders');
+        context.go('/rooms');
         break;
       case 2:
-        context.go('/rooms');
+        context.go('/orders');
         break;
       case 3:
         context.go('/profile');

@@ -31,7 +31,7 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
         if (!request.IsAdmin)
         {
             var existingReservation = await _reservationRepository
-                .GetActiveReservationForCustomerAsync(request.CustomerId);
+                .GetActiveReservationForCustomerAsync(request.CustomerId!);
 
             if (existingReservation != null)
             {
@@ -65,7 +65,8 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
             request.CustomerId,
             request.CustomerName,
             room.HourlyRate,
-            request.Notes);
+            request.Notes,
+            isAdminCreated: request.IsAdmin);
 
         _reservationRepository.Add(reservation);
 

@@ -47,6 +47,18 @@ public static class NotificationMessages
         new($"{roomName.GetText("en")} - {userName} needs assistance",
             $"{roomName.GetText("ar")} - {userName} محتاج مساعدة");
 
+    // Order Confirmed (to customer)
+    public static readonly LocalizedText OrderConfirmedTitle = new("Order Confirmed", "الأوردر اتأكد");
+    public static LocalizedText OrderConfirmedBody(int orderId) =>
+        new($"Your order #{orderId} has been confirmed",
+            $"الأوردر بتاعك #{orderId} اتأكد");
+
+    // Order Cancelled (to customer)
+    public static readonly LocalizedText OrderCancelledTitle = new("Order Cancelled", "الأوردر اتلغى");
+    public static LocalizedText OrderCancelledBody(int orderId) =>
+        new($"Your order #{orderId} has been cancelled",
+            $"الأوردر بتاعك #{orderId} اتلغى");
+
     // Reservation Cancelled
     public static readonly LocalizedText ReservationCancelledTitle = new("Reservation Cancelled", "الحجز اتلغى");
     public static LocalizedText ReservationCancelledBody(string customerName, LocalizedText roomName, string lang) =>

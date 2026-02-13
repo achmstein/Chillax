@@ -1693,6 +1693,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Most Popular'**
   String get mostPopular;
+
+  /// No description provided for @fastOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast Order'**
+  String get fastOrder;
+
+  /// No description provided for @fastOrderConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick order {itemName} with your preferences?'**
+  String fastOrderConfirmation(String itemName);
+
+  /// No description provided for @fastOrderPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed!'**
+  String get fastOrderPlaced;
+
+  /// No description provided for @fastOrderNoSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a session first to place a fast order'**
+  String get fastOrderNoSession;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
 }
 
 class _AppLocalizationsDelegate

@@ -93,7 +93,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
               onStartSession: session != null ? () => _startSession(session.id) : null,
               onEndSession: session != null ? () => _endSession(context, session.id) : null,
               onCancelReservation: session != null ? () => _cancelReservation(context, session.id) : null,
-              onAddCustomer: session != null && isActive
+              onAddCustomer: session != null && (isActive || isReserved)
                   ? () => _showAddCustomerSheet(context, session)
                   : null,
               onRemoveMember: session != null && isActive
@@ -543,10 +543,36 @@ class _CurrentStateSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  if (session!.userName != null)
-                    AppText(
-                      session!.userName!,
-                      style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
+                  if (session!.members.isNotEmpty)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: session!.members.map((member) {
+                        return Chip(
+                          avatar: Icon(
+                            member.isOwner ? Icons.star : Icons.person,
+                            size: 16,
+                            color: member.isOwner ? Colors.amber : theme.colors.mutedForeground,
+                          ),
+                          label: AppText(
+                            member.customerName ?? member.customerId,
+                            style: theme.typography.sm,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        );
+                      }).toList(),
+                    )
+                  else if (session!.userName != null)
+                    Chip(
+                      avatar: const Icon(Icons.star, size: 16, color: Colors.amber),
+                      label: AppText(
+                        session!.userName!,
+                        style: theme.typography.sm,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   if (session!.accessCode != null) ...[
                     const SizedBox(height: 4),
@@ -567,7 +593,26 @@ class _CurrentStateSection extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Add Customer button for reserved sessions
+            if (onAddCustomer != null) ...[
+              Center(
+                child: FButton(
+                  style: FButtonStyle.outline(),
+                  onPress: onAddCustomer,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person_add_outlined, size: 18),
+                      const SizedBox(width: 8),
+                      AppText(l10n.addCustomer),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -826,35 +871,15 @@ class _HistorySection extends StatelessWidget {
                                       ),
                               ),
 
-                              // Duration + calculation
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  AppText(
-                                    session.formattedDuration,
-                                    style: theme.typography.sm.copyWith(
-                                      fontFamily: 'monospace',
-                                      color: theme.colors.mutedForeground,
-                                    ),
-                                  ),
-                                  if (session.roundedHours != null) ...[
-                                    const SizedBox(height: 2),
-                                    AppText(
-                                      '${_formatRoundedHours(session.roundedHours!)} × ${session.hourlyRate.toStringAsFixed(0)} = ${l10n.priceFormat((session.totalCost ?? (session.roundedHours! * session.hourlyRate)).toStringAsFixed(0))}',
-                                      style: theme.typography.xs.copyWith(
-                                        color: theme.colors.mutedForeground,
-                                      ),
-                                    ),
-                                  ] else if (session.totalCost != null) ...[
-                                    const SizedBox(height: 2),
-                                    AppText(
-                                      l10n.priceFormat(session.totalCost!.toStringAsFixed(0)),
-                                      style: theme.typography.xs.copyWith(
-                                        color: theme.colors.mutedForeground,
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                              // Rounded hours (for POS entry)
+                              AppText(
+                                session.roundedHours != null
+                                    ? _formatRoundedHours(session.roundedHours!)
+                                    : session.formattedDuration,
+                                style: theme.typography.sm.copyWith(
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),

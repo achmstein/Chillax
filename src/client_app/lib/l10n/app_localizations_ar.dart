@@ -856,4 +856,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mostPopular => 'الأكثر طلباً';
+
+  @override
+  String get fastOrder => 'طلب سريع';
+
+  @override
+  String fastOrderConfirmation(String itemName) {
+    return 'طلب سريع $itemName بالاختيارات بتاعتك؟';
+  }
+
+  @override
+  String get fastOrderPlaced => 'تم الطلب!';
+
+  @override
+  String get fastOrderNoSession => 'ادخل جلسة الأول عشان تطلب سريع';
+
+  @override
+  String get confirm => 'تأكيد';
 }

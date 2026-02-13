@@ -332,8 +332,8 @@ public static class RoomsApi
         {
             var command = new CreateReservationCommand(
                 roomId,
-                customerId,
-                customerName,
+                isAdmin ? null : customerId,
+                isAdmin ? null : customerName,
                 request?.Notes,
                 isAdmin);
 

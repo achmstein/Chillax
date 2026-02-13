@@ -303,5 +303,11 @@
   "failedToUpdateName": "الاسم مش بيتغير. جرب تاني.",
 
   "callUs": "كلمنا",
-  "mostPopular": "الأكثر طلباً"
+  "mostPopular": "الأكثر طلباً",
+
+  "fastOrder": "طلب سريع",
+  "fastOrderConfirmation": "طلب سريع {itemName} بالاختيارات بتاعتك؟",
+  "fastOrderPlaced": "تم الطلب!",
+  "fastOrderNoSession": "ادخل جلسة الأول عشان تطلب سريع",
+  "confirm": "تأكيد"
 }

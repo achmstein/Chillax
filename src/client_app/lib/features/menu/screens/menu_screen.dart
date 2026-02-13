@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
@@ -14,6 +17,9 @@ import '../services/menu_service.dart';
 import '../providers/favorites_provider.dart';
 import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
+import '../../orders/services/order_service.dart';
+import '../../rooms/models/room.dart';
+import '../../rooms/services/room_service.dart';
 import '../widgets/item_customization_sheet.dart';
 
 /// Provider for grouped menu items by category with localized names
@@ -473,8 +479,8 @@ class _CategorySection extends StatelessWidget {
   }
 }
 
-/// Menu item tile - list style with stepper
-class MenuItemTile extends ConsumerWidget {
+/// Menu item tile - list style with stepper and fast order support
+class MenuItemTile extends ConsumerStatefulWidget {
   final MenuItem item;
   final bool isLast;
   final Locale locale;
@@ -482,19 +488,227 @@ class MenuItemTile extends ConsumerWidget {
   const MenuItemTile({super.key, required this.item, this.isLast = false, required this.locale});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MenuItemTile> createState() => _MenuItemTileState();
+}
+
+class _MenuItemTileState extends ConsumerState<MenuItemTile> {
+  double _fastOrderProgress = 0.0;
+  Timer? _progressTimer;
+
+  @override
+  void dispose() {
+    _progressTimer?.cancel();
+    _progressTimer = null;
+    super.dispose();
+  }
+
+  void _cancelFastOrder() {
+    _progressTimer?.cancel();
+    _progressTimer = null;
+    if (mounted) {
+      setState(() {
+        _fastOrderProgress = 0.0;
+      });
+    }
+  }
+
+  void _startFastOrder(LongPressStartDetails details) {
+    setState(() {
+      _fastOrderProgress = 0.0;
+    });
+
+    // 20 ticks over 1 second
+    const totalTicks = 20;
+    var tick = 0;
+    _progressTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      tick++;
+      final progress = tick / totalTicks;
+
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (progress >= 1.0) {
+        timer.cancel();
+        setState(() {
+          _fastOrderProgress = 0.0;
+        });
+        _showFastOrderConfirmation();
+      } else {
+        setState(() => _fastOrderProgress = progress);
+      }
+    });
+  }
+
+  void _endFastOrder(LongPressEndDetails details) {
+    if (_fastOrderProgress < 1.0) {
+      _cancelFastOrder();
+    }
+  }
+
+  Future<void> _showFastOrderConfirmation() async {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = ref.read(localeProvider);
+
+    final confirmed = await showAdaptiveDialog<bool>(
+      context: context,
+      builder: (context) => FDialog(
+        direction: Axis.horizontal,
+        title: AppText(l10n.fastOrder),
+        body: AppText(l10n.fastOrderConfirmation(widget.item.name.getText(locale))),
+        actions: [
+          FButton(
+            style: FButtonStyle.outline(),
+            child: AppText(l10n.cancel),
+            onPress: () => Navigator.of(context).pop(false),
+          ),
+          FButton(
+            child: AppText(l10n.confirm),
+            onPress: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await _submitFastOrder();
+    }
+  }
+
+  Future<void> _submitFastOrder() async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+
+    // Capture refs before any await
+    final menuService = ref.read(menuServiceProvider);
+    final authState = ref.read(authServiceProvider);
+    final orderService = ref.read(orderServiceProvider);
+
+    // Try to get active session's room name (optional)
+    Map<String, dynamic>? roomName;
+    final sessionsState = ref.read(mySessionsProvider);
+    sessionsState.whenData((sessions) {
+      final activeSession = sessions.where((s) => s.status == SessionStatus.active).firstOrNull;
+      if (activeSession != null) {
+        roomName = activeSession.roomName.toJson();
+      }
+    });
+
+    // Build cart item with saved preferences
+    final preference = await menuService.getUserPreference(widget.item.id);
+    if (!mounted) return;
+
+    final selectedCustomizations = <SelectedCustomization>[];
+
+    // Initialize with defaults first
+    final selectedOptions = <int, List<int>>{};
+    for (final customization in widget.item.customizations) {
+      final defaults = customization.options
+          .where((o) => o.isDefault)
+          .map((o) => o.id)
+          .toList();
+      if (defaults.isNotEmpty) {
+        selectedOptions[customization.id] = defaults;
+      } else if (customization.isRequired && customization.options.isNotEmpty) {
+        selectedOptions[customization.id] = [customization.options.first.id];
+      }
+    }
+
+    // Apply saved preferences if available
+    if (preference != null) {
+      final savedByCustomization = <int, List<int>>{};
+      for (final option in preference.selectedOptions) {
+        savedByCustomization
+            .putIfAbsent(option.customizationId, () => [])
+            .add(option.optionId);
+      }
+      for (final customization in widget.item.customizations) {
+        final savedOpts = savedByCustomization[customization.id];
+        if (savedOpts != null && savedOpts.isNotEmpty) {
+          final validOptions = savedOpts
+              .where((optionId) => customization.options.any((o) => o.id == optionId))
+              .toList();
+          if (validOptions.isNotEmpty) {
+            selectedOptions[customization.id] = validOptions;
+          }
+        }
+      }
+      // Ensure required customizations have a selection
+      for (final customization in widget.item.customizations) {
+        if (customization.isRequired) {
+          final selected = selectedOptions[customization.id] ?? [];
+          if (selected.isEmpty && customization.options.isNotEmpty) {
+            selectedOptions[customization.id] = [customization.options.first.id];
+          }
+        }
+      }
+    }
+
+    // Build SelectedCustomization list
+    for (final customization in widget.item.customizations) {
+      final optionIds = selectedOptions[customization.id] ?? [];
+      for (final optionId in optionIds) {
+        final option = customization.options.firstWhere((o) => o.id == optionId);
+        selectedCustomizations.add(SelectedCustomization(
+          customizationId: customization.id,
+          customizationName: customization.name,
+          optionId: option.id,
+          optionName: option.name,
+          priceAdjustment: option.priceAdjustment,
+        ));
+      }
+    }
+
+    final cartItem = CartItem.fromMenuItem(widget.item, customizations: selectedCustomizations);
+
+    // Submit order directly
+    try {
+      await orderService.createOrder(
+        items: [cartItem],
+        userId: authState.userId ?? '',
+        userName: authState.name ?? 'Guest',
+        roomName: roomName,
+      );
+      if (!mounted) return;
+
+      // Refresh orders
+      ref.read(ordersProvider.notifier).refresh();
+
+      showFToast(
+        context: context,
+        title: Text(l10n.fastOrderPlaced),
+        icon: Icon(FIcons.check, color: AppTheme.successColor),
+      );
+    } catch (e) {
+      if (mounted) {
+        showFToast(
+          context: context,
+          title: Text(l10n.failedToPlaceOrder),
+          icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
     final cart = ref.watch(cartProvider);
-    final cartQuantity = _getCartQuantity(cart, item.id);
+    final cartQuantity = _getCartQuantity(cart, widget.item.id);
     final favoritesState = ref.watch(favoritesProvider);
-    final isFavorite = favoritesState.favoriteIds.contains(item.id);
+    final isFavorite = favoritesState.favoriteIds.contains(widget.item.id);
+    final item = widget.item;
+    final locale = widget.locale;
 
     return GestureDetector(
       onTap: () => _showCustomizationSheet(context, ref),
+      onLongPressStart: _startFastOrder,
+      onLongPressEnd: _endFastOrder,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: isLast
+        decoration: widget.isLast
             ? null
             : BoxDecoration(
                 border: Border(
@@ -597,45 +811,74 @@ class MenuItemTile extends ConsumerWidget {
               ),
             ),
 
-            // Quantity stepper or add button
-            cartQuantity > 0
-                ? _QuantityStepper(
-                    quantity: cartQuantity,
-                    onIncrement: () => _addToCart(ref),
-                    onDecrement: () => _decrementFromCart(ref, cart, item.id),
-                  )
-                : Stack(
-                    clipBehavior: Clip.none,
-                    alignment: Alignment.topCenter,
-                    children: [
-                      GestureDetector(
-                        onTap: () => _handleAddTap(context, ref),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: colors.primary,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Icon(
-                            item.customizations.isNotEmpty ? FIcons.chevronRight : FIcons.plus,
+            // Quantity stepper or add button (with fast order progress)
+            _fastOrderProgress > 0
+                ? Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: CircularProgressIndicator(
+                            value: _fastOrderProgress,
+                            strokeWidth: 2.5,
                             color: colors.primaryForeground,
-                            size: 18,
+                            backgroundColor: colors.primaryForeground.withValues(alpha: 0.3),
                           ),
                         ),
-                      ),
-                      if (item.customizations.isNotEmpty)
-                        Positioned(
-                          top: 36,
-                          child: AppText(
-                            l10n.customizable,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: colors.mutedForeground,
+                        Icon(
+                          FIcons.zap,
+                          color: colors.primaryForeground,
+                          size: 14,
+                        ),
+                      ],
+                    ),
+                  )
+                : cartQuantity > 0
+                    ? _QuantityStepper(
+                        quantity: cartQuantity,
+                        onIncrement: () => _addToCart(ref),
+                        onDecrement: () => _decrementFromCart(ref, cart, item.id),
+                      )
+                    : Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.topCenter,
+                        children: [
+                          GestureDetector(
+                            onTap: () => _handleAddTap(context, ref),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: colors.primary,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                item.customizations.isNotEmpty ? FIcons.chevronRight : FIcons.plus,
+                                color: colors.primaryForeground,
+                                size: 18,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
+                          if (item.customizations.isNotEmpty)
+                            Positioned(
+                              top: 36,
+                              child: AppText(
+                                l10n.customizable,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: colors.mutedForeground,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
           ],
         ),
       ),
@@ -653,7 +896,7 @@ class MenuItemTile extends ConsumerWidget {
   }
 
   void _handleAddTap(BuildContext context, WidgetRef ref) {
-    if (item.customizations.isEmpty) {
+    if (widget.item.customizations.isEmpty) {
       _addToCart(ref);
     } else {
       _showCustomizationSheet(context, ref);
@@ -661,7 +904,7 @@ class MenuItemTile extends ConsumerWidget {
   }
 
   void _addToCart(WidgetRef ref) {
-    final cartItem = CartItem.fromMenuItem(item);
+    final cartItem = CartItem.fromMenuItem(widget.item);
     ref.read(cartProvider.notifier).addItem(cartItem);
   }
 
@@ -679,7 +922,7 @@ class MenuItemTile extends ConsumerWidget {
   }
 
   void _showCustomizationSheet(BuildContext context, WidgetRef ref) {
-    if (item.customizations.isEmpty) {
+    if (widget.item.customizations.isEmpty) {
       _addToCart(ref);
     } else {
       showModalBottomSheet(
@@ -688,7 +931,7 @@ class MenuItemTile extends ConsumerWidget {
         useRootNavigator: true,
         backgroundColor: Colors.transparent,
         barrierColor: Colors.black.withValues(alpha: 0.5),
-        builder: (context) => ItemCustomizationSheet(item: item),
+        builder: (context) => ItemCustomizationSheet(item: widget.item),
       );
     }
   }
@@ -764,3 +1007,4 @@ class _QuantityStepper extends StatelessWidget {
     );
   }
 }
+
