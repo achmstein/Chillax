@@ -24,7 +24,7 @@ public class StartSessionCommandHandler : IRequestHandler<StartSessionCommand, b
 
     public async Task<bool> Handle(StartSessionCommand request, CancellationToken cancellationToken)
     {
-        var reservation = await _reservationRepository.GetWithMembersAsync(request.ReservationId);
+        var reservation = await _reservationRepository.GetWithRoomAsync(request.ReservationId);
         if (reservation == null)
             throw new RoomsDomainException($"Reservation {request.ReservationId} not found");
 

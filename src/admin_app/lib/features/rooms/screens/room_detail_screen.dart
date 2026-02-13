@@ -93,7 +93,10 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
               onStartSession: session != null ? () => _startSession(session.id) : null,
               onEndSession: session != null ? () => _endSession(context, session.id) : null,
               onCancelReservation: session != null ? () => _cancelReservation(context, session.id) : null,
-              onAddCustomer: session != null && (isActive || isReserved)
+              onAssignCustomer: session != null && isReserved && session.customerId == null
+                  ? () => _showAddCustomerSheet(context, session)
+                  : null,
+              onAddCustomer: session != null && isActive
                   ? () => _showAddCustomerSheet(context, session)
                   : null,
               onRemoveMember: session != null && isActive
@@ -325,6 +328,7 @@ class _CurrentStateSection extends StatelessWidget {
   final VoidCallback? onStartSession;
   final VoidCallback? onEndSession;
   final VoidCallback? onCancelReservation;
+  final VoidCallback? onAssignCustomer;
   final VoidCallback? onAddCustomer;
   final ValueChanged<String>? onRemoveMember;
 
@@ -339,6 +343,7 @@ class _CurrentStateSection extends StatelessWidget {
     this.onStartSession,
     this.onEndSession,
     this.onCancelReservation,
+    this.onAssignCustomer,
     this.onAddCustomer,
     this.onRemoveMember,
   });
@@ -542,29 +547,8 @@ class _CurrentStateSection extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  if (session!.members.isNotEmpty)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.center,
-                      children: session!.members.map((member) {
-                        return Chip(
-                          avatar: Icon(
-                            member.isOwner ? Icons.star : Icons.person,
-                            size: 16,
-                            color: member.isOwner ? Colors.amber : theme.colors.mutedForeground,
-                          ),
-                          label: AppText(
-                            member.customerName ?? member.customerId,
-                            style: theme.typography.sm,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        );
-                      }).toList(),
-                    )
-                  else if (session!.userName != null)
+                  const SizedBox(height: 12),
+                  if (session!.userName != null)
                     Chip(
                       avatar: const Icon(Icons.star, size: 16, color: Colors.amber),
                       label: AppText(
@@ -573,6 +557,33 @@ class _CurrentStateSection extends StatelessWidget {
                       ),
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    )
+                  else if (onAssignCustomer != null)
+                    GestureDetector(
+                      onTap: onAssignCustomer,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: theme.colors.border,
+                            style: BorderStyle.solid,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.person_add_outlined, size: 18, color: theme.colors.mutedForeground),
+                            const SizedBox(width: 8),
+                            AppText(
+                              l10n.addCustomer,
+                              style: theme.typography.sm.copyWith(
+                                color: theme.colors.mutedForeground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   if (session!.accessCode != null) ...[
                     const SizedBox(height: 4),
@@ -594,25 +605,6 @@ class _CurrentStateSection extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
-
-            // Add Customer button for reserved sessions
-            if (onAddCustomer != null) ...[
-              Center(
-                child: FButton(
-                  style: FButtonStyle.outline(),
-                  onPress: onAddCustomer,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.person_add_outlined, size: 18),
-                      const SizedBox(width: 8),
-                      AppText(l10n.addCustomer),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

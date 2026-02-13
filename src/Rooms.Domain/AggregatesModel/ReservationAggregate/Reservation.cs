@@ -455,10 +455,6 @@ public class Reservation : Entity, IAggregateRoot
 
         CustomerId = customerId;
         CustomerName = customerName;
-
-        // Also add as owner member
-        var member = new SessionMember(Id, customerId, customerName, SessionMemberRole.Owner);
-        _sessionMembers.Add(member);
     }
 }
 
