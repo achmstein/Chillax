@@ -59,6 +59,10 @@ android {
     }
 }
 
+configurations.all {
+    exclude(group = "com.google.android.gms", module = "play-services-ads-identifier")
+}
+
 flutter {
     source = "../.."
 }
