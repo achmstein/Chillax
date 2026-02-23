@@ -220,43 +220,81 @@ jobs:
           echo -n "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n' | base64 --decode > $CERTIFICATE_PATH
           echo -n "$PROVISIONING_PROFILE_BASE64" | tr -d '\r\n' | base64 --decode > $PP_PATH
 
+          # Verify decoded profile is valid binary (not corrupted text)
+          file $PP_PATH
+          echo "Profile size: $(wc -c < $PP_PATH | tr -d ' ') bytes"
+
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Import Apple WWDR intermediate certificates (required for Xcode to verify provisioning profiles)
-          curl -sL https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer -o $RUNNER_TEMP/AppleWWDRCAG3.cer
-          curl -sL https://www.apple.com/appleca/AppleIncRootCertificate.cer -o $RUNNER_TEMP/AppleRootCA.cer
-          security import $RUNNER_TEMP/AppleWWDRCAG3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
-          security import $RUNNER_TEMP/AppleRootCA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+          # Make it the default keychain and prepend to search list (keep existing keychains)
+          security default-keychain -s $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH $(security list-keychain -d user | tr -d '"' | tr '\n' ' ')
+
+          # Import ALL Apple root and intermediate certificates
+          for cert_url in \
+            "https://www.apple.com/appleca/AppleIncRootCertificate.cer" \
+            "https://www.apple.com/certificateauthority/AppleRootCA-G2.cer" \
+            "https://www.apple.com/certificateauthority/AppleRootCA-G3.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG2.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG5.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG6.cer"; do
+            cert_file="$RUNNER_TEMP/$(basename $cert_url)"
+            curl -sL "$cert_url" -o "$cert_file"
+            security import "$cert_file" -k $KEYCHAIN_PATH -T /usr/bin/codesign 2>/dev/null || true
+          done
 
           # Import signing certificate
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Set keychain search list (include System.keychain for additional root CAs)
-          security list-keychain -d user -s $KEYCHAIN_PATH /Library/Keychains/System.keychain
+          # Verify signing identity
+          echo "=== Signing identities ==="
+          security find-identity -v -p codesigning
 
-          # Verify signing identity was imported
-          security find-identity -v -p codesigning $KEYCHAIN_PATH
+          # Extract profile metadata
+          security cms -D -i $PP_PATH > $RUNNER_TEMP/profile_plist.xml
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" $RUNNER_TEMP/profile_plist.xml)
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" $RUNNER_TEMP/profile_plist.xml)
+          echo "Profile: $PROFILE_NAME (UUID: $PROFILE_UUID)"
 
-          # Install provisioning profile
+          # Install profile in both legacy and modern Xcode locations
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          PROFILE_UUID=$(security cms -D -i $PP_PATH | grep -A1 '<key>UUID</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-          PROFILE_NAME=$(security cms -D -i $PP_PATH | grep -A1 '<key>Name</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-          echo "Profile UUID: $PROFILE_UUID"
-          echo "Profile Name: $PROFILE_NAME"
+          mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          cp $PP_PATH "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
 
           # Update ExportOptions.plist with actual profile name
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.client '$PROFILE_NAME'" ios/ExportOptions.plist
 
-          # Patch project.pbxproj with actual profile name
+          # Patch project.pbxproj with actual profile name and UUID
           sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Build IPA
-        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --build-number=${{ github.event.inputs.build_number || github.run_number }}
+      - name: Build Flutter (no codesign)
+        run: flutter build ios --release --no-codesign --build-number=${{ github.event.inputs.build_number || github.run_number }}
+
+      - name: Archive and export IPA
+        run: |
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM=NT4VMTB8MK \
+            -allowProvisioningUpdates 2>&1 | tail -50
+
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath build/ios/ipa
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -277,6 +315,7 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
           rm -rf ~/Library/MobileDevice/Provisioning\ Profiles
+          rm -rf ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
 
   build-ios-admin:
     if: |
@@ -317,34 +356,53 @@ jobs:
           echo -n "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n' | base64 --decode > $CERTIFICATE_PATH
           echo -n "$PROVISIONING_PROFILE_BASE64" | tr -d '\r\n' | base64 --decode > $PP_PATH
 
+          # Verify decoded profile is valid binary (not corrupted text)
+          file $PP_PATH
+          echo "Profile size: $(wc -c < $PP_PATH | tr -d ' ') bytes"
+
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Import Apple WWDR intermediate certificates (required for Xcode to verify provisioning profiles)
-          curl -sL https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer -o $RUNNER_TEMP/AppleWWDRCAG3.cer
-          curl -sL https://www.apple.com/appleca/AppleIncRootCertificate.cer -o $RUNNER_TEMP/AppleRootCA.cer
-          security import $RUNNER_TEMP/AppleWWDRCAG3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
-          security import $RUNNER_TEMP/AppleRootCA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+          # Make it the default keychain and prepend to search list (keep existing keychains)
+          security default-keychain -s $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH $(security list-keychain -d user | tr -d '"' | tr '\n' ' ')
+
+          # Import ALL Apple root and intermediate certificates
+          for cert_url in \
+            "https://www.apple.com/appleca/AppleIncRootCertificate.cer" \
+            "https://www.apple.com/certificateauthority/AppleRootCA-G2.cer" \
+            "https://www.apple.com/certificateauthority/AppleRootCA-G3.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG2.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG5.cer" \
+            "https://www.apple.com/certificateauthority/AppleWWDRCAG6.cer"; do
+            cert_file="$RUNNER_TEMP/$(basename $cert_url)"
+            curl -sL "$cert_url" -o "$cert_file"
+            security import "$cert_file" -k $KEYCHAIN_PATH -T /usr/bin/codesign 2>/dev/null || true
+          done
 
           # Import signing certificate
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Set keychain search list (include System.keychain for additional root CAs)
-          security list-keychain -d user -s $KEYCHAIN_PATH /Library/Keychains/System.keychain
+          # Verify signing identity
+          echo "=== Signing identities ==="
+          security find-identity -v -p codesigning
 
-          # Verify signing identity was imported
-          security find-identity -v -p codesigning $KEYCHAIN_PATH
+          # Extract profile metadata
+          security cms -D -i $PP_PATH > $RUNNER_TEMP/profile_plist.xml
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" $RUNNER_TEMP/profile_plist.xml)
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" $RUNNER_TEMP/profile_plist.xml)
+          echo "Profile: $PROFILE_NAME (UUID: $PROFILE_UUID)"
 
-          # Install provisioning profile
+          # Install profile in both legacy and modern Xcode locations
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          PROFILE_UUID=$(security cms -D -i $PP_PATH | grep -A1 '<key>UUID</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-          PROFILE_NAME=$(security cms -D -i $PP_PATH | grep -A1 '<key>Name</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-          echo "Profile UUID: $PROFILE_UUID"
-          echo "Profile Name: $PROFILE_NAME"
+          mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          cp $PP_PATH "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
 
           # Update ExportOptions.plist with actual profile name
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.admin '$PROFILE_NAME'" ios/ExportOptions.plist
@@ -352,8 +410,27 @@ jobs:
           # Patch project.pbxproj with actual profile name
           sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Build IPA
-        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --build-number=${{ github.event.inputs.build_number || github.run_number }}
+      - name: Build Flutter (no codesign)
+        run: flutter build ios --release --no-codesign --build-number=${{ github.event.inputs.build_number || github.run_number }}
+
+      - name: Archive and export IPA
+        run: |
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM=NT4VMTB8MK \
+            -allowProvisioningUpdates 2>&1 | tail -50
+
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath build/ios/ipa
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -374,3 +451,4 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
           rm -rf ~/Library/MobileDevice/Provisioning\ Profiles
+          rm -rf ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
