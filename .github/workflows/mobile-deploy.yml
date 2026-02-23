@@ -241,9 +241,11 @@ jobs:
           echo "Installed identities:"
           security find-identity -v -p codesigning $KEYCHAIN_PATH
 
-          # Apply provisioning profile
+          # Install provisioning profile (must be named by UUID)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_UUID=$(security cms -D -i $PP_PATH | plutil -extract UUID raw -)
+          echo "Provisioning profile UUID: $PROFILE_UUID"
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
 
       - name: Build iOS
         run: flutter build ipa --release --build-number=${{ github.event.inputs.build_number || github.run_number }} --export-options-plist=ios/ExportOptions.plist
@@ -318,9 +320,11 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-          # Apply provisioning profile
+          # Install provisioning profile (must be named by UUID)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_UUID=$(security cms -D -i $PP_PATH | plutil -extract UUID raw -)
+          echo "Provisioning profile UUID: $PROFILE_UUID"
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
 
       - name: Build iOS
         run: flutter build ipa --release --build-number=${{ github.event.inputs.build_number || github.run_number }} --export-options-plist=ios/ExportOptions.plist
