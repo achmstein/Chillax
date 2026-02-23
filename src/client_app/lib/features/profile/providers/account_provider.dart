@@ -32,10 +32,10 @@ class AccountState {
 
 /// Account notifier for mobile app
 class AccountNotifier extends Notifier<AccountState> {
-  AccountService? _service;
+  AccountRepository? _service;
 
-  AccountService get _accountService {
-    _service ??= ref.read(accountServiceProvider);
+  AccountRepository get _accountService {
+    _service ??= ref.read(accountRepositoryProvider);
     return _service!;
   }
 

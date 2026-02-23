@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../models/order.dart';
+import '../services/order_service.dart';
 
 /// Orders state
 class OrdersState {
@@ -67,11 +67,11 @@ class OrderHistoryState {
 
 /// Orders provider
 class OrdersNotifier extends Notifier<OrdersState> {
-  late final ApiClient _api;
+  late final OrderRepository _repository;
 
   @override
   OrdersState build() {
-    _api = ref.read(ordersApiProvider);
+    _repository = ref.read(orderRepositoryProvider);
     return const OrdersState();
   }
 
@@ -79,14 +79,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // Use /pending endpoint to get all pending orders for admin management
-      final response = await _api.get('pending');
-      // Backend returns a list of pending orders
-      final itemsList = response.data as List<dynamic>;
-      final orders = itemsList
-          .map((e) => Order.fromJson(e as Map<String, dynamic>))
-          .toList();
-      orders.sort((a, b) => b.date.compareTo(a.date));
+      final orders = await _repository.getPendingOrders();
 
       state = state.copyWith(
         isLoading: false,
@@ -101,7 +94,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   Future<bool> confirmOrder(int orderId) async {
     try {
-      await _api.put('confirm', data: {'orderNumber': orderId});
+      await _repository.confirmOrder(orderId);
       await loadOrders();
       return true;
     } catch (e) {
@@ -112,7 +105,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   Future<bool> cancelOrder(int orderId) async {
     try {
-      await _api.put('cancel', data: {'orderNumber': orderId});
+      await _repository.cancelOrder(orderId);
       await loadOrders();
       return true;
     } catch (e) {
@@ -123,12 +116,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   Future<List<Order>> getOrdersByUserId(String userId) async {
     try {
-      final response = await _api.get('user/$userId');
-      final data = response.data as Map<String, dynamic>;
-      final itemsList = data['items'] as List<dynamic>;
-      return itemsList
-          .map((e) => Order.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return await _repository.getOrdersByUserId(userId);
     } catch (e) {
       debugPrint('Failed to load user orders: $e');
       return [];
@@ -141,19 +129,18 @@ final ordersProvider = NotifierProvider<OrdersNotifier, OrdersState>(OrdersNotif
 
 /// Provider for fetching single order details
 final orderDetailsProvider = FutureProvider.family<Order, int>((ref, orderId) async {
-  final api = ref.read(ordersApiProvider);
-  final response = await api.get('$orderId');
-  return Order.fromJson(response.data as Map<String, dynamic>);
+  final repository = ref.read(orderRepositoryProvider);
+  return repository.getOrderDetails(orderId);
 });
 
 /// Order history notifier for paginated all-orders
 class OrderHistoryNotifier extends Notifier<OrderHistoryState> {
-  late final ApiClient _api;
+  late final OrderRepository _repository;
   static const _pageSize = 20;
 
   @override
   OrderHistoryState build() {
-    _api = ref.read(ordersApiProvider);
+    _repository = ref.read(orderRepositoryProvider);
     return const OrderHistoryState();
   }
 
@@ -164,21 +151,15 @@ class OrderHistoryNotifier extends Notifier<OrderHistoryState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _api.get('all', queryParameters: {
-        'pageIndex': page,
-        'pageSize': _pageSize,
-      });
-      final data = response.data as Map<String, dynamic>;
-      final itemsList = data['items'] as List<dynamic>;
-      final newOrders = itemsList
-          .map((e) => Order.fromJson(e as Map<String, dynamic>))
-          .toList();
-      final hasNext = data['hasNextPage'] as bool? ?? false;
+      final result = await _repository.getAllOrders(
+        pageIndex: page,
+        pageSize: _pageSize,
+      );
 
       state = state.copyWith(
         isLoading: false,
-        orders: loadMore ? [...state.orders, ...newOrders] : newOrders,
-        hasMore: hasNext,
+        orders: loadMore ? [...state.orders, ...result.orders] : result.orders,
+        hasMore: result.hasNextPage,
         currentPage: page,
       );
     } catch (e) {

@@ -24,7 +24,7 @@ import '../widgets/item_customization_sheet.dart';
 
 /// Provider for grouped menu items by category with localized names
 final groupedMenuItemsProvider = FutureProvider.family<Map<MenuCategory, List<MenuItem>>, Locale>((ref, locale) async {
-  final service = ref.watch(menuServiceProvider);
+  final service = ref.watch(menuRepositoryProvider);
   final categories = await service.getCategories();
   final items = await service.getMenuItems();
 
@@ -580,13 +580,11 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
 
-    // Capture refs before any await
-    final menuService = ref.read(menuServiceProvider);
+    final menuService = ref.read(menuRepositoryProvider);
     final authState = ref.read(authServiceProvider);
-    final orderService = ref.read(orderServiceProvider);
+    final orderService = ref.read(orderRepositoryProvider);
 
     // Try to get active session's room name (optional)
-    // Await a fresh fetch to avoid stale data (e.g. session just started)
     await ref.read(mySessionsProvider.notifier).refresh();
     Map<String, dynamic>? roomName;
     final sessionsState = ref.read(mySessionsProvider);
@@ -599,84 +597,19 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
       }
     }
 
-    // Build cart item with saved preferences
     final preference = await menuService.getUserPreference(widget.item.id);
     if (!mounted) return;
 
-    final selectedCustomizations = <SelectedCustomization>[];
-
-    // Initialize with defaults first
-    final selectedOptions = <int, List<int>>{};
-    for (final customization in widget.item.customizations) {
-      final defaults = customization.options
-          .where((o) => o.isDefault)
-          .map((o) => o.id)
-          .toList();
-      if (defaults.isNotEmpty) {
-        selectedOptions[customization.id] = defaults;
-      } else if (customization.isRequired && customization.options.isNotEmpty) {
-        selectedOptions[customization.id] = [customization.options.first.id];
-      }
-    }
-
-    // Apply saved preferences if available
-    if (preference != null) {
-      final savedByCustomization = <int, List<int>>{};
-      for (final option in preference.selectedOptions) {
-        savedByCustomization
-            .putIfAbsent(option.customizationId, () => [])
-            .add(option.optionId);
-      }
-      for (final customization in widget.item.customizations) {
-        final savedOpts = savedByCustomization[customization.id];
-        if (savedOpts != null && savedOpts.isNotEmpty) {
-          final validOptions = savedOpts
-              .where((optionId) => customization.options.any((o) => o.id == optionId))
-              .toList();
-          if (validOptions.isNotEmpty) {
-            selectedOptions[customization.id] = validOptions;
-          }
-        }
-      }
-      // Ensure required customizations have a selection
-      for (final customization in widget.item.customizations) {
-        if (customization.isRequired) {
-          final selected = selectedOptions[customization.id] ?? [];
-          if (selected.isEmpty && customization.options.isNotEmpty) {
-            selectedOptions[customization.id] = [customization.options.first.id];
-          }
-        }
-      }
-    }
-
-    // Build SelectedCustomization list
-    for (final customization in widget.item.customizations) {
-      final optionIds = selectedOptions[customization.id] ?? [];
-      for (final optionId in optionIds) {
-        final option = customization.options.firstWhere((o) => o.id == optionId);
-        selectedCustomizations.add(SelectedCustomization(
-          customizationId: customization.id,
-          customizationName: customization.name,
-          optionId: option.id,
-          optionName: option.name,
-          priceAdjustment: option.priceAdjustment,
-        ));
-      }
-    }
-
-    final cartItem = CartItem.fromMenuItem(widget.item, customizations: selectedCustomizations);
-
-    // Submit order directly
     try {
-      await orderService.createOrder(
-        items: [cartItem],
+      await orderService.submitFastOrder(
+        item: widget.item,
         userId: authState.userId ?? '',
         userName: authState.name ?? 'Guest',
         roomName: roomName,
+        preference: preference,
       );
       if (!mounted) return;
 
-      // Refresh orders
       ref.read(ordersProvider.notifier).refresh();
 
       showFToast(

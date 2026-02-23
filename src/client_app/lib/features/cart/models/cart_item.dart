@@ -34,11 +34,11 @@ class CartItem {
   final LocalizedText productName;
   final double unitPrice;
   final String? pictureUri;
-  int quantity;
-  String? specialInstructions;
-  List<SelectedCustomization> selectedCustomizations;
+  final int quantity;
+  final String? specialInstructions;
+  final List<SelectedCustomization> selectedCustomizations;
 
-  CartItem({
+  const CartItem({
     required this.productId,
     required this.productName,
     required this.unitPrice,
@@ -47,6 +47,22 @@ class CartItem {
     this.specialInstructions,
     this.selectedCustomizations = const [],
   });
+
+  CartItem copyWith({
+    int? quantity,
+    String? specialInstructions,
+    List<SelectedCustomization>? selectedCustomizations,
+  }) {
+    return CartItem(
+      productId: productId,
+      productName: productName,
+      unitPrice: unitPrice,
+      pictureUri: pictureUri,
+      quantity: quantity ?? this.quantity,
+      specialInstructions: specialInstructions ?? this.specialInstructions,
+      selectedCustomizations: selectedCustomizations ?? this.selectedCustomizations,
+    );
+  }
 
   /// Calculate total price including customizations
   double get totalPrice {
@@ -110,7 +126,9 @@ class Cart {
     if (existingIndex >= 0) {
       // Update quantity of existing item
       final updatedItems = List<CartItem>.from(items);
-      updatedItems[existingIndex].quantity += newItem.quantity;
+      updatedItems[existingIndex] = updatedItems[existingIndex].copyWith(
+        quantity: updatedItems[existingIndex].quantity + newItem.quantity,
+      );
       return Cart(items: updatedItems);
     } else {
       // Add new item
@@ -126,7 +144,7 @@ class Cart {
     if (quantity <= 0) {
       updatedItems.removeAt(index);
     } else {
-      updatedItems[index].quantity = quantity;
+      updatedItems[index] = updatedItems[index].copyWith(quantity: quantity);
     }
     return Cart(items: updatedItems);
   }

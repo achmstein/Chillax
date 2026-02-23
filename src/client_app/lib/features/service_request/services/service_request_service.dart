@@ -3,13 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/service_request.dart';
 
-/// Service for managing service requests (waiter calls, etc.)
-class ServiceRequestService {
+/// Abstract interface for service request operations
+abstract class ServiceRequestRepository {
+  Future<ServiceRequestResponse> createRequest(CreateServiceRequest request);
+}
+
+/// Service request repository implementation using API client
+class ApiServiceRequestRepository implements ServiceRequestRepository {
   final ApiClient _apiClient;
 
-  ServiceRequestService(this._apiClient);
+  ApiServiceRequestRepository(this._apiClient);
 
   /// Create a new service request
+  @override
   Future<ServiceRequestResponse> createRequest(CreateServiceRequest request) async {
     final response = await _apiClient.post<Map<String, dynamic>>(
       'service-requests',
@@ -20,10 +26,10 @@ class ServiceRequestService {
   }
 }
 
-/// Provider for service request service
-final serviceRequestServiceProvider = Provider<ServiceRequestService>((ref) {
+/// Provider for service request repository
+final serviceRequestRepositoryProvider = Provider<ServiceRequestRepository>((ref) {
   final apiClient = ref.watch(notificationsApiProvider);
-  return ServiceRequestService(apiClient);
+  return ApiServiceRequestRepository(apiClient);
 });
 
 /// State for tracking request submission
@@ -53,11 +59,11 @@ class ServiceRequestState {
 
 /// Notifier for managing service request state
 class ServiceRequestNotifier extends Notifier<ServiceRequestState> {
-  late final ServiceRequestService _service;
+  late final ServiceRequestRepository _service;
 
   @override
   ServiceRequestState build() {
-    _service = ref.watch(serviceRequestServiceProvider);
+    _service = ref.watch(serviceRequestRepositoryProvider);
     return const ServiceRequestState();
   }
 

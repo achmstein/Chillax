@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../models/admin_user.dart';
+import '../services/users_service.dart';
 
 /// Users state
 class UsersState {
@@ -40,11 +40,11 @@ class UsersState {
 
 /// Users provider
 class UsersNotifier extends Notifier<UsersState> {
-  late final ApiClient _api;
+  late final UsersRepository _repository;
 
   @override
   UsersState build() {
-    _api = ref.read(identityApiProvider);
+    _repository = ref.read(usersRepositoryProvider);
     return const UsersState();
   }
 
@@ -52,22 +52,12 @@ class UsersNotifier extends Notifier<UsersState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final queryParams = <String, dynamic>{
-        'first': first,
-        'max': max,
-        'role': 'Admin', // Filter for admin users only on backend
-      };
-
-      if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
-        queryParams['search'] = state.searchQuery;
-      }
-
-      final response = await _api.get('/users', queryParameters: queryParams);
-      final usersData = response.data as List<dynamic>;
-
-      final users = usersData
-          .map((e) => AdminUser.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final users = await _repository.getUsers(
+        first: first,
+        max: max,
+        role: 'Admin',
+        search: state.searchQuery,
+      );
 
       state = state.copyWith(
         isLoading: false,
@@ -95,11 +85,11 @@ class UsersNotifier extends Notifier<UsersState> {
     required String password,
   }) async {
     try {
-      await _api.post('/register-admin', data: {
-        'name': name,
-        'email': email,
-        'password': password,
-      });
+      await _repository.createAdmin(
+        name: name,
+        email: email,
+        password: password,
+      );
 
       // Refresh user list
       await loadUsers();

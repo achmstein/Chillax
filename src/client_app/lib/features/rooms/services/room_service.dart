@@ -3,13 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../models/room.dart';
 
-/// Room service
-class RoomService {
+/// Abstract room repository
+abstract class RoomRepository {
+  Future<List<Room>> getRooms();
+  Future<List<Room>> getAvailableRooms();
+  Future<Room> getRoom(int id);
+  Future<int> reserveRoom(int roomId);
+  Future<List<RoomSession>> getMySessions();
+  Future<void> cancelReservation(int sessionId);
+  Future<SessionPreview?> getSessionPreview(String accessCode);
+  Future<JoinSessionResult> joinSession(String accessCode);
+  Future<void> leaveSession(int sessionId);
+}
+
+/// API-backed room repository
+class ApiRoomRepository implements RoomRepository {
   final ApiClient _apiClient;
 
-  RoomService(this._apiClient);
+  ApiRoomRepository(this._apiClient);
 
   /// Get all rooms
+  @override
   Future<List<Room>> getRooms() async {
     final response = await _apiClient.get<List<dynamic>>(
       '',
@@ -21,6 +35,7 @@ class RoomService {
   }
 
   /// Get available rooms
+  @override
   Future<List<Room>> getAvailableRooms() async {
     final response = await _apiClient.get<List<dynamic>>(
       'available',
@@ -32,6 +47,7 @@ class RoomService {
   }
 
   /// Get room by ID
+  @override
   Future<Room> getRoom(int id) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
       '$id',
@@ -41,6 +57,7 @@ class RoomService {
   }
 
   /// Reserve a room (immediate - customer has 15 min to arrive)
+  @override
   Future<int> reserveRoom(int roomId) async {
     final response = await _apiClient.post<int>(
       '$roomId/reserve',
@@ -50,6 +67,7 @@ class RoomService {
   }
 
   /// Get customer's sessions
+  @override
   Future<List<RoomSession>> getMySessions() async {
     final response = await _apiClient.get<List<dynamic>>(
       'sessions/my',
@@ -61,11 +79,13 @@ class RoomService {
   }
 
   /// Cancel reservation (customer can only cancel their own reservations)
+  @override
   Future<void> cancelReservation(int sessionId) async {
     await _apiClient.post('sessions/my/$sessionId/cancel');
   }
 
   /// Get session preview by access code
+  @override
   Future<SessionPreview?> getSessionPreview(String accessCode) async {
     try {
       final response = await _apiClient.get<Map<String, dynamic>>(
@@ -78,6 +98,7 @@ class RoomService {
   }
 
   /// Join a session via access code
+  @override
   Future<JoinSessionResult> joinSession(String accessCode) async {
     final response = await _apiClient.post<Map<String, dynamic>>(
       'sessions/join',
@@ -87,26 +108,27 @@ class RoomService {
   }
 
   /// Leave a session
+  @override
   Future<void> leaveSession(int sessionId) async {
     await _apiClient.post('sessions/$sessionId/leave');
   }
 }
 
-/// Provider for room service
-final roomServiceProvider = Provider<RoomService>((ref) {
+/// Provider for room repository
+final roomRepositoryProvider = Provider<RoomRepository>((ref) {
   final apiClient = ref.watch(roomsApiProvider);
-  return RoomService(apiClient);
+  return ApiRoomRepository(apiClient);
 });
 
 /// Provider for all rooms
 final roomsProvider = FutureProvider<List<Room>>((ref) async {
-  final service = ref.watch(roomServiceProvider);
+  final service = ref.watch(roomRepositoryProvider);
   return service.getRooms();
 });
 
 /// Provider for available rooms
 final availableRoomsProvider = FutureProvider<List<Room>>((ref) async {
-  final service = ref.watch(roomServiceProvider);
+  final service = ref.watch(roomRepositoryProvider);
   return service.getAvailableRooms();
 });
 
@@ -115,11 +137,11 @@ final mySessionsProvider = NotifierProvider<MySessionsNotifier, AsyncValue<List<
 
 /// Sessions notifier - refreshes on demand (app resume, screen focus, pull-to-refresh)
 class MySessionsNotifier extends Notifier<AsyncValue<List<RoomSession>>> {
-  late final RoomService _roomService;
+  late final RoomRepository _roomService;
 
   @override
   AsyncValue<List<RoomSession>> build() {
-    _roomService = ref.watch(roomServiceProvider);
+    _roomService = ref.watch(roomRepositoryProvider);
     _loadSessions();
     return const AsyncValue.loading();
   }
@@ -177,11 +199,11 @@ class ReservationState {
 
 /// Reservation notifier
 class ReservationNotifier extends Notifier<ReservationState> {
-  late final RoomService _roomService;
+  late final RoomRepository _roomService;
 
   @override
   ReservationState build() {
-    _roomService = ref.watch(roomServiceProvider);
+    _roomService = ref.watch(roomRepositoryProvider);
     return const ReservationState();
   }
 

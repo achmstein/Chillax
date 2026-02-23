@@ -102,7 +102,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     });
 
     try {
-      final service = ref.read(roomServiceProvider);
+      final service = ref.read(roomRepositoryProvider);
       await service.joinSession(code);
 
       if (mounted) {
@@ -876,7 +876,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
 
     if (confirmed == true) {
       try {
-        final service = ref.read(roomServiceProvider);
+        final service = ref.read(roomRepositoryProvider);
         await service.cancelReservation(session.id);
         ref.read(mySessionsProvider.notifier).refresh();
         ref.invalidate(roomsProvider);

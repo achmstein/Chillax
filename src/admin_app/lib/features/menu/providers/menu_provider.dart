@@ -1,13 +1,12 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http_parser/http_parser.dart';
+
 import '../../../core/models/localized_text.dart';
-import '../../../core/network/api_client.dart';
 import '../models/menu_item.dart';
+import '../services/menu_service.dart';
 
 /// Menu state
 class MenuState {
@@ -58,11 +57,11 @@ class MenuState {
 
 /// Menu provider
 class MenuNotifier extends Notifier<MenuState> {
-  late final ApiClient _api;
+  late final MenuRepository _repository;
 
   @override
   MenuState build() {
-    _api = ref.read(catalogApiProvider);
+    _repository = ref.read(menuRepositoryProvider);
     return const MenuState();
   }
 
@@ -70,26 +69,12 @@ class MenuNotifier extends Notifier<MenuState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final results = await Future.wait([
-        _api.get('items'),
-        _api.get('categories'),
-      ]);
-
-      final itemsData = results[0].data as List<dynamic>;
-      final categoriesData = results[1].data as List<dynamic>;
-
-      final items = itemsData
-          .map((e) => MenuItem.fromJson(e as Map<String, dynamic>))
-          .toList();
-
-      final categories = categoriesData
-          .map((e) => MenuCategory.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final result = await _repository.loadMenu();
 
       state = state.copyWith(
         isLoading: false,
-        items: items,
-        categories: categories,
+        items: result.items,
+        categories: result.categories,
       );
     } catch (e) {
       debugPrint('Failed to load menu: $e');
@@ -117,9 +102,7 @@ class MenuNotifier extends Notifier<MenuState> {
     state = state.copyWith(items: optimisticItems);
 
     try {
-      await _api.patch('items/$itemId/availability', data: {
-        'isAvailable': isAvailable,
-      });
+      await _repository.updateItemAvailability(itemId, isAvailable);
       return true;
     } catch (e) {
       debugPrint('Failed to update item availability: $e');
@@ -131,7 +114,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
   Future<bool> createItem(MenuItem item) async {
     try {
-      await _api.post('items', data: item.toJson());
+      await _repository.createItem(item);
       await loadMenu();
       return true;
     } catch (e) {
@@ -142,7 +125,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
   Future<bool> updateItem(MenuItem item) async {
     try {
-      await _api.put('items/${item.id}', data: item.toJson());
+      await _repository.updateItem(item);
       await loadMenu();
       return true;
     } catch (e) {
@@ -153,7 +136,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
   Future<bool> deleteItem(int itemId) async {
     try {
-      await _api.delete('items/$itemId');
+      await _repository.deleteItem(itemId);
       await loadMenu();
       return true;
     } catch (e) {
@@ -165,9 +148,7 @@ class MenuNotifier extends Notifier<MenuState> {
   // Category CRUD operations
   Future<bool> createCategory(LocalizedText name) async {
     try {
-      await _api.post('categories', data: {
-        'name': name.toJson(),
-      });
+      await _repository.createCategory(name);
       await loadMenu();
       return true;
     } catch (e) {
@@ -178,9 +159,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
   Future<bool> updateCategory(int id, LocalizedText name) async {
     try {
-      await _api.put('categories/$id', data: {
-        'name': name.toJson(),
-      });
+      await _repository.updateCategory(id, name);
       await loadMenu();
       return true;
     } catch (e) {
@@ -191,7 +170,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
   Future<bool> deleteCategory(int id) async {
     try {
-      await _api.delete('categories/$id');
+      await _repository.deleteCategory(id);
       await loadMenu();
       return true;
     } catch (e) {
@@ -207,25 +186,7 @@ class MenuNotifier extends Notifier<MenuState> {
   // Image upload
   Future<String?> uploadItemImage(int itemId, File imageFile) async {
     try {
-      final extension = imageFile.path.split('.').last.toLowerCase();
-      final mimeType = switch (extension) {
-        'jpg' || 'jpeg' => 'image/jpeg',
-        'png' => 'image/png',
-        'webp' => 'image/webp',
-        _ => 'application/octet-stream',
-      };
-
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          imageFile.path,
-          contentType: MediaType.parse(mimeType),
-        ),
-      });
-
-      final response = await _api.post(
-        'items/$itemId/pic',
-        data: formData,
-      );
+      final imageUrl = await _repository.uploadItemImage(itemId, imageFile);
 
       // Evict cached image so the updated picture loads
       final existingItem = state.items.where((i) => i.id == itemId).firstOrNull;
@@ -233,7 +194,7 @@ class MenuNotifier extends Notifier<MenuState> {
         await CachedNetworkImage.evictFromCache(existingItem!.pictureUri!);
       }
 
-      return response.data as String?;
+      return imageUrl;
     } catch (e) {
       debugPrint('Failed to upload image: $e');
       return null;
@@ -243,7 +204,7 @@ class MenuNotifier extends Notifier<MenuState> {
   // Delete item image
   Future<bool> deleteItemImage(int itemId) async {
     try {
-      await _api.delete('items/$itemId/pic');
+      await _repository.deleteItemImage(itemId);
       await loadMenu();
       return true;
     } catch (e) {
@@ -255,12 +216,9 @@ class MenuNotifier extends Notifier<MenuState> {
   // Customization CRUD
   Future<ItemCustomization?> createCustomization(int itemId, ItemCustomization customization) async {
     try {
-      final response = await _api.post(
-        'items/$itemId/customizations',
-        data: customization.toJson(),
-      );
+      final result = await _repository.createCustomization(itemId, customization);
       await loadMenu();
-      return ItemCustomization.fromJson(response.data as Map<String, dynamic>);
+      return result;
     } catch (e) {
       debugPrint('Failed to create customization: $e');
       return null;
@@ -269,12 +227,9 @@ class MenuNotifier extends Notifier<MenuState> {
 
   Future<ItemCustomization?> updateCustomization(int itemId, int customizationId, ItemCustomization customization) async {
     try {
-      final response = await _api.put(
-        'items/$itemId/customizations/$customizationId',
-        data: customization.toJson(),
-      );
+      final result = await _repository.updateCustomization(itemId, customizationId, customization);
       await loadMenu();
-      return ItemCustomization.fromJson(response.data as Map<String, dynamic>);
+      return result;
     } catch (e) {
       debugPrint('Failed to update customization: $e');
       return null;
@@ -283,7 +238,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
   Future<bool> deleteCustomization(int itemId, int customizationId) async {
     try {
-      await _api.delete('items/$itemId/customizations/$customizationId');
+      await _repository.deleteCustomization(itemId, customizationId);
       await loadMenu();
       return true;
     } catch (e) {
@@ -352,7 +307,7 @@ class MenuNotifier extends Notifier<MenuState> {
         'displayOrder': e.key,
       }).toList();
 
-      await _api.put('categories/reorder', data: {'items': reorderItems});
+      await _repository.saveReorderedCategories(reorderItems);
       state = state.copyWith(isReorderingCategories: false);
       return true;
     } catch (e) {
@@ -372,7 +327,7 @@ class MenuNotifier extends Notifier<MenuState> {
         'displayOrder': e.key,
       }).toList();
 
-      await _api.put('items/reorder', data: {'items': reorderItems});
+      await _repository.saveReorderedItems(reorderItems);
       state = state.copyWith(isReorderingItems: false);
       return true;
     } catch (e) {

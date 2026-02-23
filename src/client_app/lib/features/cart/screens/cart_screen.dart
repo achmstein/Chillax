@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -26,11 +24,6 @@ class CartScreen extends ConsumerStatefulWidget {
 
 class _CartScreenState extends ConsumerState<CartScreen> {
   final TextEditingController _noteController = TextEditingController();
-  int _pointsToRedeem = 0;
-  bool _usePoints = false;
-  double? _serverDiscount;
-  bool _loyaltyError = false;
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -38,6 +31,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     Future.microtask(() {
       // Reset checkout state to clear stale loading/error from previous checkout
       ref.read(checkoutProvider.notifier).reset();
+      ref.read(loyaltyRedemptionProvider.notifier).reset();
       // Refresh loyalty balance so points earned from confirmed orders are up to date
       ref.read(loyaltyProvider.notifier).loadLoyaltyInfo();
     });
@@ -46,32 +40,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   @override
   void dispose() {
     _noteController.dispose();
-    _debounceTimer?.cancel();
     super.dispose();
-  }
-
-  void _fetchServerDiscount(int points) {
-    _debounceTimer?.cancel();
-    if (points <= 0) {
-      setState(() => _serverDiscount = null);
-      return;
-    }
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
-      final value = await ref.read(loyaltyProvider.notifier).getPointsValue(points);
-      if (mounted) {
-        if (value == null) {
-          // Server unreachable — disable loyalty for this session
-          setState(() {
-            _loyaltyError = true;
-            _usePoints = false;
-            _pointsToRedeem = 0;
-            _serverDiscount = null;
-          });
-        } else {
-          setState(() => _serverDiscount = value);
-        }
-      }
-    });
   }
 
   void _showNoteSheet(BuildContext context, AppLocalizations l10n) {
@@ -334,16 +303,17 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   Widget _buildPointsRedemption(double orderTotal, dynamic colors) {
     final l10n = AppLocalizations.of(context)!;
     final loyaltyState = ref.watch(loyaltyProvider);
+    final redemption = ref.watch(loyaltyRedemptionProvider);
     final loyaltyInfo = loyaltyState.loyaltyInfo;
 
     // Don't show if no loyalty account, no points, or loyalty service unavailable
-    if (loyaltyInfo == null || loyaltyInfo.pointsBalance <= 0 || _loyaltyError) {
+    if (loyaltyInfo == null || loyaltyInfo.pointsBalance <= 0 || redemption.loyaltyError) {
       return const SizedBox.shrink();
     }
 
     final numberFormat = NumberFormat('#,###');
     final maxRedeemable = ref.read(loyaltyProvider.notifier).getMaxRedeemablePoints(orderTotal);
-    final discount = _serverDiscount ?? 0.0;
+    final discount = redemption.serverDiscount ?? 0.0;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -378,19 +348,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               ),
               const SizedBox(width: 8),
               FSwitch(
-                value: _usePoints,
+                value: redemption.usePoints,
                 onChange: maxRedeemable > 0
                     ? (value) {
-                        setState(() {
-                          _usePoints = value;
-                          if (value) {
-                            _pointsToRedeem = maxRedeemable;
-                          } else {
-                            _pointsToRedeem = 0;
-                            _serverDiscount = null;
-                          }
-                        });
-                        _fetchServerDiscount(value ? maxRedeemable : 0);
+                        ref.read(loyaltyRedemptionProvider.notifier)
+                            .toggleUsePoints(value, maxRedeemable);
                       }
                     : null,
               ),
@@ -398,7 +360,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           ),
 
           // Points slider when enabled
-          if (_usePoints && maxRedeemable > 0) ...[
+          if (redemption.usePoints && maxRedeemable > 0) ...[
             const SizedBox(height: 12),
             Row(
               children: [
@@ -412,16 +374,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         thumbColor: colors.primary,
                       ),
                       child: Slider(
-                        value: _pointsToRedeem.toDouble(),
+                        value: redemption.pointsToRedeem.toDouble(),
                         min: 0,
                         max: maxRedeemable.toDouble(),
                         divisions: maxRedeemable > 0 ? (maxRedeemable / 10).ceil() : 1,
                         onChanged: (value) {
-                          final rounded = value.round();
-                          setState(() {
-                            _pointsToRedeem = rounded;
-                          });
-                          _fetchServerDiscount(rounded);
+                          ref.read(loyaltyRedemptionProvider.notifier)
+                              .setPointsToRedeem(value.round());
                         },
                       ),
                     ),
@@ -433,7 +392,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 AppText(
-                  '${numberFormat.format(_pointsToRedeem)} ${l10n.pts}',
+                  '${numberFormat.format(redemption.pointsToRedeem)} ${l10n.pts}',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: colors.foreground,
@@ -456,13 +415,14 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
   Widget _buildTotalSection(double orderTotal, dynamic colors) {
     final l10n = AppLocalizations.of(context)!;
-    final discount = _serverDiscount ?? 0.0;
+    final redemption = ref.watch(loyaltyRedemptionProvider);
+    final discount = redemption.serverDiscount ?? 0.0;
     final finalTotal = orderTotal - discount;
 
     return Column(
       children: [
         // Subtotal if discount applied
-        if (_pointsToRedeem > 0) ...[
+        if (redemption.pointsToRedeem > 0) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -592,9 +552,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   void _handleCheckout(Cart cart) async {
     final l10n = AppLocalizations.of(context)!;
     final note = _noteController.text.isNotEmpty ? _noteController.text : null;
+    final redemption = ref.read(loyaltyRedemptionProvider);
 
     // Get active room session's room name (if any) - send as localized object
-    // Await a fresh fetch to avoid stale data (e.g. session just started)
     await ref.read(mySessionsProvider.notifier).refresh();
     Map<String, dynamic>? roomName;
     final sessionsState = ref.read(mySessionsProvider);
@@ -611,18 +571,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           items: cart.items,
           roomName: roomName,
           customerNote: note,
-          pointsToRedeem: _pointsToRedeem,
-          loyaltyDiscount: _serverDiscount ?? 0,
+          pointsToRedeem: redemption.pointsToRedeem,
+          loyaltyDiscount: redemption.serverDiscount ?? 0,
         );
 
     if (success && mounted) {
       _noteController.clear();
-      setState(() {
-        _pointsToRedeem = 0;
-        _usePoints = false;
-        _serverDiscount = null;
-        _loyaltyError = false;
-      });
+      ref.read(loyaltyRedemptionProvider.notifier).reset();
 
       // Refresh loyalty info to show updated balance after order is confirmed
       ref.read(loyaltyProvider.notifier).refresh();

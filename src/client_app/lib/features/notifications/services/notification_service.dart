@@ -30,14 +30,24 @@ class SubscriptionStatus {
   }
 }
 
+/// Abstract interface for notification operations
+abstract class NotificationRepository {
+  Future<bool> subscribeToRoomAvailability({String preferredLanguage = 'en'});
+  Future<bool> unsubscribeFromRoomAvailability();
+  Future<bool> registerForOrderNotifications({String preferredLanguage = 'en'});
+  Future<void> unregisterFromOrderNotifications();
+  Future<SubscriptionStatus> getRoomAvailabilitySubscription();
+}
+
 /// Service for handling notification subscriptions
-class NotificationService {
+class ApiNotificationRepository implements NotificationRepository {
   final ApiClient _apiClient;
   final FirebaseService _firebaseService;
 
-  NotificationService(this._apiClient, this._firebaseService);
+  ApiNotificationRepository(this._apiClient, this._firebaseService);
 
   /// Subscribe to room availability notifications
+  @override
   Future<bool> subscribeToRoomAvailability({String preferredLanguage = 'en'}) async {
     try {
       final fcmToken = await _firebaseService.getToken();
@@ -70,6 +80,7 @@ class NotificationService {
   }
 
   /// Unsubscribe from room availability notifications
+  @override
   Future<bool> unsubscribeFromRoomAvailability() async {
     try {
       final response = await _apiClient.delete('subscriptions/room-availability')
@@ -88,6 +99,7 @@ class NotificationService {
 
   /// Register for order status notifications (e.g. order cancelled)
   /// Called automatically after login - fire-and-forget
+  @override
   Future<bool> registerForOrderNotifications({String preferredLanguage = 'en'}) async {
     try {
       final fcmToken = await _firebaseService.getToken();
@@ -115,6 +127,7 @@ class NotificationService {
 
   /// Unregister from order status notifications
   /// Called on logout
+  @override
   Future<void> unregisterFromOrderNotifications() async {
     try {
       await _apiClient.delete('subscriptions/user-orders')
@@ -126,6 +139,7 @@ class NotificationService {
   }
 
   /// Check if user is subscribed to room availability notifications
+  @override
   Future<SubscriptionStatus> getRoomAvailabilitySubscription() async {
     try {
       final response = await _apiClient.get('subscriptions/room-availability')
@@ -142,20 +156,21 @@ class NotificationService {
   }
 }
 
-/// Provider for notification service
-final notificationServiceProvider = Provider<NotificationService>((ref) {
-  final apiClient = ref.read(notificationsApiProvider);
-  final firebaseService = ref.read(firebaseServiceProvider);
-  return NotificationService(apiClient, firebaseService);
+/// Provider for notification repository
+final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
+  return ApiNotificationRepository(
+    ref.read(notificationsApiProvider),
+    ref.read(firebaseServiceProvider),
+  );
 });
 
 /// State notifier for room availability subscription
 class RoomAvailabilityNotifier extends Notifier<AsyncValue<bool>> {
-  late final NotificationService _notificationService;
+  late final NotificationRepository _notificationService;
 
   @override
   AsyncValue<bool> build() {
-    _notificationService = ref.read(notificationServiceProvider);
+    _notificationService = ref.read(notificationRepositoryProvider);
     _loadSubscriptionStatus();
     return const AsyncValue.loading();
   }

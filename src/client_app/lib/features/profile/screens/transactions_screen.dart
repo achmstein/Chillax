@@ -28,7 +28,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 
   void _loadTransactions() {
-    _transactionsFuture = ref.read(accountServiceProvider).getMyTransactions();
+    _transactionsFuture = ref.read(accountRepositoryProvider).getMyTransactions();
   }
 
   @override

@@ -52,7 +52,7 @@ class _ItemCustomizationSheetState
   }
 
   Future<void> _loadSavedPreferences() async {
-    final service = ref.read(menuServiceProvider);
+    final service = ref.read(menuRepositoryProvider);
     final preference = await service.getUserPreference(widget.item.id);
 
     if (preference != null && mounted) {
@@ -241,8 +241,7 @@ class _ItemCustomizationSheetState
       instructions: _instructionsController.text.isNotEmpty
           ? _instructionsController.text
           : null,
-    );
-    cartItem.quantity = _quantity;
+    ).copyWith(quantity: _quantity);
 
     ref.read(cartProvider.notifier).addItem(cartItem);
     Navigator.pop(context);

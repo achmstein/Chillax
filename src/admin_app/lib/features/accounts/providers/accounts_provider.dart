@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../../customers/models/customer.dart';
 import '../models/customer_account.dart';
+import '../services/accounts_service.dart';
 
 /// Accounts state
 class AccountsState {
@@ -63,24 +63,18 @@ class AccountsState {
 
 /// Accounts provider
 class AccountsNotifier extends Notifier<AccountsState> {
-  late final ApiClient _accountsApi;
-  late final ApiClient _identityApi;
+  late final AccountsRepository _repository;
 
   @override
   AccountsState build() {
-    _accountsApi = ref.read(accountsApiProvider);
-    _identityApi = ref.read(identityApiProvider);
+    _repository = ref.read(accountsRepositoryProvider);
     return const AccountsState();
   }
 
   Future<void> loadAccounts() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final response = await _accountsApi.get('');
-      final accountsData = response.data as List<dynamic>;
-      final accounts = accountsData
-          .map((e) => CustomerAccount.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final accounts = await _repository.getAccounts();
 
       // Sort by balance descending (highest debt first)
       accounts.sort((a, b) => b.balance.compareTo(a.balance));
@@ -95,8 +89,7 @@ class AccountsNotifier extends Notifier<AccountsState> {
 
   Future<CustomerAccount?> getAccount(String customerId) async {
     try {
-      final response = await _accountsApi.get(customerId);
-      return CustomerAccount.fromJson(response.data as Map<String, dynamic>);
+      return await _repository.getAccount(customerId);
     } catch (e) {
       return null;
     }
@@ -105,19 +98,11 @@ class AccountsNotifier extends Notifier<AccountsState> {
   Future<void> selectAccount(String customerId) async {
     state = state.copyWith(isLoadingTransactions: true, clearError: true);
     try {
-      final accountResponse = await _accountsApi.get(customerId);
-      final accountData = accountResponse.data as Map<String, dynamic>;
-      final account = CustomerAccount.fromJson(accountData);
-
-      // Transactions are included in the account response
-      final transactionsData = accountData['transactions'] as List<dynamic>? ?? [];
-      final transactions = transactionsData
-          .map((e) => AccountTransaction.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final details = await _repository.getAccountDetails(customerId);
 
       state = state.copyWith(
-        selectedAccount: account,
-        selectedAccountTransactions: transactions,
+        selectedAccount: details.account,
+        selectedAccountTransactions: details.transactions,
         isLoadingTransactions: false,
       );
     } catch (e) {
@@ -148,14 +133,7 @@ class AccountsNotifier extends Notifier<AccountsState> {
 
     state = state.copyWith(isSearching: true);
     try {
-      final response = await _identityApi.get('/users', queryParameters: {
-        'search': query,
-        'max': 20,
-      });
-      final usersData = response.data as List<dynamic>;
-      final users = usersData
-          .map((e) => Customer.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final users = await _repository.searchUsers(query);
 
       state = state.copyWith(searchResults: users, isSearching: false);
     } catch (e) {
@@ -174,13 +152,11 @@ class AccountsNotifier extends Notifier<AccountsState> {
     String? customerName,
   }) async {
     try {
-      await _accountsApi.post(
-        '$customerId/charge',
-        data: {
-          'amount': amount,
-          'description': description,
-          if (customerName != null) 'customerName': customerName,
-        },
+      await _repository.addCharge(
+        customerId: customerId,
+        amount: amount,
+        description: description,
+        customerName: customerName,
       );
       await loadAccounts();
       // Refresh selected account if it's the one we just charged
@@ -200,12 +176,10 @@ class AccountsNotifier extends Notifier<AccountsState> {
     String? description,
   }) async {
     try {
-      await _accountsApi.post(
-        '$customerId/payment',
-        data: {
-          'amount': amount,
-          'description': description,
-        },
+      await _repository.recordPayment(
+        customerId: customerId,
+        amount: amount,
+        description: description,
       );
       await loadAccounts();
       // Refresh selected account if it's the one we just paid

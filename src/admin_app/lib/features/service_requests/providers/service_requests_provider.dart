@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../models/service_request.dart';
+import '../services/service_requests_service.dart';
 
 /// State for service requests
 class ServiceRequestsState {
@@ -38,11 +38,11 @@ class ServiceRequestsState {
 
 /// Service requests notifier
 class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
-  late final ApiClient _apiClient;
+  late final ServiceRequestsRepository _repository;
 
   @override
   ServiceRequestsState build() {
-    _apiClient = ref.read(notificationsApiProvider);
+    _repository = ref.read(serviceRequestsRepositoryProvider);
     return const ServiceRequestsState();
   }
 
@@ -52,11 +52,7 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _apiClient.get<List<dynamic>>('service-requests/pending');
-
-      final requests = (response.data ?? [])
-          .map((e) => ServiceRequest.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final requests = await _repository.getPendingRequests();
 
       state = state.copyWith(requests: requests, isLoading: false);
     } catch (e) {
@@ -68,7 +64,7 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
   /// Acknowledge a service request
   Future<bool> acknowledgeRequest(int requestId) async {
     try {
-      await _apiClient.put('service-requests/$requestId/acknowledge');
+      await _repository.acknowledgeRequest(requestId);
       await loadRequests(); // Refresh list
       return true;
     } catch (e) {
@@ -80,7 +76,7 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
   /// Complete a service request
   Future<bool> completeRequest(int requestId) async {
     try {
-      await _apiClient.put('service-requests/$requestId/complete');
+      await _repository.completeRequest(requestId);
       await loadRequests(); // Refresh list
       return true;
     } catch (e) {

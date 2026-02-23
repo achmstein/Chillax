@@ -4,19 +4,49 @@ import '../../../core/auth/auth_service.dart';
 import '../../../core/network/api_client.dart';
 import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
+import '../../menu/models/menu_item.dart';
 import '../../menu/models/user_preference.dart';
 import '../../menu/services/menu_service.dart';
 import '../models/order.dart';
 
 const _uuid = Uuid();
 
-/// Order service
-class OrderService {
+/// Abstract order repository interface
+abstract class OrderRepository {
+  Future<PaginatedOrders> getOrders({int pageIndex = 0, int pageSize = 10});
+  Future<Order> getOrder(int id);
+  Future<void> createOrder({
+    required List<CartItem> items,
+    required String userId,
+    required String userName,
+    Map<String, dynamic>? roomName,
+    String? customerNote,
+    int pointsToRedeem,
+    double loyaltyDiscount,
+  });
+  Future<void> submitFastOrder({
+    required MenuItem item,
+    required String userId,
+    required String userName,
+    Map<String, dynamic>? roomName,
+    UserItemPreference? preference,
+  });
+  Future<void> cancelOrder(int id);
+  Future<void> rateOrder({
+    required int orderId,
+    required int ratingValue,
+    String? comment,
+  });
+}
+
+/// API implementation of OrderRepository
+class ApiOrderRepository implements OrderRepository {
   final ApiClient _apiClient;
 
-  OrderService(this._apiClient);
+  ApiOrderRepository(this._apiClient);
 
   /// Get user's orders with pagination
+  @override
   Future<PaginatedOrders> getOrders({int pageIndex = 0, int pageSize = 10}) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
       '',
@@ -33,6 +63,7 @@ class OrderService {
   }
 
   /// Get order by ID
+  @override
   Future<Order> getOrder(int id) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
       '$id',
@@ -46,6 +77,7 @@ class OrderService {
 
   /// Create new order from cart
   /// Returns void - the backend returns 200 OK with no body on success
+  @override
   Future<void> createOrder({
     required List<CartItem> items,
     required String userId,
@@ -71,12 +103,97 @@ class OrderService {
     // Success if no exception thrown - API returns 200 OK with empty body
   }
 
+  /// Submit a fast order for a menu item using saved preferences or defaults
+  @override
+  Future<void> submitFastOrder({
+    required MenuItem item,
+    required String userId,
+    required String userName,
+    Map<String, dynamic>? roomName,
+    UserItemPreference? preference,
+  }) async {
+    final selectedCustomizations = <SelectedCustomization>[];
+    final selectedOptions = <int, List<int>>{};
+
+    // Initialize with defaults first
+    for (final customization in item.customizations) {
+      final defaults = customization.options
+          .where((o) => o.isDefault)
+          .map((o) => o.id)
+          .toList();
+      if (defaults.isNotEmpty) {
+        selectedOptions[customization.id] = defaults;
+      } else if (customization.isRequired && customization.options.isNotEmpty) {
+        selectedOptions[customization.id] = [customization.options.first.id];
+      }
+    }
+
+    // Apply saved preferences if available
+    if (preference != null) {
+      final savedByCustomization = <int, List<int>>{};
+      for (final option in preference.selectedOptions) {
+        savedByCustomization
+            .putIfAbsent(option.customizationId, () => [])
+            .add(option.optionId);
+      }
+      for (final customization in item.customizations) {
+        final savedOpts = savedByCustomization[customization.id];
+        if (savedOpts != null && savedOpts.isNotEmpty) {
+          final validOptions = savedOpts
+              .where((optionId) =>
+                  customization.options.any((o) => o.id == optionId))
+              .toList();
+          if (validOptions.isNotEmpty) {
+            selectedOptions[customization.id] = validOptions;
+          }
+        }
+      }
+      // Ensure required customizations have a selection
+      for (final customization in item.customizations) {
+        if (customization.isRequired) {
+          final selected = selectedOptions[customization.id] ?? [];
+          if (selected.isEmpty && customization.options.isNotEmpty) {
+            selectedOptions[customization.id] = [customization.options.first.id];
+          }
+        }
+      }
+    }
+
+    // Build SelectedCustomization list
+    for (final customization in item.customizations) {
+      final optionIds = selectedOptions[customization.id] ?? [];
+      for (final optionId in optionIds) {
+        final option =
+            customization.options.firstWhere((o) => o.id == optionId);
+        selectedCustomizations.add(SelectedCustomization(
+          customizationId: customization.id,
+          customizationName: customization.name,
+          optionId: option.id,
+          optionName: option.name,
+          priceAdjustment: option.priceAdjustment,
+        ));
+      }
+    }
+
+    final cartItem =
+        CartItem.fromMenuItem(item, customizations: selectedCustomizations);
+
+    await createOrder(
+      items: [cartItem],
+      userId: userId,
+      userName: userName,
+      roomName: roomName,
+    );
+  }
+
   /// Cancel order
+  @override
   Future<void> cancelOrder(int id) async {
     await _apiClient.put('$id/cancel');
   }
 
   /// Rate an order
+  @override
   Future<void> rateOrder({
     required int orderId,
     required int ratingValue,
@@ -93,10 +210,9 @@ class OrderService {
   }
 }
 
-/// Provider for order service
-final orderServiceProvider = Provider<OrderService>((ref) {
-  final apiClient = ref.watch(ordersApiProvider);
-  return OrderService(apiClient);
+/// Provider for order repository
+final orderRepositoryProvider = Provider<OrderRepository>((ref) {
+  return ApiOrderRepository(ref.watch(ordersApiProvider));
 });
 
 /// Orders list state
@@ -152,7 +268,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final service = ref.read(orderServiceProvider);
+      final service = ref.read(orderRepositoryProvider);
       final result = await service.getOrders(pageIndex: 0, pageSize: _pageSize);
 
       state = state.copyWith(
@@ -176,7 +292,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
     state = state.copyWith(isLoadingMore: true);
 
     try {
-      final service = ref.read(orderServiceProvider);
+      final service = ref.read(orderRepositoryProvider);
       final nextPage = state.currentPage + 1;
       final result = await service.getOrders(pageIndex: nextPage, pageSize: _pageSize);
 
@@ -205,7 +321,7 @@ final ordersProvider = NotifierProvider<OrdersNotifier, OrdersState>(OrdersNotif
 
 /// Provider for single order
 final orderProvider = FutureProvider.family<Order, int>((ref, id) async {
-  final service = ref.watch(orderServiceProvider);
+  final service = ref.watch(orderRepositoryProvider);
   return service.getOrder(id);
 });
 
@@ -236,16 +352,16 @@ class CheckoutState {
 
 /// Checkout notifier
 class CheckoutNotifier extends Notifier<CheckoutState> {
-  late final OrderService _orderService;
+  late final OrderRepository _orderService;
   late final CartNotifier _cartNotifier;
-  late final MenuService _menuService;
+  late final MenuRepository _menuService;
   late final AuthState _authState;
 
   @override
   CheckoutState build() {
-    _orderService = ref.watch(orderServiceProvider);
+    _orderService = ref.watch(orderRepositoryProvider);
     _cartNotifier = ref.watch(cartProvider.notifier);
-    _menuService = ref.watch(menuServiceProvider);
+    _menuService = ref.watch(menuRepositoryProvider);
     _authState = ref.watch(authServiceProvider);
     return const CheckoutState();
   }

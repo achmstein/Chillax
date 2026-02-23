@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/network/api_client.dart';
+import '../services/profile_service.dart';
 
 /// Profile state
 class ProfileState {
@@ -33,11 +33,11 @@ class ProfileState {
 
 /// Profile provider for password change and other profile operations
 class ProfileNotifier extends Notifier<ProfileState> {
-  late final ApiClient _api;
+  late final ProfileRepository _repository;
 
   @override
   ProfileState build() {
-    _api = ref.read(identityApiProvider);
+    _repository = ref.read(profileRepositoryProvider);
     return const ProfileState();
   }
 
@@ -45,9 +45,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
     state = state.copyWith(isLoading: true, clearError: true, clearSuccess: true);
 
     try {
-      await _api.post('/change-password', data: {
-        'newPassword': newPassword,
-      });
+      await _repository.changePassword(newPassword);
 
       state = state.copyWith(
         isLoading: false,
@@ -69,9 +67,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
     state = state.copyWith(isLoading: true, clearError: true, clearSuccess: true);
 
     try {
-      await _api.post('update-name', data: {
-        'newName': newName,
-      });
+      await _repository.updateName(newName);
 
       // Refresh auth token to pick up new name
       await ref.read(authServiceProvider.notifier).refreshToken();

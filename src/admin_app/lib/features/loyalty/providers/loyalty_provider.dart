@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../models/loyalty_account.dart';
 import '../models/loyalty_stats.dart';
 import '../models/points_transaction.dart';
+import '../services/loyalty_service.dart';
 
 /// Loyalty state
 class LoyaltyState {
@@ -46,11 +46,11 @@ class LoyaltyState {
 
 /// Loyalty provider
 class LoyaltyNotifier extends Notifier<LoyaltyState> {
-  late final ApiClient _api;
+  late final LoyaltyRepository _repository;
 
   @override
   LoyaltyState build() {
-    _api = ref.read(loyaltyApiProvider);
+    _repository = ref.read(loyaltyRepositoryProvider);
     return const LoyaltyState();
   }
 
@@ -58,17 +58,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final queryParams = <String, dynamic>{
-        'first': first,
-        'max': max,
-        'api-version': '1.0',
-      };
-
-      final response = await _api.get('/accounts', queryParameters: queryParams);
-      final accountsData = response.data as List<dynamic>;
-      final accounts = accountsData
-          .map((e) => LoyaltyAccount.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final accounts = await _repository.getAccounts(first: first, max: max);
 
       state = state.copyWith(
         isLoading: false,
@@ -82,8 +72,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
 
   Future<void> loadStats() async {
     try {
-      final response = await _api.get('/stats', queryParameters: {'api-version': '1.0'});
-      final stats = LoyaltyStats.fromJson(response.data as Map<String, dynamic>);
+      final stats = await _repository.getStats();
       state = state.copyWith(stats: stats);
     } catch (e) {
       // Stats are optional, don't fail the whole operation
@@ -92,11 +81,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
 
   Future<void> loadTiers() async {
     try {
-      final response = await _api.get('/tiers', queryParameters: {'api-version': '1.0'});
-      final tiersData = response.data as List<dynamic>;
-      final tiers = tiersData
-          .map((e) => TierInfo.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final tiers = await _repository.getTiers();
       state = state.copyWith(tiers: tiers);
     } catch (e) {
       // Tiers are optional
@@ -113,11 +98,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
 
   Future<LoyaltyAccount?> getAccountByUserId(String userId) async {
     try {
-      final response = await _api.get(
-        '/accounts/$userId',
-        queryParameters: {'api-version': '1.0'},
-      );
-      return LoyaltyAccount.fromJson(response.data as Map<String, dynamic>);
+      return await _repository.getAccountByUserId(userId);
     } catch (e) {
       return null;
     }
@@ -125,14 +106,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
 
   Future<List<PointsTransaction>> getTransactions(String userId, {int max = 50}) async {
     try {
-      final response = await _api.get(
-        '/transactions/$userId',
-        queryParameters: {'api-version': '1.0', 'max': max},
-      );
-      final data = response.data as List<dynamic>;
-      return data
-          .map((e) => PointsTransaction.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return await _repository.getTransactions(userId, max: max);
     } catch (e) {
       return [];
     }
@@ -140,10 +114,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
 
   Future<bool> createAccount(String userId) async {
     try {
-      await _api.post(
-        '/accounts?api-version=1.0',
-        data: {'userId': userId},
-      );
+      await _repository.createAccount(userId);
       await loadAccounts();
       return true;
     } catch (e) {
@@ -160,15 +131,12 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     String? referenceId,
   }) async {
     try {
-      await _api.post(
-        '/transactions/earn?api-version=1.0',
-        data: {
-          'userId': userId,
-          'points': points,
-          'type': type,
-          'description': description,
-          if (referenceId != null) 'referenceId': referenceId,
-        },
+      await _repository.earnPoints(
+        userId: userId,
+        points: points,
+        type: type,
+        description: description,
+        referenceId: referenceId,
       );
       await loadAccounts();
       return true;
@@ -185,14 +153,11 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     String? referenceId,
   }) async {
     try {
-      await _api.post(
-        '/transactions/redeem?api-version=1.0',
-        data: {
-          'userId': userId,
-          'points': points,
-          'description': description,
-          if (referenceId != null) 'referenceId': referenceId,
-        },
+      await _repository.redeemPoints(
+        userId: userId,
+        points: points,
+        description: description,
+        referenceId: referenceId,
       );
       await loadAccounts();
       return true;
@@ -208,13 +173,10 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     required String reason,
   }) async {
     try {
-      await _api.post(
-        '/transactions/adjust?api-version=1.0',
-        data: {
-          'userId': userId,
-          'points': points,
-          'reason': reason,
-        },
+      await _repository.adjustPoints(
+        userId: userId,
+        points: points,
+        reason: reason,
       );
       await loadAccounts();
       await loadStats();

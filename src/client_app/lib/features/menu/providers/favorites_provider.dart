@@ -35,7 +35,7 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
     return const FavoritesState(isLoading: true);
   }
 
-  MenuService get _service => ref.read(menuServiceProvider);
+  MenuRepository get _service => ref.read(menuRepositoryProvider);
 
   /// Load favorites from the backend
   Future<void> _loadFavorites() async {

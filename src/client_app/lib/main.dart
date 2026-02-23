@@ -76,7 +76,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     // Fire-and-forget: register device for order status push notifications
     final locale = ref.read(localeProvider);
     final lang = locale?.languageCode ?? 'en';
-    ref.read(notificationServiceProvider).registerForOrderNotifications(
+    ref.read(notificationRepositoryProvider).registerForOrderNotifications(
       preferredLanguage: lang,
     );
   }

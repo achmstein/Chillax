@@ -61,7 +61,7 @@ class _RatingDialogState extends State<RatingDialog> {
     });
 
     try {
-      final orderService = widget.ref.read(orderServiceProvider);
+      final orderService = widget.ref.read(orderRepositoryProvider);
       await orderService.rateOrder(
         orderId: widget.orderId,
         ratingValue: _rating,

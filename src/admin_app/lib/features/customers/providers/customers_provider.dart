@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../models/customer.dart';
+import '../services/customers_service.dart';
 
 /// Customers state
 class CustomersState {
@@ -39,11 +39,11 @@ class CustomersState {
 
 /// Customers provider
 class CustomersNotifier extends Notifier<CustomersState> {
-  late final ApiClient _api;
+  late final CustomersRepository _repository;
 
   @override
   CustomersState build() {
-    _api = ref.read(identityApiProvider);
+    _repository = ref.read(customersRepositoryProvider);
     return const CustomersState();
   }
 
@@ -51,22 +51,12 @@ class CustomersNotifier extends Notifier<CustomersState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final queryParams = <String, dynamic>{
-        'first': first,
-        'max': max,
-        'excludeRole': 'Admin', // Exclude admin users, show only customers
-      };
-
-      if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
-        queryParams['search'] = state.searchQuery;
-      }
-
-      final response = await _api.get('/users', queryParameters: queryParams);
-      final customersData = response.data as List<dynamic>;
-
-      final customers = customersData
-          .map((e) => Customer.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final customers = await _repository.getCustomers(
+        first: first,
+        max: max,
+        search: state.searchQuery,
+        excludeRole: 'Admin', // Exclude admin users, show only customers
+      );
 
       state = state.copyWith(
         isLoading: false,
@@ -90,8 +80,7 @@ class CustomersNotifier extends Notifier<CustomersState> {
 
   Future<Customer?> getCustomer(String customerId) async {
     try {
-      final response = await _api.get('/users/$customerId');
-      return Customer.fromJson(response.data as Map<String, dynamic>);
+      return await _repository.getCustomer(customerId);
     } catch (e) {
       return null;
     }
@@ -99,7 +88,7 @@ class CustomersNotifier extends Notifier<CustomersState> {
 
   Future<bool> updateCustomerName(String customerId, String newName) async {
     try {
-      await _api.put('/users/$customerId/name', data: {'newName': newName});
+      await _repository.updateCustomerName(customerId, newName);
       // Reload customers to reflect the name change
       await loadCustomers();
       return true;
@@ -111,7 +100,7 @@ class CustomersNotifier extends Notifier<CustomersState> {
 
   Future<bool> resetCustomerPassword(String customerId, String newPassword) async {
     try {
-      await _api.put('/users/$customerId/password', data: {'newPassword': newPassword});
+      await _repository.resetCustomerPassword(customerId, newPassword);
       return true;
     } catch (e) {
       debugPrint('Failed to reset customer password: $e');

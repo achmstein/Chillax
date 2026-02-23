@@ -60,7 +60,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
     });
 
     try {
-      final service = ref.read(roomServiceProvider);
+      final service = ref.read(roomRepositoryProvider);
       final preview = await service.getSessionPreview(code);
 
       if (mounted) {
@@ -93,7 +93,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
     });
 
     try {
-      final service = ref.read(roomServiceProvider);
+      final service = ref.read(roomRepositoryProvider);
       await service.joinSession(code);
 
       if (mounted) {

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/auth/auth_service.dart';
 import '../models/loyalty_info.dart';
+import '../services/loyalty_service.dart';
 
 /// Loyalty state for mobile app
 class LoyaltyState {
@@ -35,17 +35,13 @@ class LoyaltyState {
 
 /// Loyalty notifier for mobile app
 class LoyaltyNotifier extends Notifier<LoyaltyState> {
-  ApiClient? _api;
-
-  ApiClient get _apiClient {
-    _api ??= ref.read(loyaltyApiProvider);
-    return _api!;
-  }
+  late final LoyaltyRepository _repository;
 
   AuthState get _authState => ref.read(authServiceProvider);
 
   @override
   LoyaltyState build() {
+    _repository = ref.read(loyaltyRepositoryProvider);
     // Watch auth state to rebuild when it changes
     ref.watch(authServiceProvider);
     return const LoyaltyState();
@@ -59,27 +55,17 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final response = await _apiClient.get(
-        '/accounts/${_authState.userId}',
-        queryParameters: {'api-version': '1.0'},
-      ).timeout(const Duration(seconds: 3));
-
-      final loyaltyInfo = LoyaltyInfo.fromJson(response.data as Map<String, dynamic>);
+      final loyaltyInfo = await _repository.getAccount(_authState.userId!);
       state = state.copyWith(
         isLoading: false,
         loyaltyInfo: loyaltyInfo,
       );
     } catch (e) {
-      // If 404, user doesn't have loyalty account yet - this is OK
-      if (e.toString().contains('404')) {
-        state = state.copyWith(isLoading: false);
-      } else {
-        // Fail silently - loyalty is optional, cart should still work
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Failed to load loyalty info',
-        );
-      }
+      // Fail silently - loyalty is optional, cart should still work
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load loyalty info',
+      );
     }
   }
 
@@ -89,15 +75,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     }
 
     try {
-      final response = await _apiClient.get(
-        '/transactions/${_authState.userId}',
-        queryParameters: {'api-version': '1.0', 'max': 10},
-      );
-
-      final transactions = (response.data as List<dynamic>)
-          .map((e) => PointsTransaction.fromJson(e as Map<String, dynamic>))
-          .toList();
-
+      final transactions = await _repository.getTransactions(_authState.userId!);
       state = state.copyWith(recentTransactions: transactions);
     } catch (e) {
       // Silently fail for transactions
@@ -119,10 +97,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      await _apiClient.post(
-        '/accounts',
-        data: {'userId': _authState.userId},
-      );
+      await _repository.joinProgram(_authState.userId!);
 
       // Reload the loyalty info after joining
       await loadLoyaltyInfo();
@@ -156,17 +131,7 @@ class LoyaltyNotifier extends Notifier<LoyaltyState> {
   /// Get discount value from server for the given points.
   /// Returns null if the server is unreachable.
   Future<double?> getPointsValue(int points) async {
-    if (points <= 0) return 0;
-    try {
-      final response = await _apiClient.get(
-        '/points-value',
-        queryParameters: {'api-version': '1.0', 'points': points},
-      );
-      final data = response.data as Map<String, dynamic>;
-      return (data['discountValue'] as num).toDouble();
-    } catch (e) {
-      return null;
-    }
+    return _repository.getPointsValue(points);
   }
 }
 

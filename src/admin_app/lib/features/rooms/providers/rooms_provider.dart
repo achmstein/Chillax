@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../models/room.dart';
+import '../services/room_service.dart';
 
 /// Rooms state
 class RoomsState {
@@ -50,11 +50,11 @@ class RoomsState {
 
 /// Rooms provider
 class RoomsNotifier extends Notifier<RoomsState> {
-  late final ApiClient _api;
+  late final RoomRepository _repository;
 
   @override
   RoomsState build() {
-    _api = ref.read(roomsApiProvider);
+    _repository = ref.read(roomRepositoryProvider);
     return const RoomsState();
   }
 
@@ -62,26 +62,12 @@ class RoomsNotifier extends Notifier<RoomsState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final results = await Future.wait([
-        _api.get(''),
-        _api.get('sessions/active'),
-      ]);
-
-      final roomsData = results[0].data as List<dynamic>;
-      final sessionsData = results[1].data as List<dynamic>;
-
-      final rooms = roomsData
-          .map((e) => Room.fromJson(e as Map<String, dynamic>))
-          .toList();
-
-      final sessions = sessionsData
-          .map((e) => RoomSession.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final result = await _repository.loadRooms();
 
       state = state.copyWith(
         isLoading: false,
-        rooms: rooms,
-        activeSessions: sessions,
+        rooms: result.rooms,
+        activeSessions: result.activeSessions,
       );
     } catch (e) {
       debugPrint('Failed to load rooms: $e');
@@ -91,7 +77,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
 
   Future<bool> reserveRoom(int roomId) async {
     try {
-      await _api.post('$roomId/reserve');
+      await _repository.reserveRoom(roomId);
       await loadRooms();
       return true;
     } catch (e) {
@@ -102,7 +88,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
 
   Future<bool> startSession(int sessionId) async {
     try {
-      await _api.post('sessions/$sessionId/start');
+      await _repository.startSession(sessionId);
       await loadRooms();
       return true;
     } catch (e) {
@@ -113,7 +99,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
 
   Future<bool> endSession(int sessionId) async {
     try {
-      await _api.post('sessions/$sessionId/end');
+      await _repository.endSession(sessionId);
       await loadRooms();
       return true;
     } catch (e) {
@@ -124,7 +110,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
 
   Future<bool> cancelSession(int sessionId) async {
     try {
-      await _api.post('sessions/$sessionId/cancel');
+      await _repository.cancelSession(sessionId);
       await loadRooms();
       return true;
     } catch (e) {
@@ -135,7 +121,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
 
   Future<bool> createRoom(Room room) async {
     try {
-      await _api.post('', data: room.toJson());
+      await _repository.createRoom(room);
       await loadRooms();
       return true;
     } catch (e) {
@@ -146,7 +132,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
 
   Future<bool> updateRoom(Room room) async {
     try {
-      await _api.put('${room.id}', data: room.toJson());
+      await _repository.updateRoom(room);
       await loadRooms();
       return true;
     } catch (e) {
@@ -157,7 +143,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
 
   Future<bool> deleteRoom(int roomId) async {
     try {
-      await _api.delete('$roomId');
+      await _repository.deleteRoom(roomId);
       await loadRooms();
       return true;
     } catch (e) {
@@ -169,10 +155,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
   /// Assign a customer to an active walk-in session
   Future<bool> assignCustomerToSession(int sessionId, String customerId, String? customerName) async {
     try {
-      await _api.post('sessions/$sessionId/assign-customer', data: {
-        'customerId': customerId,
-        'customerName': customerName,
-      });
+      await _repository.assignCustomerToSession(sessionId, customerId, customerName);
       await loadRooms();
       return true;
     } catch (e) {
@@ -184,10 +167,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
   /// Add a member to an active session
   Future<bool> addMemberToSession(int sessionId, String customerId, String? customerName) async {
     try {
-      await _api.post('sessions/$sessionId/members', data: {
-        'customerId': customerId,
-        'customerName': customerName,
-      });
+      await _repository.addMemberToSession(sessionId, customerId, customerName);
       await loadRooms();
       return true;
     } catch (e) {
@@ -199,7 +179,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
   /// Remove a member from an active session
   Future<bool> removeMemberFromSession(int sessionId, String customerId) async {
     try {
-      await _api.delete('sessions/$sessionId/members/$customerId');
+      await _repository.removeMemberFromSession(sessionId, customerId);
       await loadRooms();
       return true;
     } catch (e) {
@@ -211,7 +191,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
   /// Start a walk-in session directly (without reservation)
   Future<bool> startWalkInSession(int roomId) async {
     try {
-      await _api.post('sessions/walk-in/$roomId');
+      await _repository.startWalkInSession(roomId);
       await loadRooms();
       return true;
     } catch (e) {
@@ -234,14 +214,7 @@ class RoomsNotifier extends Notifier<RoomsState> {
     );
 
     try {
-      final response = await _api.get(
-        '$roomId/sessions/history',
-        queryParameters: {'limit': _historyPageSize},
-      );
-      final historyData = response.data as List<dynamic>;
-      final newHistory = historyData
-          .map((e) => RoomSession.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final newHistory = await _repository.getSessionHistory(roomId, limit: _historyPageSize);
 
       state = state.copyWith(
         isLoadingHistory: false,

@@ -33,12 +33,12 @@ class SettingsState {
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
-  late SettingsService _service;
+  late SettingsRepository _service;
   late AuthState _authState;
 
   @override
   SettingsState build() {
-    _service = ref.read(settingsServiceProvider);
+    _service = ref.read(settingsRepositoryProvider);
     _authState = ref.watch(authServiceProvider);
 
     if (_authState.isAuthenticated) {
