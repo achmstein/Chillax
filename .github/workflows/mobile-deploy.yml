@@ -243,9 +243,25 @@ jobs:
 
           # Install provisioning profile (must be named by UUID)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          PROFILE_UUID=$(security cms -D -i $PP_PATH | plutil -extract UUID raw -)
-          echo "Provisioning profile UUID: $PROFILE_UUID"
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+
+          # Extract profile plist to a temp file first (piping can fail silently)
+          security cms -D -i $PP_PATH > $RUNNER_TEMP/profile_plist.xml
+          echo "--- Profile plist extracted, size: $(wc -c < $RUNNER_TEMP/profile_plist.xml) bytes ---"
+
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" $RUNNER_TEMP/profile_plist.xml)
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" $RUNNER_TEMP/profile_plist.xml)
+          PROFILE_TEAM=$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" $RUNNER_TEMP/profile_plist.xml)
+          PROFILE_APP_ID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" $RUNNER_TEMP/profile_plist.xml)
+
+          echo "Profile UUID: $PROFILE_UUID"
+          echo "Profile Name: $PROFILE_NAME"
+          echo "Profile Team: $PROFILE_TEAM"
+          echo "Profile App ID: $PROFILE_APP_ID"
+
+          cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+
+          echo "--- Installed profiles ---"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
 
       - name: Build iOS
         run: flutter build ipa --release --build-number=${{ github.event.inputs.build_number || github.run_number }} --export-options-plist=ios/ExportOptions.plist
@@ -306,9 +322,13 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Import certificate and provisioning profile
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          # Decode certificate and provisioning profile from base64
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > $CERTIFICATE_PATH
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode > $PP_PATH
+
+          # Verify files were created
+          echo "Certificate file size: $(wc -c < $CERTIFICATE_PATH) bytes"
+          echo "Provisioning profile size: $(wc -c < $PP_PATH) bytes"
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -318,13 +338,35 @@ jobs:
           # Import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Add keychain to search list (keep login keychain)
+          security list-keychain -d user -s $KEYCHAIN_PATH login.keychain-db
+
+          # Verify certificate was imported
+          echo "Installed identities:"
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
 
           # Install provisioning profile (must be named by UUID)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          PROFILE_UUID=$(security cms -D -i $PP_PATH | plutil -extract UUID raw -)
-          echo "Provisioning profile UUID: $PROFILE_UUID"
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
+
+          # Extract profile plist to a temp file first (piping can fail silently)
+          security cms -D -i $PP_PATH > $RUNNER_TEMP/profile_plist.xml
+          echo "--- Profile plist extracted, size: $(wc -c < $RUNNER_TEMP/profile_plist.xml) bytes ---"
+
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" $RUNNER_TEMP/profile_plist.xml)
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" $RUNNER_TEMP/profile_plist.xml)
+          PROFILE_TEAM=$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" $RUNNER_TEMP/profile_plist.xml)
+          PROFILE_APP_ID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" $RUNNER_TEMP/profile_plist.xml)
+
+          echo "Profile UUID: $PROFILE_UUID"
+          echo "Profile Name: $PROFILE_NAME"
+          echo "Profile Team: $PROFILE_TEAM"
+          echo "Profile App ID: $PROFILE_APP_ID"
+
+          cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+
+          echo "--- Installed profiles ---"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
 
       - name: Build iOS
         run: flutter build ipa --release --build-number=${{ github.event.inputs.build_number || github.run_number }} --export-options-plist=ios/ExportOptions.plist
