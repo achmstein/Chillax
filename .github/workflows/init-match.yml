@@ -1,0 +1,88 @@
+name: Initialize Fastlane Match
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App to initialize'
+        required: true
+        type: choice
+        options:
+          - all
+          - client_app
+          - admin_app
+
+jobs:
+  init-match-client:
+    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'client_app'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: src/client_app/ios
+
+      - name: Create App Store Connect API key
+        env:
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          API_KEY_PATH=$RUNNER_TEMP/api_key.json
+          cat > "$API_KEY_PATH" << EOF
+          {
+            "key_id": "$APP_STORE_CONNECT_API_KEY_ID",
+            "issuer_id": "$APP_STORE_CONNECT_API_ISSUER_ID",
+            "key": "$APP_STORE_CONNECT_API_PRIVATE_KEY",
+            "in_house": false
+          }
+          EOF
+          echo "API_KEY_PATH=$API_KEY_PATH" >> $GITHUB_ENV
+
+      - name: Run Match (client_app)
+        working-directory: src/client_app/ios
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: bundle exec fastlane match appstore --api_key_path "$API_KEY_PATH"
+
+  init-match-admin:
+    if: github.event.inputs.app == 'all' || github.event.inputs.app == 'admin_app'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: src/admin_app/ios
+
+      - name: Create App Store Connect API key
+        env:
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          API_KEY_PATH=$RUNNER_TEMP/api_key.json
+          cat > "$API_KEY_PATH" << EOF
+          {
+            "key_id": "$APP_STORE_CONNECT_API_KEY_ID",
+            "issuer_id": "$APP_STORE_CONNECT_API_ISSUER_ID",
+            "key": "$APP_STORE_CONNECT_API_PRIVATE_KEY",
+            "in_house": false
+          }
+          EOF
+          echo "API_KEY_PATH=$API_KEY_PATH" >> $GITHUB_ENV
+
+      - name: Run Match (admin_app)
+        working-directory: src/admin_app/ios
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: bundle exec fastlane match appstore --api_key_path "$API_KEY_PATH"

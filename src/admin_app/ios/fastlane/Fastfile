@@ -2,15 +2,13 @@ default_platform(:ios)
 
 platform :ios do
   lane :beta do
-    setup_ci  # Creates temp keychain, handles WWDR certs
+    setup_ci if ENV['CI']
 
-    import_certificate(
-      certificate_path: ENV["CERTIFICATE_PATH"],
-      certificate_password: ENV["P12_PASSWORD"],
-      keychain_name: "fastlane_tmp_keychain",
+    match(
+      type: "appstore",
+      app_identifier: "com.chillax.admin",
+      readonly: is_ci,
     )
-
-    install_provisioning_profile(path: ENV["PROFILE_PATH"])
 
     update_code_signing_settings(
       use_automatic_signing: false,
@@ -18,7 +16,7 @@ platform :ios do
       team_id: "NT4VMTB8MK",
       bundle_identifier: "com.chillax.admin",
       code_sign_identity: "Apple Distribution",
-      profile_name: ENV["PROFILE_NAME"],
+      profile_name: ENV["sigh_com.chillax.admin_appstore_profile-name"],
     )
 
     build_app(
@@ -31,6 +29,17 @@ platform :ios do
     upload_to_testflight(
       api_key_path: ENV["API_KEY_PATH"],
       skip_waiting_for_build_processing: true,
+    )
+  end
+
+  lane :upload_metadata do
+    deliver(
+      api_key_path: ENV["API_KEY_PATH"],
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      overwrite_screenshots: true,
+      force: true,
+      submit_for_review: false,
     )
   end
 end
