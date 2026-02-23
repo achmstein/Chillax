@@ -1,0 +1,35 @@
+default_platform(:ios)
+
+platform :ios do
+  lane :beta do
+    setup_ci  # Creates temp keychain, handles WWDR certs
+
+    import_certificate(
+      certificate_path: ENV["CERTIFICATE_PATH"],
+      certificate_password: ENV["P12_PASSWORD"],
+    )
+
+    install_provisioning_profile(path: ENV["PROFILE_PATH"])
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "Runner.xcodeproj",
+      team_id: "NT4VMTB8MK",
+      bundle_identifier: "com.chillax.client",
+      code_sign_identity: "Apple Distribution",
+      profile_name: ENV["PROFILE_NAME"],
+    )
+
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "../build/ios/ipa",
+    )
+
+    upload_to_testflight(
+      api_key_path: ENV["API_KEY_PATH"],
+      skip_waiting_for_build_processing: true,
+    )
+  end
+end
