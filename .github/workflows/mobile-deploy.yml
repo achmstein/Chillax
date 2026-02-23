@@ -216,89 +216,47 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Decode from base64 — strip \r\n to handle Windows-generated secrets
+          # Decode files from base64
           echo -n "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n' | base64 --decode > $CERTIFICATE_PATH
           echo -n "$PROVISIONING_PROFILE_BASE64" | tr -d '\r\n' | base64 --decode > $PP_PATH
-
-          # Verify files are non-empty and check file type
-          CERT_SIZE=$(wc -c < $CERTIFICATE_PATH | tr -d ' ')
-          PP_SIZE=$(wc -c < $PP_PATH | tr -d ' ')
-          echo "Certificate: $CERT_SIZE bytes | Profile: $PP_SIZE bytes"
-          if [ "$CERT_SIZE" -lt 100 ]; then echo "ERROR: Certificate too small"; exit 1; fi
-          if [ "$PP_SIZE" -lt 100 ]; then echo "ERROR: Profile too small"; exit 1; fi
-
-          echo "=== File type check ==="
-          file $CERTIFICATE_PATH
-          file $PP_PATH
-          echo "=== First 4 bytes of profile (hex) ==="
-          xxd -l 16 $PP_PATH
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Import certificate
+          # Import Apple WWDR intermediate certificates (required for Xcode to verify provisioning profiles)
+          curl -sL https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer -o $RUNNER_TEMP/AppleWWDRCAG3.cer
+          curl -sL https://www.apple.com/appleca/AppleIncRootCertificate.cer -o $RUNNER_TEMP/AppleRootCA.cer
+          security import $RUNNER_TEMP/AppleWWDRCAG3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+          security import $RUNNER_TEMP/AppleRootCA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+
+          # Import signing certificate
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Set keychain search list (include System.keychain for additional root CAs)
           security list-keychain -d user -s $KEYCHAIN_PATH /Library/Keychains/System.keychain
 
-          echo "=== Signing identities ==="
+          # Verify signing identity was imported
           security find-identity -v -p codesigning $KEYCHAIN_PATH
 
-          # Extract profile metadata
+          # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          security cms -D -i $PP_PATH > $RUNNER_TEMP/profile_plist.xml
-          CMS_SIZE=$(wc -c < $RUNNER_TEMP/profile_plist.xml | tr -d ' ')
-          echo "=== CMS decoded plist: $CMS_SIZE bytes ==="
-
-          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" $RUNNER_TEMP/profile_plist.xml)
-          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" $RUNNER_TEMP/profile_plist.xml)
-          PROFILE_TEAM=$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" $RUNNER_TEMP/profile_plist.xml)
-          PROFILE_APP_ID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" $RUNNER_TEMP/profile_plist.xml)
-
-          echo "=== Profile: $PROFILE_NAME ==="
-          echo "UUID: $PROFILE_UUID | Team: $PROFILE_TEAM | App ID: $PROFILE_APP_ID"
-
-          # Install profile with UUID filename (required by Xcode)
+          PROFILE_UUID=$(security cms -D -i $PP_PATH | grep -A1 '<key>UUID</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          PROFILE_NAME=$(security cms -D -i $PP_PATH | grep -A1 '<key>Name</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          echo "Profile UUID: $PROFILE_UUID"
+          echo "Profile Name: $PROFILE_NAME"
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
-          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
 
-          # Verify Xcode can actually read the installed profile
-          echo "=== Xcode profile verification ==="
-          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision" > /dev/null 2>&1 \
-            && echo "Profile CMS verification: OK" \
-            || echo "Profile CMS verification: FAILED"
-
-          # Update ExportOptions.plist with actual profile name from the file
+          # Update ExportOptions.plist with actual profile name
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.client '$PROFILE_NAME'" ios/ExportOptions.plist
-          echo "=== ExportOptions.plist ==="
-          cat ios/ExportOptions.plist
 
-          # Patch project.pbxproj with actual profile name (target-specific, unlike FLUTTER_XCODE_ which applies to all targets including Pods)
+          # Patch project.pbxproj with actual profile name
           sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
-          echo "=== project.pbxproj signing ==="
-          grep "CODE_SIGN\|PROVISIONING_PROFILE\|DEVELOPMENT_TEAM" ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Build Flutter (no codesign)
-        run: flutter build ios --release --no-codesign --build-number=${{ github.event.inputs.build_number || github.run_number }}
-
-      - name: Create Xcode archive
-        run: |
-          xcodebuild -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            -destination 'generic/platform=iOS' \
-            archive
-
-      - name: Export IPA
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            -exportOptionsPlist ios/ExportOptions.plist \
-            -exportPath build/ios/ipa
+      - name: Build IPA
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --build-number=${{ github.event.inputs.build_number || github.run_number }}
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -317,7 +275,7 @@ jobs:
       - name: Clean up keychain and provisioning profile
         if: always()
         run: |
-          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
           rm -rf ~/Library/MobileDevice/Provisioning\ Profiles
 
   build-ios-admin:
@@ -355,89 +313,47 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Decode from base64 — strip \r\n to handle Windows-generated secrets
+          # Decode files from base64
           echo -n "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n' | base64 --decode > $CERTIFICATE_PATH
           echo -n "$PROVISIONING_PROFILE_BASE64" | tr -d '\r\n' | base64 --decode > $PP_PATH
-
-          # Verify files are non-empty and check file type
-          CERT_SIZE=$(wc -c < $CERTIFICATE_PATH | tr -d ' ')
-          PP_SIZE=$(wc -c < $PP_PATH | tr -d ' ')
-          echo "Certificate: $CERT_SIZE bytes | Profile: $PP_SIZE bytes"
-          if [ "$CERT_SIZE" -lt 100 ]; then echo "ERROR: Certificate too small"; exit 1; fi
-          if [ "$PP_SIZE" -lt 100 ]; then echo "ERROR: Profile too small"; exit 1; fi
-
-          echo "=== File type check ==="
-          file $CERTIFICATE_PATH
-          file $PP_PATH
-          echo "=== First 4 bytes of profile (hex) ==="
-          xxd -l 16 $PP_PATH
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Import certificate
+          # Import Apple WWDR intermediate certificates (required for Xcode to verify provisioning profiles)
+          curl -sL https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer -o $RUNNER_TEMP/AppleWWDRCAG3.cer
+          curl -sL https://www.apple.com/appleca/AppleIncRootCertificate.cer -o $RUNNER_TEMP/AppleRootCA.cer
+          security import $RUNNER_TEMP/AppleWWDRCAG3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+          security import $RUNNER_TEMP/AppleRootCA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+
+          # Import signing certificate
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Set keychain search list (include System.keychain for additional root CAs)
           security list-keychain -d user -s $KEYCHAIN_PATH /Library/Keychains/System.keychain
 
-          echo "=== Signing identities ==="
+          # Verify signing identity was imported
           security find-identity -v -p codesigning $KEYCHAIN_PATH
 
-          # Extract profile metadata
+          # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          security cms -D -i $PP_PATH > $RUNNER_TEMP/profile_plist.xml
-          CMS_SIZE=$(wc -c < $RUNNER_TEMP/profile_plist.xml | tr -d ' ')
-          echo "=== CMS decoded plist: $CMS_SIZE bytes ==="
-
-          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" $RUNNER_TEMP/profile_plist.xml)
-          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" $RUNNER_TEMP/profile_plist.xml)
-          PROFILE_TEAM=$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" $RUNNER_TEMP/profile_plist.xml)
-          PROFILE_APP_ID=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" $RUNNER_TEMP/profile_plist.xml)
-
-          echo "=== Profile: $PROFILE_NAME ==="
-          echo "UUID: $PROFILE_UUID | Team: $PROFILE_TEAM | App ID: $PROFILE_APP_ID"
-
-          # Install profile with UUID filename (required by Xcode)
+          PROFILE_UUID=$(security cms -D -i $PP_PATH | grep -A1 '<key>UUID</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          PROFILE_NAME=$(security cms -D -i $PP_PATH | grep -A1 '<key>Name</key>' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          echo "Profile UUID: $PROFILE_UUID"
+          echo "Profile Name: $PROFILE_NAME"
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
-          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
 
-          # Verify Xcode can actually read the installed profile
-          echo "=== Xcode profile verification ==="
-          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision" > /dev/null 2>&1 \
-            && echo "Profile CMS verification: OK" \
-            || echo "Profile CMS verification: FAILED"
-
-          # Update ExportOptions.plist with actual profile name from the file
+          # Update ExportOptions.plist with actual profile name
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.admin '$PROFILE_NAME'" ios/ExportOptions.plist
-          echo "=== ExportOptions.plist ==="
-          cat ios/ExportOptions.plist
 
-          # Patch project.pbxproj with actual profile name (target-specific)
+          # Patch project.pbxproj with actual profile name
           sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
-          echo "=== project.pbxproj signing ==="
-          grep "CODE_SIGN\|PROVISIONING_PROFILE\|DEVELOPMENT_TEAM" ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Build Flutter (no codesign)
-        run: flutter build ios --release --no-codesign --build-number=${{ github.event.inputs.build_number || github.run_number }}
-
-      - name: Create Xcode archive
-        run: |
-          xcodebuild -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            -destination 'generic/platform=iOS' \
-            archive
-
-      - name: Export IPA
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            -exportOptionsPlist ios/ExportOptions.plist \
-            -exportPath build/ios/ipa
+      - name: Build IPA
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --build-number=${{ github.event.inputs.build_number || github.run_number }}
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -456,5 +372,5 @@ jobs:
       - name: Clean up keychain and provisioning profile
         if: always()
         run: |
-          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
           rm -rf ~/Library/MobileDevice/Provisioning\ Profiles
