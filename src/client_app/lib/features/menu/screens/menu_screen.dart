@@ -586,14 +586,18 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
     final orderService = ref.read(orderServiceProvider);
 
     // Try to get active session's room name (optional)
+    // Await a fresh fetch to avoid stale data (e.g. session just started)
+    await ref.read(mySessionsProvider.notifier).refresh();
     Map<String, dynamic>? roomName;
     final sessionsState = ref.read(mySessionsProvider);
-    sessionsState.whenData((sessions) {
-      final activeSession = sessions.where((s) => s.status == SessionStatus.active).firstOrNull;
+    if (sessionsState.hasValue) {
+      final activeSession = sessionsState.value!
+          .where((s) => s.status == SessionStatus.active)
+          .firstOrNull;
       if (activeSession != null) {
         roomName = activeSession.roomName.toJson();
       }
-    });
+    }
 
     // Build cart item with saved preferences
     final preference = await menuService.getUserPreference(widget.item.id);

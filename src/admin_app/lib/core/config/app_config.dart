@@ -34,6 +34,7 @@ class AppConfig {
     'profile',
     'email',
     'roles',
+    'offline_access',
     'orders',
     'rooms',
     'catalog',

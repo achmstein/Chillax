@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -225,6 +226,13 @@ class MenuNotifier extends Notifier<MenuState> {
         'items/$itemId/pic',
         data: formData,
       );
+
+      // Evict cached image so the updated picture loads
+      final existingItem = state.items.where((i) => i.id == itemId).firstOrNull;
+      if (existingItem?.pictureUri != null) {
+        await CachedNetworkImage.evictFromCache(existingItem!.pictureUri!);
+      }
+
       return response.data as String?;
     } catch (e) {
       debugPrint('Failed to upload image: $e');

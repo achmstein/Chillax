@@ -22,18 +22,14 @@ public class RoomQueries : IRoomQueries
             .OrderBy(r => r.Name.En)
             .ToListAsync();
 
-        var today = DateTime.UtcNow.Date;
-        var tomorrow = today.AddDays(1);
-
-        // Get all today's reservations for computing display status
-        var todayReservations = await _context.Reservations
-            .Where(r => r.CreatedAt >= today && r.CreatedAt < tomorrow)
+        // Get all active/reserved reservations for computing display status
+        var activeReservations = await _context.Reservations
             .Where(r => r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Active)
             .ToListAsync();
 
         return rooms.Select(room =>
         {
-            var roomReservations = todayReservations.Where(r => r.RoomId == room.Id).ToList();
+            var roomReservations = activeReservations.Where(r => r.RoomId == room.Id).ToList();
             return MapToViewModel(room, roomReservations);
         });
     }
@@ -49,12 +45,8 @@ public class RoomQueries : IRoomQueries
         var room = await _context.Rooms.FindAsync(roomId);
         if (room == null) return null;
 
-        var today = DateTime.UtcNow.Date;
-        var tomorrow = today.AddDays(1);
-
         var roomReservations = await _context.Reservations
             .Where(r => r.RoomId == roomId)
-            .Where(r => r.CreatedAt >= today && r.CreatedAt < tomorrow)
             .Where(r => r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Active)
             .ToListAsync();
 

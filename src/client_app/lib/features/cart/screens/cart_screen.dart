@@ -594,14 +594,18 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final note = _noteController.text.isNotEmpty ? _noteController.text : null;
 
     // Get active room session's room name (if any) - send as localized object
+    // Await a fresh fetch to avoid stale data (e.g. session just started)
+    await ref.read(mySessionsProvider.notifier).refresh();
     Map<String, dynamic>? roomName;
     final sessionsState = ref.read(mySessionsProvider);
-    sessionsState.whenData((sessions) {
-      final activeSession = sessions.where((s) => s.status == SessionStatus.active).firstOrNull;
+    if (sessionsState.hasValue) {
+      final activeSession = sessionsState.value!
+          .where((s) => s.status == SessionStatus.active)
+          .firstOrNull;
       if (activeSession != null) {
         roomName = activeSession.roomName.toJson();
       }
-    });
+    }
 
     final success = await ref.read(checkoutProvider.notifier).submitOrder(
           items: cart.items,

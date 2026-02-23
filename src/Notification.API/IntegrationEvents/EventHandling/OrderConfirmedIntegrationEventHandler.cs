@@ -19,37 +19,49 @@ public class OrderConfirmedIntegrationEventHandler(
         logger.LogInformation("Handling OrderStatusChangedToConfirmedIntegrationEvent for order {OrderId}, buyer {BuyerGuid}",
             @event.OrderId, @event.BuyerIdentityGuid);
 
-        // Find the buyer's user order notification subscription
-        var subscriptions = await context.Subscriptions
-            .Where(s => s.UserId == @event.BuyerIdentityGuid && s.Type == SubscriptionType.UserOrderNotification)
-            .ToListAsync();
+        // Check if buyer has order status notifications enabled
+        var preferences = await context.Preferences
+            .FirstOrDefaultAsync(p => p.UserId == @event.BuyerIdentityGuid);
 
-        if (subscriptions.Count > 0)
+        if (preferences is { OrderStatusUpdates: false })
         {
-            foreach (var subscription in subscriptions)
-            {
-                var lang = subscription.PreferredLanguage;
-                var title = NotificationMessages.OrderConfirmedTitle.GetText(lang);
-                var body = NotificationMessages.OrderConfirmedBody(@event.OrderId).GetText(lang);
-
-                var success = await fcmService.SendNotificationAsync(
-                    subscription.FcmToken,
-                    title,
-                    body,
-                    new Dictionary<string, string>
-                    {
-                        { "type", "order_confirmed" },
-                        { "orderId", @event.OrderId.ToString() }
-                    });
-
-                logger.LogInformation("FCM notification to buyer {BuyerGuid} ({Lang}): {Result}",
-                    @event.BuyerIdentityGuid, lang, success ? "sent" : "failed");
-            }
+            logger.LogInformation("User {BuyerGuid} has disabled order status notifications, skipping FCM",
+                @event.BuyerIdentityGuid);
         }
         else
         {
-            logger.LogInformation("No user order notification subscription found for buyer {BuyerGuid}",
-                @event.BuyerIdentityGuid);
+            // Find the buyer's user order notification subscription
+            var subscriptions = await context.Subscriptions
+                .Where(s => s.UserId == @event.BuyerIdentityGuid && s.Type == SubscriptionType.UserOrderNotification)
+                .ToListAsync();
+
+            if (subscriptions.Count > 0)
+            {
+                foreach (var subscription in subscriptions)
+                {
+                    var lang = subscription.PreferredLanguage;
+                    var title = NotificationMessages.OrderConfirmedTitle.GetText(lang);
+                    var body = NotificationMessages.OrderConfirmedBody(@event.OrderId).GetText(lang);
+
+                    var success = await fcmService.SendNotificationAsync(
+                        subscription.FcmToken,
+                        title,
+                        body,
+                        new Dictionary<string, string>
+                        {
+                            { "type", "order_confirmed" },
+                            { "orderId", @event.OrderId.ToString() }
+                        });
+
+                    logger.LogInformation("FCM notification to buyer {BuyerGuid} ({Lang}): {Result}",
+                        @event.BuyerIdentityGuid, lang, success ? "sent" : "failed");
+                }
+            }
+            else
+            {
+                logger.LogInformation("No user order notification subscription found for buyer {BuyerGuid}",
+                    @event.BuyerIdentityGuid);
+            }
         }
 
         // Broadcast via SignalR to the buyer's personal group

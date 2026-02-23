@@ -334,90 +334,104 @@ class _MenuItemTile extends StatelessWidget {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return FTappable(
-      onPress: onEdit,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Image or icon
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: item.isAvailable
-                    ? theme.colors.primary.withValues(alpha: 0.1)
-                    : theme.colors.mutedForeground.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: item.pictureUri != null
-                  ? CachedNetworkImage(
-                      imageUrl: item.pictureUri!,
-                      fit: BoxFit.cover,
-                      width: 48,
-                      height: 48,
-                      placeholder: (context, url) => Icon(
+    return Dismissible(
+      key: ValueKey('dismiss_${item.id}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) async {
+        onDelete();
+        return false;
+      },
+      background: Container(
+        alignment: AlignmentDirectional.centerEnd,
+        padding: const EdgeInsetsDirectional.only(end: 20),
+        color: theme.colors.destructive,
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      child: FTappable(
+        onPress: onEdit,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Image or icon
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: item.isAvailable
+                      ? theme.colors.primary.withValues(alpha: 0.1)
+                      : theme.colors.mutedForeground.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: item.pictureUri != null
+                    ? CachedNetworkImage(
+                        imageUrl: item.pictureUri!,
+                        fit: BoxFit.cover,
+                        width: 48,
+                        height: 48,
+                        placeholder: (context, url) => Icon(
+                          Icons.restaurant,
+                          size: 24,
+                          color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
+                        ),
+                        errorWidget: (context, url, error) => Icon(
+                          Icons.restaurant,
+                          size: 24,
+                          color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
+                        ),
+                      )
+                    : Icon(
                         Icons.restaurant,
                         size: 24,
                         color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
                       ),
-                      errorWidget: (context, url, error) => Icon(
-                        Icons.restaurant,
-                        size: 24,
-                        color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
-                      ),
-                    )
-                  : Icon(
-                      Icons.restaurant,
-                      size: 24,
-                      color: item.isAvailable ? theme.colors.primary : theme.colors.mutedForeground,
-                    ),
-            ),
-            const SizedBox(width: 12),
-
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    item.name.localized(context),
-                    style: theme.typography.base.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      AppText(
-                        l10n.priceFormat(item.price.toStringAsFixed(0)),
-                        style: theme.typography.sm.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      AppText(
-                        '• ${item.catalogTypeName.localized(context)}',
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
-            ),
+              const SizedBox(width: 12),
 
-            // Availability toggle
-            FSwitch(
-              value: item.isAvailable,
-              onChange: onToggleAvailability,
-            ),
-          ],
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      item.name.localized(context),
+                      style: theme.typography.base.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        AppText(
+                          l10n.priceFormat(item.price.toStringAsFixed(0)),
+                          style: theme.typography.sm.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        AppText(
+                          '• ${item.catalogTypeName.localized(context)}',
+                          style: theme.typography.sm.copyWith(
+                            color: theme.colors.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Availability toggle
+              FSwitch(
+                value: item.isAvailable,
+                onChange: onToggleAvailability,
+              ),
+            ],
+          ),
         ),
       ),
     );
