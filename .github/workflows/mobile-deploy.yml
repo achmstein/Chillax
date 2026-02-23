@@ -217,9 +217,13 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Import certificate and provisioning profile
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          # Decode certificate and provisioning profile from base64
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > $CERTIFICATE_PATH
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode > $PP_PATH
+
+          # Verify files were created
+          echo "Certificate file size: $(wc -c < $CERTIFICATE_PATH) bytes"
+          echo "Provisioning profile size: $(wc -c < $PP_PATH) bytes"
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -229,7 +233,13 @@ jobs:
           # Import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Add keychain to search list (keep login keychain)
+          security list-keychain -d user -s $KEYCHAIN_PATH login.keychain-db
+
+          # Verify certificate was imported
+          echo "Installed identities:"
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
 
           # Apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
