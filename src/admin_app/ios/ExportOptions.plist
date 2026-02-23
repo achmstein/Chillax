@@ -5,7 +5,7 @@
     <key>method</key>
     <string>app-store</string>
     <key>teamID</key>
-    <string>$(DEVELOPMENT_TEAM)</string>
+    <string>NT4VMTB8MK</string>
     <key>uploadSymbols</key>
     <true/>
     <key>compileBitcode</key>
@@ -13,6 +13,11 @@
     <key>destination</key>
     <string>upload</string>
     <key>signingStyle</key>
-    <string>automatic</string>
+    <string>manual</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.chillax.admin</key>
+        <string>Chillax Admin App Store</string>
+    </dict>
 </dict>
 </plist>

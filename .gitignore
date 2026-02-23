@@ -498,3 +498,6 @@ $RECYCLE.BIN/
 /playwright/.auth/
 /user.json
 .azure
+
+# iOS signing files (private keys, certificates, provisioning profiles)
+ios-signing/
