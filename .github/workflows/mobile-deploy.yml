@@ -256,21 +256,22 @@ jobs:
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
 
-          # Export profile name for the build step via GITHUB_ENV
-          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
-
           # Update ExportOptions.plist with actual profile name from the file
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.client '$PROFILE_NAME'" ios/ExportOptions.plist
           echo "=== ExportOptions.plist ==="
           cat ios/ExportOptions.plist
 
+          # Patch project.pbxproj with actual profile name (target-specific, unlike FLUTTER_XCODE_ which applies to all targets including Pods)
+          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
+          echo "=== project.pbxproj signing ==="
+          grep "CODE_SIGN\|PROVISIONING_PROFILE\|DEVELOPMENT_TEAM" ios/Runner.xcodeproj/project.pbxproj
+
       - name: Build iOS
         env:
-          # FLUTTER_XCODE_ vars override project.pbxproj signing settings
+          # Only set CODE_SIGN_STYLE globally — prevents Flutter defaulting to Automatic
+          # Do NOT set PROVISIONING_PROFILE_SPECIFIER here — it would apply to Pods too
+          # PROVISIONING_PROFILE_SPECIFIER is set per-target in project.pbxproj instead
           FLUTTER_XCODE_CODE_SIGN_STYLE: Manual
-          FLUTTER_XCODE_DEVELOPMENT_TEAM: NT4VMTB8MK
-          FLUTTER_XCODE_CODE_SIGN_IDENTITY: "Apple Distribution"
-          FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: ${{ env.PROFILE_NAME }}
         run: flutter build ipa --release --build-number=${{ github.event.inputs.build_number || github.run_number }} --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload IPA artifact
@@ -368,20 +369,19 @@ jobs:
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
 
-          # Export profile name for the build step via GITHUB_ENV
-          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
-
           # Update ExportOptions.plist with actual profile name from the file
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.admin '$PROFILE_NAME'" ios/ExportOptions.plist
           echo "=== ExportOptions.plist ==="
           cat ios/ExportOptions.plist
 
+          # Patch project.pbxproj with actual profile name (target-specific)
+          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
+          echo "=== project.pbxproj signing ==="
+          grep "CODE_SIGN\|PROVISIONING_PROFILE\|DEVELOPMENT_TEAM" ios/Runner.xcodeproj/project.pbxproj
+
       - name: Build iOS
         env:
           FLUTTER_XCODE_CODE_SIGN_STYLE: Manual
-          FLUTTER_XCODE_DEVELOPMENT_TEAM: NT4VMTB8MK
-          FLUTTER_XCODE_CODE_SIGN_IDENTITY: "Apple Distribution"
-          FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: ${{ env.PROFILE_NAME }}
         run: flutter build ipa --release --build-number=${{ github.event.inputs.build_number || github.run_number }} --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload IPA artifact
