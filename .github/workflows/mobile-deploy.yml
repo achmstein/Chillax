@@ -268,28 +268,36 @@ jobs:
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           cp $PP_PATH "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
 
-          # Update ExportOptions.plist with actual profile name
-          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.client '$PROFILE_NAME'" ios/ExportOptions.plist
-
-          # Patch project.pbxproj with actual profile name and UUID
-          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
+          # Save profile metadata for later steps
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
 
       - name: Build Flutter (no codesign)
         run: flutter build ios --release --no-codesign --build-number=${{ github.event.inputs.build_number || github.run_number }}
 
-      - name: Archive and export IPA
+      - name: Patch signing settings and archive
         run: |
+          # Patch AFTER flutter build (which may reset project.pbxproj)
+          echo "Patching signing: profile=$PROFILE_NAME uuid=$PROFILE_UUID"
+
+          # Force manual signing in project.pbxproj for all build configs
+          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' "s/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/" ios/Runner.xcodeproj/project.pbxproj
+
+          # Update ExportOptions.plist with actual profile name
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.client '$PROFILE_NAME'" ios/ExportOptions.plist
+
+          # Verify the patch took effect
+          echo "=== project.pbxproj signing settings ==="
+          grep -E "CODE_SIGN_STYLE|PROVISIONING_PROFILE_SPECIFIER|DEVELOPMENT_TEAM|CODE_SIGN_IDENTITY" ios/Runner.xcodeproj/project.pbxproj || true
+
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
             -configuration Release \
             -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM=NT4VMTB8MK \
-            -allowProvisioningUpdates 2>&1 | tail -50
+            -destination 'generic/platform=iOS'
 
           xcodebuild -exportArchive \
             -archivePath $RUNNER_TEMP/Runner.xcarchive \
@@ -404,28 +412,36 @@ jobs:
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           cp $PP_PATH "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
 
-          # Update ExportOptions.plist with actual profile name
-          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.admin '$PROFILE_NAME'" ios/ExportOptions.plist
-
-          # Patch project.pbxproj with actual profile name
-          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
+          # Save profile metadata for later steps
+          echo "PROFILE_NAME=$PROFILE_NAME" >> $GITHUB_ENV
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
 
       - name: Build Flutter (no codesign)
         run: flutter build ios --release --no-codesign --build-number=${{ github.event.inputs.build_number || github.run_number }}
 
-      - name: Archive and export IPA
+      - name: Patch signing settings and archive
         run: |
+          # Patch AFTER flutter build (which may reset project.pbxproj)
+          echo "Patching signing: profile=$PROFILE_NAME uuid=$PROFILE_UUID"
+
+          # Force manual signing in project.pbxproj for all build configs
+          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \".*\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"/" ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' "s/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/" ios/Runner.xcodeproj/project.pbxproj
+
+          # Update ExportOptions.plist with actual profile name
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.admin '$PROFILE_NAME'" ios/ExportOptions.plist
+
+          # Verify the patch took effect
+          echo "=== project.pbxproj signing settings ==="
+          grep -E "CODE_SIGN_STYLE|PROVISIONING_PROFILE_SPECIFIER|DEVELOPMENT_TEAM|CODE_SIGN_IDENTITY" ios/Runner.xcodeproj/project.pbxproj || true
+
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
             -configuration Release \
             -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM=NT4VMTB8MK \
-            -allowProvisioningUpdates 2>&1 | tail -50
+            -destination 'generic/platform=iOS'
 
           xcodebuild -exportArchive \
             -archivePath $RUNNER_TEMP/Runner.xcarchive \
