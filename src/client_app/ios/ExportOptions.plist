@@ -13,11 +13,6 @@
     <key>destination</key>
     <string>upload</string>
     <key>signingStyle</key>
-    <string>manual</string>
-    <key>provisioningProfiles</key>
-    <dict>
-        <key>com.chillax.client</key>
-        <string>Chillax App Store</string>
-    </dict>
+    <string>automatic</string>
 </dict>
 </plist>
