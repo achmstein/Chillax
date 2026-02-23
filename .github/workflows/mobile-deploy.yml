@@ -216,16 +216,22 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Decode from base64
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          # Decode from base64 — strip \r\n to handle Windows-generated secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n' | base64 --decode > $CERTIFICATE_PATH
+          echo -n "$PROVISIONING_PROFILE_BASE64" | tr -d '\r\n' | base64 --decode > $PP_PATH
 
-          # Verify files are non-empty
+          # Verify files are non-empty and check file type
           CERT_SIZE=$(wc -c < $CERTIFICATE_PATH | tr -d ' ')
           PP_SIZE=$(wc -c < $PP_PATH | tr -d ' ')
           echo "Certificate: $CERT_SIZE bytes | Profile: $PP_SIZE bytes"
           if [ "$CERT_SIZE" -lt 100 ]; then echo "ERROR: Certificate too small"; exit 1; fi
           if [ "$PP_SIZE" -lt 100 ]; then echo "ERROR: Profile too small"; exit 1; fi
+
+          echo "=== File type check ==="
+          file $CERTIFICATE_PATH
+          file $PP_PATH
+          echo "=== First 4 bytes of profile (hex) ==="
+          xxd -l 16 $PP_PATH
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -243,6 +249,8 @@ jobs:
           # Extract profile metadata
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           security cms -D -i $PP_PATH > $RUNNER_TEMP/profile_plist.xml
+          CMS_SIZE=$(wc -c < $RUNNER_TEMP/profile_plist.xml | tr -d ' ')
+          echo "=== CMS decoded plist: $CMS_SIZE bytes ==="
 
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" $RUNNER_TEMP/profile_plist.xml)
           PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" $RUNNER_TEMP/profile_plist.xml)
@@ -255,6 +263,12 @@ jobs:
           # Install profile with UUID filename (required by Xcode)
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
+
+          # Verify Xcode can actually read the installed profile
+          echo "=== Xcode profile verification ==="
+          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision" > /dev/null 2>&1 \
+            && echo "Profile CMS verification: OK" \
+            || echo "Profile CMS verification: FAILED"
 
           # Update ExportOptions.plist with actual profile name from the file
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.client '$PROFILE_NAME'" ios/ExportOptions.plist
@@ -341,16 +355,22 @@ jobs:
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Decode from base64
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          # Decode from base64 — strip \r\n to handle Windows-generated secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n' | base64 --decode > $CERTIFICATE_PATH
+          echo -n "$PROVISIONING_PROFILE_BASE64" | tr -d '\r\n' | base64 --decode > $PP_PATH
 
-          # Verify files are non-empty
+          # Verify files are non-empty and check file type
           CERT_SIZE=$(wc -c < $CERTIFICATE_PATH | tr -d ' ')
           PP_SIZE=$(wc -c < $PP_PATH | tr -d ' ')
           echo "Certificate: $CERT_SIZE bytes | Profile: $PP_SIZE bytes"
           if [ "$CERT_SIZE" -lt 100 ]; then echo "ERROR: Certificate too small"; exit 1; fi
           if [ "$PP_SIZE" -lt 100 ]; then echo "ERROR: Profile too small"; exit 1; fi
+
+          echo "=== File type check ==="
+          file $CERTIFICATE_PATH
+          file $PP_PATH
+          echo "=== First 4 bytes of profile (hex) ==="
+          xxd -l 16 $PP_PATH
 
           # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -368,6 +388,8 @@ jobs:
           # Extract profile metadata
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           security cms -D -i $PP_PATH > $RUNNER_TEMP/profile_plist.xml
+          CMS_SIZE=$(wc -c < $RUNNER_TEMP/profile_plist.xml | tr -d ' ')
+          echo "=== CMS decoded plist: $CMS_SIZE bytes ==="
 
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" $RUNNER_TEMP/profile_plist.xml)
           PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" $RUNNER_TEMP/profile_plist.xml)
@@ -380,6 +402,12 @@ jobs:
           # Install profile with UUID filename (required by Xcode)
           cp $PP_PATH "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
+
+          # Verify Xcode can actually read the installed profile
+          echo "=== Xcode profile verification ==="
+          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision" > /dev/null 2>&1 \
+            && echo "Profile CMS verification: OK" \
+            || echo "Profile CMS verification: FAILED"
 
           # Update ExportOptions.plist with actual profile name from the file
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.chillax.admin '$PROFILE_NAME'" ios/ExportOptions.plist
