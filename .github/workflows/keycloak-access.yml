@@ -1,0 +1,67 @@
+name: Toggle Keycloak Access
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Enable or disable public Keycloak access'
+        required: true
+        type: choice
+        options:
+          - enable
+          - disable
+
+jobs:
+  toggle:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Toggle Keycloak port
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            ACTION="${{ github.event.inputs.action }}"
+            CONTAINER="chillax-keycloak-1"
+
+            if [ "$ACTION" = "enable" ]; then
+              echo "Enabling public Keycloak access on port 8080..."
+              # Stop current container and recreate with port mapping
+              docker stop $CONTAINER
+              docker rm $CONTAINER
+
+              # Get current container config and recreate with port published
+              cd ${{ secrets.DEPLOY_PATH }}
+
+              # Add ports mapping if not present
+              if ! grep -A2 'keycloak:' docker-compose.yaml | grep -q 'ports:'; then
+                sed -i '/^  keycloak:/,/    expose:/{/    expose:/i\    ports:\n      - "8080:8080"
+              }' docker-compose.yaml
+              fi
+
+              docker compose up -d keycloak
+              echo "Keycloak is now accessible at http://${{ secrets.SERVER_HOST }}:8080/admin/"
+
+            else
+              echo "Disabling public Keycloak access..."
+              cd ${{ secrets.DEPLOY_PATH }}
+
+              # Remove ports mapping
+              sed -i '/^  keycloak:/,/^  [a-z]/{/    ports:/,/      - "8080:8080"/d}' docker-compose.yaml
+
+              docker compose up -d keycloak
+              echo "Keycloak public access disabled."
+            fi
+
+      - name: Verify
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Container status:"
+            docker ps --filter name=keycloak --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
