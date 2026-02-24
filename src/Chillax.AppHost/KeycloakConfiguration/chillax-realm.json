@@ -71,7 +71,7 @@
       }
     ]
   },
-  "defaultRoles": [ "Customer" ],
+  "defaultRoles": [ "Customer", "offline_access" ],
   "clientScopes": [
     {
       "name": "openid",
@@ -545,7 +545,7 @@
           "temporary": false
         }
       ],
-      "realmRoles": [ "Admin", "Customer" ]
+      "realmRoles": [ "Admin", "Customer", "offline_access" ]
     },
     {
       "username": "service-account-identity-api-service",
