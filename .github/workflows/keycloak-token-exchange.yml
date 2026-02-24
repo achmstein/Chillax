@@ -34,11 +34,12 @@ jobs:
             # Read admin password from deploy .env
             KC_PASSWORD=$(grep -oP '^KEYCLOAK_PASSWORD=\K.*' "$DEPLOY_DIR/.env" 2>/dev/null || echo "admin")
 
-            # Wait for Keycloak to be ready
+            # Wait for Keycloak to be ready (try kcadm.sh login as readiness check)
             echo "Waiting for Keycloak to be ready..."
             for i in $(seq 1 30); do
-              if docker exec "$CONTAINER" curl -sf http://localhost:8080/health/ready > /dev/null 2>&1; then
-                echo "  Keycloak is ready"
+              if docker exec "$CONTAINER" $KC config credentials \
+                --server http://localhost:8080 --realm master --user admin --password "$KC_PASSWORD" > /dev/null 2>&1; then
+                echo "  Keycloak is ready and authenticated"
                 break
               fi
               if [ "$i" -eq 30 ]; then
@@ -48,13 +49,6 @@ jobs:
               echo "  Attempt $i/30 - waiting 5s..."
               sleep 5
             done
-
-            # Authenticate with Keycloak
-            echo ""
-            echo "=== Authenticating with Keycloak ==="
-            docker exec "$CONTAINER" $KC config credentials \
-              --server http://localhost:8080 --realm master --user admin --password "$KC_PASSWORD"
-            echo "  Authenticated successfully"
 
             echo ""
             echo "=== Step 1: Enable permissions on identity providers ==="
