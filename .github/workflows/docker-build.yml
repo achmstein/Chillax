@@ -65,8 +65,7 @@ jobs:
     needs: detect-changes
     if: |
       github.event_name == 'workflow_dispatch' && (github.event.inputs.services == 'all' || contains(github.event.inputs.services, 'catalog')) ||
-      needs.detect-changes.outputs.catalog == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      github.event_name != 'workflow_dispatch' && (needs.detect-changes.outputs.catalog == 'true' || needs.detect-changes.outputs.shared == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -110,8 +109,7 @@ jobs:
     needs: detect-changes
     if: |
       github.event_name == 'workflow_dispatch' && (github.event.inputs.services == 'all' || contains(github.event.inputs.services, 'rooms')) ||
-      needs.detect-changes.outputs.rooms == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      github.event_name != 'workflow_dispatch' && (needs.detect-changes.outputs.rooms == 'true' || needs.detect-changes.outputs.shared == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -155,8 +153,7 @@ jobs:
     needs: detect-changes
     if: |
       github.event_name == 'workflow_dispatch' && (github.event.inputs.services == 'all' || contains(github.event.inputs.services, 'ordering')) ||
-      needs.detect-changes.outputs.ordering == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      github.event_name != 'workflow_dispatch' && (needs.detect-changes.outputs.ordering == 'true' || needs.detect-changes.outputs.shared == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -200,8 +197,7 @@ jobs:
     needs: detect-changes
     if: |
       github.event_name == 'workflow_dispatch' && (github.event.inputs.services == 'all' || contains(github.event.inputs.services, 'identity')) ||
-      needs.detect-changes.outputs.identity == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      github.event_name != 'workflow_dispatch' && (needs.detect-changes.outputs.identity == 'true' || needs.detect-changes.outputs.shared == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -245,8 +241,7 @@ jobs:
     needs: detect-changes
     if: |
       github.event_name == 'workflow_dispatch' && (github.event.inputs.services == 'all' || contains(github.event.inputs.services, 'loyalty')) ||
-      needs.detect-changes.outputs.loyalty == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      github.event_name != 'workflow_dispatch' && (needs.detect-changes.outputs.loyalty == 'true' || needs.detect-changes.outputs.shared == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -290,8 +285,7 @@ jobs:
     needs: detect-changes
     if: |
       github.event_name == 'workflow_dispatch' && (github.event.inputs.services == 'all' || contains(github.event.inputs.services, 'notification')) ||
-      needs.detect-changes.outputs.notification == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      github.event_name != 'workflow_dispatch' && (needs.detect-changes.outputs.notification == 'true' || needs.detect-changes.outputs.shared == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -335,8 +329,7 @@ jobs:
     needs: detect-changes
     if: |
       github.event_name == 'workflow_dispatch' && (github.event.inputs.services == 'all' || contains(github.event.inputs.services, 'accounts')) ||
-      needs.detect-changes.outputs.accounts == 'true' ||
-      needs.detect-changes.outputs.shared == 'true'
+      github.event_name != 'workflow_dispatch' && (needs.detect-changes.outputs.accounts == 'true' || needs.detect-changes.outputs.shared == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
