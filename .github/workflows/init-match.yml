@@ -33,11 +33,12 @@ jobs:
           APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           API_KEY_PATH=$RUNNER_TEMP/api_key.json
-          cat > "$API_KEY_PATH" << EOF
+          ESCAPED_KEY=$(echo "$APP_STORE_CONNECT_API_PRIVATE_KEY" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read())[1:-1])")
+          cat > "$API_KEY_PATH" <<EOF
           {
             "key_id": "$APP_STORE_CONNECT_API_KEY_ID",
             "issuer_id": "$APP_STORE_CONNECT_API_ISSUER_ID",
-            "key": "$APP_STORE_CONNECT_API_PRIVATE_KEY",
+            "key": "$ESCAPED_KEY",
             "in_house": false
           }
           EOF
@@ -70,11 +71,12 @@ jobs:
           APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           API_KEY_PATH=$RUNNER_TEMP/api_key.json
-          cat > "$API_KEY_PATH" << EOF
+          ESCAPED_KEY=$(echo "$APP_STORE_CONNECT_API_PRIVATE_KEY" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read())[1:-1])")
+          cat > "$API_KEY_PATH" <<EOF
           {
             "key_id": "$APP_STORE_CONNECT_API_KEY_ID",
             "issuer_id": "$APP_STORE_CONNECT_API_ISSUER_ID",
-            "key": "$APP_STORE_CONNECT_API_PRIVATE_KEY",
+            "key": "$ESCAPED_KEY",
             "in_house": false
           }
           EOF
