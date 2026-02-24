@@ -75,9 +75,8 @@ jobs:
             echo "  mobile-app ID: $MOBILE_APP_ID"
 
             echo ""
-            echo "=== Step 4: Create mobile-app-policy (client policy) ==="
-            # Check if policy already exists
-            EXISTING_POLICY=$(docker exec "$CONTAINER" $KC get \
+            echo "=== Step 4: Get or create mobile-app-policy (client policy) ==="
+            POLICY_ID=$(docker exec "$CONTAINER" $KC get \
               "clients/$REALM_MGMT_ID/authz/resource-server/policy/client" \
               -r $REALM --fields id,name 2>/dev/null | \
               python3 -c "
@@ -89,9 +88,8 @@ jobs:
               print('')
             " 2>/dev/null || true)
 
-            if [ -n "$EXISTING_POLICY" ]; then
-              echo "  Policy already exists: $EXISTING_POLICY"
-              POLICY_ID=$EXISTING_POLICY
+            if [ -n "$POLICY_ID" ]; then
+              echo "  Policy already exists: $POLICY_ID (skipping creation)"
             else
               echo "  Creating new client policy..."
               docker exec "$CONTAINER" $KC create \
@@ -100,7 +98,7 @@ jobs:
                 -s name=mobile-app-policy \
                 -s description="Allow mobile-app client for token exchange" \
                 -s logic=POSITIVE \
-                -s "clients=[\"$MOBILE_APP_ID\"]" 2>/dev/null
+                -s "clients=[\"$MOBILE_APP_ID\"]"
 
               POLICY_ID=$(docker exec "$CONTAINER" $KC get \
                 "clients/$REALM_MGMT_ID/authz/resource-server/policy/client" \
@@ -115,20 +113,55 @@ jobs:
 
             echo ""
             echo "=== Step 5: Assign policy to token-exchange permissions ==="
-            # Get all permissions and find token-exchange ones for each IdP
+            # List all permissions for debugging
             PERMISSIONS=$(docker exec "$CONTAINER" $KC get \
               "clients/$REALM_MGMT_ID/authz/resource-server/permission" \
               -r $REALM --fields id,name 2>/dev/null)
+            echo "  Available permissions:"
+            echo "$PERMISSIONS" | python3 -c "
+            import sys,json
+            try:
+              perms=json.load(sys.stdin)
+              for p in perms:
+                print(f\"    {p.get('name','')} -> {p.get('id','')}\")
+            except:
+              print('    (none)')
+            " 2>/dev/null || true
 
+            # Find token-exchange permissions for each IdP
             for IDP_ALIAS in google apple; do
+              # Get the IdP permission resource to find associated token-exchange permission
               PERM_ID=$(echo "$PERMISSIONS" | python3 -c "
             import sys,json
             try:
               perms=json.load(sys.stdin)
-              print(next(p['id'] for p in perms if 'token-exchange' in p.get('name','').lower() and '$IDP_ALIAS' in p.get('name','').lower()))
+              # Try exact Keycloak format: token-exchange.permission.idp.<alias>
+              for p in perms:
+                name = p.get('name','').lower()
+                if 'token-exchange' in name and ('$IDP_ALIAS' in name or 'idp' in name):
+                  print(p['id'])
+                  break
+              else:
+                print('')
             except:
               print('')
             " 2>/dev/null || true)
+
+              if [ -z "$PERM_ID" ]; then
+                # Fallback: query the IdP permissions endpoint directly
+                PERM_ID=$(docker exec "$CONTAINER" $KC get \
+                  "identity-provider/instances/$IDP_ALIAS/management/permissions" \
+                  -r $REALM 2>/dev/null | \
+                  python3 -c "
+            import sys,json
+            try:
+              data=json.load(sys.stdin)
+              scopes = data.get('scopePermissions', {})
+              print(scopes.get('token-exchange', ''))
+            except:
+              print('')
+            " 2>/dev/null || true)
+              fi
 
               if [ -n "$PERM_ID" ]; then
                 echo "  Updating token-exchange permission for $IDP_ALIAS ($PERM_ID)..."
@@ -139,7 +172,7 @@ jobs:
                   -s decisionStrategy=AFFIRMATIVE 2>/dev/null && \
                   echo "    Done" || echo "    Failed to update permission"
               else
-                echo "  No token-exchange permission found for $IDP_ALIAS (enable permissions first)"
+                echo "  No token-exchange permission found for $IDP_ALIAS"
               fi
             done
 
