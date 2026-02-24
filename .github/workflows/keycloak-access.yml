@@ -43,6 +43,18 @@ jobs:
               fi
 
               docker compose up -d keycloak
+
+              # Wait for Keycloak and disable SSL on master realm
+              echo "Waiting for Keycloak to start..."
+              for i in $(seq 1 30); do
+                if docker exec $CONTAINER /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin 2>/dev/null; then
+                  docker exec $CONTAINER /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+                  echo "Keycloak master realm SSL disabled."
+                  break
+                fi
+                sleep 5
+              done
+
               echo "Keycloak is now accessible at http://${{ secrets.SERVER_HOST }}:8080/admin/"
 
             else
