@@ -16,19 +16,51 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            CONTAINER="chillax-keycloak-1"
+            set -e
+
+            DEPLOY_DIR="${{ secrets.DEPLOY_PATH }}"
             REALM="chillax"
             CLIENT_ID="mobile-app"
             KC="/opt/keycloak/bin/kcadm.sh"
 
-            # Authenticate with Keycloak
-            docker exec $CONTAINER $KC config credentials \
-              --server http://localhost:8080 --realm master --user admin --password admin
+            # Find the keycloak container name dynamically
+            CONTAINER=$(docker compose -f "$DEPLOY_DIR/docker-compose.yaml" ps -q keycloak 2>/dev/null || docker compose -f "$DEPLOY_DIR/docker-compose.yml" ps -q keycloak 2>/dev/null)
+            if [ -z "$CONTAINER" ]; then
+              echo "ERROR: Keycloak container not found"
+              exit 1
+            fi
+            echo "Keycloak container: $CONTAINER"
 
+            # Read admin password from deploy .env
+            KC_PASSWORD=$(grep -oP '^KEYCLOAK_PASSWORD=\K.*' "$DEPLOY_DIR/.env" 2>/dev/null || echo "admin")
+
+            # Wait for Keycloak to be ready
+            echo "Waiting for Keycloak to be ready..."
+            for i in $(seq 1 30); do
+              if docker exec "$CONTAINER" curl -sf http://localhost:8080/health/ready > /dev/null 2>&1; then
+                echo "  Keycloak is ready"
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "ERROR: Keycloak not ready after 30 attempts"
+                exit 1
+              fi
+              echo "  Attempt $i/30 - waiting 5s..."
+              sleep 5
+            done
+
+            # Authenticate with Keycloak
+            echo ""
+            echo "=== Authenticating with Keycloak ==="
+            docker exec "$CONTAINER" $KC config credentials \
+              --server http://localhost:8080 --realm master --user admin --password "$KC_PASSWORD"
+            echo "  Authenticated successfully"
+
+            echo ""
             echo "=== Step 1: Enable permissions on identity providers ==="
             for IDP_ALIAS in google apple; do
               echo "Enabling permissions for $IDP_ALIAS..."
-              docker exec $CONTAINER $KC update "identity-provider/instances/$IDP_ALIAS/management/permissions" \
+              docker exec "$CONTAINER" $KC update "identity-provider/instances/$IDP_ALIAS/management/permissions" \
                 -r $REALM -s enabled=true 2>/dev/null && \
                 echo "  Permissions enabled for $IDP_ALIAS" || \
                 echo "  Permissions already enabled or IdP not found for $IDP_ALIAS"
@@ -36,14 +68,14 @@ jobs:
 
             echo ""
             echo "=== Step 2: Get realm-management client ID ==="
-            REALM_MGMT_ID=$(docker exec $CONTAINER $KC get clients \
+            REALM_MGMT_ID=$(docker exec "$CONTAINER" $KC get clients \
               -r $REALM --fields id,clientId | \
               python3 -c "import sys,json; clients=json.load(sys.stdin); print(next(c['id'] for c in clients if c['clientId']=='realm-management'))")
             echo "  realm-management ID: $REALM_MGMT_ID"
 
             echo ""
             echo "=== Step 3: Get mobile-app client ID ==="
-            MOBILE_APP_ID=$(docker exec $CONTAINER $KC get clients \
+            MOBILE_APP_ID=$(docker exec "$CONTAINER" $KC get clients \
               -r $REALM --fields id,clientId | \
               python3 -c "import sys,json; clients=json.load(sys.stdin); print(next(c['id'] for c in clients if c['clientId']=='$CLIENT_ID'))")
             echo "  mobile-app ID: $MOBILE_APP_ID"
@@ -51,7 +83,7 @@ jobs:
             echo ""
             echo "=== Step 4: Create mobile-app-policy (client policy) ==="
             # Check if policy already exists
-            EXISTING_POLICY=$(docker exec $CONTAINER $KC get \
+            EXISTING_POLICY=$(docker exec "$CONTAINER" $KC get \
               "clients/$REALM_MGMT_ID/authz/resource-server/policy/client" \
               -r $REALM --fields id,name 2>/dev/null | \
               python3 -c "
@@ -61,14 +93,14 @@ jobs:
               print(next(p['id'] for p in policies if p['name']=='mobile-app-policy'))
             except:
               print('')
-            " 2>/dev/null)
+            " 2>/dev/null || true)
 
             if [ -n "$EXISTING_POLICY" ]; then
               echo "  Policy already exists: $EXISTING_POLICY"
               POLICY_ID=$EXISTING_POLICY
             else
               echo "  Creating new client policy..."
-              docker exec $CONTAINER $KC create \
+              docker exec "$CONTAINER" $KC create \
                 "clients/$REALM_MGMT_ID/authz/resource-server/policy/client" \
                 -r $REALM \
                 -s name=mobile-app-policy \
@@ -76,7 +108,7 @@ jobs:
                 -s logic=POSITIVE \
                 -s "clients=[\"$MOBILE_APP_ID\"]" 2>/dev/null
 
-              POLICY_ID=$(docker exec $CONTAINER $KC get \
+              POLICY_ID=$(docker exec "$CONTAINER" $KC get \
                 "clients/$REALM_MGMT_ID/authz/resource-server/policy/client" \
                 -r $REALM --fields id,name | \
                 python3 -c "
@@ -90,7 +122,7 @@ jobs:
             echo ""
             echo "=== Step 5: Assign policy to token-exchange permissions ==="
             # Get all permissions and find token-exchange ones for each IdP
-            PERMISSIONS=$(docker exec $CONTAINER $KC get \
+            PERMISSIONS=$(docker exec "$CONTAINER" $KC get \
               "clients/$REALM_MGMT_ID/authz/resource-server/permission" \
               -r $REALM --fields id,name 2>/dev/null)
 
@@ -102,11 +134,11 @@ jobs:
               print(next(p['id'] for p in perms if 'token-exchange' in p.get('name','').lower() and '$IDP_ALIAS' in p.get('name','').lower()))
             except:
               print('')
-            " 2>/dev/null)
+            " 2>/dev/null || true)
 
               if [ -n "$PERM_ID" ]; then
                 echo "  Updating token-exchange permission for $IDP_ALIAS ($PERM_ID)..."
-                docker exec $CONTAINER $KC update \
+                docker exec "$CONTAINER" $KC update \
                   "clients/$REALM_MGMT_ID/authz/resource-server/permission/scope/$PERM_ID" \
                   -r $REALM \
                   -s "policies=[\"$POLICY_ID\"]" \
