@@ -58,18 +58,6 @@
 					<string>com.chillax.client</string>
 				</array>
 			</dict>
-			<!-- Google Sign-In URL scheme -->
-			<!-- Replace YOUR_IOS_CLIENT_ID with your Google iOS Client ID (reversed) -->
-			<!-- Example: If client ID is 123456789-abc.apps.googleusercontent.com -->
-			<!-- Then use: com.googleusercontent.apps.123456789-abc -->
-			<dict>
-				<key>CFBundleTypeRole</key>
-				<string>Editor</string>
-				<key>CFBundleURLSchemes</key>
-				<array>
-					<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
-				</array>
-			</dict>
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
