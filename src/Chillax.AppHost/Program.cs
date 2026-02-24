@@ -44,7 +44,7 @@ var keycloak = builder.AddKeycloak("keycloak", port: 8080)
     .WithEnvironment("KC_HOSTNAME_STRICT", "false")
     .WithEnvironment("KC_PROXY_HEADERS", "xforwarded")
     .WithEnvironment("KC_FEATURES", "token-exchange,admin-fine-grained-authz:v1")
-    .WithEnvironment("KC_SPI_REALM_DEFAULT_SSL_REQUIRED", "NONE");
+    .WithExternalHttpEndpoints();
 
 // Build Keycloak realm URL for services
 var keycloakEndpoint = keycloak.GetEndpoint("http");

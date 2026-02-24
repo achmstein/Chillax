@@ -99,17 +99,6 @@ jobs:
             docker compose pull --ignore-buildable
             docker compose up -d --build --remove-orphans
 
-            # Wait for Keycloak to be ready and disable SSL on master realm
-            echo "Waiting for Keycloak to start..."
-            for i in $(seq 1 30); do
-              if docker exec chillax-keycloak-1 /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin 2>/dev/null; then
-                docker exec chillax-keycloak-1 /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
-                echo "Keycloak master realm SSL disabled."
-                break
-              fi
-              sleep 5
-            done
-
             # Cleanup old images
             docker image prune -f
 
