@@ -80,6 +80,13 @@ jobs:
           bundler-cache: true
           working-directory: src/client_app/android
 
+      - name: Create Play Store service account key
+        env:
+          PLAY_STORE_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$PLAY_STORE_SERVICE_ACCOUNT_JSON" > /tmp/play-store-key.json
+          echo "PLAY_STORE_JSON_KEY_PATH=/tmp/play-store-key.json" >> $GITHUB_ENV
+
       - name: Build and deploy with Fastlane
         working-directory: src/client_app/android
         env:
@@ -87,7 +94,6 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
-          PLAY_STORE_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
         run: bundle exec fastlane beta track:${{ github.event.inputs.track || 'internal' }} build_number:${{ github.event.inputs.build_number || github.run_number }}
 
       - name: Upload AAB artifact
@@ -133,6 +139,13 @@ jobs:
           bundler-cache: true
           working-directory: src/admin_app/android
 
+      - name: Create Play Store service account key
+        env:
+          PLAY_STORE_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$PLAY_STORE_SERVICE_ACCOUNT_JSON" > /tmp/play-store-key.json
+          echo "PLAY_STORE_JSON_KEY_PATH=/tmp/play-store-key.json" >> $GITHUB_ENV
+
       - name: Build and deploy with Fastlane
         working-directory: src/admin_app/android
         env:
@@ -140,7 +153,6 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_ADMIN_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_ADMIN_KEY_PASSWORD }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_ADMIN_STORE_PASSWORD }}
-          PLAY_STORE_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
         run: bundle exec fastlane beta track:${{ github.event.inputs.track || 'internal' }} build_number:${{ github.event.inputs.build_number || github.run_number }}
 
       - name: Upload AAB artifact
