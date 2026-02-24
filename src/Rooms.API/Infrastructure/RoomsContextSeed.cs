@@ -1,9 +1,10 @@
 using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
+using Chillax.Rooms.Infrastructure;
 using Microsoft.Extensions.Logging;
 
-namespace Chillax.Rooms.Infrastructure;
+namespace Chillax.Rooms.API.Infrastructure;
 
-public class RoomsContextSeed(ILogger<RoomsContextSeed> logger)
+public class RoomsContextSeed(ILogger<RoomsContextSeed> logger) : IDbSeeder<RoomsContext>
 {
     public async Task SeedAsync(RoomsContext context)
     {

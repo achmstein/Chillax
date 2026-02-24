@@ -16,7 +16,10 @@ class FirebaseService {
   /// Initialize Firebase and request notification permissions
   Future<void> initialize() async {
     try {
-      await Firebase.initializeApp();
+      // Firebase.initializeApp() is called in main() before Crashlytics setup
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp();
+      }
       _initialized = true;
 
       // Disable Crashlytics in debug mode to avoid polluting reports

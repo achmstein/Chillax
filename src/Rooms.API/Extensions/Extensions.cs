@@ -4,6 +4,7 @@ using Chillax.Rooms.API.Application.IntegrationEvents.Events;
 using Chillax.Rooms.API.Application.Queries;
 using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
+using Chillax.Rooms.API.Infrastructure;
 using Chillax.Rooms.Infrastructure;
 using Chillax.Rooms.Infrastructure.Idempotency;
 using Chillax.Rooms.Infrastructure.Repositories;
@@ -31,12 +32,7 @@ public static class Extensions
         });
 
         // REVIEW: This is done for development ease but shouldn't be here in production
-        builder.Services.AddMigration<RoomsContext>(async (context, sp) =>
-        {
-            var logger = sp.GetRequiredService<ILogger<RoomsContextSeed>>();
-            var seeder = new RoomsContextSeed(logger);
-            await seeder.SeedAsync(context);
-        });
+        builder.Services.AddMigration<RoomsContext, RoomsContextSeed>();
 
         // Add MediatR for CQRS
         builder.Services.AddMediatR(cfg =>
