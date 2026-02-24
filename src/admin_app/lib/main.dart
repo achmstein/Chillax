@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -16,24 +17,24 @@ void main() async {
   // Initialize locale before app starts
   await initializeLocale();
 
-  // Initialize Firebase (may fail if not configured)
+  // Initialize Firebase before setting up Crashlytics handlers
   try {
-    await FirebaseService.initialize();
+    await Firebase.initializeApp();
+
     // Set up background message handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  } catch (e) {
-    debugPrint('Firebase initialization failed: $e');
-    // Continue without Firebase - notifications won't work
+
+    // Send Flutter errors to Crashlytics
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+    // Send async errors to Crashlytics
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  } catch (_) {
+    // Firebase not configured - app will work without crash reporting
   }
-
-  // Send Flutter errors to Crashlytics
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-  // Send async errors to Crashlytics
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
 
   runApp(
     const ProviderScope(

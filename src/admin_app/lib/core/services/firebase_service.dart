@@ -10,7 +10,10 @@ class FirebaseService {
 
   /// Initialize Firebase
   static Future<void> initialize() async {
-    await Firebase.initializeApp();
+    // Firebase.initializeApp() is called in main() before Crashlytics setup
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
 
     // Disable Crashlytics in debug mode to avoid polluting reports
     await FirebaseCrashlytics.instance
