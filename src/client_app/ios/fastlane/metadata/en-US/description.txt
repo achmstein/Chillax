@@ -1,0 +1,22 @@
+Chillax brings together your favorite cafe experience and PlayStation gaming in one app. Order food and drinks from the menu, or reserve a gaming room to play with friends.
+
+FOOD & DRINKS
+Browse the full menu, customize your order, and add special requests. Track your order status in real time with push notifications.
+
+GAMING ROOMS
+Check available PlayStation rooms, book by the hour, and join sessions with a simple 4-digit code. Request services like calling a waiter or getting the bill right from the app.
+
+LOYALTY REWARDS
+Earn points on every purchase and climb through Bronze, Silver, Gold, and Platinum tiers. Redeem your points for discounts on future orders.
+
+KEY FEATURES
+- Browse and search the full cafe menu
+- Customize items with add-ons and options
+- Real-time order tracking with notifications
+- View available gaming rooms and reserve instantly
+- Join friends' sessions with a code
+- In-session services: call waiter, request controller, get bill
+- Loyalty program with tiered rewards
+- Order and session history
+- English and Arabic language support
+- Light and dark mode
