@@ -559,7 +559,7 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
         body: AppText(l10n.fastOrderConfirmation(widget.item.name.getText(locale))),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),

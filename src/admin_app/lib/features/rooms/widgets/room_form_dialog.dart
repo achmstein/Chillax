@@ -110,7 +110,7 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
       ),
       actions: [
         FButton(
-          style: FButtonStyle.outline(),
+          variant: FButtonVariant.outline,
           onPress: () => Navigator.of(context).pop(),
           child: AppText(l10n.cancel),
         ),

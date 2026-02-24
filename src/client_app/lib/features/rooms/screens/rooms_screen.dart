@@ -861,12 +861,12 @@ class _ReservedSessionBanner extends ConsumerWidget {
         body: Text(l10n.confirmCancelReservation),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             onPress: () => Navigator.pop(context, false),
             child: Text(l10n.noKeep),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             onPress: () => Navigator.pop(context, true),
             child: Text(l10n.yesCancel),
           ),

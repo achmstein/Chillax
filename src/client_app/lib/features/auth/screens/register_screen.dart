@@ -156,7 +156,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: FAlert(
-                      style: FAlertStyle.primary(),
                       icon: Icon(FIcons.check),
                       title: AppText(l10n.success),
                       subtitle: AppText(_success!),
@@ -168,7 +167,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: FAlert(
-                      style: FAlertStyle.destructive(),
+                      variant: FAlertVariant.destructive,
                       icon: Icon(FIcons.circleAlert),
                       title: AppText(l10n.error),
                       subtitle: AppText(_error!),

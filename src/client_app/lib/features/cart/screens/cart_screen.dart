@@ -525,19 +525,19 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     showFDialog(
       context: context,
       builder: (context, style, animation) => FDialog(
-        style: style.call,
+        style: style,
         animation: animation,
         title: Text(l10n.clearCart),
         body: Text(l10n.removeAllItemsFromCart),
         direction: Axis.horizontal,
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             onPress: () => Navigator.pop(context),
             child: Text(l10n.cancel),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             onPress: () {
               ref.read(cartProvider.notifier).clear();
               Navigator.pop(context);

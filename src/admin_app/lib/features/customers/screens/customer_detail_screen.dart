@@ -150,7 +150,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                     children: [
                       Expanded(
                         child: FButton(
-                          style: FButtonStyle.outline(),
+                          variant: FButtonVariant.outline,
                           onPress: () => context.push('/accounts/${customer.id}'),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -165,7 +165,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: FButton(
-                          style: FButtonStyle.outline(),
+                          variant: FButtonVariant.outline,
                           onPress: () => context.push('/loyalty/account/${customer.id}'),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -341,7 +341,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   children: [
                     Expanded(
                       child: FButton(
-                        style: FButtonStyle.outline(),
+                        variant: FButtonVariant.outline,
                         onPress: () => Navigator.pop(context),
                         child: AppText(l10n.cancel),
                       ),
@@ -449,7 +449,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   children: [
                     Expanded(
                       child: FButton(
-                        style: FButtonStyle.outline(),
+                        variant: FButtonVariant.outline,
                         onPress: () => Navigator.pop(context),
                         child: AppText(l10n.cancel),
                       ),
@@ -546,7 +546,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   children: [
                     Expanded(
                       child: FButton(
-                        style: FButtonStyle.outline(),
+                        variant: FButtonVariant.outline,
                         onPress: () => Navigator.pop(context),
                         child: AppText(l10n.cancel),
                       ),

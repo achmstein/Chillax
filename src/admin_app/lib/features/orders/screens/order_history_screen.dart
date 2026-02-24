@@ -247,19 +247,19 @@ class _HistoryOrderTile extends StatelessWidget {
     switch (status) {
       case OrderStatus.awaitingValidation:
         return FBadge(
-          style: FBadgeStyle.secondary(),
+          variant: FBadgeVariant.secondary,
           child: AppText(l10n.validating),
         );
       case OrderStatus.submitted:
         return FBadge(
-          style: FBadgeStyle.destructive(),
+          variant: FBadgeVariant.destructive,
           child: AppText(l10n.pending),
         );
       case OrderStatus.confirmed:
         return FBadge(child: AppText(l10n.confirmed));
       case OrderStatus.cancelled:
         return FBadge(
-          style: FBadgeStyle.outline(),
+          variant: FBadgeVariant.outline,
           child: AppText(l10n.cancelled),
         );
     }

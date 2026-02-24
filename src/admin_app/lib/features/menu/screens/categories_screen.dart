@@ -234,12 +234,12 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         body: AppText(l10n.deleteCategoryConfirmation(category.name.localized(context))),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             child: AppText(l10n.delete),
             onPress: () => Navigator.of(context).pop(true),
           ),

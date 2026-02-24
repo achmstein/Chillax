@@ -35,15 +35,12 @@ class LoyaltyState {
 
 /// Loyalty notifier for mobile app
 class LoyaltyNotifier extends Notifier<LoyaltyState> {
-  late final LoyaltyRepository _repository;
+  LoyaltyRepository get _repository => ref.read(loyaltyRepositoryProvider);
 
   AuthState get _authState => ref.read(authServiceProvider);
 
   @override
   LoyaltyState build() {
-    _repository = ref.read(loyaltyRepositoryProvider);
-    // Watch auth state to rebuild when it changes
-    ref.watch(authServiceProvider);
     return const LoyaltyState();
   }
 

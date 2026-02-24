@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -60,7 +61,12 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
     FlutterNativeSplash.remove();
 
     // Connect SignalR if authenticated
-    if (ref.read(authServiceProvider).isAuthenticated) {
+    final authState = ref.read(authServiceProvider);
+    if (authState.isAuthenticated) {
+      // Set user ID on Crashlytics so crashes are tied to users
+      if (authState.userId != null) {
+        FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+      }
       _connectSignalR();
     }
   }

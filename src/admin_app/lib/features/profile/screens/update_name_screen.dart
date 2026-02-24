@@ -117,7 +117,7 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
                 // Error message
                 if (_error != null) ...[
                   FAlert(
-                    style: FAlertStyle.destructive(),
+                    variant: FAlertVariant.destructive,
                     icon: const Icon(FIcons.circleAlert),
                     title: AppText(l10n.error),
                     subtitle: AppText(_error!),

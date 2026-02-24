@@ -180,7 +180,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
         body: AppText(l10n.customerWillBeCharged),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
@@ -209,12 +209,12 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
         body: AppText(l10n.cancelReservationConfirmation),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.no),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             child: AppText(l10n.cancelReservation),
             onPress: () => Navigator.of(context).pop(true),
           ),
@@ -294,12 +294,12 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
         body: AppText(l10n.deleteRoomConfirmation(room.name.localized(context))),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             child: AppText(l10n.delete),
             onPress: () => Navigator.of(context).pop(true),
           ),
@@ -495,7 +495,7 @@ class _CurrentStateSection extends StatelessWidget {
             if (onAddCustomer != null) ...[
               Center(
                 child: FButton(
-                  style: FButtonStyle.outline(),
+                  variant: FButtonVariant.outline,
                   onPress: onAddCustomer,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -513,7 +513,7 @@ class _CurrentStateSection extends StatelessWidget {
             // End button
             Center(
               child: FButton(
-                style: FButtonStyle.destructive(),
+                variant: FButtonVariant.destructive,
                 onPress: onEndSession,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -610,7 +610,7 @@ class _CurrentStateSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 FButton(
-                  style: FButtonStyle.outline(),
+                  variant: FButtonVariant.outline,
                   onPress: onCancelReservation,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -678,7 +678,7 @@ class _CurrentStateSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 FButton(
-                  style: FButtonStyle.outline(),
+                  variant: FButtonVariant.outline,
                   onPress: onReserve,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

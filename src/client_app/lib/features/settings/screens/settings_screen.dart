@@ -235,18 +235,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showFDialog(
       context: context,
       builder: (dialogContext, style, animation) => FDialog(
-        style: style.call,
+        style: style,
         animation: animation,
         title: AppText(l10n.deleteAccount, style: TextStyle(fontWeight: FontWeight.bold)),
         body: AppText(l10n.deleteAccountConfirmation),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             onPress: () => Navigator.pop(dialogContext),
             child: AppText(l10n.cancel),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             onPress: () async {
               Navigator.pop(dialogContext);
 

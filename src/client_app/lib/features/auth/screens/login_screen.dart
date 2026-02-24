@@ -132,7 +132,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: FAlert(
-                      style: FAlertStyle.destructive(),
+                      variant: FAlertVariant.destructive,
                       icon: Icon(FIcons.circleAlert),
                       title: AppText(l10n.error),
                       subtitle: AppText(_error!),
@@ -207,7 +207,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // Google button
                     Expanded(
                       child: FButton(
-                        style: FButtonStyle.outline(),
+                        variant: FButtonVariant.outline,
                         onPress: _isLoading || _loadingProvider != null
                             ? null
                             : () => _handleSocialSignIn(SocialProvider.google),
@@ -245,7 +245,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // Apple button
                     Expanded(
                       child: FButton(
-                        style: FButtonStyle.outline(),
+                        variant: FButtonVariant.outline,
                         onPress: _isLoading || _loadingProvider != null
                             ? null
                             : () => _handleSocialSignIn(SocialProvider.apple),

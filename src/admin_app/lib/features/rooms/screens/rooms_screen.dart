@@ -137,7 +137,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
         body: AppText(l10n.endSessionConfirmation),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),

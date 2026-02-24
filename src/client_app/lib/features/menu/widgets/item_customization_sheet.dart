@@ -461,7 +461,7 @@ class _ItemCustomizationSheetState
             if (customization.isRequired) ...[
               const Spacer(),
               FBadge(
-                style: FBadgeStyle.destructive(),
+                variant: FBadgeVariant.destructive,
                 child: AppText(l10n.required, style: TextStyle(fontSize: 12)),
               ),
             ],

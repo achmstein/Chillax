@@ -43,8 +43,6 @@ class AccountNotifier extends Notifier<AccountState> {
 
   @override
   AccountState build() {
-    // Watch auth state to rebuild when it changes
-    ref.watch(authServiceProvider);
     return const AccountState();
   }
 

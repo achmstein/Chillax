@@ -210,7 +210,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
                     children: [
                       Expanded(
                         child: FButton(
-                          style: FButtonStyle.outline(),
+                          variant: FButtonVariant.outline,
                           onPress: () => _showAdjustPointsSheet(context, l10n),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -713,7 +713,7 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
                 children: [
                   Expanded(
                     child: FButton(
-                      style: FButtonStyle.outline(),
+                      variant: FButtonVariant.outline,
                       onPress: () => Navigator.of(context).pop(),
                       child: AppText(l10n.cancel),
                     ),

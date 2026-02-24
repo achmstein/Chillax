@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,11 @@ class FirebaseService {
     try {
       await Firebase.initializeApp();
       _initialized = true;
+
+      // Disable Crashlytics in debug mode to avoid polluting reports
+      await FirebaseCrashlytics.instance
+          .setCrashlyticsCollectionEnabled(!kDebugMode);
+
       _messaging = FirebaseMessaging.instance;
       debugPrint('Firebase initialized successfully');
 

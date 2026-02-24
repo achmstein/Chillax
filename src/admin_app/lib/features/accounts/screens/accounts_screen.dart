@@ -490,7 +490,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                 children: [
                   Expanded(
                     child: FButton(
-                      style: FButtonStyle.outline(),
+                      variant: FButtonVariant.outline,
                       onPress: () => Navigator.of(context).pop(),
                       child: AppText(l10n.cancel),
                     ),

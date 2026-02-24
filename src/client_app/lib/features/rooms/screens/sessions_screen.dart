@@ -229,16 +229,16 @@ class _SessionTileState extends State<SessionTile> {
     switch (status) {
       case SessionStatus.reserved:
         label = l10n.statusReserved;
-        return FBadge(style: FBadgeStyle.secondary(), child: Text(label));
+        return FBadge(variant: FBadgeVariant.secondary, child: Text(label));
       case SessionStatus.active:
         label = l10n.statusActive;
-        return FBadge(style: FBadgeStyle.primary(), child: Text(label));
+        return FBadge(child: Text(label));
       case SessionStatus.completed:
         label = l10n.statusCompleted;
-        return FBadge(style: FBadgeStyle.outline(), child: Text(label));
+        return FBadge(variant: FBadgeVariant.outline, child: Text(label));
       case SessionStatus.cancelled:
         label = l10n.statusCancelled;
-        return FBadge(style: FBadgeStyle.destructive(), child: Text(label));
+        return FBadge(variant: FBadgeVariant.destructive, child: Text(label));
     }
   }
 }

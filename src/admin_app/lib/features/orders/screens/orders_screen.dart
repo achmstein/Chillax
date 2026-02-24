@@ -137,12 +137,12 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
         body: AppText(l10n.cancelOrderConfirmation),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.keep),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(true),
           ),

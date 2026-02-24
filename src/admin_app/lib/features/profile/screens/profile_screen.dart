@@ -222,7 +222,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: FButton(
-                    style: FButtonStyle.destructive(),
+                    variant: FButtonVariant.destructive,
                     onPress: () => _handleLogout(context, l10n),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -336,12 +336,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         body: AppText(l10n.signOutConfirmation),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             child: AppText(l10n.signOut),
             onPress: () => Navigator.of(context).pop(true),
           ),

@@ -509,12 +509,12 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
         body: AppText(l10n.deleteCustomizationConfirm),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.cancel),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             child: AppText(l10n.delete),
             onPress: () => Navigator.of(context).pop(true),
           ),

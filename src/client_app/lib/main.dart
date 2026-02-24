@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:ui';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +24,15 @@ void main() async {
 
   // Load saved locale before app starts
   await initializeLocale();
+
+  // Send Flutter errors to Crashlytics
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  // Send async errors to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   runApp(
     const ProviderScope(
@@ -66,7 +77,12 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     FlutterNativeSplash.remove();
 
     // Connect SignalR and register for notifications if authenticated
-    if (ref.read(authServiceProvider).isAuthenticated) {
+    final authState = ref.read(authServiceProvider);
+    if (authState.isAuthenticated) {
+      // Set user ID on Crashlytics so crashes are tied to users
+      if (authState.userId != null) {
+        FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+      }
       _connectSignalR();
       _registerForOrderNotifications();
     }

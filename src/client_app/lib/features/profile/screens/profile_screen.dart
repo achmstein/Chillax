@@ -189,7 +189,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   width: double.infinity,
                   child: authState.isAuthenticated
                       ? FButton(
-                          style: FButtonStyle.destructive(),
+                          variant: FButtonVariant.destructive,
                           onPress: () => _handleSignOut(context),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -242,12 +242,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         direction: Axis.horizontal,
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             onPress: () => Navigator.pop(context),
             child: AppText(l10n.cancel),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             onPress: () async {
               Navigator.pop(context);
               await ref.read(authServiceProvider.notifier).signOut();

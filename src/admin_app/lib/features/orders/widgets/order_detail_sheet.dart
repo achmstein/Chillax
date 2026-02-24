@@ -303,7 +303,7 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
                 children: [
                   Expanded(
                     child: FButton(
-                      style: FButtonStyle.outline(),
+                      variant: FButtonVariant.outline,
                       child: AppText(l10n.cancelOrder),
                       onPress: () => _cancelOrder(context, ref, l10n),
                     ),
@@ -327,11 +327,11 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
   Widget _buildStatusBadge(OrderStatus status, AppLocalizations l10n) {
     switch (status) {
       case OrderStatus.awaitingValidation:
-        return FBadge(style: FBadgeStyle.secondary(),
+        return FBadge(variant: FBadgeVariant.secondary,
           child: AppText(l10n.validating),
         );
       case OrderStatus.submitted:
-        return FBadge(style: FBadgeStyle.destructive(),
+        return FBadge(variant: FBadgeVariant.destructive,
           child: AppText(l10n.pending),
         );
       case OrderStatus.confirmed:
@@ -339,7 +339,7 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
           child: AppText(l10n.confirmed),
         );
       case OrderStatus.cancelled:
-        return FBadge(style: FBadgeStyle.outline(),
+        return FBadge(variant: FBadgeVariant.outline,
           child: AppText(l10n.cancelled),
         );
     }
@@ -431,12 +431,12 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
         body: AppText(l10n.cancelOrderConfirmation),
         actions: [
           FButton(
-            style: FButtonStyle.outline(),
+            variant: FButtonVariant.outline,
             child: AppText(l10n.noKeep),
             onPress: () => Navigator.of(context).pop(false),
           ),
           FButton(
-            style: FButtonStyle.destructive(),
+            variant: FButtonVariant.destructive,
             child: AppText(l10n.yesCancel),
             onPress: () => Navigator.of(context).pop(true),
           ),

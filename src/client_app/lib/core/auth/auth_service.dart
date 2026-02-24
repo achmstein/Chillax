@@ -69,10 +69,8 @@ class AuthService extends Notifier<AuthState> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   // Native social login SDKs
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile', 'openid'],
-    serverClientId: AppConfig.googleServerClientId,
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _googleSignInInitialized = false;
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
@@ -170,6 +168,15 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
+  /// Initialize Google Sign-In (must be called exactly once before use)
+  Future<void> _ensureGoogleSignInInitialized() async {
+    if (_googleSignInInitialized) return;
+    await _googleSignIn.initialize(
+      serverClientId: AppConfig.googleServerClientId,
+    );
+    _googleSignInInitialized = true;
+  }
+
   /// Generate a random nonce string for Apple Sign In
   String _generateNonce([int length = 32]) {
     const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
@@ -194,18 +201,23 @@ class AuthService extends Notifier<AuthState> {
       String tokenType;
 
       if (provider == SocialProvider.google) {
-        // Use native Google Sign-In
-        final googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) {
-          debugPrint('Google sign in cancelled by user');
+        // Use native Google Sign-In (v7 singleton API)
+        await _ensureGoogleSignInInitialized();
+        try {
+          final scopes = ['email', 'profile', 'openid'];
+          final googleUser = await _googleSignIn.authenticate(scopeHint: scopes);
+
+          // Get access token via authorization client
+          var authz = await googleUser.authorizationClient.authorizationForScopes(scopes);
+          authz ??= await googleUser.authorizationClient.authorizeScopes(scopes);
+          socialToken = authz.accessToken;
+          providerAlias = 'google';
+          tokenType = 'urn:ietf:params:oauth:token-type:access_token';
+          debugPrint('Google sign in successful, got access token');
+        } on GoogleSignInException catch (e) {
+          debugPrint('Google sign in exception: ${e.code}');
           return false;
         }
-
-        final googleAuth = await googleUser.authentication;
-        socialToken = googleAuth.accessToken;
-        providerAlias = 'google';
-        tokenType = 'urn:ietf:params:oauth:token-type:access_token';
-        debugPrint('Google sign in successful, got access token');
       } else {
         // Use Sign In with Apple
         final rawNonce = _generateNonce();
@@ -327,8 +339,10 @@ class AuthService extends Notifier<AuthState> {
       }
 
       // Sign out from social providers
-      if (await _googleSignIn.isSignedIn()) {
+      try {
         await _googleSignIn.signOut();
+      } catch (_) {
+        // May not be signed in with Google
       }
     } catch (e) {
       debugPrint('Sign out error: $e');

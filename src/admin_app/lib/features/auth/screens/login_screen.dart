@@ -138,7 +138,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: FAlert(
-                        style: FAlertStyle.destructive(),
+                        variant: FAlertVariant.destructive,
                         icon: const Icon(Icons.error_outline),
                         title: AppText(l10n.error),
                         subtitle: AppText(_errorMessage!),

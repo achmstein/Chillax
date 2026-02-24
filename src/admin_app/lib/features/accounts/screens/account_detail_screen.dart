@@ -111,7 +111,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                     children: [
                       Expanded(
                         child: FButton(
-                          style: FButtonStyle.outline(),
+                          variant: FButtonVariant.outline,
                           onPress: () => _showAddCharge(context, account, l10n),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -516,7 +516,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                 children: [
                   Expanded(
                     child: FButton(
-                      style: FButtonStyle.outline(),
+                      variant: FButtonVariant.outline,
                       onPress: () => Navigator.of(context).pop(),
                       child: AppText(l10n.cancel),
                     ),
@@ -524,9 +524,9 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: FButton(
-                      style: widget.isPayment
-                          ? FButtonStyle.primary()
-                          : FButtonStyle.destructive(),
+                      variant: widget.isPayment
+                          ? null
+                          : FButtonVariant.destructive,
                       onPress: _isSubmitting ? null : _submit,
                       child: _isSubmitting
                           ? const SizedBox(
