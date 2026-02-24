@@ -35,7 +35,7 @@ on:
         type: string
 
 env:
-  FLUTTER_VERSION: '3.38.9'
+  FLUTTER_VERSION: '3.41.2'
   JAVA_VERSION: '17'
 
 jobs:
