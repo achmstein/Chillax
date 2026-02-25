@@ -32,6 +32,7 @@ class FirebaseService {
 
   /// Initialize Firebase and request notification permissions
   Future<void> initialize() async {
+    final crashlytics = FirebaseCrashlytics.instance;
     try {
       // Firebase.initializeApp() is called in main() before Crashlytics setup
       if (Firebase.apps.isEmpty) {
@@ -40,11 +41,10 @@ class FirebaseService {
       _initialized = true;
 
       // Disable Crashlytics in debug mode to avoid polluting reports
-      await FirebaseCrashlytics.instance
-          .setCrashlyticsCollectionEnabled(!kDebugMode);
+      await crashlytics.setCrashlyticsCollectionEnabled(!kDebugMode);
 
       _messaging = FirebaseMessaging.instance;
-      debugPrint('Firebase initialized successfully');
+      crashlytics.log('Firebase initialized');
 
       // Request notification permissions
       final settings = await _messaging!.requestPermission(
@@ -54,18 +54,17 @@ class FirebaseService {
         provisional: false,
       );
 
-      debugPrint('Notification permission status: ${settings.authorizationStatus}');
+      crashlytics.log('Notification permission: ${settings.authorizationStatus}');
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         // Get FCM token
         await _refreshToken();
+        crashlytics.log('FCM token: ${_fcmToken != null ? 'obtained' : 'null'}');
 
         // Listen for token refresh
         _messaging!.onTokenRefresh.listen((newToken) {
-          debugPrint('FCM Token refreshed: ${newToken.substring(0, 20)}...');
           _fcmToken = newToken;
-          // Notify listeners so they can re-register subscriptions with the new token
           for (final callback in _tokenRefreshCallbacks) {
             callback(newToken);
           }
@@ -74,11 +73,14 @@ class FirebaseService {
         // Setup foreground message handler
         FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
         FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
+      } else {
+        crashlytics.log('Notifications not authorized: ${settings.authorizationStatus}');
       }
-    } catch (e) {
+    } catch (e, stack) {
       _initError = e.toString();
       debugPrint('Firebase initialization failed: $e');
-      // Firebase not configured - app will work without push notifications
+      crashlytics.log('FCM init error: $e');
+      crashlytics.recordError(e, stack, reason: 'FCM initialization failed');
     }
   }
 
@@ -88,11 +90,9 @@ class FirebaseService {
     try {
       _fcmToken = await _messaging!.getToken()
           .timeout(const Duration(seconds: 10));
-      if (_fcmToken != null) {
-        debugPrint('FCM Token obtained: ${_fcmToken!.substring(0, 20)}...');
-      }
       return _fcmToken;
     } catch (e) {
+      FirebaseCrashlytics.instance.log('getToken() failed: $e');
       debugPrint('Failed to get FCM token: $e');
       return null;
     }

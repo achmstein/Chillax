@@ -113,24 +113,30 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   Future<void> _initializeApp() async {
+    final crashlytics = FirebaseCrashlytics.instance;
     try {
+      crashlytics.log('App init: starting auth');
       // Initialize auth first — don't let Firebase delay the app
       await ref.read(authServiceProvider.notifier).initialize();
 
       // Connect SignalR and register for notifications if authenticated
       final authState = ref.read(authServiceProvider);
+      crashlytics.log('App init: auth done, authenticated=${authState.isAuthenticated}');
       if (authState.isAuthenticated) {
         if (authState.userId != null) {
-          FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+          crashlytics.setUserIdentifier(authState.userId!);
         }
         _connectSignalR();
         _wasAuthenticated = true;
       }
     } catch (e, stack) {
       debugPrint('App initialization error: $e\n$stack');
+      crashlytics.log('App init error: $e');
+      crashlytics.recordError(e, stack, reason: 'App initialization failed');
     } finally {
       // ALWAYS remove splash screen, even if initialization fails
       FlutterNativeSplash.remove();
+      crashlytics.log('App init: splash removed');
     }
 
     // Initialize Firebase in the background — never blocks the UI
@@ -138,21 +144,27 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   Future<void> _initializeFirebase() async {
+    final crashlytics = FirebaseCrashlytics.instance;
     try {
+      crashlytics.log('Firebase init: starting');
       await ref.read(firebaseServiceProvider).initialize();
+      crashlytics.log('Firebase init: done');
 
       try {
         _setupForegroundNotifications();
       } catch (e) {
-        debugPrint('FCM foreground notifications setup failed: $e');
+        crashlytics.log('FCM foreground setup failed: $e');
       }
 
       // Register for push notifications if already authenticated
       if (ref.read(authServiceProvider).isAuthenticated) {
         _registerForOrderNotifications();
+        crashlytics.log('Firebase init: order notifications registered');
       }
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Firebase initialization failed: $e');
+      crashlytics.log('Firebase init error: $e');
+      crashlytics.recordError(e, stack, reason: 'Firebase initialization failed');
     }
   }
 
