@@ -4,6 +4,13 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Top-level background message handler (must be a top-level function)
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('Background message: ${message.notification?.title}');
+}
+
 /// Firebase messaging service for handling FCM tokens and notifications
 class FirebaseService {
   FirebaseMessaging? _messaging;
@@ -62,8 +69,16 @@ class FirebaseService {
           }
         });
 
-        // Setup foreground message handler
+        // Setup message handlers
         FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
+
+        // Check if the app was opened from a terminated state via notification
+        final initialMessage = await _messaging!.getInitialMessage();
+        if (initialMessage != null) {
+          _handleMessageOpenedApp(initialMessage);
+        }
       }
     } catch (e) {
       debugPrint('Firebase initialization failed: $e');
@@ -89,8 +104,11 @@ class FirebaseService {
   /// Handle foreground messages
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('Received foreground message: ${message.notification?.title}');
-    // The notification is automatically displayed by the system
-    // Additional handling can be added here if needed
+  }
+
+  /// Handle when user taps a notification (app was in background or terminated)
+  void _handleMessageOpenedApp(RemoteMessage message) {
+    debugPrint('Notification tapped: ${message.notification?.title}');
   }
 
   /// Get or refresh the FCM token

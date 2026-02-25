@@ -47,9 +47,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
-      footer: SafeArea(
-        top: false,
-        child: FBottomNavigationBar(
+      footer: FBottomNavigationBar(
           index: currentIndex,
           onChange: (index) => _onItemTapped(index, context),
           children: [
@@ -91,7 +89,6 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
             ),
           ],
         ),
-      ),
       child: SafeArea(
         bottom: false,
         child: widget.child,

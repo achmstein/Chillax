@@ -36,6 +36,8 @@ class SignalRService {
                 final authService = _ref.read(authServiceProvider.notifier);
                 return await authService.getAccessToken() ?? '';
               },
+              skipNegotiation: true,
+              transport: HttpTransportType.WebSockets,
             ),
           )
           .withAutomaticReconnect(retryDelays: [2000, 5000, 10000, 20000])
