@@ -114,59 +114,45 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
 
   Future<void> _initializeApp() async {
     try {
-      // Initialize Firebase for push notifications (may fail if not configured)
-      final firebase = ref.read(firebaseServiceProvider);
-      await firebase.initialize();
+      // Initialize auth first — don't let Firebase delay the app
+      await ref.read(authServiceProvider.notifier).initialize();
 
-      // Show Firebase init error if any (visible without Xcode)
-      if (firebase.initError != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          scaffoldMessengerKey.currentState?.showSnackBar(
-            SnackBar(
-              content: Text('Firebase: ${firebase.initError}'),
-              duration: const Duration(seconds: 10),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        });
+      // Connect SignalR and register for notifications if authenticated
+      final authState = ref.read(authServiceProvider);
+      if (authState.isAuthenticated) {
+        if (authState.userId != null) {
+          FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+        }
+        _connectSignalR();
+        _wasAuthenticated = true;
       }
+    } catch (e, stack) {
+      debugPrint('App initialization error: $e\n$stack');
+    } finally {
+      // ALWAYS remove splash screen, even if initialization fails
+      FlutterNativeSplash.remove();
+    }
 
-      // Show foreground FCM notifications as in-app snackbar
+    // Initialize Firebase in the background — never blocks the UI
+    _initializeFirebase();
+  }
+
+  Future<void> _initializeFirebase() async {
+    try {
+      await ref.read(firebaseServiceProvider).initialize();
+
       try {
         _setupForegroundNotifications();
       } catch (e) {
         debugPrint('FCM foreground notifications setup failed: $e');
       }
 
-      // Initialize auth service
-      await ref.read(authServiceProvider.notifier).initialize();
-
-      // Connect SignalR and register for notifications if authenticated
-      final authState = ref.read(authServiceProvider);
-      if (authState.isAuthenticated) {
-        // Set user ID on Crashlytics so crashes are tied to users
-        if (authState.userId != null) {
-          FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
-        }
-        _connectSignalR();
+      // Register for push notifications if already authenticated
+      if (ref.read(authServiceProvider).isAuthenticated) {
         _registerForOrderNotifications();
-        _wasAuthenticated = true;
       }
-    } catch (e, stack) {
-      debugPrint('App initialization error: $e\n$stack');
-      // Show error visually since we may not have Xcode console
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        scaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text('Init error: $e'),
-            duration: const Duration(seconds: 10),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      });
-    } finally {
-      // ALWAYS remove splash screen, even if initialization fails
-      FlutterNativeSplash.remove();
+    } catch (e) {
+      debugPrint('Firebase initialization failed: $e');
     }
   }
 
