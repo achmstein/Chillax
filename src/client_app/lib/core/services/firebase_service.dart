@@ -22,6 +22,8 @@ class FirebaseService {
 
   String? get fcmToken => _fcmToken;
   bool get isInitialized => _initialized;
+  String? get initError => _initError;
+  String? _initError;
 
   /// Register a callback to be invoked when the FCM token refreshes.
   void onTokenRefresh(void Function(String newToken) callback) {
@@ -74,6 +76,7 @@ class FirebaseService {
         FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
       }
     } catch (e) {
+      _initError = e.toString();
       debugPrint('Firebase initialization failed: $e');
       // Firebase not configured - app will work without push notifications
     }
@@ -83,7 +86,8 @@ class FirebaseService {
   Future<String?> _refreshToken() async {
     if (_messaging == null) return null;
     try {
-      _fcmToken = await _messaging!.getToken();
+      _fcmToken = await _messaging!.getToken()
+          .timeout(const Duration(seconds: 10));
       if (_fcmToken != null) {
         debugPrint('FCM Token obtained: ${_fcmToken!.substring(0, 20)}...');
       }
