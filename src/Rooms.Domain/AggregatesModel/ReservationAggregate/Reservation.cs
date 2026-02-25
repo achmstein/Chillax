@@ -455,6 +455,12 @@ public class Reservation : Entity, IAggregateRoot
 
         CustomerId = customerId;
         CustomerName = customerName;
+
+        // Add as Owner session member so the star indicator shows in the admin UI
+        if (!_sessionMembers.Any(m => m.CustomerId == customerId))
+        {
+            _sessionMembers.Add(new SessionMember(Id, customerId, customerName, SessionMemberRole.Owner));
+        }
     }
 }
 

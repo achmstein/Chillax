@@ -320,35 +320,41 @@ class AuthService extends Notifier<AuthState> {
 
   /// Sign out
   Future<void> signOut() async {
-    try {
-      // Disconnect SignalR
-      await ref.read(signalRServiceProvider).disconnect();
+    // Capture refresh token before clearing state
+    final refreshToken = state.refreshToken;
 
-      // Sign out from Keycloak
-      if (state.refreshToken != null) {
-        await _dio.post(
-          _logoutEndpoint,
-          data: {
-            'client_id': AppConfig.clientId,
-            'refresh_token': state.refreshToken,
-          },
-          options: Options(
-            contentType: Headers.formUrlEncodedContentType,
-          ),
-        );
+    // Clear tokens and set unauthenticated immediately for instant UI redirect
+    await _clearTokens();
+
+    // Fire-and-forget: cleanup SignalR, Keycloak session, and social providers
+    Future(() async {
+      try {
+        ref.read(signalRServiceProvider).disconnect();
+      } catch (e) {
+        debugPrint('SignalR disconnect error: $e');
       }
-
-      // Sign out from social providers
+      try {
+        if (refreshToken != null) {
+          await _dio.post(
+            _logoutEndpoint,
+            data: {
+              'client_id': AppConfig.clientId,
+              'refresh_token': refreshToken,
+            },
+            options: Options(
+              contentType: Headers.formUrlEncodedContentType,
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Keycloak logout error: $e');
+      }
       try {
         await _googleSignIn.signOut();
       } catch (_) {
         // May not be signed in with Google
       }
-    } catch (e) {
-      debugPrint('Sign out error: $e');
-    } finally {
-      await _clearTokens();
-    }
+    });
   }
 
   /// Refresh access token

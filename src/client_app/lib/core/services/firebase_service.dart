@@ -10,8 +10,16 @@ class FirebaseService {
   String? _fcmToken;
   bool _initialized = false;
 
+  /// Callbacks to invoke when the FCM token is refreshed (e.g. re-register subscriptions)
+  final List<void Function(String newToken)> _tokenRefreshCallbacks = [];
+
   String? get fcmToken => _fcmToken;
   bool get isInitialized => _initialized;
+
+  /// Register a callback to be invoked when the FCM token refreshes.
+  void onTokenRefresh(void Function(String newToken) callback) {
+    _tokenRefreshCallbacks.add(callback);
+  }
 
   /// Initialize Firebase and request notification permissions
   Future<void> initialize() async {
@@ -48,6 +56,10 @@ class FirebaseService {
         _messaging!.onTokenRefresh.listen((newToken) {
           debugPrint('FCM Token refreshed: ${newToken.substring(0, 20)}...');
           _fcmToken = newToken;
+          // Notify listeners so they can re-register subscriptions with the new token
+          for (final callback in _tokenRefreshCallbacks) {
+            callback(newToken);
+          }
         });
 
         // Setup foreground message handler

@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../notifications/services/notification_service.dart';
 import '../models/notification_preferences.dart';
 import '../services/settings_service.dart';
 
@@ -80,6 +82,14 @@ class SettingsNotifier extends Notifier<SettingsState> {
     try {
       await _service.updateNotificationPreferences(newPreferences);
       state = state.copyWith(isSaving: false);
+
+      // When re-enabling order notifications, refresh the FCM token registration
+      if (orderStatusUpdates == true) {
+        final lang = ref.read(localeProvider)?.languageCode ?? 'en';
+        ref.read(notificationRepositoryProvider).registerForOrderNotifications(
+          preferredLanguage: lang,
+        );
+      }
     } catch (e) {
       // Revert on error
       state = state.copyWith(

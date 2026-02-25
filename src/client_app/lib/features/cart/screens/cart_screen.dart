@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -625,12 +626,12 @@ class CartItemTile extends ConsumerWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: item.pictureUri != null
-                ? Image.network(
-                    item.pictureUri!,
+                ? CachedNetworkImage(
+                    imageUrl: item.pictureUri!,
                     width: 64,
                     height: 64,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    errorWidget: (context, url, error) => Container(
                       width: 64,
                       height: 64,
                       color: colors.muted,

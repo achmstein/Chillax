@@ -59,6 +59,7 @@ class ChillaxApp extends ConsumerStatefulWidget {
 
 class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   final List<StreamSubscription> _signalRSubscriptions = [];
+  bool _wasAuthenticated = false;
 
   @override
   void initState() {
@@ -68,9 +69,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
 
   @override
   void dispose() {
-    for (final sub in _signalRSubscriptions) {
-      sub.cancel();
-    }
+    _cancelSignalRSubscriptions();
     super.dispose();
   }
 
@@ -93,7 +92,15 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
       }
       _connectSignalR();
       _registerForOrderNotifications();
+      _wasAuthenticated = true;
     }
+  }
+
+  void _cancelSignalRSubscriptions() {
+    for (final sub in _signalRSubscriptions) {
+      sub.cancel();
+    }
+    _signalRSubscriptions.clear();
   }
 
   void _registerForOrderNotifications() {
@@ -103,6 +110,13 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     ref.read(notificationRepositoryProvider).registerForOrderNotifications(
       preferredLanguage: lang,
     );
+
+    // Re-register when FCM token refreshes mid-session
+    ref.read(firebaseServiceProvider).onTokenRefresh((_) {
+      ref.read(notificationRepositoryProvider).registerForOrderNotifications(
+        preferredLanguage: ref.read(localeProvider)?.languageCode ?? 'en',
+      );
+    });
   }
 
   void _connectSignalR() {
@@ -125,9 +139,24 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authServiceProvider);
     final router = ref.watch(routerProvider);
     final themeState = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
+
+    // React to auth state changes (e.g. first login, logout)
+    if (authState.isAuthenticated && !_wasAuthenticated) {
+      _wasAuthenticated = true;
+      // Set user ID on Crashlytics
+      if (authState.userId != null) {
+        FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+      }
+      _connectSignalR();
+      _registerForOrderNotifications();
+    } else if (!authState.isAuthenticated && _wasAuthenticated) {
+      _wasAuthenticated = false;
+      _cancelSignalRSubscriptions();
+    }
 
     return MaterialApp.router(
       title: 'Chillax',
