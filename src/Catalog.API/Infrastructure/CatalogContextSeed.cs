@@ -585,6 +585,36 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 10,
                     PictureFileName = "V7.jpg"
                 },
+                new(new LocalizedText("V7 Apple", "V7 تفاح"),
+                    new LocalizedText("V7 apple juice blend", "عصير V7 تفاح"))
+                {
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 11,
+                    PictureFileName = "V7 Apple.jpg"
+                },
+                new(new LocalizedText("V7 Lemon", "V7 ليمون"),
+                    new LocalizedText("V7 lemon juice blend", "عصير V7 ليمون"))
+                {
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 12,
+                    PictureFileName = "V7 Lemon.jpg"
+                },
+                new(new LocalizedText("V7 Diet", "V7 دايت"),
+                    new LocalizedText("V7 diet juice blend", "عصير V7 دايت"))
+                {
+                    Price = 25.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 13,
+                    PictureFileName = "V7 Diet.jpg"
+                },
                 new(new LocalizedText("Mineral Water", "مياه معدنية"),
                     new LocalizedText("Bottled mineral water", "مياه معدنية معبأة"))
                 {
@@ -604,6 +634,36 @@ public partial class CatalogContextSeed(
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 12,
                     PictureFileName = "Red Bull.jpg"
+                },
+                new(new LocalizedText("Red Bull Purple", "Red Bull بنفسجي"),
+                    new LocalizedText("Red Bull Purple Edition energy drink", "ريد بول بنفسجي مشروب طاقة"))
+                {
+                    Price = 65.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 16,
+                    PictureFileName = "Red Bull Purple.jpg"
+                },
+                new(new LocalizedText("Red Bull White", "Red Bull أبيض"),
+                    new LocalizedText("Red Bull White Edition energy drink", "ريد بول أبيض مشروب طاقة"))
+                {
+                    Price = 65.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 17,
+                    PictureFileName = "Red Bull White.jpg"
+                },
+                new(new LocalizedText("Red Bull Diet", "Red Bull دايت"),
+                    new LocalizedText("Red Bull Sugar Free energy drink", "ريد بول دايت مشروب طاقة"))
+                {
+                    Price = 65.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 18,
+                    PictureFileName = "Red Bull Diet.jpg"
                 },
                 new(new LocalizedText("Power Horse", "Power Horse"),
                     new LocalizedText("Power Horse energy drink", "باور هورس مشروب طاقة"))
@@ -635,15 +695,65 @@ public partial class CatalogContextSeed(
                     DisplayOrder = 15,
                     PictureFileName = "Birell.jpg"
                 },
-                new(new LocalizedText("Barbican", "Barbican"),
-                    new LocalizedText("Non-alcoholic malt beverage", "باربيكان شعير بدون كحول"))
+                new(new LocalizedText("Barbican Apple", "باربيكان تفاح"),
+                    new LocalizedText("Barbican apple flavor malt beverage", "باربيكان بنكهة التفاح"))
                 {
                     Price = 40.00m,
                     CatalogTypeId = 6,
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
-                    DisplayOrder = 16,
-                    PictureFileName = "Barbican.jpg"
+                    DisplayOrder = 23,
+                    PictureFileName = "Barbican Apple.jpg"
+                },
+                new(new LocalizedText("Barbican Malt", "باربيكان شعير"),
+                    new LocalizedText("Barbican classic malt flavor", "باربيكان شعير كلاسيك"))
+                {
+                    Price = 40.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 24,
+                    PictureFileName = "Barbican Malt.jpg"
+                },
+                new(new LocalizedText("Barbican Pineapple", "باربيكان أناناس"),
+                    new LocalizedText("Barbican pineapple flavor malt beverage", "باربيكان بنكهة الأناناس"))
+                {
+                    Price = 40.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 25,
+                    PictureFileName = "Barbican Pineapple.jpg"
+                },
+                new(new LocalizedText("Barbican Pomegranate", "باربيكان رمان"),
+                    new LocalizedText("Barbican pomegranate flavor malt beverage", "باربيكان بنكهة الرمان"))
+                {
+                    Price = 40.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 26,
+                    PictureFileName = "Barbican Pomegranate.jpg"
+                },
+                new(new LocalizedText("Barbican Raspberry", "باربيكان توت"),
+                    new LocalizedText("Barbican raspberry flavor malt beverage", "باربيكان بنكهة التوت"))
+                {
+                    Price = 40.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 27,
+                    PictureFileName = "Barbican Raspberry.jpg"
+                },
+                new(new LocalizedText("Barbican Strawberry", "باربيكان فراولة"),
+                    new LocalizedText("Barbican strawberry flavor malt beverage", "باربيكان بنكهة الفراولة"))
+                {
+                    Price = 40.00m,
+                    CatalogTypeId = 6,
+                    IsAvailable = true,
+                    PreparationTimeMinutes = 1,
+                    DisplayOrder = 28,
+                    PictureFileName = "Barbican Strawberry.jpg"
                 },
                 new(new LocalizedText("Moussy", "موسي"),
                     new LocalizedText("Non-alcoholic malt beverage", "موسي شعير بدون كحول"))
