@@ -38,6 +38,21 @@ public class CatalogItem
     public int? PreparationTimeMinutes { get; set; }
 
     /// <summary>
+    /// Whether this item is currently on offer (has a discounted price)
+    /// </summary>
+    public bool IsOnOffer { get; set; }
+
+    /// <summary>
+    /// The discounted offer price (only applicable when IsOnOffer is true)
+    /// </summary>
+    public decimal? OfferPrice { get; set; }
+
+    /// <summary>
+    /// Returns the effective price: OfferPrice when on offer, otherwise regular Price
+    /// </summary>
+    public decimal EffectivePrice => IsOnOffer && OfferPrice.HasValue ? OfferPrice.Value : Price;
+
+    /// <summary>
     /// Whether this item should appear in the "Most Popular" section
     /// </summary>
     public bool IsPopular { get; set; }

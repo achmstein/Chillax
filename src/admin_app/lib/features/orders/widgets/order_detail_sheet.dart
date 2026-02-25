@@ -112,6 +112,47 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
                 children: [
                   // Status
                   _buildStatusBadge(order.status, l10n),
+
+                  // Rating
+                  if (order.rating != null) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: List.generate(5, (i) => Padding(
+                        padding: const EdgeInsets.only(right: 2),
+                        child: Icon(
+                          i < order.rating!.ratingValue ? Icons.star : Icons.star_border,
+                          size: 22,
+                          color: i < order.rating!.ratingValue ? Colors.amber : theme.colors.mutedForeground,
+                        ),
+                      )),
+                    ),
+                    if (order.rating!.comment != null && order.rating!.comment!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      FCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.format_quote,
+                                size: 16,
+                                color: theme.colors.mutedForeground,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: AppText(
+                                  order.rating!.comment!,
+                                  style: theme.typography.sm.copyWith(
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                   const SizedBox(height: 16),
 
                   // Customer name

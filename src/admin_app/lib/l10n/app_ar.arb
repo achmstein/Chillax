@@ -385,5 +385,18 @@
   "editName": "تعديل الاسم",
   "resetPassword": "إعادة تعيين الباسورد",
   "passwordResetSuccess": "تم إعادة تعيين الباسورد بنجاح",
-  "failedToResetPassword": "فشل إعادة تعيين الباسورد"
+  "failedToResetPassword": "فشل إعادة تعيين الباسورد",
+
+  "itemOnOffer": "عرض على الصنف",
+  "offerPrice": "سعر العرض",
+  "offerPriceMustBeLess": "سعر العرض لازم يكون أقل من السعر العادي",
+  "bundleDeals": "عروض مجمعة",
+  "noBundleDeals": "مفيش عروض",
+  "createBundle": "إنشاء عرض",
+  "editBundle": "تعديل عرض",
+  "bundlePrice": "سعر العرض",
+  "selectItems": "اختار الأصناف",
+  "bundleActive": "مفعّل",
+  "deleteBundleConfirm": "مسح العرض ده؟",
+  "originalPrice": "السعر الأصلي"
 }

@@ -67,7 +67,8 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 Total = (double)o.OrderItems.Sum(oi => oi.UnitPrice * oi.Units),
                 PointsToRedeem = o.PointsToRedeem,
                 LoyaltyDiscount = o.LoyaltyDiscount,
-                RoomName = o.RoomName
+                RoomName = o.RoomName,
+                RatingValue = o.Rating != null ? (int?)o.Rating.RatingValue : null
             })
             .ToListAsync();
 
@@ -96,7 +97,8 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 PointsToRedeem = o.PointsToRedeem,
                 LoyaltyDiscount = o.LoyaltyDiscount,
                 RoomName = o.RoomName,
-                UserName = o.Buyer != null ? o.Buyer.Name : null
+                UserName = o.Buyer != null ? o.Buyer.Name : null,
+                RatingValue = o.Rating != null ? (int?)o.Rating.RatingValue : null
             })
             .ToListAsync();
     }
@@ -120,7 +122,8 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
                 PointsToRedeem = o.PointsToRedeem,
                 LoyaltyDiscount = o.LoyaltyDiscount,
                 RoomName = o.RoomName,
-                UserName = o.Buyer != null ? o.Buyer.Name : null
+                UserName = o.Buyer != null ? o.Buyer.Name : null,
+                RatingValue = o.Rating != null ? (int?)o.Rating.RatingValue : null
             })
             .ToListAsync();
 

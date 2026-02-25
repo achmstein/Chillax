@@ -34,8 +34,10 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
   late TextEditingController _descriptionEnController;
   late TextEditingController _descriptionArController;
   late TextEditingController _priceController;
+  late TextEditingController _offerPriceController;
   int? _selectedCategoryId;
   bool _isAvailable = true;
+  bool _isOnOffer = false;
   bool _isPopular = false;
   bool _isSubmitting = false;
 
@@ -55,6 +57,7 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
     _descriptionEnController = TextEditingController();
     _descriptionArController = TextEditingController();
     _priceController = TextEditingController();
+    _offerPriceController = TextEditingController();
 
     // Load existing item data if editing
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -74,6 +77,8 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
           _priceController.text = item.price.toStringAsFixed(2);
           _selectedCategoryId = item.catalogTypeId;
           _isAvailable = item.isAvailable;
+          _isOnOffer = item.isOnOffer;
+          _offerPriceController.text = item.offerPrice?.toStringAsFixed(2) ?? '';
           _isPopular = item.isPopular;
           _existingImageUri = item.pictureUri;
           _customizations = List.from(item.customizations);
@@ -89,6 +94,7 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
     _descriptionEnController.dispose();
     _descriptionArController.dispose();
     _priceController.dispose();
+    _offerPriceController.dispose();
     super.dispose();
   }
 
@@ -352,6 +358,43 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
             ),
           ],
         ),
+        const SizedBox(height: 12),
+
+        // Offer toggle
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            AppText(
+              l10n.itemOnOffer,
+              style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+            ),
+            FSwitch(
+              value: _isOnOffer,
+              onChange: (value) => setState(() {
+                _isOnOffer = value;
+                if (!value) {
+                  _offerPriceController.clear();
+                }
+              }),
+            ),
+          ],
+        ),
+        if (_isOnOffer) ...[
+          const SizedBox(height: 8),
+          AppText(
+            l10n.offerPrice,
+            style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 8),
+          FTextField(
+            control: FTextFieldControl.managed(controller: _offerPriceController),
+            hint: '0.00',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -559,6 +602,18 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
       (e) => e.value.copyWith(displayOrder: e.key),
     ).toList();
 
+    // Parse offer price
+    final offerPriceText = _offerPriceController.text.trim();
+    final offerPrice = _isOnOffer ? double.tryParse(offerPriceText) : null;
+
+    if (_isOnOffer && (offerPrice == null || offerPrice <= 0 || offerPrice >= price)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: AppText(l10n.offerPriceMustBeLess)),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
     // Build the item
     final item = MenuItem(
       id: widget.itemId ?? 0,
@@ -568,6 +623,8 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
       catalogTypeId: _selectedCategoryId!,
       catalogTypeName: category.name,
       isAvailable: _isAvailable,
+      isOnOffer: _isOnOffer,
+      offerPrice: offerPrice,
       isPopular: _isPopular,
       preparationTimeMinutes: null,
       customizations: _customizations,

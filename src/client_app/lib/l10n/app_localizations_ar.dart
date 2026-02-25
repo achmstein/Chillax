@@ -404,7 +404,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get orderHistory => 'طلباتي السابقة';
 
   @override
-  String get sessionHistory => 'جلساتي السابقة';
+  String get sessionHistory => 'حجوزاتي السابقة';
 
   @override
   String get favorites => 'المفضلة';
@@ -749,7 +749,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToLoadSessions => 'الجلسات مش بتحمل';
 
   @override
-  String get noSessionsYet => 'مفيش جلسات لسه';
+  String get noSessionsYet => 'مفيش حجوزات لسه';
 
   @override
   String get reserveRoomToStart => 'احجز اوضة عشان تبدأ';
@@ -873,4 +873,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get confirm => 'تأكيد';
+
+  @override
+  String get offer => 'عرض';
+
+  @override
+  String get deals => 'الديلز';
+
+  @override
+  String get specialOffers => 'عروض مميزة';
+
+  @override
+  String get bundleIncludes => 'يشمل';
 }

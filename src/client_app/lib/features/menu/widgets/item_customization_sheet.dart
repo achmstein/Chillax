@@ -194,18 +194,22 @@ class _ItemCustomizationSheetState
     );
   }
 
-  double get _totalPrice {
-    double total = widget.item.price;
+  double get _customizationsExtra {
+    double extra = 0;
     for (final entry in _selectedOptions.entries) {
       final customization = widget.item.customizations
           .firstWhere((c) => c.id == entry.key);
       for (final optionId in entry.value) {
         final option = customization.options.firstWhere((o) => o.id == optionId);
-        total += option.priceAdjustment;
+        extra += option.priceAdjustment;
       }
     }
-    return total * _quantity;
+    return extra;
   }
+
+  double get _totalPrice => (widget.item.effectivePrice + _customizationsExtra) * _quantity;
+
+  double get _originalTotalPrice => (widget.item.price + _customizationsExtra) * _quantity;
 
   bool get _canAddToCart {
     for (final customization in widget.item.customizations) {
@@ -309,7 +313,7 @@ class _ItemCustomizationSheetState
                   ],
                   const SizedBox(height: 8),
                   AppText(
-                    l10n.basePrice(widget.item.price.toStringAsFixed(2)),
+                    l10n.basePrice(widget.item.effectivePrice.toStringAsFixed(2)),
                     style: TextStyle(fontWeight: FontWeight.bold, color: colors.foreground),
                   ),
                   const SizedBox(height: 24),
@@ -422,12 +426,29 @@ class _ItemCustomizationSheetState
                         fontSize: 15,
                       ),
                     ),
-                    AppText(
-                      l10n.priceFormat(_totalPrice.toStringAsFixed(2)),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.item.isOnOffer)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 6),
+                            child: AppText(
+                              l10n.priceFormat(_originalTotalPrice.toStringAsFixed(2)),
+                              style: TextStyle(
+                                fontSize: 13,
+                                decoration: TextDecoration.lineThrough,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ),
+                        AppText(
+                          l10n.priceFormat(_totalPrice.toStringAsFixed(2)),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

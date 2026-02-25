@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,6 +30,7 @@ void main() async {
   // Initialize Firebase before setting up Crashlytics handlers
   try {
     await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // Send Flutter errors to Crashlytics
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -57,9 +59,13 @@ class ChillaxApp extends ConsumerStatefulWidget {
   ConsumerState<ChillaxApp> createState() => _ChillaxAppState();
 }
 
+/// Global key to show in-app notifications from anywhere
+final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   final List<StreamSubscription> _signalRSubscriptions = [];
   bool _wasAuthenticated = false;
+  StreamSubscription? _fcmForegroundSub;
 
   @override
   void initState() {
@@ -69,13 +75,49 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
 
   @override
   void dispose() {
+    _fcmForegroundSub?.cancel();
     _cancelSignalRSubscriptions();
     super.dispose();
+  }
+
+  void _setupForegroundNotifications() {
+    _fcmForegroundSub = FirebaseMessaging.onMessage.listen((message) {
+      final notification = message.notification;
+      if (notification == null) return;
+
+      final title = notification.title ?? '';
+      final body = notification.body ?? '';
+      if (title.isEmpty && body.isEmpty) return;
+
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title.isNotEmpty)
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              if (body.isNotEmpty)
+                Text(body),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+
+      // Also refresh orders in case it's an order status update
+      ref.read(ordersProvider.notifier).refresh();
+    });
   }
 
   Future<void> _initializeApp() async {
     // Initialize Firebase for push notifications (may fail if not configured)
     await ref.read(firebaseServiceProvider).initialize();
+
+    // Show foreground FCM notifications as in-app snackbar
+    _setupForegroundNotifications();
 
     // Initialize auth service
     await ref.read(authServiceProvider.notifier).initialize();
@@ -125,14 +167,46 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
 
     // Listen for realtime events and refresh providers
     _signalRSubscriptions.add(
-      signalR.onRoomStatusChanged.listen((_) {
+      signalR.onRoomStatusChanged.listen((data) {
         ref.invalidate(roomsProvider);
         ref.read(mySessionsProvider.notifier).refresh();
+        // Show in-app notification for room status changes
+        final status = data['status'] as String? ?? '';
+        final roomName = data['roomName'] as String? ?? '';
+        if (status.isNotEmpty) {
+          final msg = roomName.isNotEmpty
+              ? '$roomName: $status'
+              : status;
+          scaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+              content: Text(msg),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }),
     );
     _signalRSubscriptions.add(
-      signalR.onOrderStatusChanged.listen((_) {
+      signalR.onOrderStatusChanged.listen((data) {
         ref.read(ordersProvider.notifier).refresh();
+        // Show in-app notification
+        final status = data['status'] as String? ?? '';
+        final orderNumber = data['orderNumber'];
+        if (status.isNotEmpty) {
+          final msg = orderNumber != null
+              ? '#$orderNumber: $status'
+              : status;
+          scaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+              content: Text(msg),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }),
     );
   }
@@ -159,6 +233,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     }
 
     return MaterialApp.router(
+      scaffoldMessengerKey: scaffoldMessengerKey,
       title: 'Chillax',
       debugShowCheckedModeBanner: false,
       routerConfig: router,

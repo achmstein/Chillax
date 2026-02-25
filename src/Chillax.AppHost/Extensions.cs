@@ -197,8 +197,10 @@ internal static class Extensions
             // Catalog routes
             var catalogCluster = yarp.AddCluster(catalogApi);
 
-            // Image route - no api-version required for direct browser/img tag access
+            // Image routes - no api-version required for direct browser/img tag access
             yarp.AddRoute("/api/catalog/items/{id}/pic", catalogCluster)
+                .WithTransformXForwarded();
+            yarp.AddRoute("/api/catalog/bundles/{id}/pic", catalogCluster)
                 .WithTransformXForwarded();
 
             // Generic catalog catch-all route

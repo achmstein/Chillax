@@ -179,6 +179,17 @@ class _HistoryOrderTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (order.ratingValue != null) ...[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(5, (i) => Icon(
+                            i < order.ratingValue! ? Icons.star : Icons.star_border,
+                            size: 14,
+                            color: Colors.amber,
+                          )),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       _buildStatusBadge(order.status, l10n),
                     ],
                   ),

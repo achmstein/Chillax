@@ -59,9 +59,15 @@ public static class NotificationMessages
         new($"Your order #{orderId} has been cancelled",
             $"الأوردر بتاعك #{orderId} اتلغى");
 
-    // Reservation Cancelled
+    // Reservation Cancelled (admin-facing)
     public static readonly LocalizedText ReservationCancelledTitle = new("Reservation Cancelled", "الحجز اتلغى");
     public static LocalizedText ReservationCancelledBody(string customerName, LocalizedText roomName, string lang) =>
         new($"{customerName} cancelled {roomName.GetText("en")}",
             $"{customerName} لغى حجز {roomName.GetText("ar")}");
+
+    // Reservation Cancelled (customer-facing)
+    public static readonly LocalizedText YourReservationCancelledTitle = new("Reservation Cancelled", "حجزك اتلغى");
+    public static LocalizedText YourReservationCancelledBody(LocalizedText roomName, string lang) =>
+        new($"Your reservation for {roomName.GetText("en")} has been cancelled",
+            $"حجزك في {roomName.GetText("ar")} اتلغى");
 }

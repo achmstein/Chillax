@@ -18,6 +18,8 @@ public class CatalogContext : DbContext
     public required DbSet<UserItemPreference> UserItemPreferences { get; set; }
     public required DbSet<UserPreferenceOption> UserPreferenceOptions { get; set; }
     public required DbSet<UserItemFavorite> UserItemFavorites { get; set; }
+    public required DbSet<BundleDeal> BundleDeals { get; set; }
+    public required DbSet<BundleDealItem> BundleDealItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -28,6 +30,8 @@ public class CatalogContext : DbContext
         builder.ApplyConfiguration(new UserItemPreferenceEntityTypeConfiguration());
         builder.ApplyConfiguration(new UserPreferenceOptionEntityTypeConfiguration());
         builder.ApplyConfiguration(new UserItemFavoriteEntityTypeConfiguration());
+        builder.ApplyConfiguration(new BundleDealEntityTypeConfiguration());
+        builder.ApplyConfiguration(new BundleDealItemEntityTypeConfiguration());
 
         // Add the outbox table to this context
         builder.UseIntegrationEventLogs();

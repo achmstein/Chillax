@@ -11,6 +11,8 @@ import '../../features/rooms/screens/room_detail_screen.dart';
 import '../../features/menu/screens/menu_list_screen.dart';
 import '../../features/menu/screens/menu_item_edit_screen.dart';
 import '../../features/menu/screens/categories_screen.dart';
+import '../../features/menu/screens/bundle_deals_screen.dart';
+import '../../features/menu/screens/bundle_deal_edit_screen.dart';
 import '../../features/customers/screens/customers_screen.dart';
 import '../../features/customers/screens/customer_detail_screen.dart';
 import '../../features/loyalty/screens/loyalty_screen.dart';
@@ -198,6 +200,25 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: CategoriesScreen(),
             ),
+          ),
+          GoRoute(
+            path: '/bundles',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: BundleDealsScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (context, state) => const BundleDealEditScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = int.parse(state.pathParameters['id']!);
+                  return BundleDealEditScreen(bundleId: id);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/customers',

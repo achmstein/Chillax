@@ -521,5 +521,18 @@
   "editName": "Edit Name",
   "resetPassword": "Reset Password",
   "passwordResetSuccess": "Password reset successfully",
-  "failedToResetPassword": "Failed to reset password"
+  "failedToResetPassword": "Failed to reset password",
+
+  "itemOnOffer": "Item on Offer",
+  "offerPrice": "Offer Price",
+  "offerPriceMustBeLess": "Offer price must be less than regular price",
+  "bundleDeals": "Bundle Deals",
+  "noBundleDeals": "No bundle deals",
+  "createBundle": "Create Bundle",
+  "editBundle": "Edit Bundle",
+  "bundlePrice": "Bundle Price",
+  "selectItems": "Select Items",
+  "bundleActive": "Active",
+  "deleteBundleConfirm": "Delete this bundle?",
+  "originalPrice": "Original Price"
 }

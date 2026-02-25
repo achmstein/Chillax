@@ -345,6 +345,17 @@ class MenuNotifier extends Notifier<MenuState> {
     state = state.copyWith(isReorderingItems: false);
     await loadMenu();
   }
+
+  Future<bool> setItemOffer(int itemId, bool isOnOffer, double? offerPrice) async {
+    try {
+      await _repository.setItemOffer(itemId, isOnOffer, offerPrice);
+      await loadMenu();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to set item offer: $e');
+      return false;
+    }
+  }
 }
 
 /// Menu provider

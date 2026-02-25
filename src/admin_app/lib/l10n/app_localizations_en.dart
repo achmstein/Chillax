@@ -1135,4 +1135,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToResetPassword => 'Failed to reset password';
+
+  @override
+  String get itemOnOffer => 'Item on Offer';
+
+  @override
+  String get offerPrice => 'Offer Price';
+
+  @override
+  String get offerPriceMustBeLess =>
+      'Offer price must be less than regular price';
+
+  @override
+  String get bundleDeals => 'Bundle Deals';
+
+  @override
+  String get noBundleDeals => 'No bundle deals';
+
+  @override
+  String get createBundle => 'Create Bundle';
+
+  @override
+  String get editBundle => 'Edit Bundle';
+
+  @override
+  String get bundlePrice => 'Bundle Price';
+
+  @override
+  String get selectItems => 'Select Items';
+
+  @override
+  String get bundleActive => 'Active';
+
+  @override
+  String get deleteBundleConfirm => 'Delete this bundle?';
+
+  @override
+  String get originalPrice => 'Original Price';
 }

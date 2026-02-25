@@ -12,6 +12,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/providers/locale_provider.dart';
+import '../models/bundle_deal.dart';
 import '../models/menu_item.dart';
 import '../services/menu_service.dart';
 import '../providers/favorites_provider.dart';
@@ -69,6 +70,8 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   String _searchQuery = '';
   List<String> _categoryNames = [];
   bool _isProgrammaticScroll = false;
+  bool _hasDealsSection = false;
+  bool _hasOffersSection = false;
 
   @override
   void initState() {
@@ -120,9 +123,13 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     }
     if (topIndex < 0) return;
 
+    // Offset for deals section (offers is part of _categoryNames now)
+    final dealsOffset = _hasDealsSection ? 1 : 0;
+    final adjustedIndex = topIndex - dealsOffset;
+
     final extent = topTrailing - topLeading;
     final fraction = extent > 0 ? (-topLeading).clamp(0.0, extent) / extent : 0.0;
-    final offset = topIndex + fraction;
+    final offset = adjustedIndex + fraction;
 
     if (_categoryNames.isNotEmpty) {
       final catIndex = offset.floor().clamp(0, _categoryNames.length - 1);
@@ -139,9 +146,12 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
 
     _selectedCategoryNotifier.value = category;
 
+    // Only deals section is outside _categoryNames; offers is included
+    final dealsOffset = _hasDealsSection ? 1 : 0;
+
     _isProgrammaticScroll = true;
     _itemScrollController.scrollTo(
-      index: index,
+      index: index + dealsOffset,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     ).then((_) {
@@ -156,6 +166,8 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
     final groupedItemsAsync = ref.watch(groupedMenuItemsProvider(locale));
+    final bundlesAsync = ref.watch(activeBundlesProvider);
+    final bundles = bundlesAsync.value ?? [];
     final cart = ref.watch(cartProvider);
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
@@ -200,8 +212,20 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
               // Filter items based on search
               final filteredItems = _filterItemsWithLocale(groupedItems, locale);
 
+              // Collect items on offer from all categories
+              final offerItems = filteredItems.values
+                  .expand((items) => items)
+                  .where((item) => item.isOnOffer)
+                  .toList();
+
               // Store category names for scroll tracking
-              _categoryNames = filteredItems.keys.map((c) => c.name.getText(locale)).toList();
+              _hasDealsSection = bundles.isNotEmpty && _searchQuery.isEmpty;
+              _hasOffersSection = offerItems.isNotEmpty && _searchQuery.isEmpty;
+              _categoryNames = [
+                if (_hasOffersSection) '${l10n.specialOffers} 🔥',
+                ...filteredItems.keys.map((c) => c.name.getText(locale)),
+              ];
+              final topSectionsOffset = (_hasDealsSection ? 1 : 0) + (_hasOffersSection ? 1 : 0);
 
               // Set initial selected category
               if (_selectedCategoryNotifier.value == null && _categoryNames.isNotEmpty) {
@@ -234,14 +258,32 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                     child: RefreshIndicator(
                       color: colors.primary,
                       backgroundColor: colors.background,
-                      onRefresh: () async => ref.refresh(groupedMenuItemsProvider(locale)),
+                      onRefresh: () async {
+                        ref.invalidate(activeBundlesProvider);
+                        ref.refresh(groupedMenuItemsProvider(locale));
+                      },
                       child: ScrollablePositionedList.builder(
                         itemScrollController: _itemScrollController,
                         itemPositionsListener: _itemPositionsListener,
                         padding: const EdgeInsets.only(bottom: 16),
-                        itemCount: filteredItems.length,
+                        itemCount: filteredItems.length + topSectionsOffset,
                         itemBuilder: (context, index) {
-                          final entry = filteredItems.entries.elementAt(index);
+                          // Deals section at index 0
+                          if (_hasDealsSection && index == 0) {
+                            return _DealsSection(
+                              bundles: bundles,
+                              locale: locale,
+                            );
+                          }
+                          // Offers section right after deals
+                          if (_hasOffersSection && index == (_hasDealsSection ? 1 : 0)) {
+                            return _OffersSection(
+                              items: offerItems,
+                              locale: locale,
+                            );
+                          }
+                          final adjustedIndex = index - topSectionsOffset;
+                          final entry = filteredItems.entries.elementAt(adjustedIndex);
                           final categoryName = entry.key.name.getText(locale);
                           final items = entry.value;
                           return _CategorySection(
@@ -706,6 +748,32 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
                     ),
                   ),
                 ),
+                // Offer badge
+                if (item.isOnOffer)
+                  PositionedDirectional(
+                    bottom: 0,
+                    start: 0,
+                    end: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(8),
+                          bottomRight: Radius.circular(8),
+                        ),
+                      ),
+                      child: AppText(
+                        l10n.offer,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(width: 12),
@@ -737,13 +805,22 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
                   ],
                   const SizedBox(height: 4),
                   AppText(
-                    l10n.priceFormat(item.price.toStringAsFixed(2)),
+                    l10n.priceFormat(item.effectivePrice.toStringAsFixed(2)),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: colors.foreground,
+                      color: item.isOnOffer ? Colors.green : colors.foreground,
                     ),
                   ),
+                  if (item.isOnOffer && item.offerPrice != null)
+                    AppText(
+                      l10n.priceFormat(item.price.toStringAsFixed(2)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colors.mutedForeground,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -871,6 +948,466 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
         builder: (context) => ItemCustomizationSheet(item: widget.item),
       );
     }
+  }
+}
+
+/// Deals section showing active bundle deals as full-width pages with dots
+class _DealsSection extends ConsumerStatefulWidget {
+  final List<BundleDeal> bundles;
+  final Locale locale;
+
+  const _DealsSection({required this.bundles, required this.locale});
+
+  @override
+  ConsumerState<_DealsSection> createState() => _DealsSectionState();
+}
+
+class _DealsSectionState extends ConsumerState<_DealsSection> {
+  int _currentPage = 0;
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 300,
+          child: PageView.builder(
+            clipBehavior: Clip.antiAlias,
+            controller: _pageController,
+            onPageChanged: (index) => setState(() => _currentPage = index),
+            itemCount: widget.bundles.length,
+            itemBuilder: (context, index) => _BundleDealCard(
+              bundle: widget.bundles[index],
+              locale: widget.locale,
+            ),
+          ),
+        ),
+        if (widget.bundles.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(widget.bundles.length, (index) {
+                final isActive = index == _currentPage;
+                return Container(
+                  width: isActive ? 8 : 6,
+                  height: isActive ? 8 : 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isActive ? colors.primary : colors.mutedForeground.withValues(alpha: 0.3),
+                  ),
+                );
+              }),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Offers section showing items on offer in a horizontal list
+class _OffersSection extends ConsumerWidget {
+  final List<MenuItem> items;
+  final Locale locale;
+
+  const _OffersSection({required this.items, required this.locale});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: AppText(
+            l10n.specialOffers,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: colors.foreground,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 220,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: items.length,
+            itemBuilder: (context, index) => _OfferItemCard(
+              item: items[index],
+              locale: locale,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Card for a single offer item
+class _OfferItemCard extends ConsumerWidget {
+  final MenuItem item;
+  final Locale locale;
+
+  const _OfferItemCard({required this.item, required this.locale});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
+
+    return GestureDetector(
+      onTap: () {
+        if (item.customizations.isEmpty) {
+          final cartItem = CartItem.fromMenuItem(item);
+          ref.read(cartProvider.notifier).addItem(cartItem);
+        } else {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            backgroundColor: Colors.transparent,
+            barrierColor: Colors.black.withValues(alpha: 0.5),
+            builder: (context) => ItemCustomizationSheet(item: item),
+          );
+        }
+      },
+      child: Container(
+        width: 160,
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        decoration: BoxDecoration(
+          color: colors.background,
+          border: Border.all(color: colors.border),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: SizedBox(
+                width: double.infinity,
+                height: 120,
+                child: item.pictureUri != null
+                    ? CachedNetworkImage(
+                        imageUrl: item.pictureUri!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: colors.muted,
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: colors.muted,
+                          child: Icon(FIcons.utensils, size: 32, color: colors.mutedForeground),
+                        ),
+                      )
+                    : Container(
+                        color: colors.muted,
+                        child: Icon(FIcons.utensils, size: 32, color: colors.mutedForeground),
+                      ),
+              ),
+            ),
+            // Info
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      item.name.getText(locale),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: colors.foreground,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppText(
+                                l10n.priceFormat(item.effectivePrice.toStringAsFixed(2)),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              AppText(
+                                l10n.priceFormat(item.price.toStringAsFixed(2)),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: colors.mutedForeground,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Builder(builder: (context) {
+                          final cartQty = ref.watch(cartProvider).items
+                              .where((c) => c.productId == item.id && c.bundleId == null)
+                              .fold(0, (sum, c) => sum + c.quantity);
+                          if (cartQty > 0) {
+                            return Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: colors.primary,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '$cartQty',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: colors.primaryForeground,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }
+                          return Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: colors.primary,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Icon(
+                              item.customizations.isNotEmpty ? FIcons.chevronRight : FIcons.plus,
+                              color: colors.primaryForeground,
+                              size: 16,
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Card for a single bundle deal
+class _BundleDealCard extends ConsumerWidget {
+  final BundleDeal bundle;
+  final Locale locale;
+
+  const _BundleDealCard({required this.bundle, required this.locale});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
+    final itemsList = bundle.items
+        .map((i) => '${i.quantity > 1 ? '${i.quantity}x ' : ''}${i.itemName.getText(locale)}')
+        .join(', ');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.background,
+          border: Border.all(color: colors.border),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image on top
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: SizedBox(
+                width: double.infinity,
+                height: 160,
+                child: bundle.pictureUri != null
+                    ? CachedNetworkImage(
+                        imageUrl: bundle.pictureUri!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: colors.muted,
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: colors.muted,
+                          child: Icon(FIcons.package, size: 32, color: colors.mutedForeground),
+                        ),
+                      )
+                    : Container(
+                        color: colors.muted,
+                        child: Icon(FIcons.package, size: 32, color: colors.mutedForeground),
+                      ),
+              ),
+            ),
+            // Info
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      bundle.name.getText(locale),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: colors.foreground,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (bundle.description.getText(locale).isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      AppText(
+                        bundle.description.getText(locale),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.mutedForeground,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (itemsList.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      AppText(
+                        '${l10n.bundleIncludes}: $itemsList',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colors.mutedForeground,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const Spacer(),
+                    // Price row + add button
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              AppText(
+                                l10n.priceFormat(bundle.bundlePrice.toStringAsFixed(2)),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              if (bundle.originalPrice > bundle.bundlePrice) ...[
+                                const SizedBox(width: 6),
+                                AppText(
+                                  l10n.priceFormat(bundle.originalPrice.toStringAsFixed(2)),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: colors.mutedForeground,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        Builder(builder: (context) {
+                          final cartQty = ref.watch(cartProvider).items
+                              .where((c) => c.bundleId == bundle.id)
+                              .fold(0, (sum, c) => sum + c.quantity);
+                          return GestureDetector(
+                            onTap: () {
+                              final cartItem = CartItem.fromBundle(bundle);
+                              ref.read(cartProvider.notifier).addItem(cartItem);
+                            },
+                            child: Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: colors.primary,
+                                borderRadius: BorderRadius.circular(17),
+                              ),
+                              alignment: Alignment.center,
+                              child: cartQty > 0
+                                  ? Text(
+                                      '$cartQty',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: colors.primaryForeground,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : Icon(
+                                      FIcons.plus,
+                                      color: colors.primaryForeground,
+                                      size: 18,
+                                    ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

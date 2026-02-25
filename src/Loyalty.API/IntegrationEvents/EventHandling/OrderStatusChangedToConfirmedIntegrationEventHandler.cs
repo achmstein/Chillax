@@ -7,14 +7,15 @@ namespace Chillax.Loyalty.API.IntegrationEvents.EventHandling;
 
 /// <summary>
 /// Handles OrderStatusChangedToConfirmedIntegrationEvent to award and redeem loyalty points.
-/// Points are calculated as: £1 = 10 points
+/// Base rate: 1 EGP = 2 points (2% return at 100 points = 1 EGP redemption).
+/// Tier multipliers: Bronze 1x, Silver 1.25x, Gold 1.5x, Platinum 2x.
 /// </summary>
 public class OrderStatusChangedToConfirmedIntegrationEventHandler(
     LoyaltyContext context,
     ILogger<OrderStatusChangedToConfirmedIntegrationEventHandler> logger)
     : IIntegrationEventHandler<OrderStatusChangedToConfirmedIntegrationEvent>
 {
-    private const int PointsPerPound = 10;
+    private const int BasePointsPerPound = 2;
 
     public async Task Handle(OrderStatusChangedToConfirmedIntegrationEvent @event)
     {
@@ -47,8 +48,10 @@ public class OrderStatusChangedToConfirmedIntegrationEventHandler(
                 @event.PointsToRedeem, @event.BuyerIdentityGuid, @event.OrderId);
         }
 
-        // Calculate points to award (round down to nearest integer)
-        var pointsToAward = (int)Math.Floor(@event.OrderTotal * PointsPerPound);
+        // Calculate points to award with tier multiplier
+        var tierMultiplier = GetTierMultiplier(account.CurrentTier);
+        var basePoints = @event.OrderTotal * BasePointsPerPound;
+        var pointsToAward = (int)Math.Floor(basePoints * (decimal)tierMultiplier);
 
         if (pointsToAward > 0)
         {
@@ -59,10 +62,18 @@ public class OrderStatusChangedToConfirmedIntegrationEventHandler(
                 @event.OrderId.ToString());
 
             logger.LogInformation(
-                "Awarded {Points} points to user {UserId} for order {OrderId}. New balance: {Balance}, Tier: {Tier}",
-                pointsToAward, @event.BuyerIdentityGuid, @event.OrderId, account.PointsBalance, account.CurrentTier);
+                "Awarded {Points} points to user {UserId} for order {OrderId} (tier={Tier}, multiplier={Multiplier}x). New balance: {Balance}",
+                pointsToAward, @event.BuyerIdentityGuid, @event.OrderId, account.CurrentTier, tierMultiplier, account.PointsBalance);
         }
 
         await context.SaveChangesAsync();
     }
+
+    private static double GetTierMultiplier(LoyaltyTier tier) => tier switch
+    {
+        LoyaltyTier.Silver => 1.25,
+        LoyaltyTier.Gold => 1.5,
+        LoyaltyTier.Platinum => 2.0,
+        _ => 1.0 // Bronze
+    };
 }

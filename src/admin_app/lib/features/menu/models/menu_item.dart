@@ -10,6 +10,8 @@ class MenuItem {
   final int catalogTypeId;
   final LocalizedText catalogTypeName;
   final bool isAvailable;
+  final bool isOnOffer;
+  final double? offerPrice;
   final bool isPopular;
   final int? preparationTimeMinutes;
   final int displayOrder;
@@ -24,11 +26,15 @@ class MenuItem {
     required this.catalogTypeId,
     required this.catalogTypeName,
     this.isAvailable = true,
+    this.isOnOffer = false,
+    this.offerPrice,
     this.isPopular = false,
     this.preparationTimeMinutes,
     this.displayOrder = 0,
     this.customizations = const [],
   });
+
+  double get effectivePrice => isOnOffer && offerPrice != null ? offerPrice! : price;
 
   MenuItem copyWith({
     int? id,
@@ -39,6 +45,8 @@ class MenuItem {
     int? catalogTypeId,
     LocalizedText? catalogTypeName,
     bool? isAvailable,
+    bool? isOnOffer,
+    double? offerPrice,
     bool? isPopular,
     int? preparationTimeMinutes,
     int? displayOrder,
@@ -53,6 +61,8 @@ class MenuItem {
       catalogTypeId: catalogTypeId ?? this.catalogTypeId,
       catalogTypeName: catalogTypeName ?? this.catalogTypeName,
       isAvailable: isAvailable ?? this.isAvailable,
+      isOnOffer: isOnOffer ?? this.isOnOffer,
+      offerPrice: offerPrice ?? this.offerPrice,
       isPopular: isPopular ?? this.isPopular,
       preparationTimeMinutes: preparationTimeMinutes ?? this.preparationTimeMinutes,
       displayOrder: displayOrder ?? this.displayOrder,
@@ -70,6 +80,8 @@ class MenuItem {
       catalogTypeId: json['catalogTypeId'] as int,
       catalogTypeName: LocalizedText.parse(json['catalogTypeName'] ?? ''),
       isAvailable: json['isAvailable'] as bool? ?? true,
+      isOnOffer: json['isOnOffer'] as bool? ?? false,
+      offerPrice: (json['offerPrice'] as num?)?.toDouble(),
       isPopular: json['isPopular'] as bool? ?? false,
       preparationTimeMinutes: json['preparationTimeMinutes'] as int?,
       displayOrder: json['displayOrder'] as int? ?? 0,
@@ -90,6 +102,8 @@ class MenuItem {
       'catalogTypeId': catalogTypeId,
       'catalogTypeName': catalogTypeName.toJson(),
       'isAvailable': isAvailable,
+      'isOnOffer': isOnOffer,
+      'offerPrice': offerPrice,
       'isPopular': isPopular,
       'preparationTimeMinutes': preparationTimeMinutes,
       'displayOrder': displayOrder,

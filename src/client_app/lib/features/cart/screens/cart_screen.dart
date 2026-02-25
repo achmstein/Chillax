@@ -756,12 +756,26 @@ class CartItemTile extends ConsumerWidget {
                     ),
 
                     // Price
-                    AppText(
-                      l10n.priceFormat(item.totalPrice.toStringAsFixed(2)),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        AppText(
+                          l10n.priceFormat(item.totalPrice.toStringAsFixed(2)),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (item.isOnOffer)
+                          AppText(
+                            l10n.priceFormat(item.originalTotalPrice.toStringAsFixed(2)),
+                            style: TextStyle(
+                              fontSize: 12,
+                              decoration: TextDecoration.lineThrough,
+                              color: colors.mutedForeground,
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),

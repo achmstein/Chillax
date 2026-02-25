@@ -135,6 +135,13 @@ public static class CatalogApi
             .WithTags("Items")
             .RequireAuthorization("Admin");
 
+        api.MapPatch("/items/{id:int}/offer", SetItemOffer)
+            .WithName("SetItemOffer")
+            .WithSummary("Set or clear item offer")
+            .WithDescription("Set or clear the offer price for a menu item (Admin only)")
+            .WithTags("Items")
+            .RequireAuthorization("Admin");
+
         // Customization endpoints
         api.MapGet("/items/{id:int}/customizations", GetItemCustomizations)
             .WithName("GetItemCustomizations")
@@ -208,6 +215,68 @@ public static class CatalogApi
             .WithDescription("Save the user's customization preferences for multiple items (called after successful order)")
             .WithTags("Preferences")
             .RequireAuthorization();
+
+        // Bundle deals endpoints
+        api.MapGet("/bundles", GetBundles)
+            .WithName("GetBundles")
+            .WithSummary("List bundle deals")
+            .WithDescription("Get active bundle deals (or all with ?includeInactive=true)")
+            .WithTags("Bundles");
+
+        api.MapGet("/bundles/{id:int}", GetBundleById)
+            .WithName("GetBundle")
+            .WithSummary("Get bundle deal")
+            .WithDescription("Get a bundle deal by ID")
+            .WithTags("Bundles");
+
+        api.MapPost("/bundles", CreateBundle)
+            .WithName("CreateBundle")
+            .WithSummary("Create a bundle deal")
+            .WithDescription("Create a new bundle deal (Admin only)")
+            .WithTags("Bundles")
+            .RequireAuthorization("Admin");
+
+        api.MapPut("/bundles/{id:int}", UpdateBundle)
+            .WithName("UpdateBundle")
+            .WithSummary("Update a bundle deal")
+            .WithDescription("Update an existing bundle deal (Admin only)")
+            .WithTags("Bundles")
+            .RequireAuthorization("Admin");
+
+        api.MapDelete("/bundles/{id:int}", DeleteBundle)
+            .WithName("DeleteBundle")
+            .WithSummary("Delete bundle deal")
+            .WithDescription("Delete the specified bundle deal (Admin only)")
+            .WithTags("Bundles")
+            .RequireAuthorization("Admin");
+
+        api.MapPatch("/bundles/{id:int}/active", ToggleBundleActive)
+            .WithName("ToggleBundleActive")
+            .WithSummary("Toggle bundle active status")
+            .WithDescription("Toggle the active status of a bundle deal (Admin only)")
+            .WithTags("Bundles")
+            .RequireAuthorization("Admin");
+
+        api.MapPost("/bundles/{id:int}/pic", UploadBundlePicture)
+            .WithName("UploadBundlePicture")
+            .WithSummary("Upload bundle picture")
+            .WithDescription("Upload a picture for a bundle deal (Admin only)")
+            .WithTags("Bundles")
+            .RequireAuthorization("Admin")
+            .DisableAntiforgery();
+
+        api.MapDelete("/bundles/{id:int}/pic", DeleteBundlePicture)
+            .WithName("DeleteBundlePicture")
+            .WithSummary("Delete bundle picture")
+            .WithDescription("Delete the picture for a bundle deal (Admin only)")
+            .WithTags("Bundles")
+            .RequireAuthorization("Admin");
+
+        api.MapGet("/bundles/{id:int}/pic", GetBundlePictureById)
+            .WithName("GetBundlePicture")
+            .WithSummary("Get bundle picture")
+            .WithDescription("Get the picture for a bundle deal")
+            .WithTags("Bundles");
 
         // Favorites endpoints
         api.MapGet("/favorites", GetUserFavorites)
@@ -546,6 +615,8 @@ public static class CatalogApi
             PictureFileName = product.PictureFileName,
             Price = product.Price,
             IsAvailable = product.IsAvailable,
+            IsOnOffer = product.IsOnOffer,
+            OfferPrice = product.OfferPrice,
             IsPopular = product.IsPopular,
             PreparationTimeMinutes = product.PreparationTimeMinutes,
             DisplayOrder = product.DisplayOrder
@@ -578,6 +649,8 @@ public static class CatalogApi
         catalogItem.Price = productToUpdate.Price;
         catalogItem.CatalogTypeId = productToUpdate.CatalogTypeId;
         catalogItem.IsAvailable = productToUpdate.IsAvailable;
+        catalogItem.IsOnOffer = productToUpdate.IsOnOffer;
+        catalogItem.OfferPrice = productToUpdate.OfferPrice;
         catalogItem.IsPopular = productToUpdate.IsPopular;
         catalogItem.PreparationTimeMinutes = productToUpdate.PreparationTimeMinutes;
         catalogItem.DisplayOrder = productToUpdate.DisplayOrder;
@@ -640,6 +713,49 @@ public static class CatalogApi
         return TypedResults.Ok(item.ToDto(baseUrl));
     }
 
+    public static async Task<Results<Ok<CatalogItemDto>, NotFound, BadRequest<ProblemDetails>>> SetItemOffer(
+        [AsParameters] CatalogServices services,
+        HttpContext httpContext,
+        [Description("The id of the menu item")] int id,
+        [FromBody] SetItemOfferRequest request)
+    {
+        var item = await services.Context.CatalogItems
+            .Include(c => c.CatalogType)
+            .Include(c => c.Customizations)
+                .ThenInclude(c => c.Options)
+            .SingleOrDefaultAsync(x => x.Id == id);
+
+        if (item is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (request.IsOnOffer)
+        {
+            if (!request.OfferPrice.HasValue || request.OfferPrice.Value <= 0)
+            {
+                return TypedResults.BadRequest<ProblemDetails>(new()
+                {
+                    Detail = "Offer price must be greater than 0"
+                });
+            }
+            if (request.OfferPrice.Value >= item.Price)
+            {
+                return TypedResults.BadRequest<ProblemDetails>(new()
+                {
+                    Detail = "Offer price must be less than the regular price"
+                });
+            }
+        }
+
+        item.IsOnOffer = request.IsOnOffer;
+        item.OfferPrice = request.IsOnOffer ? request.OfferPrice : null;
+        await services.Context.SaveChangesAsync();
+
+        var baseUrl = GetBaseUrl(httpContext);
+        return TypedResults.Ok(item.ToDto(baseUrl));
+    }
+
     public static async Task<Results<Ok<List<ItemCustomizationDto>>, NotFound>> GetItemCustomizations(
         [AsParameters] CatalogServices services,
         [Description("The id of the menu item")] int id)
@@ -678,8 +794,15 @@ public static class CatalogApi
             return TypedResults.BadRequest<ProblemDetails>(new() { Detail = "Invalid file type. Allowed types: jpg, jpeg, png, webp" });
         }
 
-        // Save file
-        var fileName = $"{id}{extension}";
+        // Delete old file if exists
+        if (!string.IsNullOrEmpty(item.PictureFileName))
+        {
+            var oldPath = GetFullPath(environment.ContentRootPath, item.PictureFileName);
+            if (File.Exists(oldPath)) File.Delete(oldPath);
+        }
+
+        // Save file with timestamp to bust client caches
+        var fileName = $"{id}_{DateTimeOffset.UtcNow.Ticks}{extension}";
         var path = GetFullPath(environment.ContentRootPath, fileName);
         using var stream = new FileStream(path, FileMode.Create);
         await file.CopyToAsync(stream);
@@ -797,6 +920,246 @@ public static class CatalogApi
         services.Context.ItemCustomizations.Remove(customization);
         await services.Context.SaveChangesAsync();
         return TypedResults.NoContent();
+    }
+
+    // Bundle deal handlers
+    public static async Task<Ok<List<BundleDealDto>>> GetBundles(
+        [AsParameters] CatalogServices services,
+        HttpContext httpContext,
+        [Description("Include inactive bundles")] bool includeInactive = false)
+    {
+        var baseUrl = GetBaseUrl(httpContext);
+
+        var query = services.Context.BundleDeals
+            .Include(b => b.Items)
+                .ThenInclude(i => i.CatalogItem)
+            .AsQueryable();
+
+        if (!includeInactive)
+        {
+            query = query.Where(b => b.IsActive);
+        }
+
+        var bundles = await query
+            .OrderBy(b => b.DisplayOrder)
+            .ToListAsync();
+
+        return TypedResults.Ok(bundles.ToDtoList(baseUrl));
+    }
+
+    public static async Task<Results<Ok<BundleDealDto>, NotFound>> GetBundleById(
+        [AsParameters] CatalogServices services,
+        HttpContext httpContext,
+        [Description("The bundle deal id")] int id)
+    {
+        var baseUrl = GetBaseUrl(httpContext);
+        var bundle = await services.Context.BundleDeals
+            .Include(b => b.Items)
+                .ThenInclude(i => i.CatalogItem)
+            .SingleOrDefaultAsync(b => b.Id == id);
+
+        if (bundle is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        return TypedResults.Ok(bundle.ToDto(baseUrl));
+    }
+
+    public static async Task<Created<BundleDealDto>> CreateBundle(
+        [AsParameters] CatalogServices services,
+        HttpContext httpContext,
+        [FromBody] CreateOrUpdateBundleDealRequest request)
+    {
+        var bundle = new BundleDeal(request.Name, request.Description)
+        {
+            BundlePrice = request.BundlePrice,
+            IsActive = request.IsActive,
+            DisplayOrder = request.DisplayOrder
+        };
+
+        foreach (var item in request.Items)
+        {
+            bundle.Items.Add(new BundleDealItem
+            {
+                CatalogItemId = item.CatalogItemId,
+                Quantity = item.Quantity
+            });
+        }
+
+        services.Context.BundleDeals.Add(bundle);
+        await services.Context.SaveChangesAsync();
+
+        // Reload with includes
+        bundle = await services.Context.BundleDeals
+            .Include(b => b.Items)
+                .ThenInclude(i => i.CatalogItem)
+            .SingleAsync(b => b.Id == bundle.Id);
+
+        var baseUrl = GetBaseUrl(httpContext);
+        return TypedResults.Created($"/api/catalog/bundles/{bundle.Id}", bundle.ToDto(baseUrl));
+    }
+
+    public static async Task<Results<Ok<BundleDealDto>, NotFound>> UpdateBundle(
+        [AsParameters] CatalogServices services,
+        HttpContext httpContext,
+        [Description("The bundle deal id")] int id,
+        [FromBody] CreateOrUpdateBundleDealRequest request)
+    {
+        var bundle = await services.Context.BundleDeals
+            .Include(b => b.Items)
+            .SingleOrDefaultAsync(b => b.Id == id);
+
+        if (bundle is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        bundle.Name = request.Name;
+        bundle.Description = request.Description;
+        bundle.BundlePrice = request.BundlePrice;
+        bundle.IsActive = request.IsActive;
+        bundle.DisplayOrder = request.DisplayOrder;
+
+        // Replace items
+        services.Context.BundleDealItems.RemoveRange(bundle.Items);
+        bundle.Items.Clear();
+
+        foreach (var item in request.Items)
+        {
+            bundle.Items.Add(new BundleDealItem
+            {
+                CatalogItemId = item.CatalogItemId,
+                Quantity = item.Quantity
+            });
+        }
+
+        await services.Context.SaveChangesAsync();
+
+        // Reload with includes
+        bundle = await services.Context.BundleDeals
+            .Include(b => b.Items)
+                .ThenInclude(i => i.CatalogItem)
+            .SingleAsync(b => b.Id == id);
+
+        var baseUrl = GetBaseUrl(httpContext);
+        return TypedResults.Ok(bundle.ToDto(baseUrl));
+    }
+
+    public static async Task<Results<NoContent, NotFound>> DeleteBundle(
+        [AsParameters] CatalogServices services,
+        [Description("The bundle deal id")] int id)
+    {
+        var bundle = await services.Context.BundleDeals.FindAsync(id);
+
+        if (bundle is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        services.Context.BundleDeals.Remove(bundle);
+        await services.Context.SaveChangesAsync();
+        return TypedResults.NoContent();
+    }
+
+    public static async Task<Results<Ok<BundleDealDto>, NotFound>> ToggleBundleActive(
+        [AsParameters] CatalogServices services,
+        HttpContext httpContext,
+        [Description("The bundle deal id")] int id,
+        [FromBody] SetBundleActiveRequest? request = null)
+    {
+        var bundle = await services.Context.BundleDeals
+            .Include(b => b.Items)
+                .ThenInclude(i => i.CatalogItem)
+            .SingleOrDefaultAsync(b => b.Id == id);
+
+        if (bundle is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        bundle.IsActive = request?.IsActive ?? !bundle.IsActive;
+        await services.Context.SaveChangesAsync();
+
+        var baseUrl = GetBaseUrl(httpContext);
+        return TypedResults.Ok(bundle.ToDto(baseUrl));
+    }
+
+    public static async Task<Results<Ok<string>, NotFound, BadRequest<ProblemDetails>>> UploadBundlePicture(
+        [AsParameters] CatalogServices services,
+        IWebHostEnvironment environment,
+        [Description("The bundle deal id")] int id,
+        IFormFile file)
+    {
+        var bundle = await services.Context.BundleDeals.FindAsync(id);
+        if (bundle is null) return TypedResults.NotFound();
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = "Invalid file type. Allowed types: jpg, jpeg, png, webp" });
+        }
+
+        // Delete old file if exists
+        if (!string.IsNullOrEmpty(bundle.PictureFileName))
+        {
+            var oldPath = GetFullPath(environment.ContentRootPath, bundle.PictureFileName);
+            if (File.Exists(oldPath)) File.Delete(oldPath);
+        }
+
+        // Save file with timestamp to bust client caches
+        var fileName = $"bundle_{id}_{DateTimeOffset.UtcNow.Ticks}{extension}";
+        var path = GetFullPath(environment.ContentRootPath, fileName);
+        using var stream = new FileStream(path, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        bundle.PictureFileName = fileName;
+        await services.Context.SaveChangesAsync();
+
+        return TypedResults.Ok(fileName);
+    }
+
+    public static async Task<Results<NoContent, NotFound>> DeleteBundlePicture(
+        [AsParameters] CatalogServices services,
+        IWebHostEnvironment environment,
+        [Description("The bundle deal id")] int id)
+    {
+        var bundle = await services.Context.BundleDeals.FindAsync(id);
+        if (bundle is null) return TypedResults.NotFound();
+
+        if (!string.IsNullOrEmpty(bundle.PictureFileName))
+        {
+            var path = GetFullPath(environment.ContentRootPath, bundle.PictureFileName);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            bundle.PictureFileName = null;
+            await services.Context.SaveChangesAsync();
+        }
+
+        return TypedResults.NoContent();
+    }
+
+    public static async Task<Results<PhysicalFileHttpResult, NotFound>> GetBundlePictureById(
+        CatalogContext context,
+        IWebHostEnvironment environment,
+        [Description("The bundle deal id")] int id)
+    {
+        var bundle = await context.BundleDeals.FindAsync(id);
+
+        if (bundle is null || bundle.PictureFileName is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        var path = GetFullPath(environment.ContentRootPath, bundle.PictureFileName);
+        string imageFileExtension = Path.GetExtension(bundle.PictureFileName) ?? string.Empty;
+        string mimetype = GetImageMimeTypeFromImageFileExtension(imageFileExtension);
+        DateTime lastModified = File.GetLastWriteTimeUtc(path);
+
+        return TypedResults.PhysicalFile(path, mimetype, lastModified: lastModified);
     }
 
     private static string GetImageMimeTypeFromImageFileExtension(string extension) => extension switch

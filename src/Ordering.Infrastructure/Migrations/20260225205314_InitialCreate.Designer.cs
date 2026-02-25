@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ordering.Infrastructure.Migrations
 {
     [DbContext(typeof(OrderingContext))]
-    [Migration("20260211123715_InitialCreate")]
+    [Migration("20260225205314_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -153,7 +153,6 @@ namespace Ordering.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("PictureUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ProductId")

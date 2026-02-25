@@ -57,7 +57,7 @@ public record OrderItemDTO
 
     public int Units { get; init; }
 
-    public string PictureUrl { get; init; } = string.Empty;
+    public string? PictureUrl { get; init; }
 
     /// <summary>
     /// Special instructions for this item (e.g., "extra hot", "no ice")

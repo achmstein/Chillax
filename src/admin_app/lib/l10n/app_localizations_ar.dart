@@ -1130,4 +1130,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get failedToResetPassword => 'فشل إعادة تعيين الباسورد';
+
+  @override
+  String get itemOnOffer => 'عرض على الصنف';
+
+  @override
+  String get offerPrice => 'سعر العرض';
+
+  @override
+  String get offerPriceMustBeLess => 'سعر العرض لازم يكون أقل من السعر العادي';
+
+  @override
+  String get bundleDeals => 'عروض مجمعة';
+
+  @override
+  String get noBundleDeals => 'مفيش عروض';
+
+  @override
+  String get createBundle => 'إنشاء عرض';
+
+  @override
+  String get editBundle => 'تعديل عرض';
+
+  @override
+  String get bundlePrice => 'سعر العرض';
+
+  @override
+  String get selectItems => 'اختار الأصناف';
+
+  @override
+  String get bundleActive => 'مفعّل';
+
+  @override
+  String get deleteBundleConfirm => 'مسح العرض ده؟';
+
+  @override
+  String get originalPrice => 'السعر الأصلي';
 }

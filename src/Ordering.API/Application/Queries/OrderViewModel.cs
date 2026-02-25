@@ -8,7 +8,7 @@ public record Orderitem
     public LocalizedText ProductName { get; init; } = new();
     public int Units { get; init; }
     public double UnitPrice { get; init; }
-    public string PictureUrl { get; init; } = string.Empty;
+    public string? PictureUrl { get; init; }
     public LocalizedText? CustomizationsDescription { get; init; }
     public string? SpecialInstructions { get; init; }
 }
@@ -49,4 +49,5 @@ public record OrderSummary
     public double LoyaltyDiscount { get; init; }
     public LocalizedText? RoomName { get; init; }
     public string? UserName { get; init; }
+    public int? RatingValue { get; init; }
 }

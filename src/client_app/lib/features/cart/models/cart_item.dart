@@ -1,4 +1,5 @@
 import '../../../core/models/localized_text.dart';
+import '../../menu/models/bundle_deal.dart';
 import '../../menu/models/menu_item.dart';
 
 /// Selected customization in cart
@@ -33,20 +34,28 @@ class CartItem {
   final int productId;
   final LocalizedText productName;
   final double unitPrice;
+  final double? originalUnitPrice;
   final String? pictureUri;
   final int quantity;
   final String? specialInstructions;
   final List<SelectedCustomization> selectedCustomizations;
+  final int? bundleId;
 
   const CartItem({
     required this.productId,
     required this.productName,
     required this.unitPrice,
+    this.originalUnitPrice,
     this.pictureUri,
     this.quantity = 1,
     this.specialInstructions,
     this.selectedCustomizations = const [],
+    this.bundleId,
   });
+
+  bool get isBundle => bundleId != null;
+
+  bool get isOnOffer => originalUnitPrice != null && originalUnitPrice! > unitPrice;
 
   CartItem copyWith({
     int? quantity,
@@ -57,10 +66,12 @@ class CartItem {
       productId: productId,
       productName: productName,
       unitPrice: unitPrice,
+      originalUnitPrice: originalUnitPrice,
       pictureUri: pictureUri,
       quantity: quantity ?? this.quantity,
       specialInstructions: specialInstructions ?? this.specialInstructions,
       selectedCustomizations: selectedCustomizations ?? this.selectedCustomizations,
+      bundleId: bundleId,
     );
   }
 
@@ -69,6 +80,13 @@ class CartItem {
     final customizationsTotal =
         selectedCustomizations.fold(0.0, (sum, c) => sum + c.priceAdjustment);
     return (unitPrice + customizationsTotal) * quantity;
+  }
+
+  /// Original total price (before offer) including customizations
+  double get originalTotalPrice {
+    final customizationsTotal =
+        selectedCustomizations.fold(0.0, (sum, c) => sum + c.priceAdjustment);
+    return ((originalUnitPrice ?? unitPrice) + customizationsTotal) * quantity;
   }
 
   /// Create cart item from menu item with selected options
@@ -80,10 +98,23 @@ class CartItem {
     return CartItem(
       productId: item.id,
       productName: item.name,
-      unitPrice: item.price,
+      unitPrice: item.effectivePrice,
+      originalUnitPrice: item.isOnOffer ? item.price : null,
       pictureUri: item.pictureUri,
       selectedCustomizations: customizations ?? [],
       specialInstructions: instructions,
+    );
+  }
+
+  /// Create cart item from a bundle deal
+  factory CartItem.fromBundle(BundleDeal bundle) {
+    return CartItem(
+      productId: 0,
+      productName: bundle.name,
+      unitPrice: bundle.bundlePrice,
+      originalUnitPrice: bundle.originalPrice > bundle.bundlePrice ? bundle.originalPrice : null,
+      pictureUri: bundle.pictureUri,
+      bundleId: bundle.id,
     );
   }
 
@@ -121,6 +152,7 @@ class Cart {
   Cart addItem(CartItem newItem) {
     final existingIndex = items.indexWhere((i) =>
         i.productId == newItem.productId &&
+        i.bundleId == newItem.bundleId &&
         _customizationsMatch(i.selectedCustomizations, newItem.selectedCustomizations));
 
     if (existingIndex >= 0) {

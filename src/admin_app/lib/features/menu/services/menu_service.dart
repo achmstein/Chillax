@@ -41,6 +41,22 @@ abstract class MenuRepository {
   Future<void> saveReorderedCategories(List<Map<String, dynamic>> reorderItems);
 
   Future<void> saveReorderedItems(List<Map<String, dynamic>> reorderItems);
+
+  Future<void> setItemOffer(int itemId, bool isOnOffer, double? offerPrice);
+
+  Future<List<Map<String, dynamic>>> loadBundles({bool includeInactive = true});
+
+  Future<Map<String, dynamic>> createBundle(Map<String, dynamic> data);
+
+  Future<Map<String, dynamic>> updateBundle(int id, Map<String, dynamic> data);
+
+  Future<void> deleteBundle(int id);
+
+  Future<void> toggleBundleActive(int id, bool isActive);
+
+  Future<String?> uploadBundleImage(int bundleId, File imageFile);
+
+  Future<void> deleteBundleImage(int bundleId);
 }
 
 /// Concrete implementation of [MenuRepository] that communicates with the
@@ -178,6 +194,78 @@ class ApiMenuRepository implements MenuRepository {
   Future<void> saveReorderedItems(
       List<Map<String, dynamic>> reorderItems) async {
     await _api.put('items/reorder', data: {'items': reorderItems});
+  }
+
+  @override
+  Future<void> setItemOffer(int itemId, bool isOnOffer, double? offerPrice) async {
+    await _api.patch('items/$itemId/offer', data: {
+      'isOnOffer': isOnOffer,
+      'offerPrice': offerPrice,
+    });
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadBundles({bool includeInactive = true}) async {
+    final response = await _api.get('bundles', queryParameters: {
+      'includeInactive': includeInactive,
+    });
+    return (response.data as List<dynamic>)
+        .map((e) => e as Map<String, dynamic>)
+        .toList();
+  }
+
+  @override
+  Future<Map<String, dynamic>> createBundle(Map<String, dynamic> data) async {
+    final response = await _api.post('bundles', data: data);
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateBundle(int id, Map<String, dynamic> data) async {
+    final response = await _api.put('bundles/$id', data: data);
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<void> deleteBundle(int id) async {
+    await _api.delete('bundles/$id');
+  }
+
+  @override
+  Future<void> toggleBundleActive(int id, bool isActive) async {
+    await _api.patch('bundles/$id/active', data: {
+      'isActive': isActive,
+    });
+  }
+
+  @override
+  Future<String?> uploadBundleImage(int bundleId, File imageFile) async {
+    final extension = imageFile.path.split('.').last.toLowerCase();
+    final mimeType = switch (extension) {
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      _ => 'application/octet-stream',
+    };
+
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        imageFile.path,
+        contentType: MediaType.parse(mimeType),
+      ),
+    });
+
+    final response = await _api.post(
+      'bundles/$bundleId/pic',
+      data: formData,
+    );
+
+    return response.data as String?;
+  }
+
+  @override
+  Future<void> deleteBundleImage(int bundleId) async {
+    await _api.delete('bundles/$bundleId/pic');
   }
 }
 

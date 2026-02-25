@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Top-level background message handler (must be a top-level function)
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint('Background message: ${message.notification?.title}');
 }
@@ -69,16 +69,9 @@ class FirebaseService {
           }
         });
 
-        // Setup message handlers
+        // Setup foreground message handler
         FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
         FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
-
-        // Check if the app was opened from a terminated state via notification
-        final initialMessage = await _messaging!.getInitialMessage();
-        if (initialMessage != null) {
-          _handleMessageOpenedApp(initialMessage);
-        }
       }
     } catch (e) {
       debugPrint('Firebase initialization failed: $e');

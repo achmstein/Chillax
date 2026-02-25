@@ -10,6 +10,8 @@ class MenuItem {
   final int catalogTypeId;
   final LocalizedText catalogTypeName;
   final bool isAvailable;
+  final bool isOnOffer;
+  final double? offerPrice;
   final bool isPopular;
   final int? preparationTimeMinutes;
   final int displayOrder;
@@ -24,11 +26,16 @@ class MenuItem {
     required this.catalogTypeId,
     required this.catalogTypeName,
     this.isAvailable = true,
+    this.isOnOffer = false,
+    this.offerPrice,
     this.isPopular = false,
     this.preparationTimeMinutes,
     this.displayOrder = 0,
     this.customizations = const [],
   });
+
+  /// Returns the effective price: offerPrice when on offer, otherwise regular price
+  double get effectivePrice => isOnOffer && offerPrice != null ? offerPrice! : price;
 
   factory MenuItem.fromJson(Map<String, dynamic> json) {
     return MenuItem(
@@ -40,6 +47,8 @@ class MenuItem {
       catalogTypeId: json['catalogTypeId'] as int,
       catalogTypeName: _parseLocalizedText(json['catalogTypeName'] ?? '', json['catalogTypeNameAr']),
       isAvailable: json['isAvailable'] as bool? ?? true,
+      isOnOffer: json['isOnOffer'] as bool? ?? false,
+      offerPrice: (json['offerPrice'] as num?)?.toDouble(),
       isPopular: json['isPopular'] as bool? ?? false,
       preparationTimeMinutes: json['preparationTimeMinutes'] as int?,
       displayOrder: json['displayOrder'] as int? ?? 0,

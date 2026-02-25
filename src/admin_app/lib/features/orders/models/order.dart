@@ -29,6 +29,27 @@ enum OrderStatus {
   }
 }
 
+/// Order rating from customer
+class OrderRating {
+  final int ratingValue;
+  final String? comment;
+  final DateTime createdAt;
+
+  OrderRating({
+    required this.ratingValue,
+    this.comment,
+    required this.createdAt,
+  });
+
+  factory OrderRating.fromJson(Map<String, dynamic> json) {
+    return OrderRating(
+      ratingValue: (json['ratingValue'] ?? json['RatingValue']) as int,
+      comment: json['comment'] ?? json['Comment'] as String?,
+      createdAt: DateTime.parse((json['createdAt'] ?? json['CreatedAt']) as String),
+    );
+  }
+}
+
 /// Order item
 class OrderItem {
   final int? productId;
@@ -83,6 +104,8 @@ class Order {
   final int pointsToRedeem;
   final double loyaltyDiscount;
   final List<OrderItem> items;
+  final int? ratingValue;
+  final OrderRating? rating;
 
   Order({
     required this.id,
@@ -97,6 +120,8 @@ class Order {
     this.pointsToRedeem = 0,
     this.loyaltyDiscount = 0,
     this.items = const [],
+    this.ratingValue,
+    this.rating,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -109,6 +134,8 @@ class Order {
     // Handle both camelCase and PascalCase property names
     final orderItems = json['orderItems'] ?? json['OrderItems'];
     final roomNameValue = json['roomName'] ?? json['RoomName'];
+    final ratingJson = json['rating'] ?? json['Rating'];
+    final ratingValueRaw = json['ratingValue'] ?? json['RatingValue'];
 
     return Order(
       id: json['orderNumber'] ?? json['OrderNumber'] ?? json['orderId'] ?? json['id'] as int,
@@ -126,6 +153,8 @@ class Order {
               ?.map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      ratingValue: ratingValueRaw as int?,
+      rating: ratingJson != null ? OrderRating.fromJson(ratingJson as Map<String, dynamic>) : null,
     );
   }
 }

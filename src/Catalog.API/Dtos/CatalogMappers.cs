@@ -17,10 +17,13 @@ public static class CatalogMappers
             Price = item.Price,
             PictureUri = string.IsNullOrEmpty(item.PictureFileName)
                 ? null
-                : $"{baseUrl}/api/catalog/items/{item.Id}/pic",
+                : $"{baseUrl}/api/catalog/items/{item.Id}/pic?v={Uri.EscapeDataString(item.PictureFileName)}",
             CatalogTypeId = item.CatalogTypeId,
             CatalogTypeName = item.CatalogType?.Name ?? new LocalizedText(),
             IsAvailable = item.IsAvailable,
+            IsOnOffer = item.IsOnOffer,
+            OfferPrice = item.OfferPrice,
+            EffectivePrice = item.EffectivePrice,
             IsPopular = item.IsPopular,
             PreparationTimeMinutes = item.PreparationTimeMinutes,
             DisplayOrder = item.DisplayOrder,
@@ -56,6 +59,7 @@ public static class CatalogMappers
             Name = customization.Name,
             IsRequired = customization.IsRequired,
             AllowMultiple = customization.AllowMultiple,
+            DisplayOrder = customization.DisplayOrder,
             Options = customization.Options.OrderBy(o => o.DisplayOrder).Select(o => o.ToDto()).ToList()
         };
     }
@@ -72,7 +76,8 @@ public static class CatalogMappers
             Id = option.Id,
             Name = option.Name,
             PriceAdjustment = option.PriceAdjustment,
-            IsDefault = option.IsDefault
+            IsDefault = option.IsDefault,
+            DisplayOrder = option.DisplayOrder
         };
     }
 
@@ -95,5 +100,40 @@ public static class CatalogMappers
     public static List<UserItemPreferenceDto> ToDtoList(this IEnumerable<UserItemPreference> preferences)
     {
         return preferences.Select(p => p.ToDto()).ToList();
+    }
+
+    public static BundleDealDto ToDto(this BundleDeal bundle, string? baseUrl = null)
+    {
+        return new BundleDealDto
+        {
+            Id = bundle.Id,
+            Name = bundle.Name,
+            Description = bundle.Description,
+            BundlePrice = bundle.BundlePrice,
+            OriginalPrice = bundle.Items.Sum(i => (i.CatalogItem?.Price ?? 0) * i.Quantity),
+            PictureUri = string.IsNullOrEmpty(bundle.PictureFileName)
+                ? null
+                : $"{baseUrl}/api/catalog/bundles/{bundle.Id}/pic?v={Uri.EscapeDataString(bundle.PictureFileName)}",
+            IsActive = bundle.IsActive,
+            DisplayOrder = bundle.DisplayOrder,
+            Items = bundle.Items.Select(i => i.ToDto()).ToList()
+        };
+    }
+
+    public static List<BundleDealDto> ToDtoList(this IEnumerable<BundleDeal> bundles, string? baseUrl = null)
+    {
+        return bundles.Select(b => b.ToDto(baseUrl)).ToList();
+    }
+
+    public static BundleDealItemDto ToDto(this BundleDealItem item)
+    {
+        return new BundleDealItemDto
+        {
+            Id = item.Id,
+            CatalogItemId = item.CatalogItemId,
+            ItemName = item.CatalogItem?.Name ?? new LocalizedText(),
+            ItemPrice = item.CatalogItem?.Price ?? 0,
+            Quantity = item.Quantity
+        };
     }
 }

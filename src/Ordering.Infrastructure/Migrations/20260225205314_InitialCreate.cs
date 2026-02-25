@@ -112,7 +112,7 @@ namespace Ordering.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false),
-                    PictureUrl = table.Column<string>(type: "text", nullable: false),
+                    PictureUrl = table.Column<string>(type: "text", nullable: true),
                     UnitPrice = table.Column<decimal>(type: "numeric", nullable: false),
                     Discount = table.Column<decimal>(type: "numeric", nullable: false),
                     Units = table.Column<int>(type: "integer", nullable: false),

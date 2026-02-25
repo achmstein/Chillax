@@ -15,7 +15,7 @@ public class BasketItem
     public decimal UnitPrice { get; init; }
     public decimal OldUnitPrice { get; init; }
     public int Quantity { get; init; }
-    public string PictureUrl { get; init; } = string.Empty;
+    public string? PictureUrl { get; init; }
 
     /// <summary>
     /// Special instructions from the customer

@@ -887,4 +887,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirm => 'Confirm';
+
+  @override
+  String get offer => 'Offer';
+
+  @override
+  String get deals => 'Deals';
+
+  @override
+  String get specialOffers => 'Special Offers';
+
+  @override
+  String get bundleIncludes => 'Includes';
 }

@@ -150,7 +150,6 @@ namespace Ordering.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("PictureUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ProductId")

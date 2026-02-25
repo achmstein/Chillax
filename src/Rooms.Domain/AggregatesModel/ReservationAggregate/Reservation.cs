@@ -184,7 +184,7 @@ public class Reservation : Entity, IAggregateRoot
 
         GenerateAccessCode();
 
-        // Add the reserving customer as Owner session member (consistent with AssignCustomer)
+        // Add the assigned customer as Owner session member now that session is active
         if (!string.IsNullOrWhiteSpace(CustomerId) && !_sessionMembers.Any(m => m.CustomerId == CustomerId))
         {
             _sessionMembers.Add(new SessionMember(Id, CustomerId, CustomerName, SessionMemberRole.Owner));
@@ -456,8 +456,8 @@ public class Reservation : Entity, IAggregateRoot
         CustomerId = customerId;
         CustomerName = customerName;
 
-        // Add as Owner session member so the star indicator shows in the admin UI
-        if (!_sessionMembers.Any(m => m.CustomerId == customerId))
+        // If session is already active (walk-in), add as Owner session member immediately
+        if (Status == ReservationStatus.Active && !_sessionMembers.Any(m => m.CustomerId == customerId))
         {
             _sessionMembers.Add(new SessionMember(Id, customerId, customerName, SessionMemberRole.Owner));
         }

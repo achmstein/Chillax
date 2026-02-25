@@ -13,6 +13,24 @@ namespace Catalog.API.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "BundleDeals",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BundlePrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    PictureFileName = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    DisplayOrder = table.Column<int>(type: "integer", nullable: false),
+                    Description = table.Column<string>(type: "jsonb", nullable: false),
+                    Name = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BundleDeals", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CatalogType",
                 columns: table => new
                 {
@@ -54,6 +72,8 @@ namespace Catalog.API.Infrastructure.Migrations
                     CatalogTypeId = table.Column<int>(type: "integer", nullable: false),
                     IsAvailable = table.Column<bool>(type: "boolean", nullable: false),
                     PreparationTimeMinutes = table.Column<int>(type: "integer", nullable: true),
+                    IsOnOffer = table.Column<bool>(type: "boolean", nullable: false),
+                    OfferPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true),
                     IsPopular = table.Column<bool>(type: "boolean", nullable: false),
                     DisplayOrder = table.Column<int>(type: "integer", nullable: false),
                     Description = table.Column<string>(type: "jsonb", nullable: false),
@@ -68,6 +88,33 @@ namespace Catalog.API.Infrastructure.Migrations
                         principalTable: "CatalogType",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BundleDealItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BundleDealId = table.Column<int>(type: "integer", nullable: false),
+                    CatalogItemId = table.Column<int>(type: "integer", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BundleDealItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BundleDealItems_BundleDeals_BundleDealId",
+                        column: x => x.BundleDealId,
+                        principalTable: "BundleDeals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BundleDealItems_Catalog_CatalogItemId",
+                        column: x => x.CatalogItemId,
+                        principalTable: "Catalog",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -180,6 +227,21 @@ namespace Catalog.API.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_BundleDealItems_BundleDealId",
+                table: "BundleDealItems",
+                column: "BundleDealId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BundleDealItems_CatalogItemId",
+                table: "BundleDealItems",
+                column: "CatalogItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BundleDeals_IsActive",
+                table: "BundleDeals",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Catalog_CatalogTypeId",
                 table: "Catalog",
                 column: "CatalogTypeId");
@@ -232,6 +294,9 @@ namespace Catalog.API.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "BundleDealItems");
+
+            migrationBuilder.DropTable(
                 name: "CustomizationOptions");
 
             migrationBuilder.DropTable(
@@ -242,6 +307,9 @@ namespace Catalog.API.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserPreferenceOptions");
+
+            migrationBuilder.DropTable(
+                name: "BundleDeals");
 
             migrationBuilder.DropTable(
                 name: "ItemCustomizations");

@@ -44,7 +44,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
     _authState = ref.watch(authServiceProvider);
 
     if (_authState.isAuthenticated) {
-      _loadPreferences();
+      Future.microtask(() => _loadPreferences());
     }
 
     return const SettingsState();

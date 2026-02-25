@@ -16,6 +16,11 @@ class CatalogItemEntityTypeConfiguration
         builder.Property(ci => ci.Price)
             .HasPrecision(18, 2);
 
+        builder.Property(ci => ci.OfferPrice)
+            .HasPrecision(18, 2);
+
+        builder.Ignore(ci => ci.EffectivePrice);
+
         builder.HasOne(ci => ci.CatalogType)
             .WithMany()
             .HasForeignKey(ci => ci.CatalogTypeId);

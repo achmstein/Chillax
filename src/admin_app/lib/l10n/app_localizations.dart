@@ -2215,6 +2215,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to reset password'**
   String get failedToResetPassword;
+
+  /// No description provided for @itemOnOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Item on Offer'**
+  String get itemOnOffer;
+
+  /// No description provided for @offerPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer Price'**
+  String get offerPrice;
+
+  /// No description provided for @offerPriceMustBeLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer price must be less than regular price'**
+  String get offerPriceMustBeLess;
+
+  /// No description provided for @bundleDeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle Deals'**
+  String get bundleDeals;
+
+  /// No description provided for @noBundleDeals.
+  ///
+  /// In en, this message translates to:
+  /// **'No bundle deals'**
+  String get noBundleDeals;
+
+  /// No description provided for @createBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Bundle'**
+  String get createBundle;
+
+  /// No description provided for @editBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Bundle'**
+  String get editBundle;
+
+  /// No description provided for @bundlePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle Price'**
+  String get bundlePrice;
+
+  /// No description provided for @selectItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Items'**
+  String get selectItems;
+
+  /// No description provided for @bundleActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get bundleActive;
+
+  /// No description provided for @deleteBundleConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this bundle?'**
+  String get deleteBundleConfirm;
+
+  /// No description provided for @originalPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Original Price'**
+  String get originalPrice;
 }
 
 class _AppLocalizationsDelegate

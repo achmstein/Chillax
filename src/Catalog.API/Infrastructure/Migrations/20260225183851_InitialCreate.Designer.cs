@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Catalog.API.Infrastructure.Migrations
 {
     [DbContext(typeof(CatalogContext))]
-    [Migration("20260212112723_InitialCreate")]
+    [Migration("20260225183851_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,60 @@ namespace Catalog.API.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Chillax.Catalog.API.Model.BundleDeal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BundlePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PictureFileName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("BundleDeals", (string)null);
+                });
+
+            modelBuilder.Entity("Chillax.Catalog.API.Model.BundleDealItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BundleDealId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CatalogItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BundleDealId");
+
+                    b.HasIndex("CatalogItemId");
+
+                    b.ToTable("BundleDealItems", (string)null);
+                });
 
             modelBuilder.Entity("Chillax.Catalog.API.Model.CatalogItem", b =>
                 {
@@ -42,8 +96,15 @@ namespace Catalog.API.Infrastructure.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsOnOffer")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsPopular")
                         .HasColumnType("boolean");
+
+                    b.Property<decimal?>("OfferPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("PictureFileName")
                         .HasColumnType("text");
@@ -249,6 +310,72 @@ namespace Catalog.API.Infrastructure.Migrations
                     b.ToTable("IntegrationEventLog", (string)null);
                 });
 
+            modelBuilder.Entity("Chillax.Catalog.API.Model.BundleDeal", b =>
+                {
+                    b.OwnsOne("Chillax.Catalog.API.Model.LocalizedText", "Description", b1 =>
+                        {
+                            b1.Property<int>("BundleDealId");
+
+                            b1.Property<string>("Ar");
+
+                            b1.Property<string>("En")
+                                .IsRequired();
+
+                            b1.HasKey("BundleDealId");
+
+                            b1.ToTable("BundleDeals");
+
+                            b1.ToJson("Description");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BundleDealId");
+                        });
+
+                    b.OwnsOne("Chillax.Catalog.API.Model.LocalizedText", "Name", b1 =>
+                        {
+                            b1.Property<int>("BundleDealId");
+
+                            b1.Property<string>("Ar");
+
+                            b1.Property<string>("En")
+                                .IsRequired();
+
+                            b1.HasKey("BundleDealId");
+
+                            b1.ToTable("BundleDeals");
+
+                            b1.ToJson("Name");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BundleDealId");
+                        });
+
+                    b.Navigation("Description")
+                        .IsRequired();
+
+                    b.Navigation("Name")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Chillax.Catalog.API.Model.BundleDealItem", b =>
+                {
+                    b.HasOne("Chillax.Catalog.API.Model.BundleDeal", "BundleDeal")
+                        .WithMany("Items")
+                        .HasForeignKey("BundleDealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Chillax.Catalog.API.Model.CatalogItem", "CatalogItem")
+                        .WithMany()
+                        .HasForeignKey("CatalogItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BundleDeal");
+
+                    b.Navigation("CatalogItem");
+                });
+
             modelBuilder.Entity("Chillax.Catalog.API.Model.CatalogItem", b =>
                 {
                     b.HasOne("Chillax.Catalog.API.Model.CatalogType", "CatalogType")
@@ -426,6 +553,11 @@ namespace Catalog.API.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("UserItemPreference");
+                });
+
+            modelBuilder.Entity("Chillax.Catalog.API.Model.BundleDeal", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Chillax.Catalog.API.Model.CatalogItem", b =>

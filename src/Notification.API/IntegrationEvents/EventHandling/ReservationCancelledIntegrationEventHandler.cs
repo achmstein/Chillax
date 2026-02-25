@@ -65,7 +65,45 @@ public class ReservationCancelledIntegrationEventHandler(
         logger.LogInformation("Sent {SuccessCount}/{TotalCount} admin cancellation notifications successfully",
             totalSuccess, subscriptions.Count);
 
-        // Broadcast via SignalR to connected clients
+        // Send FCM notification to the customer whose reservation was cancelled
+        if (!string.IsNullOrEmpty(@event.CustomerId))
+        {
+            var customerSubscriptions = await context.Subscriptions
+                .Where(s => s.UserId == @event.CustomerId && s.Type == SubscriptionType.UserOrderNotification)
+                .ToListAsync();
+
+            foreach (var subscription in customerSubscriptions)
+            {
+                var lang = subscription.PreferredLanguage;
+                var title = NotificationMessages.YourReservationCancelledTitle.GetText(lang);
+                var body = NotificationMessages.YourReservationCancelledBody(@event.RoomName, lang).GetText(lang);
+
+                var success = await fcmService.SendNotificationAsync(
+                    subscription.FcmToken,
+                    title,
+                    body,
+                    new Dictionary<string, string>
+                    {
+                        { "type", "reservation_cancelled" },
+                        { "reservationId", @event.ReservationId.ToString() },
+                        { "roomId", @event.RoomId.ToString() },
+                        { "roomName", @event.RoomName.GetText(lang) }
+                    });
+
+                logger.LogInformation("FCM reservation cancelled notification to customer {CustomerId} ({Lang}): {Result}",
+                    @event.CustomerId, lang, success ? "sent" : "failed");
+            }
+
+            // Broadcast via SignalR to the customer's personal group
+            await hubContext.Clients.Group($"user:{@event.CustomerId}").SendAsync("RoomStatusChanged", new
+            {
+                type = "reservation_cancelled",
+                roomId = @event.RoomId,
+                reservationId = @event.ReservationId
+            });
+        }
+
+        // Broadcast via SignalR to admin rooms group
         await hubContext.Clients.Group("rooms").SendAsync("RoomStatusChanged", new
         {
             type = "reservation_cancelled",

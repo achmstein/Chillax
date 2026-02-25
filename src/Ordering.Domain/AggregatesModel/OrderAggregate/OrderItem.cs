@@ -12,7 +12,7 @@ public class OrderItem
     [Required]
     public LocalizedText ProductName { get; private set; } = new();
 
-    public string PictureUrl { get; private set; } = string.Empty;
+    public string? PictureUrl { get; private set; }
 
     public decimal UnitPrice { get; private set; }
 
@@ -34,7 +34,7 @@ public class OrderItem
 
     protected OrderItem() { }
 
-    public OrderItem(int productId, LocalizedText productName, decimal unitPrice, decimal discount, string pictureUrl, int units = 1, LocalizedText? customizationsDescription = null, string? specialInstructions = null)
+    public OrderItem(int productId, LocalizedText productName, decimal unitPrice, decimal discount, string? pictureUrl, int units = 1, LocalizedText? customizationsDescription = null, string? specialInstructions = null)
     {
         if (units <= 0)
         {

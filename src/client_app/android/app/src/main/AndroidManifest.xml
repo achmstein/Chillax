@@ -35,6 +35,14 @@
                 <data android:scheme="com.chillax.client"/>
             </intent-filter>
         </activity>
+        <!-- FCM default notification channel (high priority for heads-up display) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="high_priority_channel" />
+        <!-- FCM notification icon -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

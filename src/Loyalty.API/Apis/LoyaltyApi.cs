@@ -292,10 +292,10 @@ public static class LoyaltyApi
     {
         return TypedResults.Ok(new[]
         {
-            new TierInfoDto("Bronze", 0, "Starting tier - 1 point per $1 spent"),
-            new TierInfoDto("Silver", 1000, "1.25x points multiplier"),
-            new TierInfoDto("Gold", 5000, "1.5x points multiplier + free delivery"),
-            new TierInfoDto("Platinum", 10000, "2x points multiplier + VIP perks")
+            new TierInfoDto("Bronze", 0, "Starting tier - 2% back on every order"),
+            new TierInfoDto("Silver", 1000, "1.25x points (2.5% back)"),
+            new TierInfoDto("Gold", 5000, "1.5x points (3% back) + free delivery"),
+            new TierInfoDto("Platinum", 10000, "2x points (4% back) + VIP perks")
         });
     }
 

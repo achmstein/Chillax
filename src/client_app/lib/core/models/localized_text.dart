@@ -24,6 +24,16 @@ class LocalizedText {
     return LocalizedText(en: text);
   }
 
+  /// Parse from dynamic value — handles JSON object, plain string, or null
+  static LocalizedText parse(dynamic value, [String? arValue]) {
+    if (value is Map<String, dynamic>) {
+      return LocalizedText.fromJson(value);
+    } else if (value is String) {
+      return LocalizedText(en: value, ar: arValue);
+    }
+    return LocalizedText(en: value?.toString() ?? '', ar: arValue);
+  }
+
   /// Convert to JSON map
   Map<String, dynamic> toJson() {
     return {

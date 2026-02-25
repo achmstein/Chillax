@@ -426,5 +426,10 @@
   },
   "fastOrderPlaced": "Order placed!",
   "fastOrderNoSession": "Join a session first to place a fast order",
-  "confirm": "Confirm"
+  "confirm": "Confirm",
+
+  "offer": "Offer",
+  "deals": "Deals",
+  "specialOffers": "Special Offers",
+  "bundleIncludes": "Includes"
 }

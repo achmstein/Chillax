@@ -145,7 +145,7 @@
   "hourlyRateFormat": "{rate} ج.م/ساعة",
 
   "orderHistory": "طلباتي السابقة",
-  "sessionHistory": "جلساتي السابقة",
+  "sessionHistory": "حجوزاتي السابقة",
   "favorites": "المفضلة",
   "helpAndSupport": "المساعدة",
   "about": "عن التطبيق",
@@ -259,7 +259,7 @@
   "emailUpdateInstructions": "هنحدث حسابك بالايميل الجديد. تأكد إنك تقدر تدخل عليه.",
 
   "failedToLoadSessions": "الجلسات مش بتحمل",
-  "noSessionsYet": "مفيش جلسات لسه",
+  "noSessionsYet": "مفيش حجوزات لسه",
   "reserveRoomToStart": "احجز اوضة عشان تبدأ",
   "durationLabel": "المدة: {duration}",
 
@@ -309,5 +309,10 @@
   "fastOrderConfirmation": "طلب سريع {itemName} بالاختيارات بتاعتك؟",
   "fastOrderPlaced": "تم الطلب!",
   "fastOrderNoSession": "ادخل جلسة الأول عشان تطلب سريع",
-  "confirm": "تأكيد"
+  "confirm": "تأكيد",
+
+  "offer": "عرض",
+  "deals": "الديلز",
+  "specialOffers": "عروض مميزة",
+  "bundleIncludes": "يشمل"
 }

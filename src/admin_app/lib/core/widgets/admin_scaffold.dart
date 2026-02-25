@@ -49,6 +49,7 @@ List<NavItem> mainNavItems = [
 /// Secondary nav items (shown in More menu on mobile, sidebar on tablet)
 List<NavItem> secondaryNavItems = [
   NavItem(route: '/menu', labelBuilder: (l10n) => l10n.menu, icon: Icons.restaurant_menu_outlined),
+  NavItem(route: '/bundles', labelBuilder: (l10n) => l10n.bundleDeals, icon: Icons.local_offer_outlined),
   NavItem(route: '/loyalty', labelBuilder: (l10n) => l10n.loyalty, icon: Icons.card_giftcard_outlined),
   NavItem(route: '/customers', labelBuilder: (l10n) => l10n.customers, icon: Icons.people_outline),
   NavItem(route: '/users', labelBuilder: (l10n) => l10n.usersManagement, icon: Icons.admin_panel_settings_outlined),
