@@ -43,7 +43,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 1,
-                    PictureFileName = "turkish-coffee.png"
+                    PictureFileName = "Turkish Coffee.jpg"
                 },
                 new(new LocalizedText("Hazelnut Coffee", "قهوة بندق"),
                     new LocalizedText("Turkish coffee with rich hazelnut flavor", "قهوة تركي بنكهة البندق الغنية"))
@@ -53,7 +53,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 2,
-                    PictureFileName = "hazelnut-coffee.png"
+                    PictureFileName = "Hazelnut Coffee.jpg"
                 },
                 new(new LocalizedText("French Coffee", "قهوة فرنساوي"),
                     new LocalizedText("Smooth French-style coffee with a creamy taste", "قهوة فرنساوي ناعمة بطعم كريمي"))
@@ -63,7 +63,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 3,
-                    PictureFileName = "french-coffee.png"
+                    PictureFileName = "French Coffee.jpg"
                 },
                 new(new LocalizedText("Caramel Coffee", "قهوة كاراميل"),
                     new LocalizedText("Sweet caramel flavored Turkish coffee", "قهوة تركي بنكهة الكراميل الحلوة"))
@@ -73,7 +73,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 4,
-                    PictureFileName = "caramel-coffee.png"
+                    PictureFileName = "Caramel Coffee.jpg"
                 },
                 new(new LocalizedText("Cappuccino", "كابتشينو"),
                     new LocalizedText("Classic Italian cappuccino with creamy foam", "كابتشينو إيطالي كلاسيك برغوة كريمية"))
@@ -83,7 +83,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 5,
-                    PictureFileName = "cappuccino.png"
+                    PictureFileName = "Cappuccino.jpg"
                 },
                 new(new LocalizedText("Latte", "لاتيه"),
                     new LocalizedText("Espresso with smooth steamed milk", "اسبرسو مع حليب مبخر ناعم"))
@@ -93,7 +93,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 6,
-                    PictureFileName = "latte.png"
+                    PictureFileName = "Latte.jpg"
                 },
                 new(new LocalizedText("Macchiato", "ميكاتو"),
                     new LocalizedText("Strong espresso with a touch of milk foam", "اسبرسو قوي بلمسة من رغوة الحليب"))
@@ -103,7 +103,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 7,
-                    PictureFileName = "macchiato.png"
+                    PictureFileName = "Macchiato.jpg"
                 },
                 new(new LocalizedText("Nescafe", "نسكافيه"),
                     new LocalizedText("Instant Nescafe, black or with milk", "نسكافيه سريع التحضير، سادة أو بالحليب"))
@@ -113,7 +113,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
                     DisplayOrder = 8,
-                    PictureFileName = "nescafe.png"
+                    PictureFileName = "Nescafe.jpg"
                 },
                 new(new LocalizedText("American Coffee", "امريكان كوفي"),
                     new LocalizedText("Classic American brewed coffee", "قهوة أمريكان كلاسيك"))
@@ -123,7 +123,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
                     DisplayOrder = 9,
-                    PictureFileName = "americano.png"
+                    PictureFileName = "American Coffee.jpg"
                 },
 
                 // ============== ESPRESSO - اسبرسو (Category 2) ==============
@@ -135,7 +135,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
                     DisplayOrder = 1,
-                    PictureFileName = "espresso.png"
+                    PictureFileName = "Espresso.jpg"
                 },
                 new(new LocalizedText("Mocha", "موكا"),
                     new LocalizedText("Espresso with chocolate and steamed milk", "اسبرسو بالشوكولاتة والحليب"))
@@ -145,7 +145,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 2,
-                    PictureFileName = "mocha.png"
+                    PictureFileName = "Mocha.jpg"
                 },
                 new(new LocalizedText("Iced Mocha", "آيس موكا"),
                     new LocalizedText("Chilled mocha with ice, perfect for hot days", "موكا ساقعة بالتلج، مثالية للأيام الحر"))
@@ -155,7 +155,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 3,
-                    PictureFileName = "iced-mocha.webp"
+                    PictureFileName = "Iced Mocha.jpg"
                 },
 
                 // ============== HOT DRINKS - مشروبات ساخنة (Category 3) ==============
@@ -167,7 +167,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
                     DisplayOrder = 1,
-                    PictureFileName = "tea.png"
+                    PictureFileName = "Tea.jpg"
                 },
                 new(new LocalizedText("Green Tea", "شاي اخضر"),
                     new LocalizedText("Healthy green tea for a refreshing experience", "شاي أخضر صحي لتجربة منعشة"))
@@ -177,7 +177,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
                     DisplayOrder = 2,
-                    PictureFileName = "green-tea.png"
+                    PictureFileName = "Green Tea.jpg"
                 },
                 new(new LocalizedText("Herbs", "أعشاب"),
                     new LocalizedText("Soothing herbal infusion - mint, anise, hibiscus, cinnamon", "أعشاب مهدئة - نعناع، ينسون، كركديه، قرفة"))
@@ -187,7 +187,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 3,
-                    PictureFileName = "herbal-tea.png"
+                    PictureFileName = "Herbs.jpg"
                 },
                 new(new LocalizedText("Hot Lemon", "ليمون ساخن"),
                     new LocalizedText("Warm lemon drink, with optional honey", "ليمون سخن، ممكن بالعسل"))
@@ -197,7 +197,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
                     DisplayOrder = 4,
-                    PictureFileName = "hot-lemon.png"
+                    PictureFileName = "Hot Lemon.jpg"
                 },
                 new(new LocalizedText("Hot Chocolate", "هوت شوكلت"),
                     new LocalizedText("Rich and creamy hot chocolate", "هوت شوكلت غنية وكريمية"))
@@ -207,7 +207,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 5,
-                    PictureFileName = "hot-chocolate.png"
+                    PictureFileName = "Hot Chocolate.jpg"
                 },
                 new(new LocalizedText("Hot Cider", "هوت سيدر"),
                     new LocalizedText("Warm apple cider to warm you up", "سيدر تفاح سخن يدفيك"))
@@ -217,7 +217,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 6,
-                    PictureFileName = "hot-cider.png"
+                    PictureFileName = "Hot Cider.jpg"
                 },
                 new(new LocalizedText("Sahlab", "سحلب"),
                     new LocalizedText("Traditional creamy sahlab with your choice of toppings", "سحلب تقليدي كريمي بالإضافات اللي تحبها"))
@@ -227,7 +227,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 7,
                     DisplayOrder = 7,
-                    PictureFileName = "sahlab.png"
+                    PictureFileName = "Sahlab.jpg"
                 },
                 new(new LocalizedText("Hummus Al-Sham", "حمص الشام"),
                     new LocalizedText("Traditional Egyptian warm chickpea drink", "حمص الشام المصري الأصيل"))
@@ -237,7 +237,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 8,
-                    PictureFileName = "hummus-sham.png"
+                    PictureFileName = "Hummus Al-Sham.jpg"
                 },
 
                 // ============== ICED DRINKS - مشروبات مثلجة (Category 4) ==============
@@ -249,7 +249,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 1,
-                    PictureFileName = "iced-latte.webp"
+                    PictureFileName = "Iced Coffee.jpg"
                 },
                 new(new LocalizedText("Frappuccino", "فرابتشينو"),
                     new LocalizedText("Blended iced coffee drink, smooth and delicious", "فرابتشينو مخفوق، ناعم ولذيذ"))
@@ -259,7 +259,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 2,
-                    PictureFileName = "frappuccino.webp"
+                    PictureFileName = "Frappuccino.jpg"
                 },
                 new(new LocalizedText("Flat White", "فلات وايت"),
                     new LocalizedText("Iced flat white with velvety milk", "فلات وايت ساقع بحليب ناعم"))
@@ -269,7 +269,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 3,
-                    PictureFileName = "flat-white.webp"
+                    PictureFileName = "Flat White.jpg"
                 },
                 new(new LocalizedText("Iced Chocolate", "ايس شوكلت"),
                     new LocalizedText("Cold chocolate drink over ice", "شوكولاتة ساقعة بالتلج"))
@@ -279,7 +279,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 4,
-                    PictureFileName = "iced-chocolate.webp"
+                    PictureFileName = "Iced Chocolate.jpg"
                 },
                 new(new LocalizedText("Milkshake", "ميلك شيك"),
                     new LocalizedText("Creamy milkshake in your favorite flavor", "ميلك شيك كريمي بنكهتك المفضلة"))
@@ -289,7 +289,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 5,
-                    PictureFileName = "milkshake.webp"
+                    PictureFileName = "Milkshake.jpg"
                 },
                 new(new LocalizedText("Oreo", "اوريو"),
                     new LocalizedText("Oreo cookie blended shake", "شيك أوريو مخفوق"))
@@ -299,7 +299,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 6,
-                    PictureFileName = "oreo-shake.webp"
+                    PictureFileName = "Oreo.jpg"
                 },
                 new(new LocalizedText("Burio Shake", "بوريو"),
                     new LocalizedText("Burio chocolate blended shake", "شيك بوريو شوكولاتة مخفوق"))
@@ -309,7 +309,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 7,
-                    PictureFileName = "burio-shake.webp"
+                    PictureFileName = "Burio Shake.jpg"
                 },
                 new(new LocalizedText("Zabadi", "زبادي"),
                     new LocalizedText("Fresh yogurt drink - plain, honey, or fruit", "زبادي طازج - سادة، بالعسل، أو بالفواكه"))
@@ -319,7 +319,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 3,
                     DisplayOrder = 8,
-                    PictureFileName = "yogurt.png"
+                    PictureFileName = "Zabadi.jpg"
                 },
                 new(new LocalizedText("Brownies Shake", "براونيز"),
                     new LocalizedText("Chocolate brownies blended shake", "شيك براونيز شوكولاتة"))
@@ -329,7 +329,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 9,
-                    PictureFileName = "brownie.webp"
+                    PictureFileName = "Brownies Shake.jpg"
                 },
                 new(new LocalizedText("Ice Cream Scoop", "بولة ايس كريم"),
                     new LocalizedText("Premium ice cream scoop", "بولة آيس كريم فاخرة"))
@@ -339,7 +339,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 2,
                     DisplayOrder = 10,
-                    PictureFileName = "ice-cream.webp"
+                    PictureFileName = "Ice Cream Scoop.jpg"
                 },
 
                 // ============== JUICES - عصائر (Category 5) ==============
@@ -351,7 +351,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 1,
-                    PictureFileName = "orange-juice.png"
+                    PictureFileName = "Orange.jpg"
                 },
                 new(new LocalizedText("Mango Juice", "مانجو"),
                     new LocalizedText("Fresh mango juice, sweet and tropical", "عصير مانجو طازج، حلو ومنعش"))
@@ -361,7 +361,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 2,
-                    PictureFileName = "mango-smoothie.png"
+                    PictureFileName = "Mango.jpg"
                 },
                 new(new LocalizedText("Strawberry Juice", "فراولة"),
                     new LocalizedText("Fresh strawberry juice, plain or with milk", "عصير فراولة طازج، سادة أو بالحليب"))
@@ -371,7 +371,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 3,
-                    PictureFileName = "strawberry-smoothie.png"
+                    PictureFileName = "Strawberry.jpg"
                 },
                 new(new LocalizedText("Guava Juice", "جوافة"),
                     new LocalizedText("Fresh guava juice, plain or with milk", "عصير جوافة طازج، سادة أو بالحليب"))
@@ -381,7 +381,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 4,
-                    PictureFileName = "guava-juice.png"
+                    PictureFileName = "Guava.jpg"
                 },
                 new(new LocalizedText("Banana Juice", "موز"),
                     new LocalizedText("Creamy banana juice", "عصير موز كريمي"))
@@ -391,7 +391,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 5,
-                    PictureFileName = "banana-juice.png"
+                    PictureFileName = "Banana.jpg"
                 },
                 new(new LocalizedText("Kiwi Juice", "كيوي"),
                     new LocalizedText("Fresh kiwi juice, tangy and refreshing", "عصير كيوي طازج، منعش"))
@@ -401,7 +401,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 6,
-                    PictureFileName = "kiwi-juice.webp"
+                    PictureFileName = "Kiwi.jpg"
                 },
                 new(new LocalizedText("Lemonade", "ليمون"),
                     new LocalizedText("Fresh lemonade, plain or with mint", "ليمونادة طازجة، سادة أو بالنعناع"))
@@ -411,7 +411,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 7,
-                    PictureFileName = "lemonade.webp"
+                    PictureFileName = "Lemonade.jpg"
                 },
                 new(new LocalizedText("Watermelon Juice", "بطيخ"),
                     new LocalizedText("Refreshing watermelon juice", "عصير بطيخ منعش"))
@@ -421,7 +421,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 4,
                     DisplayOrder = 8,
-                    PictureFileName = "watermelon-juice.webp"
+                    PictureFileName = "Watermelon.jpg"
                 },
                 new(new LocalizedText("Prickly Pear Juice", "تين شوكي"),
                     new LocalizedText("Fresh prickly pear cactus fruit juice", "عصير تين شوكي طازج"))
@@ -431,7 +431,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 9,
-                    PictureFileName = "prickly-pear-juice.webp"
+                    PictureFileName = "Prickly Pear.jpg"
                 },
                 new(new LocalizedText("Date Shake", "بلح"),
                     new LocalizedText("Sweet date shake, plain or with milk", "شيك بلح حلو، سادة أو بالحليب"))
@@ -441,7 +441,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 10,
-                    PictureFileName = "date-shake.webp"
+                    PictureFileName = "Date Shake.jpg"
                 },
                 new(new LocalizedText("Fruit Salad", "فروت سلاط"),
                     new LocalizedText("Mixed fresh fruit salad", "سلطة فواكه طازجة مشكلة"))
@@ -451,7 +451,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 11,
-                    PictureFileName = "fruit-salad.png"
+                    PictureFileName = "Fruit Salad.jpg"
                 },
                 new(new LocalizedText("Cocktail Juice", "كوكتيل"),
                     new LocalizedText("Mixed fruit cocktail juice", "عصير كوكتيل فواكه مشكل"))
@@ -461,7 +461,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 12,
-                    PictureFileName = "cocktail-juice.webp"
+                    PictureFileName = "Cocktail Juice.jpg"
                 },
                 new(new LocalizedText("Sunshine Juice", "صن شاين"),
                     new LocalizedText("Refreshing sunshine blend juice", "عصير صن شاين منعش"))
@@ -471,7 +471,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 13,
-                    PictureFileName = "sunshine-juice.webp"
+                    PictureFileName = "Sunshine Juice.jpg"
                 },
                 new(new LocalizedText("Florida Juice", "فلوريدا"),
                     new LocalizedText("Florida-style citrus blend juice", "عصير فلوريدا حمضيات"))
@@ -481,7 +481,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 5,
                     DisplayOrder = 14,
-                    PictureFileName = "florida-juice.webp"
+                    PictureFileName = "Florida Juice.jpg"
                 },
 
                 // ============== SOFT DRINKS - مشروبات غازية (Category 6) ==============
@@ -493,7 +493,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 1,
-                    PictureFileName = "pepsi.png"
+                    PictureFileName = "Pepsi.jpg"
                 },
                 new(new LocalizedText("7Up", "سفن اب"),
                     new LocalizedText("Chilled 7Up", "سفن اب ساقع"))
@@ -503,7 +503,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 2,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "7Up.jpg"
                 },
                 new(new LocalizedText("Mirinda", "ميرندا"),
                     new LocalizedText("Chilled Mirinda", "ميرندا ساقع"))
@@ -513,7 +513,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 3,
-                    PictureFileName = "mirinda.png"
+                    PictureFileName = "Mirinda.jpg"
                 },
                 new(new LocalizedText("Mountain Dew", "Dew"),
                     new LocalizedText("Chilled Mountain Dew", "ماونتن ديو ساقع"))
@@ -523,7 +523,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 4,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Mountain Dew.jpg"
                 },
                 new(new LocalizedText("Twist", "Twist"),
                     new LocalizedText("Carbonated lemon drink", "تويست ليمون غازي"))
@@ -533,7 +533,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 5,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Twist Berry Coconut.jpg"
                 },
                 new(new LocalizedText("Schweppes Lemon", "شويبس ليمون"),
                     new LocalizedText("Schweppes lemon soda", "شويبس ليمون غازي"))
@@ -543,7 +543,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 6,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Schweppes Lemon.jpg"
                 },
                 new(new LocalizedText("Schweppes Pomegranate", "شويبس رمان"),
                     new LocalizedText("Schweppes pomegranate soda", "شويبس رمان غازي"))
@@ -553,7 +553,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 7,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Schweppes Pomegranate.jpg"
                 },
                 new(new LocalizedText("Schweppes Gold", "شويبس جولد"),
                     new LocalizedText("Schweppes gold soda", "شويبس جولد غازي"))
@@ -563,7 +563,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 8,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Schweppes Gold.jpg"
                 },
                 new(new LocalizedText("Schweppes Tangerine", "شويبس يوسفي"),
                     new LocalizedText("Schweppes tangerine soda", "شويبس يوسفي غازي"))
@@ -573,7 +573,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 9,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Schweppes Tangerine.jpg"
                 },
                 new(new LocalizedText("V7", "V7"),
                     new LocalizedText("Vegetable juice blend", "عصير خضروات مشكل"))
@@ -583,7 +583,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 10,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "V7.jpg"
                 },
                 new(new LocalizedText("Mineral Water", "مياه معدنية"),
                     new LocalizedText("Bottled mineral water", "مياه معدنية معبأة"))
@@ -593,7 +593,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 11,
-                    PictureFileName = "mineral-water.webp"
+                    PictureFileName = "Mineral Water.jpg"
                 },
                 new(new LocalizedText("Red Bull", "Red Bull"),
                     new LocalizedText("Red Bull energy drink", "ريد بول مشروب طاقة"))
@@ -603,7 +603,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 12,
-                    PictureFileName = "red-bull.png"
+                    PictureFileName = "Red Bull.jpg"
                 },
                 new(new LocalizedText("Power Horse", "Power Horse"),
                     new LocalizedText("Power Horse energy drink", "باور هورس مشروب طاقة"))
@@ -613,7 +613,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 13,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Power Horse.jpg"
                 },
                 new(new LocalizedText("Amstel Zero", "Amstel Zero"),
                     new LocalizedText("Non-alcoholic Amstel beer", "أمستل زيرو بدون كحول"))
@@ -623,7 +623,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 14,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Amstel Zero.jpg"
                 },
                 new(new LocalizedText("Birell", "بيريل"),
                     new LocalizedText("Non-alcoholic malt beverage", "بيريل شعير بدون كحول"))
@@ -633,7 +633,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 15,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Birell.jpg"
                 },
                 new(new LocalizedText("Barbican", "Barbican"),
                     new LocalizedText("Non-alcoholic malt beverage", "باربيكان شعير بدون كحول"))
@@ -643,7 +643,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 16,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Barbican.jpg"
                 },
                 new(new LocalizedText("Moussy", "موسي"),
                     new LocalizedText("Non-alcoholic malt beverage", "موسي شعير بدون كحول"))
@@ -653,7 +653,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 17,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Moussy.jpg"
                 },
                 new(new LocalizedText("Spiro Spathis", "سبيرو سباتس"),
                     new LocalizedText("Classic Egyptian lemon soda", "سبيرو سباتس ليمون مصري كلاسيك"))
@@ -663,7 +663,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 18,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Spiro Spathis.jpg"
                 },
                 new(new LocalizedText("Double Deer", "دبل دير"),
                     new LocalizedText("Double Deer carbonated drink", "دبل دير مشروب غازي"))
@@ -673,7 +673,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 19,
-                    PictureFileName = "soft-drink.webp"
+                    PictureFileName = "Double Deer.jpg"
                 },
 
                 // ============== SNACKS - مقرمشات (Category 7) ==============
@@ -685,7 +685,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 1,
-                    PictureFileName = "chips.webp"
+                    PictureFileName = "Chips.jpg"
                 },
                 new(new LocalizedText("Peanuts", "سوداني"),
                     new LocalizedText("Roasted peanuts", "فول سوداني محمص"))
@@ -695,7 +695,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 1,
                     DisplayOrder = 2,
-                    PictureFileName = "peanuts.png"
+                    PictureFileName = "Peanuts.jpg"
                 },
 
                 // ============== DESSERTS - حلويات (Category 8) ==============
@@ -707,7 +707,7 @@ public partial class CatalogContextSeed(
                     IsAvailable = true,
                     PreparationTimeMinutes = 10,
                     DisplayOrder = 1,
-                    PictureFileName = "waffles.png"
+                    PictureFileName = "Waffle.jpg"
                 }
             };
 
