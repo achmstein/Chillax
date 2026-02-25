@@ -113,30 +113,24 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   Future<void> _initializeApp() async {
-    final crashlytics = FirebaseCrashlytics.instance;
     try {
-      crashlytics.log('App init: starting auth');
       // Initialize auth first — don't let Firebase delay the app
       await ref.read(authServiceProvider.notifier).initialize();
 
       // Connect SignalR and register for notifications if authenticated
       final authState = ref.read(authServiceProvider);
-      crashlytics.log('App init: auth done, authenticated=${authState.isAuthenticated}');
       if (authState.isAuthenticated) {
         if (authState.userId != null) {
-          crashlytics.setUserIdentifier(authState.userId!);
+          FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
         }
         _connectSignalR();
         _wasAuthenticated = true;
       }
     } catch (e, stack) {
       debugPrint('App initialization error: $e\n$stack');
-      crashlytics.log('App init error: $e');
-      crashlytics.recordError(e, stack, reason: 'App initialization failed');
     } finally {
       // ALWAYS remove splash screen, even if initialization fails
       FlutterNativeSplash.remove();
-      crashlytics.log('App init: splash removed');
     }
 
     // Initialize Firebase in the background — never blocks the UI
