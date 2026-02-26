@@ -74,25 +74,40 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   Future<void> _initializeApp() async {
-    // Initialize Firebase for push notifications (may fail if not configured)
-    await ref.read(firebaseServiceProvider).initialize();
+    try {
+      // Initialize auth FIRST — Firebase/FCM must never block the UI
+      await ref.read(authServiceProvider.notifier).initialize();
 
-    // Initialize auth service
-    await ref.read(authServiceProvider.notifier).initialize();
-
-    // Remove the native splash screen after initialization
-    FlutterNativeSplash.remove();
-
-    // Connect SignalR and register for notifications if authenticated
-    final authState = ref.read(authServiceProvider);
-    if (authState.isAuthenticated) {
-      // Set user ID on Crashlytics so crashes are tied to users
-      if (authState.userId != null) {
-        FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+      // Connect SignalR if authenticated
+      final authState = ref.read(authServiceProvider);
+      if (authState.isAuthenticated) {
+        if (authState.userId != null) {
+          FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+        }
+        _connectSignalR();
+        _wasAuthenticated = true;
       }
-      _connectSignalR();
-      _registerForOrderNotifications();
-      _wasAuthenticated = true;
+    } catch (e, stack) {
+      debugPrint('App initialization error: $e\n$stack');
+    } finally {
+      // ALWAYS remove splash screen, even if initialization fails
+      FlutterNativeSplash.remove();
+    }
+
+    // Initialize Firebase/FCM in the background — never blocks the UI
+    _initializeFirebaseMessaging();
+  }
+
+  Future<void> _initializeFirebaseMessaging() async {
+    try {
+      await ref.read(firebaseServiceProvider).initialize();
+
+      // Register for push notifications if already authenticated
+      if (ref.read(authServiceProvider).isAuthenticated) {
+        _registerForOrderNotifications();
+      }
+    } catch (e) {
+      debugPrint('Firebase messaging initialization failed: $e');
     }
   }
 

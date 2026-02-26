@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -86,11 +87,28 @@ class FirebaseService {
     }
   }
 
-  /// Refresh the FCM token
+  /// Refresh the FCM token.
+  /// On iOS, checks for APNs token first — without it, getToken() hangs indefinitely.
   Future<String?> _refreshToken() async {
     if (_messaging == null) return null;
     try {
-      _fcmToken = await _messaging!.getToken();
+      // On iOS, getToken() blocks forever if APNs token is not available.
+      // Check for it first with retries, and bail out if unavailable.
+      if (!kIsWeb && Platform.isIOS) {
+        String? apnsToken;
+        for (int i = 0; i < 5; i++) {
+          apnsToken = await _messaging!.getAPNSToken();
+          if (apnsToken != null) break;
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        if (apnsToken == null) {
+          debugPrint('APNs token not available — skipping FCM getToken()');
+          return null;
+        }
+      }
+
+      _fcmToken = await _messaging!.getToken()
+          .timeout(const Duration(seconds: 10));
       if (_fcmToken != null) {
         debugPrint('FCM Token obtained: ${_fcmToken!.substring(0, 20)}...');
       }
