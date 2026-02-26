@@ -28,8 +28,7 @@ void main() async {
 
   // Initialize Firebase before setting up Crashlytics handlers
   try {
-    await Firebase.initializeApp()
-        .timeout(const Duration(seconds: 5));
+    await Firebase.initializeApp();
 
     // Send Flutter errors to Crashlytics
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -77,9 +76,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   Future<void> _initializeApp() async {
     try {
       // Initialize auth FIRST — Firebase/FCM must never block the UI
-      // Timeout ensures splash is always removed even if keychain/network hangs
-      await ref.read(authServiceProvider.notifier).initialize()
-          .timeout(const Duration(seconds: 15));
+      await ref.read(authServiceProvider.notifier).initialize();
 
       // Connect SignalR if authenticated
       final authState = ref.read(authServiceProvider);
