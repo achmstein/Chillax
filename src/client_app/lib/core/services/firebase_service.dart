@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -7,9 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Top-level background message handler (must be a top-level function)
 @pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp()
-      .timeout(const Duration(seconds: 5));
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
   debugPrint('Background message: ${message.notification?.title}');
 }
 
@@ -24,8 +22,6 @@ class FirebaseService {
 
   String? get fcmToken => _fcmToken;
   bool get isInitialized => _initialized;
-  String? get initError => _initError;
-  String? _initError;
 
   /// Register a callback to be invoked when the FCM token refreshes.
   void onTokenRefresh(void Function(String newToken) callback) {
@@ -34,20 +30,19 @@ class FirebaseService {
 
   /// Initialize Firebase and request notification permissions
   Future<void> initialize() async {
-    final crashlytics = FirebaseCrashlytics.instance;
     try {
       // Firebase.initializeApp() is called in main() before Crashlytics setup
       if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp()
-            .timeout(const Duration(seconds: 5));
+        await Firebase.initializeApp();
       }
       _initialized = true;
 
       // Disable Crashlytics in debug mode to avoid polluting reports
-      await crashlytics.setCrashlyticsCollectionEnabled(!kDebugMode);
+      await FirebaseCrashlytics.instance
+          .setCrashlyticsCollectionEnabled(!kDebugMode);
 
       _messaging = FirebaseMessaging.instance;
-      crashlytics.log('Firebase initialized');
+      debugPrint('Firebase initialized successfully');
 
       // Request notification permissions
       final settings = await _messaging!.requestPermission(
@@ -57,63 +52,50 @@ class FirebaseService {
         provisional: false,
       );
 
-      crashlytics.log('Notification permission: ${settings.authorizationStatus}');
+      debugPrint('Notification permission status: ${settings.authorizationStatus}');
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         // Get FCM token
         await _refreshToken();
-        crashlytics.log('FCM token: ${_fcmToken != null ? 'obtained' : 'null'}');
 
         // Listen for token refresh
         _messaging!.onTokenRefresh.listen((newToken) {
+          debugPrint('FCM Token refreshed: ${newToken.substring(0, 20)}...');
           _fcmToken = newToken;
+          // Notify listeners so they can re-register subscriptions with the new token
           for (final callback in _tokenRefreshCallbacks) {
             callback(newToken);
           }
         });
 
-        // Setup foreground message handler
+        // Setup message handlers
         FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
         FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
-      } else {
-        crashlytics.log('Notifications not authorized: ${settings.authorizationStatus}');
+
+        // Check if the app was opened from a terminated state via notification
+        final initialMessage = await _messaging!.getInitialMessage();
+        if (initialMessage != null) {
+          _handleMessageOpenedApp(initialMessage);
+        }
       }
-    } catch (e, stack) {
-      _initError = e.toString();
+    } catch (e) {
       debugPrint('Firebase initialization failed: $e');
-      crashlytics.log('FCM init error: $e');
-      crashlytics.recordError(e, stack, reason: 'FCM initialization failed');
+      // Firebase not configured - app will work without push notifications
     }
   }
 
-  /// Refresh the FCM token.
-  /// On iOS, waits for the APNs token first — without it, getToken() hangs indefinitely.
+  /// Refresh the FCM token
   Future<String?> _refreshToken() async {
     if (_messaging == null) return null;
     try {
-      // On iOS, getToken() blocks until an APNs token is available.
-      // If APNs registration fails (e.g. entitlement mismatch), it hangs forever.
-      // So we check for the APNs token first with retries, and bail out if unavailable.
-      if (!kIsWeb && Platform.isIOS) {
-        String? apnsToken;
-        for (int i = 0; i < 5; i++) {
-          apnsToken = await _messaging!.getAPNSToken();
-          if (apnsToken != null) break;
-          await Future.delayed(const Duration(seconds: 1));
-        }
-        if (apnsToken == null) {
-          FirebaseCrashlytics.instance.log('APNs token unavailable after retries — skipping FCM getToken()');
-          debugPrint('APNs token not available — cannot get FCM token on iOS');
-          return null;
-        }
+      _fcmToken = await _messaging!.getToken();
+      if (_fcmToken != null) {
+        debugPrint('FCM Token obtained: ${_fcmToken!.substring(0, 20)}...');
       }
-
-      _fcmToken = await _messaging!.getToken()
-          .timeout(const Duration(seconds: 10));
       return _fcmToken;
     } catch (e) {
-      FirebaseCrashlytics.instance.log('getToken() failed: $e');
       debugPrint('Failed to get FCM token: $e');
       return null;
     }
