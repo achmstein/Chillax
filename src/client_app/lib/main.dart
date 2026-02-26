@@ -164,18 +164,66 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
 
   @override
   Widget build(BuildContext context) {
-    // DEBUG: Bare-minimum app to confirm iOS can render ANYTHING
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.blue,
-        body: Center(
-          child: Text(
-            'CHILLAX DEBUG\nIf you see this,\nFlutter rendering works!',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 24),
-          ),
+    final authState = ref.watch(authServiceProvider);
+    final router = ref.watch(routerProvider);
+    final locale = ref.watch(localeProvider);
+
+    // DEBUG: Step 2 — router + auth + locale, NO FTheme/FToaster
+    return MaterialApp.router(
+      title: 'Chillax',
+      debugShowCheckedModeBanner: false,
+      routerConfig: router,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppTheme.primaryColor,
+          brightness: Brightness.light,
         ),
+        useMaterial3: true,
       ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppTheme.primaryColor,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child ?? const SizedBox.shrink(),
+            // DEBUG overlay — no FTheme/FToaster wrapping
+            Positioned(
+              top: 50,
+              left: 10,
+              right: 10,
+              child: IgnorePointer(
+                child: Material(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      'AUTH: init=${authState.isInitializing}, '
+                      'logged=${authState.isAuthenticated}\n'
+                      'LOCALE: ${locale.languageCode}\n'
+                      'CHILD: ${child?.runtimeType ?? "NULL"}',
+                      style: const TextStyle(
+                        color: Colors.greenAccent,
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
