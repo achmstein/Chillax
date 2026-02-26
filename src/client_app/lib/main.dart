@@ -164,93 +164,18 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authServiceProvider);
-    final router = ref.watch(routerProvider);
-    final themeState = ref.watch(themeProvider);
-    final locale = ref.watch(localeProvider);
-
-    // React to auth state changes (e.g. first login, logout)
-    if (authState.isAuthenticated && !_wasAuthenticated) {
-      _wasAuthenticated = true;
-      // Set user ID on Crashlytics
-      if (authState.userId != null) {
-        FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
-      }
-      _connectSignalR();
-      _registerForOrderNotifications();
-    } else if (!authState.isAuthenticated && _wasAuthenticated) {
-      _wasAuthenticated = false;
-      _cancelSignalRSubscriptions();
-    }
-
-    return MaterialApp.router(
-      title: 'Chillax',
-      debugShowCheckedModeBanner: false,
-      routerConfig: router,
-      locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppTheme.primaryColor,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        fontFamily: getFontFamily(locale),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppTheme.primaryColor,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        fontFamily: getFontFamily(locale),
-      ),
-      themeMode: themeState.themeMode == AppThemeMode.light
-          ? ThemeMode.light
-          : themeState.themeMode == AppThemeMode.dark
-              ? ThemeMode.dark
-              : ThemeMode.system,
-      builder: (context, child) {
-        return FTheme(
-          data: themeState.getForuiTheme(context, locale: locale),
-          child: FToaster(
-            child: Stack(
-              children: [
-                child ?? const SizedBox.shrink(),
-                // DEBUG: diagnostic overlay to find white screen cause
-                Positioned(
-                  top: 50,
-                  left: 10,
-                  right: 10,
-                  child: IgnorePointer(
-                    child: Material(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(
-                          'AUTH: init=${authState.isInitializing}, '
-                          'logged=${authState.isAuthenticated}\n'
-                          'THEME: ${themeState.themeMode.name}, '
-                          'loading=${themeState.isLoading}\n'
-                          'LOCALE: ${locale.languageCode}\n'
-                          'CHILD: ${child?.runtimeType ?? "NULL"}',
-                          style: const TextStyle(
-                            color: Colors.greenAccent,
-                            fontSize: 11,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    // DEBUG: Bare-minimum app to confirm iOS can render ANYTHING
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.blue,
+        body: Center(
+          child: Text(
+            'CHILLAX DEBUG\nIf you see this,\nFlutter rendering works!',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontSize: 24),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
