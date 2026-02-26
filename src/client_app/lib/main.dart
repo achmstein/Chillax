@@ -27,9 +27,11 @@ void main() async {
   // Load saved locale before app starts
   await initializeLocale();
 
-  // Initialize Firebase before setting up Crashlytics handlers
+  // Initialize Firebase with a timeout — if it hangs (e.g. network issues on iOS),
+  // the app still launches. Crashlytics/FCM will retry later in _initializeFirebase().
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp()
+        .timeout(const Duration(seconds: 5));
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // Send Flutter errors to Crashlytics

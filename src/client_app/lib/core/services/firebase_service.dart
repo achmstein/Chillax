@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -7,7 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Top-level background message handler (must be a top-level function)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp()
+      .timeout(const Duration(seconds: 5));
   debugPrint('Background message: ${message.notification?.title}');
 }
 
@@ -36,7 +38,8 @@ class FirebaseService {
     try {
       // Firebase.initializeApp() is called in main() before Crashlytics setup
       if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp();
+        await Firebase.initializeApp()
+            .timeout(const Duration(seconds: 5));
       }
       _initialized = true;
 
@@ -84,10 +87,28 @@ class FirebaseService {
     }
   }
 
-  /// Refresh the FCM token
+  /// Refresh the FCM token.
+  /// On iOS, waits for the APNs token first — without it, getToken() hangs indefinitely.
   Future<String?> _refreshToken() async {
     if (_messaging == null) return null;
     try {
+      // On iOS, getToken() blocks until an APNs token is available.
+      // If APNs registration fails (e.g. entitlement mismatch), it hangs forever.
+      // So we check for the APNs token first with retries, and bail out if unavailable.
+      if (!kIsWeb && Platform.isIOS) {
+        String? apnsToken;
+        for (int i = 0; i < 5; i++) {
+          apnsToken = await _messaging!.getAPNSToken();
+          if (apnsToken != null) break;
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        if (apnsToken == null) {
+          FirebaseCrashlytics.instance.log('APNs token unavailable after retries — skipping FCM getToken()');
+          debugPrint('APNs token not available — cannot get FCM token on iOS');
+          return null;
+        }
+      }
+
       _fcmToken = await _messaging!.getToken()
           .timeout(const Duration(seconds: 10));
       return _fcmToken;
