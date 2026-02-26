@@ -192,36 +192,37 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
       ),
       themeMode: ThemeMode.system,
       builder: (context, child) {
-        return Stack(
-          children: [
-            child ?? const SizedBox.shrink(),
-            // DEBUG overlay — no FTheme/FToaster wrapping
-            Positioned(
-              top: 50,
-              left: 10,
-              right: 10,
-              child: IgnorePointer(
-                child: Material(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      'AUTH: init=${authState.isInitializing}, '
-                      'logged=${authState.isAuthenticated}\n'
-                      'LOCALE: ${locale.languageCode}\n'
-                      'CHILD: ${child?.runtimeType ?? "NULL"}',
-                      style: const TextStyle(
-                        color: Colors.greenAccent,
-                        fontSize: 11,
-                        fontFamily: 'monospace',
+        final themeState = ref.watch(themeProvider);
+        // DEBUG: Step 3 — add FTheme back, NO FToaster
+        return FTheme(
+          data: themeState.getForuiTheme(context, locale: locale),
+          child: Stack(
+            children: [
+              child ?? const SizedBox.shrink(),
+              Positioned(
+                top: 50,
+                left: 10,
+                right: 10,
+                child: IgnorePointer(
+                  child: Material(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(
+                        'STEP 3: FTheme ON, FToaster OFF',
+                        style: const TextStyle(
+                          color: Colors.greenAccent,
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
