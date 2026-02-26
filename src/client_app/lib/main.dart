@@ -27,25 +27,8 @@ void main() async {
   // Load saved locale before app starts
   await initializeLocale();
 
-  // Initialize Firebase with a timeout — if it hangs (e.g. network issues on iOS),
-  // the app still launches. Crashlytics/FCM will retry later in _initializeFirebase().
-  try {
-    await Firebase.initializeApp()
-        .timeout(const Duration(seconds: 5));
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
-    // Send Flutter errors to Crashlytics
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-    // Send async errors to Crashlytics
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-  } catch (e) {
-    debugPrint('Firebase initialization failed: $e');
-  }
-
+  // Firebase is initialized lazily inside _initializeFirebase() —
+  // NEVER block main() on Firebase, as it can hang on iOS and prevent runApp().
   runApp(
     const ProviderScope(
       child: ChillaxApp(),
@@ -140,9 +123,24 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   Future<void> _initializeFirebase() async {
-    final crashlytics = FirebaseCrashlytics.instance;
     try {
-      crashlytics.log('Firebase init: starting');
+      // Initialize Firebase core — this was moved out of main() because
+      // it can hang on iOS and block runApp() entirely.
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp()
+            .timeout(const Duration(seconds: 10));
+      }
+
+      // Now that Firebase is ready, set up Crashlytics error handlers
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+
+      final crashlytics = FirebaseCrashlytics.instance;
+      crashlytics.log('Firebase init: starting FCM');
       await ref.read(firebaseServiceProvider).initialize();
       crashlytics.log('Firebase init: done');
 
@@ -159,8 +157,11 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
       }
     } catch (e, stack) {
       debugPrint('Firebase initialization failed: $e');
-      crashlytics.log('Firebase init error: $e');
-      crashlytics.recordError(e, stack, reason: 'Firebase initialization failed');
+      try {
+        FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Firebase initialization failed');
+      } catch (_) {
+        // Crashlytics itself may not be available if Firebase init failed
+      }
     }
   }
 
