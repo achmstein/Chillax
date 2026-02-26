@@ -48,21 +48,16 @@ void main() async {
   // Load saved locale before app starts
   await initializeLocale();
 
-  // Initialize Firebase before setting up Crashlytics handlers
-  try {
-    await Firebase.initializeApp();
+  // Firebase/FCM disabled for iOS debugging
+  // try {
+  //   await Firebase.initializeApp();
+  //   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  //   PlatformDispatcher.instance.onError = (error, stack) {
+  //     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  //     return true;
+  //   };
+  // } catch (_) {}
 
-    // Send Flutter errors to Crashlytics
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-    // Send async errors to Crashlytics
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-  } catch (_) {
-    // Firebase not configured - app will work without crash reporting
-  }
 
   runApp(
     const ProviderScope(
@@ -116,8 +111,8 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
       FlutterNativeSplash.remove();
     }
 
-    // Initialize Firebase/FCM in the background — never blocks the UI
-    _initializeFirebaseMessaging();
+    // Firebase/FCM disabled for iOS debugging
+    // _initializeFirebaseMessaging();
   }
 
   Future<void> _initializeFirebaseMessaging() async {
