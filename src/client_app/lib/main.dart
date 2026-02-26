@@ -227,7 +227,39 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
         return FTheme(
           data: themeState.getForuiTheme(context, locale: locale),
           child: FToaster(
-            child: child ?? const SizedBox.shrink(),
+            child: Stack(
+              children: [
+                child ?? const SizedBox.shrink(),
+                // DEBUG: diagnostic overlay to find white screen cause
+                Positioned(
+                  top: 50,
+                  left: 10,
+                  right: 10,
+                  child: IgnorePointer(
+                    child: Material(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          'AUTH: init=${authState.isInitializing}, '
+                          'logged=${authState.isAuthenticated}\n'
+                          'THEME: ${themeState.themeMode.name}, '
+                          'loading=${themeState.isLoading}\n'
+                          'LOCALE: ${locale.languageCode}\n'
+                          'CHILD: ${child?.runtimeType ?? "NULL"}',
+                          style: const TextStyle(
+                            color: Colors.greenAccent,
+                            fontSize: 11,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
