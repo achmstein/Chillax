@@ -91,28 +91,21 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   Future<void> _initializeApp() async {
+    // DEBUG: Skip ALL initialization — just remove splash immediately
+    FlutterNativeSplash.remove();
+
+    // Run auth in background after splash is gone
     try {
-      // Initialize auth FIRST — Firebase/FCM must never block the UI
       await ref.read(authServiceProvider.notifier).initialize();
 
-      // Connect SignalR if authenticated
       final authState = ref.read(authServiceProvider);
       if (authState.isAuthenticated) {
-        if (authState.userId != null) {
-          FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
-        }
         _connectSignalR();
         _wasAuthenticated = true;
       }
     } catch (e, stack) {
       debugPrint('App initialization error: $e\n$stack');
-    } finally {
-      // ALWAYS remove splash screen, even if initialization fails
-      FlutterNativeSplash.remove();
     }
-
-    // Firebase/FCM disabled for iOS debugging
-    // _initializeFirebaseMessaging();
   }
 
   Future<void> _initializeFirebaseMessaging() async {
