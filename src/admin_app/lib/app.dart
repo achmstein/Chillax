@@ -173,7 +173,12 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
       builder: (context, child) {
         return FTheme(
           data: themeState.getForuiTheme(context, locale: locale),
-          child: child ?? const SizedBox.shrink(),
+          child: DefaultTextStyle(
+            style: DefaultTextStyle.of(context).style.copyWith(
+              decoration: TextDecoration.none,
+            ),
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );
