@@ -192,8 +192,12 @@ class AuthService extends Notifier<AuthState> {
   }
 
   /// Sign in with social provider using native SDKs (no browser)
+  /// Last error from social sign-in (for debugging)
+  String? lastSocialSignInError;
+
   Future<bool> signInWithProvider(SocialProvider provider) async {
     debugPrint('Attempting native social sign in with: ${provider.name}');
+    lastSocialSignInError = null;
 
     try {
       String? socialToken;
@@ -215,6 +219,7 @@ class AuthService extends Notifier<AuthState> {
           tokenType = 'urn:ietf:params:oauth:token-type:access_token';
           debugPrint('Google sign in successful, got access token');
         } on GoogleSignInException catch (e) {
+          lastSocialSignInError = 'GoogleSignInException: ${e.code}';
           debugPrint('Google sign in exception: ${e.code}');
           return false;
         }
@@ -238,6 +243,7 @@ class AuthService extends Notifier<AuthState> {
       }
 
       if (socialToken == null) {
+        lastSocialSignInError = 'No social token received (null)';
         debugPrint('No social token received');
         return false;
       }
@@ -245,6 +251,7 @@ class AuthService extends Notifier<AuthState> {
       // Exchange social token with Keycloak using token exchange grant
       return await _exchangeSocialToken(socialToken, providerAlias, tokenType);
     } catch (e) {
+      lastSocialSignInError = 'Exception: $e';
       debugPrint('Social sign in error: $e');
       return false;
     }
@@ -282,10 +289,12 @@ class AuthService extends Notifier<AuthState> {
       }
       return false;
     } on DioException catch (e) {
+      lastSocialSignInError = 'Keycloak ${e.response?.statusCode}: ${e.response?.data}';
       debugPrint('Token exchange DioException: ${e.type} - ${e.message}');
       debugPrint('Token exchange error response: ${e.response?.statusCode} - ${e.response?.data}');
       return false;
     } catch (e) {
+      lastSocialSignInError = 'Exchange error: $e';
       debugPrint('Token exchange error: $e');
       return false;
     }
