@@ -26,16 +26,15 @@ void main() async {
   // Load saved locale before app starts
   await initializeLocale();
 
-  // Firebase/FCM disabled for iOS debugging
-  // try {
-  //   await Firebase.initializeApp();
-  //   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  //   PlatformDispatcher.instance.onError = (error, stack) {
-  //     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-  //     return true;
-  //   };
-  // } catch (_) {}
-
+  // Initialize Firebase (Crashlytics) — don't block app launch on failure
+  try {
+    await Firebase.initializeApp();
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  } catch (_) {}
 
   runApp(
     const ProviderScope(
@@ -44,7 +43,7 @@ void main() async {
   );
 }
 
-/// Main application widget0
+/// Main application widget
 class ChillaxApp extends ConsumerStatefulWidget {
   const ChillaxApp({super.key});
 
@@ -69,10 +68,9 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   Future<void> _initializeApp() async {
-    // DEBUG: Skip ALL initialization — just remove splash immediately
+    // Remove splash immediately so the UI is never blocked
     FlutterNativeSplash.remove();
 
-    // Run auth in background after splash is gone
     try {
       await ref.read(authServiceProvider.notifier).initialize();
 
@@ -84,6 +82,9 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     } catch (e, stack) {
       debugPrint('App initialization error: $e\n$stack');
     }
+
+    // Initialize Firebase messaging in background (never blocks UI)
+    _initializeFirebaseMessaging();
   }
 
   Future<void> _initializeFirebaseMessaging() async {
@@ -150,7 +151,11 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     // React to auth state changes (e.g. first login, logout)
     if (authState.isAuthenticated && !_wasAuthenticated) {
       _wasAuthenticated = true;
+      if (authState.userId != null) {
+        FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+      }
       _connectSignalR();
+      _registerForOrderNotifications();
     } else if (!authState.isAuthenticated && _wasAuthenticated) {
       _wasAuthenticated = false;
       _cancelSignalRSubscriptions();
