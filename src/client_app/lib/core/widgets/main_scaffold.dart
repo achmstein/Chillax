@@ -47,9 +47,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
-      footer: FBottomNavigationBar(
+      footer: Padding(
+        // FBottomNavigationBar already adds 2/3 of bottom view padding internally.
+        // Add the remaining 1/3 so the system nav bar doesn't overlap.
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewPaddingOf(context).bottom / 3,
+        ),
+        child: FBottomNavigationBar(
         index: currentIndex,
-        safeAreaBottom: true,
         onChange: (index) => _onItemTapped(index, context),
         children: [
           FBottomNavigationBarItem(
@@ -89,6 +94,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
             ),
           ),
         ],
+      ),
       ),
       child: SafeArea(
         bottom: false,
