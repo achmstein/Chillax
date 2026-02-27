@@ -49,6 +49,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     return FScaffold(
       footer: FBottomNavigationBar(
         index: currentIndex,
+        safeAreaBottom: true,
         onChange: (index) => _onItemTapped(index, context),
         children: [
           FBottomNavigationBarItem(
