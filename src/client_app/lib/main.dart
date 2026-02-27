@@ -49,20 +49,30 @@ class ChillaxApp extends ConsumerStatefulWidget {
   ConsumerState<ChillaxApp> createState() => _ChillaxAppState();
 }
 
-class _ChillaxAppState extends ConsumerState<ChillaxApp> {
+class _ChillaxAppState extends ConsumerState<ChillaxApp>
+    with WidgetsBindingObserver {
   final List<StreamSubscription> _signalRSubscriptions = [];
   bool _wasAuthenticated = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeApp();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _cancelSignalRSubscriptions();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _wasAuthenticated) {
+      ref.read(signalRServiceProvider).reconnectIfNeeded();
+    }
   }
 
   Future<void> _initializeApp() async {

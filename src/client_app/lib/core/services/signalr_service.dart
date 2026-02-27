@@ -20,6 +20,9 @@ class SignalRService {
 
   SignalRService(this._ref);
 
+  bool get isConnected =>
+      _hubConnection?.state == HubConnectionState.Connected;
+
   /// Connect to the SignalR hub
   Future<void> connect() async {
     if (_hubConnection != null || _isConnecting) return;
@@ -109,6 +112,17 @@ class SignalRService {
     } catch (e) {
       debugPrint('Failed to leave rooms group: $e');
     }
+  }
+
+  /// Reconnect if the connection was lost (e.g. after app resumed from background)
+  Future<void> reconnectIfNeeded() async {
+    if (_hubConnection == null) return;
+    if (_hubConnection!.state == HubConnectionState.Connected) return;
+    if (_isConnecting) return;
+
+    // Connection is dead — tear down and reconnect fresh
+    _hubConnection = null;
+    await connect();
   }
 
   /// Disconnect from the SignalR hub
