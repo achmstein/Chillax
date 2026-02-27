@@ -1,3 +1,7 @@
+import 'dart:io' show Platform;
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -5,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/services/firebase_service.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/balance_card.dart';
@@ -213,6 +218,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                 ),
 
+                const SizedBox(height: 16),
+
+                // DEBUG: Firebase status (temporary)
+                _FirebaseDebugCard(),
+
                 const SizedBox(height: 32),
 
                 // App version
@@ -414,6 +424,128 @@ class _ContactRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Temporary debug card to diagnose Firebase/FCM status on iOS
+class _FirebaseDebugCard extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_FirebaseDebugCard> createState() => _FirebaseDebugCardState();
+}
+
+class _FirebaseDebugCardState extends ConsumerState<_FirebaseDebugCard> {
+  String _firebaseInit = 'checking...';
+  String _crashlytics = 'checking...';
+  String _fcmToken = 'checking...';
+  String _apnsToken = 'checking...';
+  String _platform = Platform.isIOS ? 'iOS' : 'Android';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkStatus();
+  }
+
+  Future<void> _checkStatus() async {
+    // Check Firebase init
+    try {
+      final app = Firebase.app();
+      setState(() => _firebaseInit = 'OK (${app.options.projectId})');
+    } catch (e) {
+      setState(() => _firebaseInit = 'FAIL: $e');
+    }
+
+    // Check Crashlytics
+    try {
+      final enabled = FirebaseCrashlytics.instance.isCrashlyticsCollectionEnabled;
+      setState(() => _crashlytics = 'OK (enabled=$enabled)');
+    } catch (e) {
+      setState(() => _crashlytics = 'FAIL: $e');
+    }
+
+    // Check APNs token (iOS only)
+    if (Platform.isIOS) {
+      try {
+        final apns = await FirebaseMessaging.instance.getAPNSToken();
+        setState(() => _apnsToken = apns != null
+            ? 'OK (${apns.substring(0, 10)}...)'
+            : 'NULL (no APNs token)');
+      } catch (e) {
+        setState(() => _apnsToken = 'FAIL: $e');
+      }
+    } else {
+      setState(() => _apnsToken = 'N/A (Android)');
+    }
+
+    // Check FCM token
+    try {
+      final token = await FirebaseMessaging.instance.getToken()
+          .timeout(const Duration(seconds: 10));
+      setState(() => _fcmToken = token != null
+          ? 'OK (${token.substring(0, 20)}...)'
+          : 'NULL');
+    } catch (e) {
+      setState(() => _fcmToken = 'FAIL: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.theme.colors;
+    final firebaseSvc = ref.read(firebaseServiceProvider);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.muted,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('DEBUG: Firebase Status ($_platform)',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colors.foreground)),
+          const SizedBox(height: 8),
+          _row('Firebase Init', _firebaseInit, colors),
+          _row('Crashlytics', _crashlytics, colors),
+          _row('APNs Token', _apnsToken, colors),
+          _row('FCM Token', _fcmToken, colors),
+          _row('Svc Initialized', '${firebaseSvc.isInitialized}', colors),
+          _row('Svc FCM Token', firebaseSvc.fcmToken != null
+              ? '${firebaseSvc.fcmToken!.substring(0, 20)}...'
+              : 'null', colors),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(String label, String value, dynamic colors) {
+    final isOk = value.startsWith('OK') || value == 'true';
+    final isFail = value.startsWith('FAIL') || value.startsWith('NULL') || value == 'null' || value == 'false';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(label, style: TextStyle(fontSize: 11, color: colors.mutedForeground)),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 11,
+                color: isOk ? Colors.green : isFail ? Colors.red : colors.foreground,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
