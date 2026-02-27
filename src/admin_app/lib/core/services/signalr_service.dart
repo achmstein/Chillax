@@ -113,6 +113,16 @@ class SignalRService {
     }
   }
 
+  /// Reconnect if the connection was lost (e.g. after app resumed from background)
+  Future<void> reconnectIfNeeded() async {
+    if (_hubConnection == null) return;
+    if (_hubConnection!.state == HubConnectionState.Connected) return;
+    if (_isConnecting) return;
+
+    _hubConnection = null;
+    await connect();
+  }
+
   /// Disconnect from the SignalR hub
   Future<void> disconnect() async {
     try {

@@ -47,10 +47,9 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       final authService = ref.read(authServiceProvider.notifier);
-      // Proactively refresh token on app resume (may have expired while in background)
       authService.refreshToken();
-      // Re-register notifications on app resume (FCM token may have changed)
       authService.reregisterNotifications();
+      ref.read(signalRServiceProvider).reconnectIfNeeded();
     }
   }
 
