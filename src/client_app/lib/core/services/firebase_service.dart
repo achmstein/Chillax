@@ -4,11 +4,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Top-level background message handler (must be a top-level function)
+/// Background message handler (must be top-level function)
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  debugPrint('Background message: ${message.notification?.title}');
 }
 
 /// Firebase messaging service for handling FCM tokens and notifications
@@ -56,7 +55,6 @@ class FirebaseService {
         });
 
         FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
         FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
 
         final initialMessage = await _messaging!.getInitialMessage();

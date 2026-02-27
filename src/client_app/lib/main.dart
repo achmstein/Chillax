@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,21 +20,29 @@ import 'features/orders/services/order_service.dart';
 import 'features/rooms/services/room_service.dart';
 
 void main() async {
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await initializeLocale();
 
+  // Initialize Firebase before setting up Crashlytics handlers
   try {
     await Firebase.initializeApp();
+
+    // Set up background message handler
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+    // Send Flutter errors to Crashlytics
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+    // Send async errors to Crashlytics
     PlatformDispatcher.instance.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
-    await FirebaseCrashlytics.instance
-        .setCrashlyticsCollectionEnabled(!kDebugMode);
-  } catch (_) {}
+  } catch (_) {
+    // Firebase not configured - app will work without crash reporting
+  }
 
   runApp(
     const ProviderScope(
@@ -193,12 +202,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
       builder: (context, child) {
         return FTheme(
           data: themeState.getForuiTheme(context, locale: locale),
-          child: DefaultTextStyle(
-            style: DefaultTextStyle.of(context).style.copyWith(
-              decoration: TextDecoration.none,
-            ),
-            child: child ?? const SizedBox.shrink(),
-          ),
+          child: child ?? const SizedBox.shrink(),
         );
       },
     );
