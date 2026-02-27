@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
@@ -48,10 +47,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
-      footer: SafeArea(
-        top: false,
-        bottom: !Platform.isIOS,
-        child: FBottomNavigationBar(
+      footer: FBottomNavigationBar(
           index: currentIndex,
           onChange: (index) => _onItemTapped(index, context),
           children: [
@@ -93,7 +89,6 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
             ),
           ],
         ),
-      ),
       child: SafeArea(
         bottom: false,
         child: widget.child,

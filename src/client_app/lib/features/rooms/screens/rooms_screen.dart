@@ -467,22 +467,6 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: AppText(
-                      AppLocalizations.of(context)!.sessionActive,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
 
                   // Access code display
                   if (session.accessCode != null) ...[
@@ -545,14 +529,6 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  AppText(
-                    AppLocalizations.of(context)!.hourlyRateFormat(session.hourlyRate.toStringAsFixed(0)),
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 14,
                     ),
                   ),
                 ],
