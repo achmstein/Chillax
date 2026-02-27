@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,14 +19,11 @@ import 'features/orders/services/order_service.dart';
 import 'features/rooms/services/room_service.dart';
 
 void main() async {
-  // Preserve the native splash screen
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Load saved locale before app starts
   await initializeLocale();
 
-  // Initialize Firebase (Crashlytics) — don't block app launch on failure
   try {
     await Firebase.initializeApp();
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -34,6 +31,8 @@ void main() async {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
+    await FirebaseCrashlytics.instance
+        .setCrashlyticsCollectionEnabled(!kDebugMode);
   } catch (_) {}
 
   runApp(
@@ -43,7 +42,6 @@ void main() async {
   );
 }
 
-/// Main application widget
 class ChillaxApp extends ConsumerStatefulWidget {
   const ChillaxApp({super.key});
 
@@ -68,9 +66,6 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   Future<void> _initializeApp() async {
-    // Remove splash immediately so the UI is never blocked
-    FlutterNativeSplash.remove();
-
     try {
       await ref.read(authServiceProvider.notifier).initialize();
 
@@ -81,6 +76,8 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
       }
     } catch (e, stack) {
       debugPrint('App initialization error: $e\n$stack');
+    } finally {
+      FlutterNativeSplash.remove();
     }
 
     // Initialize Firebase messaging in background (never blocks UI)
@@ -91,7 +88,6 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     try {
       await ref.read(firebaseServiceProvider).initialize();
 
-      // Register for push notifications if already authenticated
       if (ref.read(authServiceProvider).isAuthenticated) {
         _registerForOrderNotifications();
       }
@@ -108,14 +104,11 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   }
 
   void _registerForOrderNotifications() {
-    // Fire-and-forget: register device for order status push notifications
-    final locale = ref.read(localeProvider);
-    final lang = locale?.languageCode ?? 'en';
+    final lang = ref.read(localeProvider)?.languageCode ?? 'en';
     ref.read(notificationRepositoryProvider).registerForOrderNotifications(
       preferredLanguage: lang,
     );
 
-    // Re-register when FCM token refreshes mid-session
     ref.read(firebaseServiceProvider).onTokenRefresh((_) {
       ref.read(notificationRepositoryProvider).registerForOrderNotifications(
         preferredLanguage: ref.read(localeProvider)?.languageCode ?? 'en',
@@ -127,7 +120,6 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     final signalR = ref.read(signalRServiceProvider);
     signalR.connect();
 
-    // Listen for realtime events and refresh providers
     _signalRSubscriptions.add(
       signalR.onRoomStatusChanged.listen((_) {
         ref.invalidate(roomsProvider);
@@ -148,7 +140,6 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
     final themeState = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 
-    // React to auth state changes (e.g. first login, logout)
     if (authState.isAuthenticated && !_wasAuthenticated) {
       _wasAuthenticated = true;
       if (authState.userId != null) {
