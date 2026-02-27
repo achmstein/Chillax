@@ -161,9 +161,11 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
 
     if (authState.isAuthenticated && !_wasAuthenticated) {
       _wasAuthenticated = true;
-      if (authState.userId != null) {
-        FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
-      }
+      try {
+        if (authState.userId != null) {
+          FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
+        }
+      } catch (_) {}
       _connectSignalR();
       _registerForOrderNotifications();
     } else if (!authState.isAuthenticated && _wasAuthenticated) {
@@ -199,7 +201,12 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
           : themeState.themeMode == AppThemeMode.dark
               ? ThemeMode.dark
               : ThemeMode.system,
-      builder: (context, child) => child ?? const SizedBox.shrink(),
+      builder: (context, child) {
+        return FTheme(
+          data: themeState.getForuiTheme(context, locale: locale),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
