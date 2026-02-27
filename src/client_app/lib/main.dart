@@ -23,28 +23,6 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Show errors visually in release mode (instead of blank white screen)
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    return Material(
-      child: Container(
-        color: Colors.red,
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error, color: Colors.white, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              details.exception.toString(),
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  };
-
   // Load saved locale before app starts
   await initializeLocale();
 
@@ -166,9 +144,18 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authServiceProvider);
     final router = ref.watch(routerProvider);
+    final themeState = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
 
-    // DEBUG: Step 2 — router + auth + locale, NO FTheme/FToaster
+    // React to auth state changes (e.g. first login, logout)
+    if (authState.isAuthenticated && !_wasAuthenticated) {
+      _wasAuthenticated = true;
+      _connectSignalR();
+    } else if (!authState.isAuthenticated && _wasAuthenticated) {
+      _wasAuthenticated = false;
+      _cancelSignalRSubscriptions();
+    }
+
     return MaterialApp.router(
       title: 'Chillax',
       debugShowCheckedModeBanner: false,
@@ -182,6 +169,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
           brightness: Brightness.light,
         ),
         useMaterial3: true,
+        fontFamily: getFontFamily(locale),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -189,40 +177,17 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp> {
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
+        fontFamily: getFontFamily(locale),
       ),
-      themeMode: ThemeMode.system,
+      themeMode: themeState.themeMode == AppThemeMode.light
+          ? ThemeMode.light
+          : themeState.themeMode == AppThemeMode.dark
+              ? ThemeMode.dark
+              : ThemeMode.system,
       builder: (context, child) {
-        final themeState = ref.watch(themeProvider);
-        // DEBUG: Step 3 — add FTheme back, NO FToaster
         return FTheme(
           data: themeState.getForuiTheme(context, locale: locale),
-          child: Stack(
-            children: [
-              child ?? const SizedBox.shrink(),
-              Positioned(
-                top: 50,
-                left: 10,
-                right: 10,
-                child: IgnorePointer(
-                  child: Material(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        'STEP 3: FTheme ON, FToaster OFF',
-                        style: const TextStyle(
-                          color: Colors.greenAccent,
-                          fontSize: 11,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          child: child ?? const SizedBox.shrink(),
         );
       },
     );
