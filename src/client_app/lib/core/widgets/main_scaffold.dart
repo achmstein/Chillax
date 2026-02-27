@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
@@ -48,52 +47,47 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
-      footer: SafeArea(
-        top: false,
-        // iOS handles home indicator padding natively; Android needs SafeArea
-        bottom: !Platform.isIOS,
-        child: FBottomNavigationBar(
-          index: currentIndex,
-          onChange: (index) => _onItemTapped(index, context),
-          children: [
-            FBottomNavigationBarItem(
-              icon: const Icon(FIcons.utensils),
-              label: AppText(
-                l10n.menu,
-                style: TextStyle(
-                  fontWeight: currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
-                ),
+      footer: FBottomNavigationBar(
+        index: currentIndex,
+        onChange: (index) => _onItemTapped(index, context),
+        children: [
+          FBottomNavigationBarItem(
+            icon: const Icon(FIcons.utensils),
+            label: AppText(
+              l10n.menu,
+              style: TextStyle(
+                fontWeight: currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-            FBottomNavigationBarItem(
-              icon: const Icon(FIcons.gamepad2),
-              label: AppText(
-                l10n.rooms,
-                style: TextStyle(
-                  fontWeight: currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
-                ),
+          ),
+          FBottomNavigationBarItem(
+            icon: const Icon(FIcons.gamepad2),
+            label: AppText(
+              l10n.rooms,
+              style: TextStyle(
+                fontWeight: currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-            FBottomNavigationBarItem(
-              icon: const Icon(FIcons.receipt),
-              label: AppText(
-                l10n.orders,
-                style: TextStyle(
-                  fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.normal,
-                ),
+          ),
+          FBottomNavigationBarItem(
+            icon: const Icon(FIcons.receipt),
+            label: AppText(
+              l10n.orders,
+              style: TextStyle(
+                fontWeight: currentIndex == 2 ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-            FBottomNavigationBarItem(
-              icon: const Icon(FIcons.user),
-              label: AppText(
-                l10n.profile,
-                style: TextStyle(
-                  fontWeight: currentIndex == 3 ? FontWeight.bold : FontWeight.normal,
-                ),
+          ),
+          FBottomNavigationBarItem(
+            icon: const Icon(FIcons.user),
+            label: AppText(
+              l10n.profile,
+              style: TextStyle(
+                fontWeight: currentIndex == 3 ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       child: SafeArea(
         bottom: false,
