@@ -81,15 +81,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final success = await authService.signInWithProvider(provider);
 
       if (!success && mounted) {
-        final debugError = ref.read(authServiceProvider.notifier).lastSocialSignInError;
         setState(() {
-          _error = 'DEBUG: ${debugError ?? 'unknown error'}';
+          _error = l10n.socialSignInFailed;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'DEBUG: $e';
+          _error = l10n.anErrorOccurred(e.toString());
         });
       }
     } finally {
