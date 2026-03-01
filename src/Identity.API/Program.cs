@@ -808,6 +808,78 @@ app.MapDelete("/api/identity/delete-account", async (HttpContext httpContext, IH
     return Results.Problem($"Failed to delete account: {errorContent}", statusCode: (int)updateResponse.StatusCode);
 }).RequireAuthorization();
 
+// Admin: Toggle customer enabled/disabled
+app.MapPut("/api/identity/users/{userId}/toggle-enabled", async (string userId, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var userEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}";
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+    // GET current user to read enabled state
+    var getResponse = await client.GetAsync(userEndpoint);
+    if (getResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+    if (!getResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to fetch user", statusCode: (int)getResponse.StatusCode);
+    }
+
+    var user = await getResponse.Content.ReadFromJsonAsync<KeycloakUser>();
+    if (user == null)
+    {
+        return Results.NotFound(new { message = "User not found" });
+    }
+
+    var newEnabled = !user.Enabled;
+
+    // PUT back with toggled enabled
+    var togglePayload = new { enabled = newEnabled };
+    var updateResponse = await client.PutAsJsonAsync(userEndpoint, togglePayload);
+
+    if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        // When blocking, revoke all active sessions so existing tokens stop working
+        if (!newEnabled)
+        {
+            var logoutEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}/logout";
+            await client.PostAsync(logoutEndpoint, null);
+        }
+
+        return Results.Ok(new { enabled = newEnabled });
+    }
+
+    var errorContent = await updateResponse.Content.ReadAsStringAsync();
+    return Results.Problem($"Failed to toggle user enabled state: {errorContent}", statusCode: (int)updateResponse.StatusCode);
+}).RequireAuthorization("Admin");
+
 app.Run();
 
 record RegisterRequest(string? Name, string Email, string Password, string? PhoneNumber);

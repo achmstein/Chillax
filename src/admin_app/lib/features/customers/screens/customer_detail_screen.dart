@@ -248,6 +248,8 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               onSelected: (value) {
                 if (value == 'reset_password') {
                   _showResetPasswordSheet(context, customer);
+                } else if (value == 'toggle_enabled') {
+                  _showToggleEnabledDialog(context, customer);
                 }
               },
               itemBuilder: (context) => [
@@ -258,6 +260,25 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       const Icon(Icons.lock_reset, size: 20),
                       const SizedBox(width: 8),
                       Text(l10n.resetPassword),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'toggle_enabled',
+                  child: Row(
+                    children: [
+                      Icon(
+                        customer.enabled ? Icons.block : Icons.check_circle_outline,
+                        size: 20,
+                        color: customer.enabled ? const Color(0xFFEF4444) : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        customer.enabled ? l10n.blockCustomer : l10n.unblockCustomer,
+                        style: TextStyle(
+                          color: customer.enabled ? const Color(0xFFEF4444) : null,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -484,6 +505,48 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
         ),
       ),
     );
+  }
+
+  void _showToggleEnabledDialog(BuildContext context, Customer customer) async {
+    final l10n = AppLocalizations.of(context)!;
+    final isBlocking = customer.enabled;
+
+    final confirmed = await showAdaptiveDialog<bool>(
+      context: context,
+      builder: (context) => FDialog(
+        direction: Axis.horizontal,
+        title: AppText(isBlocking ? l10n.blockCustomer : l10n.unblockCustomer),
+        body: AppText(isBlocking ? l10n.blockCustomerConfirmation : l10n.unblockCustomerConfirmation),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            child: AppText(l10n.cancel),
+            onPress: () => Navigator.of(context).pop(false),
+          ),
+          FButton(
+            variant: isBlocking ? FButtonVariant.destructive : null,
+            child: AppText(l10n.confirm),
+            onPress: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await ref.read(customersProvider.notifier)
+        .toggleCustomerEnabled(customer.id);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: AppText(
+            success
+                ? (isBlocking ? l10n.customerBlocked : l10n.customerUnblocked)
+                : l10n.failedToToggleCustomer,
+          ),
+        ),
+      );
+    }
   }
 
   void _showResetPasswordSheet(BuildContext context, Customer customer) {

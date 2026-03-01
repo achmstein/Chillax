@@ -247,7 +247,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get optionalDescription => 'Optional description';
 
   @override
-  String get hourlyRate => 'Hourly Rate (\$) *';
+  String get singleRate => 'Single Rate (2P) *';
+
+  @override
+  String get multiRate => 'Multi Rate (4P) *';
 
   @override
   String get menu => 'Menu';
@@ -790,6 +793,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dualRateFormat(String singleRate, String multiRate) {
+    return '£$singleRate / £$multiRate per hr';
+  }
+
+  @override
   String balanceFormat(String amount, String currency) {
     return '$amount $currency';
   }
@@ -1172,4 +1180,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get originalPrice => 'Original Price';
+
+  @override
+  String get playerModeSingle => 'Single';
+
+  @override
+  String get playerModeMulti => 'Multi';
+
+  @override
+  String get hoursShort => 'hour';
+
+  @override
+  String get selectPlayerMode => 'Select Player Mode';
+
+  @override
+  String get sessionDetails => 'Session Details';
+
+  @override
+  String get totalDuration => 'Total Duration';
+
+  @override
+  String get changePlayerMode => 'Change Player Mode?';
+
+  @override
+  String changePlayerModeConfirmation(String mode) {
+    return 'Switch to $mode? The rate will change accordingly.';
+  }
+
+  @override
+  String get blockCustomer => 'Block Customer';
+
+  @override
+  String get unblockCustomer => 'Unblock Customer';
+
+  @override
+  String get blockCustomerConfirmation =>
+      'Are you sure you want to block this customer? They will not be able to use the app.';
+
+  @override
+  String get unblockCustomerConfirmation =>
+      'Are you sure you want to unblock this customer? They will be able to use the app again.';
+
+  @override
+  String get customerBlocked => 'Customer blocked';
+
+  @override
+  String get customerUnblocked => 'Customer unblocked';
+
+  @override
+  String get failedToToggleCustomer => 'Failed to update customer status';
 }

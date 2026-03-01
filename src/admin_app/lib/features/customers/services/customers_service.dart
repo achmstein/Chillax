@@ -13,6 +13,7 @@ abstract class CustomersRepository {
   Future<Customer?> getCustomer(String customerId);
   Future<void> updateCustomerName(String customerId, String newName);
   Future<void> resetCustomerPassword(String customerId, String newPassword);
+  Future<bool> toggleCustomerEnabled(String customerId);
 }
 
 /// Concrete implementation that calls the Identity API
@@ -64,6 +65,12 @@ class ApiCustomersRepository implements CustomersRepository {
       String customerId, String newPassword) async {
     await _api.put('/users/$customerId/password',
         data: {'newPassword': newPassword});
+  }
+
+  @override
+  Future<bool> toggleCustomerEnabled(String customerId) async {
+    final response = await _api.put('/users/$customerId/toggle-enabled');
+    return response.data['enabled'] as bool;
   }
 }
 

@@ -79,7 +79,8 @@
   "nameRequired": "الاسم *",
   "description": "الوصف",
   "optionalDescription": "وصف اختياري",
-  "hourlyRate": "سعر الساعة (جنيه) *",
+  "singleRate": "سعر سنجل (2 لاعب) *",
+  "multiRate": "سعر مالتي (4 لاعب) *",
 
   "menu": "المنيو",
   "categories": "الأقسام",
@@ -268,6 +269,7 @@
   "currency": "ج.م",
   "priceFormat": "{price} ج.م",
   "hourlyRateFormat": "{rate} ج.م/ساعة",
+  "dualRateFormat": "{singleRate} / {multiRate} ج.م/ساعة",
   "balanceFormat": "{amount} {currency}",
 
   "changePassword": "تغيير الباسورد",
@@ -398,5 +400,22 @@
   "selectItems": "اختار الأصناف",
   "bundleActive": "مفعّل",
   "deleteBundleConfirm": "مسح العرض ده؟",
-  "originalPrice": "السعر الأصلي"
+  "originalPrice": "السعر الأصلي",
+
+  "playerModeSingle": "سنجل",
+  "playerModeMulti": "مالتي",
+  "hoursShort": "ساعة",
+  "selectPlayerMode": "اختار وضع اللعب",
+  "sessionDetails": "تفاصيل الجلسة",
+  "totalDuration": "المدة الكلية",
+  "changePlayerMode": "تغيير الوضع؟",
+  "changePlayerModeConfirmation": "تغيير لـ {mode}؟ السعر هيتغير.",
+
+  "blockCustomer": "حظر العميل",
+  "unblockCustomer": "إلغاء حظر العميل",
+  "blockCustomerConfirmation": "متأكد إنك عايز تحظر العميل ده؟ مش هيقدر يستخدم التطبيق.",
+  "unblockCustomerConfirmation": "متأكد إنك عايز تلغي حظر العميل ده؟ هيقدر يستخدم التطبيق تاني.",
+  "customerBlocked": "تم حظر العميل",
+  "customerUnblocked": "تم إلغاء حظر العميل",
+  "failedToToggleCustomer": "فشل تحديث حالة العميل"
 }

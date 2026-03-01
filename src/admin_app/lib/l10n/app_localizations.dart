@@ -542,11 +542,17 @@ abstract class AppLocalizations {
   /// **'Optional description'**
   String get optionalDescription;
 
-  /// No description provided for @hourlyRate.
+  /// No description provided for @singleRate.
   ///
   /// In en, this message translates to:
-  /// **'Hourly Rate (\$) *'**
-  String get hourlyRate;
+  /// **'Single Rate (2P) *'**
+  String get singleRate;
+
+  /// No description provided for @multiRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi Rate (4P) *'**
+  String get multiRate;
 
   /// No description provided for @menu.
   ///
@@ -1556,6 +1562,12 @@ abstract class AppLocalizations {
   /// **'£{rate}/hr'**
   String hourlyRateFormat(String rate);
 
+  /// No description provided for @dualRateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'£{singleRate} / £{multiRate} per hr'**
+  String dualRateFormat(String singleRate, String multiRate);
+
   /// No description provided for @balanceFormat.
   ///
   /// In en, this message translates to:
@@ -2287,6 +2299,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Original Price'**
   String get originalPrice;
+
+  /// No description provided for @playerModeSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get playerModeSingle;
+
+  /// No description provided for @playerModeMulti.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi'**
+  String get playerModeMulti;
+
+  /// No description provided for @hoursShort.
+  ///
+  /// In en, this message translates to:
+  /// **'hour'**
+  String get hoursShort;
+
+  /// No description provided for @selectPlayerMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Player Mode'**
+  String get selectPlayerMode;
+
+  /// No description provided for @sessionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Details'**
+  String get sessionDetails;
+
+  /// No description provided for @totalDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Duration'**
+  String get totalDuration;
+
+  /// No description provided for @changePlayerMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Player Mode?'**
+  String get changePlayerMode;
+
+  /// No description provided for @changePlayerModeConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to {mode}? The rate will change accordingly.'**
+  String changePlayerModeConfirmation(String mode);
+
+  /// No description provided for @blockCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Block Customer'**
+  String get blockCustomer;
+
+  /// No description provided for @unblockCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock Customer'**
+  String get unblockCustomer;
+
+  /// No description provided for @blockCustomerConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to block this customer? They will not be able to use the app.'**
+  String get blockCustomerConfirmation;
+
+  /// No description provided for @unblockCustomerConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unblock this customer? They will be able to use the app again.'**
+  String get unblockCustomerConfirmation;
+
+  /// No description provided for @customerBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer blocked'**
+  String get customerBlocked;
+
+  /// No description provided for @customerUnblocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer unblocked'**
+  String get customerUnblocked;
+
+  /// No description provided for @failedToToggleCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update customer status'**
+  String get failedToToggleCustomer;
 }
 
 class _AppLocalizationsDelegate

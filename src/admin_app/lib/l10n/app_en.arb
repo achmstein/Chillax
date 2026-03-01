@@ -100,7 +100,8 @@
   "nameRequired": "Name *",
   "description": "Description",
   "optionalDescription": "Optional description",
-  "hourlyRate": "Hourly Rate ($) *",
+  "singleRate": "Single Rate (2P) *",
+  "multiRate": "Multi Rate (4P) *",
 
   "menu": "Menu",
   "categories": "Categories",
@@ -378,6 +379,13 @@
       "rate": {"type": "String"}
     }
   },
+  "dualRateFormat": "£{singleRate} / £{multiRate} per hr",
+  "@dualRateFormat": {
+    "placeholders": {
+      "singleRate": {"type": "String"},
+      "multiRate": {"type": "String"}
+    }
+  },
   "balanceFormat": "{amount} {currency}",
   "@balanceFormat": {
     "placeholders": {
@@ -534,5 +542,27 @@
   "selectItems": "Select Items",
   "bundleActive": "Active",
   "deleteBundleConfirm": "Delete this bundle?",
-  "originalPrice": "Original Price"
+  "originalPrice": "Original Price",
+
+  "playerModeSingle": "Single",
+  "playerModeMulti": "Multi",
+  "hoursShort": "hour",
+  "selectPlayerMode": "Select Player Mode",
+  "sessionDetails": "Session Details",
+  "totalDuration": "Total Duration",
+  "changePlayerMode": "Change Player Mode?",
+  "changePlayerModeConfirmation": "Switch to {mode}? The rate will change accordingly.",
+  "@changePlayerModeConfirmation": {
+    "placeholders": {
+      "mode": {"type": "String"}
+    }
+  },
+
+  "blockCustomer": "Block Customer",
+  "unblockCustomer": "Unblock Customer",
+  "blockCustomerConfirmation": "Are you sure you want to block this customer? They will not be able to use the app.",
+  "unblockCustomerConfirmation": "Are you sure you want to unblock this customer? They will be able to use the app again.",
+  "customerBlocked": "Customer blocked",
+  "customerUnblocked": "Customer unblocked",
+  "failedToToggleCustomer": "Failed to update customer status"
 }

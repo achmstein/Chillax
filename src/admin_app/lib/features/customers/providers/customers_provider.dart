@@ -107,6 +107,17 @@ class CustomersNotifier extends Notifier<CustomersState> {
       return false;
     }
   }
+
+  Future<bool> toggleCustomerEnabled(String customerId) async {
+    try {
+      await _repository.toggleCustomerEnabled(customerId);
+      await loadCustomers();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to toggle customer enabled: $e');
+      return false;
+    }
+  }
 }
 
 /// Customers provider

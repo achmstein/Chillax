@@ -245,7 +245,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get optionalDescription => 'وصف اختياري';
 
   @override
-  String get hourlyRate => 'سعر الساعة (جنيه) *';
+  String get singleRate => 'سعر سنجل (2 لاعب) *';
+
+  @override
+  String get multiRate => 'سعر مالتي (4 لاعب) *';
 
   @override
   String get menu => 'المنيو';
@@ -786,6 +789,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dualRateFormat(String singleRate, String multiRate) {
+    return '$singleRate / $multiRate ج.م/ساعة';
+  }
+
+  @override
   String balanceFormat(String amount, String currency) {
     return '$amount $currency';
   }
@@ -1166,4 +1174,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get originalPrice => 'السعر الأصلي';
+
+  @override
+  String get playerModeSingle => 'سنجل';
+
+  @override
+  String get playerModeMulti => 'مالتي';
+
+  @override
+  String get hoursShort => 'ساعة';
+
+  @override
+  String get selectPlayerMode => 'اختار وضع اللعب';
+
+  @override
+  String get sessionDetails => 'تفاصيل الجلسة';
+
+  @override
+  String get totalDuration => 'المدة الكلية';
+
+  @override
+  String get changePlayerMode => 'تغيير الوضع؟';
+
+  @override
+  String changePlayerModeConfirmation(String mode) {
+    return 'تغيير لـ $mode؟ السعر هيتغير.';
+  }
+
+  @override
+  String get blockCustomer => 'حظر العميل';
+
+  @override
+  String get unblockCustomer => 'إلغاء حظر العميل';
+
+  @override
+  String get blockCustomerConfirmation =>
+      'متأكد إنك عايز تحظر العميل ده؟ مش هيقدر يستخدم التطبيق.';
+
+  @override
+  String get unblockCustomerConfirmation =>
+      'متأكد إنك عايز تلغي حظر العميل ده؟ هيقدر يستخدم التطبيق تاني.';
+
+  @override
+  String get customerBlocked => 'تم حظر العميل';
+
+  @override
+  String get customerUnblocked => 'تم إلغاء حظر العميل';
+
+  @override
+  String get failedToToggleCustomer => 'فشل تحديث حالة العميل';
 }
