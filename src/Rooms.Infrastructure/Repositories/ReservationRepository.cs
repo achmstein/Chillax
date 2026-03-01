@@ -18,7 +18,7 @@ public class ReservationRepository : IReservationRepository
 
     public void Update(Reservation reservation)
     {
-        _context.Entry(reservation).State = EntityState.Modified;
+        _context.Update(reservation);
     }
 
     public async Task<Reservation?> GetAsync(int reservationId)
@@ -111,6 +111,14 @@ public class ReservationRepository : IReservationRepository
         return await _context.Reservations
             .Include(r => r.Room)
             .Include(r => r.SessionMembers)
+            .FirstOrDefaultAsync(r => r.Id == reservationId);
+    }
+
+    public async Task<Reservation?> GetWithSegmentsAsync(int reservationId)
+    {
+        return await _context.Reservations
+            .Include(r => r.Room)
+            .Include(r => r.SessionSegments)
             .FirstOrDefaultAsync(r => r.Id == reservationId);
     }
 }

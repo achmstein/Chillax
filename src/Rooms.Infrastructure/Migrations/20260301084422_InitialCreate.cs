@@ -29,6 +29,11 @@ namespace Rooms.Infrastructure.Migrations
                 schema: "rooms",
                 incrementBy: 10);
 
+            migrationBuilder.CreateSequence(
+                name: "sessionsegmentseq",
+                schema: "rooms",
+                incrementBy: 10);
+
             migrationBuilder.CreateTable(
                 name: "IntegrationEventLog",
                 schema: "rooms",
@@ -67,7 +72,8 @@ namespace Rooms.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false),
-                    HourlyRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    SingleRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    MultiRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     PhysicalStatus = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     Description = table.Column<string>(type: "jsonb", nullable: true),
                     Name = table.Column<string>(type: "jsonb", nullable: false)
@@ -92,7 +98,9 @@ namespace Rooms.Infrastructure.Migrations
                     ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ActualStartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    HourlyRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    SingleRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    MultiRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    CurrentPlayerMode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     TotalCost = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true),
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     Notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
@@ -126,6 +134,30 @@ namespace Rooms.Infrastructure.Migrations
                     table.PrimaryKey("PK_session_members", x => x.Id);
                     table.ForeignKey(
                         name: "FK_session_members_reservations_ReservationId",
+                        column: x => x.ReservationId,
+                        principalSchema: "rooms",
+                        principalTable: "reservations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "session_segments",
+                schema: "rooms",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false),
+                    ReservationId = table.Column<int>(type: "integer", nullable: false),
+                    PlayerMode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    HourlyRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_session_segments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_session_segments_reservations_ReservationId",
                         column: x => x.ReservationId,
                         principalSchema: "rooms",
                         principalTable: "reservations",
@@ -199,6 +231,12 @@ namespace Rooms.Infrastructure.Migrations
                 table: "session_members",
                 columns: new[] { "ReservationId", "CustomerId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_session_segments_ReservationId",
+                schema: "rooms",
+                table: "session_segments",
+                column: "ReservationId");
         }
 
         /// <inheritdoc />
@@ -214,6 +252,10 @@ namespace Rooms.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "session_members",
+                schema: "rooms");
+
+            migrationBuilder.DropTable(
+                name: "session_segments",
                 schema: "rooms");
 
             migrationBuilder.DropTable(
@@ -234,6 +276,10 @@ namespace Rooms.Infrastructure.Migrations
 
             migrationBuilder.DropSequence(
                 name: "sessionmemberseq",
+                schema: "rooms");
+
+            migrationBuilder.DropSequence(
+                name: "sessionsegmentseq",
                 schema: "rooms");
         }
     }

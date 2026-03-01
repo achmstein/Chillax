@@ -24,7 +24,7 @@ public class EndSessionCommandHandler : IRequestHandler<EndSessionCommand, bool>
 
     public async Task<bool> Handle(EndSessionCommand request, CancellationToken cancellationToken)
     {
-        var reservation = await _reservationRepository.GetWithRoomAsync(request.ReservationId);
+        var reservation = await _reservationRepository.GetWithSegmentsAsync(request.ReservationId);
         if (reservation == null)
             throw new RoomsDomainException($"Reservation {request.ReservationId} not found");
 

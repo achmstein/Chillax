@@ -767,13 +767,13 @@ abstract class AppLocalizations {
   /// No description provided for @fifteenMinutesToArrive.
   ///
   /// In en, this message translates to:
-  /// **'15 minutes to arrive'**
+  /// **'10 minutes to arrive'**
   String get fifteenMinutesToArrive;
 
   /// No description provided for @reservationCancelledIfNoCheckIn.
   ///
   /// In en, this message translates to:
-  /// **'Your reservation will be automatically cancelled if you don\'t check in within 15 minutes.'**
+  /// **'Your reservation will be automatically cancelled if you don\'t check in within 10 minutes.'**
   String get reservationCancelledIfNoCheckIn;
 
   /// No description provided for @reserveRoomName.
@@ -797,7 +797,7 @@ abstract class AppLocalizations {
   /// No description provided for @roomReservedSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Room reserved! You have 15 minutes to arrive.'**
+  /// **'Room reserved! You have 10 minutes to arrive.'**
   String get roomReservedSuccess;
 
   /// No description provided for @failedToReserveRoom.
@@ -853,6 +853,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'£{rate}/hour'**
   String hourlyRateFormat(String rate);
+
+  /// No description provided for @dualRateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'£{singleRate} / £{multiRate} per hour'**
+  String dualRateFormat(String singleRate, String multiRate);
+
+  /// No description provided for @singlePlayerRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Single: £{rate}/hr'**
+  String singlePlayerRate(String rate);
+
+  /// No description provided for @multiPlayerRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi: £{rate}/hr'**
+  String multiPlayerRate(String rate);
 
   /// No description provided for @orderHistory.
   ///
@@ -1747,6 +1765,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Includes'**
   String get bundleIncludes;
+
+  /// No description provided for @playerModeSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get playerModeSingle;
+
+  /// No description provided for @playerModeMulti.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi'**
+  String get playerModeMulti;
 }
 
 class _AppLocalizationsDelegate

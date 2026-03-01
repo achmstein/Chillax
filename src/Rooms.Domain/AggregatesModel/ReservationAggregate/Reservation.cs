@@ -1,4 +1,4 @@
-﻿using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
+using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
 using Chillax.Rooms.Domain.Events;
 using Chillax.Rooms.Domain.Exceptions;
 using Chillax.Rooms.Domain.SeedWork;
@@ -14,7 +14,7 @@ public class Reservation : Entity, IAggregateRoot
     /// <summary>
     /// Time in minutes before a reservation expires if not started
     /// </summary>
-    public const int ReservationExpirationMinutes = 15;
+    public const int ReservationExpirationMinutes = 10;
 
     public int RoomId { get; private set; }
 
@@ -42,6 +42,9 @@ public class Reservation : Entity, IAggregateRoot
     private readonly List<SessionMember> _sessionMembers = new();
     public IReadOnlyCollection<SessionMember> SessionMembers => _sessionMembers.AsReadOnly();
 
+    private readonly List<SessionSegment> _sessionSegments = new();
+    public IReadOnlyCollection<SessionSegment> SessionSegments => _sessionSegments.AsReadOnly();
+
     /// <summary>
     /// When the reservation was created (customer has 15 min to arrive from this time)
     /// </summary>
@@ -63,9 +66,19 @@ public class Reservation : Entity, IAggregateRoot
     public DateTime? EndTime { get; private set; }
 
     /// <summary>
-    /// Hourly rate locked at reservation time
+    /// Single player mode hourly rate locked at reservation time
     /// </summary>
-    public decimal HourlyRate { get; private set; }
+    public decimal SingleRate { get; private set; }
+
+    /// <summary>
+    /// Multi player mode hourly rate locked at reservation time
+    /// </summary>
+    public decimal MultiRate { get; private set; }
+
+    /// <summary>
+    /// Current player mode during an active session
+    /// </summary>
+    public PlayerMode? CurrentPlayerMode { get; private set; }
 
     /// <summary>
     /// Calculated total cost when session ends
@@ -87,20 +100,25 @@ public class Reservation : Entity, IAggregateRoot
         int roomId,
         string? customerId,
         string? customerName,
-        decimal hourlyRate,
+        decimal singleRate,
+        decimal multiRate,
         string? notes = null,
         bool isAdminCreated = false) : this()
     {
         if (!isAdminCreated && string.IsNullOrWhiteSpace(customerId))
             throw new RoomsDomainException("Customer ID is required");
 
-        if (hourlyRate <= 0)
-            throw new RoomsDomainException("Hourly rate must be greater than zero");
+        if (singleRate <= 0)
+            throw new RoomsDomainException("Single rate must be greater than zero");
+
+        if (multiRate <= 0)
+            throw new RoomsDomainException("Multi rate must be greater than zero");
 
         RoomId = roomId;
         CustomerId = customerId;
         CustomerName = customerName;
-        HourlyRate = hourlyRate;
+        SingleRate = singleRate;
+        MultiRate = multiRate;
         Notes = notes;
         CreatedAt = DateTime.UtcNow;
         ExpiresAt = isAdminCreated ? null : CreatedAt.AddMinutes(ReservationExpirationMinutes);
@@ -116,26 +134,37 @@ public class Reservation : Entity, IAggregateRoot
         int roomId,
         string customerId,
         string? customerName,
-        decimal hourlyRate,
+        decimal singleRate,
+        decimal multiRate,
+        PlayerMode initialMode = PlayerMode.Single,
         string? notes = null)
     {
         if (string.IsNullOrWhiteSpace(customerId))
             throw new RoomsDomainException("Customer ID is required");
 
-        if (hourlyRate <= 0)
-            throw new RoomsDomainException("Hourly rate must be greater than zero");
+        if (singleRate <= 0)
+            throw new RoomsDomainException("Single rate must be greater than zero");
 
+        if (multiRate <= 0)
+            throw new RoomsDomainException("Multi rate must be greater than zero");
+
+        var now = DateTime.UtcNow;
         var reservation = new Reservation
         {
             RoomId = roomId,
             CustomerId = customerId,
             CustomerName = customerName,
-            ActualStartTime = DateTime.UtcNow,
-            HourlyRate = hourlyRate,
+            ActualStartTime = now,
+            SingleRate = singleRate,
+            MultiRate = multiRate,
+            CurrentPlayerMode = initialMode,
             Notes = notes,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = now,
             Status = ReservationStatus.Active
         };
+
+        var rate = initialMode == PlayerMode.Single ? singleRate : multiRate;
+        reservation._sessionSegments.Add(new SessionSegment(0, initialMode, rate, now));
 
         reservation.GenerateAccessCode();
         reservation.AddDomainEvent(new SessionStartedDomainEvent(reservation));
@@ -148,23 +177,34 @@ public class Reservation : Entity, IAggregateRoot
     /// </summary>
     public static Reservation CreateWalkInWithoutOwner(
         int roomId,
-        decimal hourlyRate,
+        decimal singleRate,
+        decimal multiRate,
+        PlayerMode initialMode = PlayerMode.Single,
         string? notes = null)
     {
-        if (hourlyRate <= 0)
-            throw new RoomsDomainException("Hourly rate must be greater than zero");
+        if (singleRate <= 0)
+            throw new RoomsDomainException("Single rate must be greater than zero");
 
+        if (multiRate <= 0)
+            throw new RoomsDomainException("Multi rate must be greater than zero");
+
+        var now = DateTime.UtcNow;
         var reservation = new Reservation
         {
             RoomId = roomId,
             CustomerId = null,
             CustomerName = null,
-            ActualStartTime = DateTime.UtcNow,
-            HourlyRate = hourlyRate,
+            ActualStartTime = now,
+            SingleRate = singleRate,
+            MultiRate = multiRate,
+            CurrentPlayerMode = initialMode,
             Notes = notes,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = now,
             Status = ReservationStatus.Active
         };
+
+        var rate = initialMode == PlayerMode.Single ? singleRate : multiRate;
+        reservation._sessionSegments.Add(new SessionSegment(0, initialMode, rate, now));
 
         reservation.GenerateAccessCode();
         reservation.AddDomainEvent(new SessionStartedDomainEvent(reservation));
@@ -174,13 +214,18 @@ public class Reservation : Entity, IAggregateRoot
     /// <summary>
     /// Start the session (admin action)
     /// </summary>
-    public void StartSession()
+    public void StartSession(PlayerMode initialMode = PlayerMode.Single)
     {
         if (Status != ReservationStatus.Reserved)
             throw new RoomsDomainException($"Cannot start session from status {Status}. Only reserved sessions can be started.");
 
-        ActualStartTime = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        ActualStartTime = now;
         Status = ReservationStatus.Active;
+        CurrentPlayerMode = initialMode;
+
+        var rate = initialMode == PlayerMode.Single ? SingleRate : MultiRate;
+        _sessionSegments.Add(new SessionSegment(Id, initialMode, rate, now));
 
         GenerateAccessCode();
 
@@ -194,6 +239,30 @@ public class Reservation : Entity, IAggregateRoot
     }
 
     /// <summary>
+    /// Change the player mode mid-session. Ends the current segment and starts a new one.
+    /// </summary>
+    public void ChangePlayerMode(PlayerMode newMode)
+    {
+        if (Status != ReservationStatus.Active)
+            throw new RoomsDomainException("Can only change player mode on active sessions");
+
+        if (CurrentPlayerMode == newMode)
+            throw new RoomsDomainException($"Session is already in {newMode} mode");
+
+        var now = DateTime.UtcNow;
+
+        // End the current open segment
+        var currentSegment = _sessionSegments.LastOrDefault(s => s.EndTime == null);
+        currentSegment?.End(now);
+
+        // Start a new segment with the new mode
+        var rate = newMode == PlayerMode.Single ? SingleRate : MultiRate;
+        _sessionSegments.Add(new SessionSegment(Id, newMode, rate, now));
+
+        CurrentPlayerMode = newMode;
+    }
+
+    /// <summary>
     /// End the session and calculate cost (admin action)
     /// </summary>
     public void EndSession()
@@ -204,9 +273,16 @@ public class Reservation : Entity, IAggregateRoot
         if (ActualStartTime == null)
             throw new RoomsDomainException("Session was never started");
 
-        EndTime = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        EndTime = now;
+
+        // Close the last open segment
+        var openSegment = _sessionSegments.LastOrDefault(s => s.EndTime == null);
+        openSegment?.End(now);
+
         TotalCost = CalculateCost();
         Status = ReservationStatus.Completed;
+        CurrentPlayerMode = null;
 
         AddDomainEvent(new SessionEndedDomainEvent(this));
     }
@@ -224,38 +300,62 @@ public class Reservation : Entity, IAggregateRoot
 
         var previousStatus = Status;
         Status = ReservationStatus.Cancelled;
+        CurrentPlayerMode = null;
 
         AddDomainEvent(new ReservationCancelledDomainEvent(this, previousStatus));
     }
 
     /// <summary>
-    /// Calculate cost based on duration (rounds to nearest quarter hour)
+    /// Calculate cost based on segments (rounds each mode's total to nearest quarter hour)
     /// </summary>
     private decimal CalculateCost()
     {
-        if (ActualStartTime == null || EndTime == null)
-            return 0;
-
-        var duration = EndTime.Value - ActualStartTime.Value;
-        var totalMinutes = duration.TotalMinutes;
-
-        // Round to nearest quarter hour (15 minutes)
-        var quarters = Math.Round(totalMinutes / 15, MidpointRounding.AwayFromZero);
-        var hours = (decimal)quarters * 0.25m;
-
-        return hours * HourlyRate;
+        return GetSingleCost() + GetMultiCost();
     }
 
     /// <summary>
-    /// Get duration rounded to nearest quarter hour (e.g. 2.25, 3.5) for POS billing
-    /// Returns null if session hasn't started or ended
+    /// Get cost for Single mode segments
     /// </summary>
-    public decimal? GetRoundedHours()
+    public decimal GetSingleCost()
     {
-        if (ActualStartTime == null || EndTime == null)
-            return null;
+        var hours = GetSingleRoundedHours();
+        return hours * SingleRate;
+    }
 
-        var totalMinutes = (EndTime.Value - ActualStartTime.Value).TotalMinutes;
+    /// <summary>
+    /// Get cost for Multi mode segments
+    /// </summary>
+    public decimal GetMultiCost()
+    {
+        var hours = GetMultiRoundedHours();
+        return hours * MultiRate;
+    }
+
+    /// <summary>
+    /// Get total duration in Single mode, rounded to nearest quarter hour
+    /// </summary>
+    public decimal GetSingleRoundedHours()
+    {
+        return GetRoundedHoursForMode(PlayerMode.Single);
+    }
+
+    /// <summary>
+    /// Get total duration in Multi mode, rounded to nearest quarter hour
+    /// </summary>
+    public decimal GetMultiRoundedHours()
+    {
+        return GetRoundedHoursForMode(PlayerMode.Multi);
+    }
+
+    private decimal GetRoundedHoursForMode(PlayerMode mode)
+    {
+        var totalMinutes = _sessionSegments
+            .Where(s => s.PlayerMode == mode && s.EndTime != null)
+            .Sum(s => (s.EndTime!.Value - s.StartTime).TotalMinutes);
+
+        if (totalMinutes <= 0)
+            return 0;
+
         var quarters = Math.Round(totalMinutes / 15, MidpointRounding.AwayFromZero);
         return (decimal)quarters * 0.25m;
     }
@@ -463,4 +563,3 @@ public class Reservation : Entity, IAggregateRoot
         }
     }
 }
-

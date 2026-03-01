@@ -19,7 +19,11 @@ class RoomEntityTypeConfiguration : IEntityTypeConfiguration<Room>
         // Configure Description as JSON column
         builder.OwnsOne(r => r.Description, b => b.ToJson());
 
-        builder.Property(r => r.HourlyRate)
+        builder.Property(r => r.SingleRate)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.Property(r => r.MultiRate)
             .HasPrecision(18, 2)
             .IsRequired();
 

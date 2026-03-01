@@ -53,11 +53,11 @@ function formatDuration(startTime: string): string {
   return `${hours}h ${minutes}m`
 }
 
-function calculateCurrentCost(startTime: string, hourlyRate: number): number {
+function calculateCurrentCost(startTime: string, singleRate: number): number {
   const start = new Date(startTime)
   const now = new Date()
   const hours = (now.getTime() - start.getTime()) / (1000 * 60 * 60)
-  return Math.ceil(hours * hourlyRate * 100) / 100
+  return Math.ceil(hours * singleRate * 100) / 100
 }
 
 function generateRequestId(): string {
@@ -438,7 +438,7 @@ export function Dashboard() {
                                   {session.startTime && room
                                     ? calculateCurrentCost(
                                         session.startTime,
-                                        room.hourlyRate
+                                        room.singleRate
                                       ).toFixed(2)
                                     : '0.00'}{' '}
                                   EGP

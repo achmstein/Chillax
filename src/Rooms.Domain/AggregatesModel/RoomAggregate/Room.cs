@@ -10,7 +10,8 @@ public class Room : Entity, IAggregateRoot
 {
     public LocalizedText Name { get; private set; } = new();
     public LocalizedText? Description { get; private set; }
-    public decimal HourlyRate { get; private set; }
+    public decimal SingleRate { get; private set; }
+    public decimal MultiRate { get; private set; }
 
     /// <summary>
     /// Physical status of the room (not reservation status)
@@ -19,50 +20,59 @@ public class Room : Entity, IAggregateRoot
 
     protected Room() { }
 
-    public Room(LocalizedText name, decimal hourlyRate, LocalizedText? description = null) : this()
+    public Room(LocalizedText name, decimal singleRate, decimal multiRate, LocalizedText? description = null) : this()
     {
         if (string.IsNullOrWhiteSpace(name.En))
             throw new RoomsDomainException("Room name is required");
 
-        if (hourlyRate <= 0)
-            throw new RoomsDomainException("Hourly rate must be greater than zero");
+        if (singleRate <= 0)
+            throw new RoomsDomainException("Single rate must be greater than zero");
+
+        if (multiRate <= 0)
+            throw new RoomsDomainException("Multi rate must be greater than zero");
 
         Name = name;
-        HourlyRate = hourlyRate;
+        SingleRate = singleRate;
+        MultiRate = multiRate;
         Description = description;
         PhysicalStatus = RoomPhysicalStatus.Available;
     }
 
-    public Room(string name, decimal hourlyRate, string? description = null, string? nameAr = null, string? descriptionAr = null)
-        : this(new LocalizedText(name, nameAr), hourlyRate, description != null ? new LocalizedText(description, descriptionAr) : null)
+    public Room(string name, decimal singleRate, decimal multiRate, string? description = null, string? nameAr = null, string? descriptionAr = null)
+        : this(new LocalizedText(name, nameAr), singleRate, multiRate, description != null ? new LocalizedText(description, descriptionAr) : null)
     {
     }
 
     /// <summary>
     /// Update room details
     /// </summary>
-    public void UpdateDetails(LocalizedText name, LocalizedText? description, decimal hourlyRate)
+    public void UpdateDetails(LocalizedText name, LocalizedText? description, decimal singleRate, decimal multiRate)
     {
         if (string.IsNullOrWhiteSpace(name.En))
             throw new RoomsDomainException("Room name is required");
 
-        if (hourlyRate <= 0)
-            throw new RoomsDomainException("Hourly rate must be greater than zero");
+        if (singleRate <= 0)
+            throw new RoomsDomainException("Single rate must be greater than zero");
+
+        if (multiRate <= 0)
+            throw new RoomsDomainException("Multi rate must be greater than zero");
 
         Name = name;
         Description = description;
-        HourlyRate = hourlyRate;
+        SingleRate = singleRate;
+        MultiRate = multiRate;
     }
 
     /// <summary>
     /// Update room details (string overload for convenience)
     /// </summary>
-    public void UpdateDetails(string name, string? description, decimal hourlyRate, string? nameAr = null, string? descriptionAr = null)
+    public void UpdateDetails(string name, string? description, decimal singleRate, decimal multiRate, string? nameAr = null, string? descriptionAr = null)
     {
         UpdateDetails(
             new LocalizedText(name, nameAr),
             description != null ? new LocalizedText(description, descriptionAr) : null,
-            hourlyRate
+            singleRate,
+            multiRate
         );
     }
 

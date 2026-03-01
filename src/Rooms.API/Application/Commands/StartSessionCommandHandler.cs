@@ -33,7 +33,7 @@ public class StartSessionCommandHandler : IRequestHandler<StartSessionCommand, b
             throw new RoomsDomainException($"Room {reservation.RoomId} not found");
 
         // Start session on reservation (raises SessionStartedDomainEvent)
-        reservation.StartSession();
+        reservation.StartSession(request.InitialMode);
 
         // Ensure unique access code among active sessions
         for (var i = 0; i < 10 && await _reservationRepository.IsAccessCodeInUseAsync(reservation.AccessCode!); i++)

@@ -102,6 +102,9 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
               onRemoveMember: session != null && isActive
                   ? (customerId) => _removeMember(context, session.id, customerId)
                   : null,
+              onChangePlayerMode: session != null && isActive
+                  ? (mode) => _changePlayerMode(session.id, mode)
+                  : null,
             ),
 
             // BOTTOM HALF: History
@@ -162,12 +165,50 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     await ref.read(roomsProvider.notifier).reserveRoom(roomId);
   }
 
+  Future<String?> _pickPlayerMode(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    return showAdaptiveDialog<String>(
+      context: context,
+      builder: (context) => FDialog(
+        direction: Axis.vertical,
+        title: AppText(l10n.selectPlayerMode),
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            FButton(
+              onPress: () => Navigator.of(context).pop('Single'),
+              child: AppText(l10n.playerModeSingle),
+            ),
+            const SizedBox(height: 8),
+            FButton(
+              variant: FButtonVariant.outline,
+              onPress: () => Navigator.of(context).pop('Multi'),
+              child: AppText(l10n.playerModeMulti),
+            ),
+          ],
+        ),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            child: AppText(l10n.cancel),
+            onPress: () => Navigator.of(context).pop(null),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _startWalkIn(int roomId) async {
-    await ref.read(roomsProvider.notifier).startWalkInSession(roomId);
+    final mode = await _pickPlayerMode(context);
+    if (mode == null) return;
+    await ref.read(roomsProvider.notifier).startWalkInSession(roomId, playerMode: mode);
   }
 
   Future<void> _startSession(int sessionId) async {
-    await ref.read(roomsProvider.notifier).startSession(sessionId);
+    final mode = await _pickPlayerMode(context);
+    if (mode == null) return;
+    await ref.read(roomsProvider.notifier).startSession(sessionId, playerMode: mode);
   }
 
   Future<void> _endSession(BuildContext context, int sessionId) async {
@@ -284,6 +325,34 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     }
   }
 
+  Future<void> _changePlayerMode(int sessionId, String mode) async {
+    final l10n = AppLocalizations.of(context)!;
+    final modeLabel = mode == 'Multi' ? l10n.playerModeMulti : l10n.playerModeSingle;
+    final confirmed = await showAdaptiveDialog<bool>(
+      context: context,
+      builder: (context) => FDialog(
+        direction: Axis.horizontal,
+        title: AppText(l10n.changePlayerMode),
+        body: AppText(l10n.changePlayerModeConfirmation(modeLabel)),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            child: AppText(l10n.cancel),
+            onPress: () => Navigator.of(context).pop(false),
+          ),
+          FButton(
+            child: AppText(l10n.confirm),
+            onPress: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(roomsProvider.notifier).changePlayerMode(sessionId, mode);
+    }
+  }
+
   Future<void> _deleteRoom(BuildContext context, Room room) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showAdaptiveDialog<bool>(
@@ -331,6 +400,7 @@ class _CurrentStateSection extends StatelessWidget {
   final VoidCallback? onAssignCustomer;
   final VoidCallback? onAddCustomer;
   final ValueChanged<String>? onRemoveMember;
+  final ValueChanged<String>? onChangePlayerMode;
 
   const _CurrentStateSection({
     required this.room,
@@ -346,6 +416,7 @@ class _CurrentStateSection extends StatelessWidget {
     this.onAssignCustomer,
     this.onAddCustomer,
     this.onRemoveMember,
+    this.onChangePlayerMode,
   });
 
   @override
@@ -391,7 +462,7 @@ class _CurrentStateSection extends StatelessWidget {
                 ),
               ),
               AppText(
-                l10n.hourlyRateFormat(room.hourlyRate.toStringAsFixed(0)),
+                l10n.dualRateFormat(room.singleRate.toStringAsFixed(0), room.multiRate.toStringAsFixed(0)),
                 style: theme.typography.sm.copyWith(
                   color: theme.colors.mutedForeground,
                 ),
@@ -422,7 +493,47 @@ class _CurrentStateSection extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
+
+            // Per-mode time breakdown (only show modes that have segments)
+            if (session!.segments.isNotEmpty) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (session!.segments.any((s) => s.playerMode == 'Single'))
+                    AppText(
+                      '${l10n.playerModeSingle} ${_formatSegmentDuration(session!, 'Single')}',
+                      style: theme.typography.xs.copyWith(
+                        color: theme.colors.mutedForeground,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  if (session!.segments.any((s) => s.playerMode == 'Single') &&
+                      session!.segments.any((s) => s.playerMode == 'Multi'))
+                    const SizedBox(width: 16),
+                  if (session!.segments.any((s) => s.playerMode == 'Multi'))
+                    AppText(
+                      '${l10n.playerModeMulti} ${_formatSegmentDuration(session!, 'Multi')}',
+                      style: theme.typography.xs.copyWith(
+                        color: theme.colors.mutedForeground,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Player mode toggle
+            if (onChangePlayerMode != null) ...[
+              _PlayerModeToggle(
+                currentMode: session!.currentPlayerMode ?? 'Single',
+                singleRate: session!.singleRate,
+                multiRate: session!.multiRate,
+                onChanged: onChangePlayerMode!,
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Access code row
             if (session!.accessCode != null) ...[
@@ -739,6 +850,120 @@ class _CurrentStateSection extends StatelessWidget {
   }
 }
 
+/// Toggle between Single and Multi player mode
+String _formatSegmentDuration(RoomSession session, String mode) {
+  final totalSeconds = session.segments
+      .where((s) => s.playerMode == mode)
+      .fold<int>(0, (sum, s) {
+    final end = s.endTime ?? DateTime.now();
+    return sum + end.difference(s.startTime).inSeconds;
+  });
+  final h = (totalSeconds ~/ 3600).toString().padLeft(2, '0');
+  final m = ((totalSeconds % 3600) ~/ 60).toString().padLeft(2, '0');
+  final s = (totalSeconds % 60).toString().padLeft(2, '0');
+  return '$h:$m:$s';
+}
+
+class _PlayerModeToggle extends StatelessWidget {
+  final String currentMode;
+  final double singleRate;
+  final double multiRate;
+  final ValueChanged<String> onChanged;
+
+  const _PlayerModeToggle({
+    required this.currentMode,
+    required this.singleRate,
+    required this.multiRate,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
+    final isSingle = currentMode != 'Multi';
+
+    return Center(
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colors.muted,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.all(3),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _modeButton(
+              context,
+              label: l10n.playerModeSingle,
+              rate: singleRate,
+              isSelected: isSingle,
+              onTap: () {
+                if (!isSingle) onChanged('Single');
+              },
+            ),
+            _modeButton(
+              context,
+              label: l10n.playerModeMulti,
+              rate: multiRate,
+              isSelected: !isSingle,
+              onTap: () {
+                if (isSingle) onChanged('Multi');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _modeButton(
+    BuildContext context, {
+    required String label,
+    required double rate,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? theme.colors.background : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4, offset: const Offset(0, 1))]
+              : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppText(
+              label,
+              style: theme.typography.sm.copyWith(
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? theme.colors.foreground : theme.colors.mutedForeground,
+              ),
+            ),
+            const SizedBox(height: 2),
+            AppText(
+              l10n.hourlyRateFormat(rate.toStringAsFixed(0)),
+              style: theme.typography.xs.copyWith(
+                color: isSelected ? theme.colors.primary : theme.colors.mutedForeground,
+                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Bottom section: History with pagination
 class _HistorySection extends StatelessWidget {
   final List<RoomSession> sessions;
@@ -817,63 +1042,72 @@ class _HistorySection extends StatelessWidget {
                         }
 
                         final session = sessions[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            children: [
-                              // Date & time
-                              SizedBox(
-                                width: 70,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    AppText(
-                                      session.startTime != null
-                                          ? dateFormat.format(session.startTime!.toLocal())
-                                          : '-',
-                                      style: theme.typography.sm.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    AppText(
-                                      session.startTime != null
-                                          ? timeFormat.format(session.startTime!.toLocal())
-                                          : '',
-                                      style: theme.typography.xs.copyWith(
-                                        color: theme.colors.mutedForeground,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // User
-                              Expanded(
-                                child: session.userName != null
-                                    ? AppText(
-                                        session.userName!,
-                                        style: theme.typography.sm,
-                                        overflow: TextOverflow.ellipsis,
-                                      )
-                                    : AppText(
-                                        l10n.walkIn,
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _showSessionDetailSheet(context, session),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                // Date & time
+                                SizedBox(
+                                  width: 70,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      AppText(
+                                        session.startTime != null
+                                            ? dateFormat.format(session.startTime!.toLocal())
+                                            : '-',
                                         style: theme.typography.sm.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      AppText(
+                                        session.startTime != null
+                                            ? timeFormat.format(session.startTime!.toLocal())
+                                            : '',
+                                        style: theme.typography.xs.copyWith(
                                           color: theme.colors.mutedForeground,
                                         ),
                                       ),
-                              ),
-
-                              // Rounded hours (for POS entry)
-                              AppText(
-                                session.roundedHours != null
-                                    ? _formatRoundedHours(session.roundedHours!)
-                                    : session.formattedDuration,
-                                style: theme.typography.sm.copyWith(
-                                  fontFamily: 'monospace',
-                                  fontWeight: FontWeight.w500,
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+
+                                // User
+                                Expanded(
+                                  child: session.userName != null
+                                      ? AppText(
+                                          session.userName!,
+                                          style: theme.typography.sm,
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                      : AppText(
+                                          l10n.walkIn,
+                                          style: theme.typography.sm.copyWith(
+                                            color: theme.colors.mutedForeground,
+                                          ),
+                                        ),
+                                ),
+
+                                // Duration
+                                AppText(
+                                  session.formattedDuration,
+                                  style: theme.typography.sm.copyWith(
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.chevron_right,
+                                  size: 16,
+                                  color: theme.colors.mutedForeground,
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -882,15 +1116,173 @@ class _HistorySection extends StatelessWidget {
       ],
     );
   }
+
+  void _showSessionDetailSheet(BuildContext context, RoomSession session) {
+    final theme = context.theme;
+    final l10n = AppLocalizations.of(context)!;
+    final hSuffix = l10n.hoursShort;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    final hasSingle = session.singleRoundedHours != null && session.singleRoundedHours! > 0;
+    final hasMulti = session.multiRoundedHours != null && session.multiRoundedHours! > 0;
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: theme.colors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Header: icon + user/date + duration
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: theme.colors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.videogame_asset, size: 22, color: theme.colors.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppText(
+                          session.userName ?? l10n.walkIn,
+                          style: theme.typography.base.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (session.startTime != null)
+                          AppText(
+                            DateFormat('MMM d, y – h:mm a', locale)
+                                .format(session.startTime!.toLocal()),
+                            style: theme.typography.xs.copyWith(
+                              color: theme.colors.mutedForeground,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      AppText(
+                        session.formattedDuration,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'monospace',
+                          letterSpacing: 1,
+                          color: theme.colors.foreground,
+                        ),
+                      ),
+                      AppText(
+                        l10n.totalDuration,
+                        style: theme.typography.xs.copyWith(
+                          color: theme.colors.mutedForeground,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              // Mode breakdown
+              if (hasSingle || hasMulti) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    if (hasSingle)
+                      Expanded(
+                        child: _modeCard(
+                          theme,
+                          l10n.playerModeSingle,
+                          _formatRoundedHours(session.singleRoundedHours!, hSuffix),
+                          theme.colors.primary,
+                        ),
+                      ),
+                    if (hasSingle && hasMulti)
+                      const SizedBox(width: 12),
+                    if (hasMulti)
+                      Expanded(
+                        child: _modeCard(
+                          theme,
+                          l10n.playerModeMulti,
+                          _formatRoundedHours(session.multiRoundedHours!, hSuffix),
+                          Colors.orange,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _modeCard(FThemeData theme, String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        children: [
+          AppText(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          AppText(
+            label,
+            style: theme.typography.xs.copyWith(
+              color: color.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Format rounded hours: show "3h" for whole, "3.25h" / "3.5h" / "3.75h" for fractions
-String _formatRoundedHours(double hours) {
-  if (hours % 1 == 0) return '${hours.toInt()}h';
+String _formatRoundedHours(double hours, String suffix) {
+  if (hours % 1 == 0) return '${hours.toInt()} $suffix';
   // Remove trailing zeros: 3.50 -> 3.5, 2.25 -> 2.25
   final str = hours.toStringAsFixed(2);
   final trimmed = str.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
-  return '${trimmed}h';
+  return '$trimmed $suffix';
 }
 
 /// Countdown timer widget for reservation expiration

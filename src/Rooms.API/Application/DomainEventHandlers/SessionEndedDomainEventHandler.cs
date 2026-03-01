@@ -44,7 +44,11 @@ public class SessionEndedDomainEventHandler : INotificationHandler<SessionEndedD
                 reservation.CustomerId,
                 reservation.RoomId,
                 reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
+                reservation.GetSingleCost(),
+                reservation.GetMultiCost(),
                 reservation.TotalCost ?? 0,
+                reservation.GetSingleRoundedHours(),
+                reservation.GetMultiRoundedHours(),
                 reservation.ActualStartTime.Value,
                 reservation.EndTime.Value,
                 duration);

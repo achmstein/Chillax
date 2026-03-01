@@ -39,7 +39,9 @@ public class StartWalkInSessionCommandHandler : IRequestHandler<StartWalkInSessi
         // Create walk-in session without owner
         var reservation = Reservation.CreateWalkInWithoutOwner(
             request.RoomId,
-            room.HourlyRate,
+            room.SingleRate,
+            room.MultiRate,
+            request.InitialPlayerMode,
             request.Notes);
 
         // Ensure unique access code among active sessions

@@ -468,6 +468,29 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                     ],
                   ),
 
+                  // Player mode badge
+                  if (session.currentPlayerMode != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                      ),
+                      child: AppText(
+                        session.currentPlayerMode == 'Single'
+                            ? AppLocalizations.of(context)!.playerModeSingle
+                            : AppLocalizations.of(context)!.playerModeMulti,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+
                   // Access code display
                   if (session.accessCode != null) ...[
                     const SizedBox(height: 20),
@@ -793,7 +816,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
           const SizedBox(height: 16),
           // Date and time
           AppText(
-            DateFormat('EEEE, MMM d', Localizations.localeOf(context).languageCode).format(session.reservationTime),
+            DateFormat('EEEE, MMM d', Localizations.localeOf(context).languageCode).format(session.reservationTime.toLocal()),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -802,7 +825,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           AppText(
-            DateFormat('h:mm a', Localizations.localeOf(context).languageCode).format(session.reservationTime),
+            DateFormat('h:mm a', Localizations.localeOf(context).languageCode).format(session.reservationTime.toLocal()),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.8),
               fontSize: 24,
@@ -1045,7 +1068,7 @@ class RoomListItem extends ConsumerWidget {
                   Row(
                     children: [
                       AppText(
-                        AppLocalizations.of(context)!.hourlyRateFormat(room.hourlyRate.toStringAsFixed(0)),
+                        AppLocalizations.of(context)!.hourlyRateFormat(room.singleRate.toStringAsFixed(0)),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -1097,6 +1120,25 @@ class RoomListItem extends ConsumerWidget {
       case RoomDisplayStatus.maintenance:
         return colors.mutedForeground;
     }
+  }
+
+  Widget _ratePill(BuildContext context, String label, double rate, dynamic colors) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: colors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: AppText(
+        '$label ${l10n.priceFormat(rate.toStringAsFixed(0))}',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: colors.primary,
+        ),
+      ),
+    );
   }
 
   String _getLocalizedStatus(BuildContext context, RoomDisplayStatus status) {
@@ -1186,12 +1228,24 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
                 ],
               ),
               const SizedBox(height: 8),
-              AppText(
-                l10n.hourlyRateFormat(widget.room.hourlyRate.toStringAsFixed(0)),
-                style: TextStyle(
-                  color: colors.mutedForeground,
-                  fontSize: 15,
-                ),
+              Row(
+                children: [
+                  AppText(
+                    l10n.singlePlayerRate(widget.room.singleRate.toStringAsFixed(0)),
+                    style: TextStyle(
+                      color: colors.mutedForeground,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  AppText(
+                    l10n.multiPlayerRate(widget.room.multiRate.toStringAsFixed(0)),
+                    style: TextStyle(
+                      color: colors.mutedForeground,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
               // Room description
               if (widget.room.description != null) ...[

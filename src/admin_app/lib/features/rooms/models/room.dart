@@ -46,7 +46,8 @@ class Room {
   final LocalizedText name;
   final LocalizedText? description;
   final RoomStatus status;
-  final double hourlyRate;
+  final double singleRate;
+  final double multiRate;
   final String? pictureUri;
 
   Room({
@@ -54,7 +55,8 @@ class Room {
     required this.name,
     this.description,
     required this.status,
-    required this.hourlyRate,
+    required this.singleRate,
+    required this.multiRate,
     this.pictureUri,
   });
 
@@ -63,7 +65,8 @@ class Room {
     LocalizedText? name,
     LocalizedText? description,
     RoomStatus? status,
-    double? hourlyRate,
+    double? singleRate,
+    double? multiRate,
     String? pictureUri,
   }) {
     return Room(
@@ -71,7 +74,8 @@ class Room {
       name: name ?? this.name,
       description: description ?? this.description,
       status: status ?? this.status,
-      hourlyRate: hourlyRate ?? this.hourlyRate,
+      singleRate: singleRate ?? this.singleRate,
+      multiRate: multiRate ?? this.multiRate,
       pictureUri: pictureUri ?? this.pictureUri,
     );
   }
@@ -86,7 +90,8 @@ class Room {
       status: statusValue != null
           ? RoomStatus.fromValue(statusValue as int)
           : RoomStatus.available,
-      hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0.0,
+      singleRate: (json['singleRate'] as num?)?.toDouble() ?? 0.0,
+      multiRate: (json['multiRate'] as num?)?.toDouble() ?? 0.0,
       pictureUri: json['pictureUri'] as String?,
     );
   }
@@ -95,7 +100,8 @@ class Room {
     return {
       'name': name.toJson(),
       'description': description?.toJson(),
-      'hourlyRate': hourlyRate,
+      'singleRate': singleRate,
+      'multiRate': multiRate,
       'pictureFileName': pictureUri,
     };
   }
@@ -127,6 +133,50 @@ class SessionMember {
   }
 }
 
+/// Player mode for dual pricing
+enum PlayerMode {
+  single,
+  multi;
+
+  static PlayerMode? fromString(String? value) {
+    if (value == null) return null;
+    switch (value.toLowerCase()) {
+      case 'single':
+        return PlayerMode.single;
+      case 'multi':
+        return PlayerMode.multi;
+      default:
+        return null;
+    }
+  }
+}
+
+/// Session segment tracking time in each player mode
+class SessionSegment {
+  final String playerMode;
+  final double hourlyRate;
+  final DateTime startTime;
+  final DateTime? endTime;
+
+  SessionSegment({
+    required this.playerMode,
+    required this.hourlyRate,
+    required this.startTime,
+    this.endTime,
+  });
+
+  factory SessionSegment.fromJson(Map<String, dynamic> json) {
+    return SessionSegment(
+      playerMode: json['playerMode'] as String,
+      hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
+      startTime: DateTime.parse(json['startTime'] as String),
+      endTime: json['endTime'] != null
+          ? DateTime.parse(json['endTime'] as String)
+          : null,
+    );
+  }
+}
+
 /// Room session model
 class RoomSession {
   final int id;
@@ -139,11 +189,17 @@ class RoomSession {
   final DateTime? endTime;
   final double? totalCost;
   final SessionStatus status;
-  final double hourlyRate;
+  final double singleRate;
+  final double multiRate;
+  final String? currentPlayerMode;
+  final double? singleRoundedHours;
+  final double? multiRoundedHours;
+  final double? singleCost;
+  final double? multiCost;
   final String? accessCode;
   final DateTime? expiresAt;
-  final double? roundedHours;
   final List<SessionMember> members;
+  final List<SessionSegment> segments;
 
   RoomSession({
     required this.id,
@@ -156,12 +212,24 @@ class RoomSession {
     this.endTime,
     this.totalCost,
     required this.status,
-    this.hourlyRate = 0,
+    this.singleRate = 0,
+    this.multiRate = 0,
+    this.currentPlayerMode,
+    this.singleRoundedHours,
+    this.multiRoundedHours,
+    this.singleCost,
+    this.multiCost,
     this.accessCode,
     this.expiresAt,
-    this.roundedHours,
     this.members = const [],
+    this.segments = const [],
   });
+
+  /// The active hourly rate based on current player mode
+  double get activeRate {
+    if (currentPlayerMode == 'Multi') return multiRate;
+    return singleRate;
+  }
 
   /// Calculate duration if session has started
   Duration? get duration {
@@ -180,11 +248,11 @@ class RoomSession {
     return '$hours:$minutes:$seconds';
   }
 
-  /// Calculate live cost based on duration
+  /// Calculate live cost based on duration and current mode rate
   double get liveCost {
     final d = duration;
-    if (d == null || hourlyRate == 0) return totalCost ?? 0;
-    return (d.inSeconds / 3600) * hourlyRate;
+    if (d == null || activeRate == 0) return totalCost ?? 0;
+    return (d.inSeconds / 3600) * activeRate;
   }
 
   /// Check if this reservation is about to expire
@@ -234,6 +302,11 @@ class RoomSession {
         ?.map((e) => SessionMember.fromJson(e as Map<String, dynamic>))
         .toList() ?? [];
 
+    final segmentsJson = json['segments'] as List<dynamic>?;
+    final segments = segmentsJson
+        ?.map((e) => SessionSegment.fromJson(e as Map<String, dynamic>))
+        .toList() ?? [];
+
     return RoomSession(
       id: json['id'] as int,
       roomId: json['roomId'] as int,
@@ -249,13 +322,19 @@ class RoomSession {
           : null,
       totalCost: (json['totalCost'] as num?)?.toDouble(),
       status: status,
-      hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
+      singleRate: (json['singleRate'] as num?)?.toDouble() ?? 0,
+      multiRate: (json['multiRate'] as num?)?.toDouble() ?? 0,
+      currentPlayerMode: json['currentPlayerMode'] as String?,
+      singleRoundedHours: (json['singleRoundedHours'] as num?)?.toDouble(),
+      multiRoundedHours: (json['multiRoundedHours'] as num?)?.toDouble(),
+      singleCost: (json['singleCost'] as num?)?.toDouble(),
+      multiCost: (json['multiCost'] as num?)?.toDouble(),
       accessCode: json['accessCode'] as String?,
       expiresAt: json['expiresAt'] != null
           ? DateTime.parse(json['expiresAt'] as String)
           : null,
-      roundedHours: (json['roundedHours'] as num?)?.toDouble(),
       members: members,
+      segments: segments,
     );
   }
 }

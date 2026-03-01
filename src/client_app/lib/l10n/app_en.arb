@@ -146,8 +146,8 @@
   "youWillBeNotified": "You will be notified!",
   "failedToSubscribe": "Failed to subscribe",
   "notifyMe": "Notify Me",
-  "fifteenMinutesToArrive": "15 minutes to arrive",
-  "reservationCancelledIfNoCheckIn": "Your reservation will be automatically cancelled if you don't check in within 15 minutes.",
+  "fifteenMinutesToArrive": "10 minutes to arrive",
+  "reservationCancelledIfNoCheckIn": "Your reservation will be automatically cancelled if you don't check in within 10 minutes.",
   "reserveRoomName": "Reserve {roomName}",
   "@reserveRoomName": {
     "placeholders": {
@@ -156,7 +156,7 @@
   },
   "perHour": "/hr",
   "reserveNow": "Reserve Now",
-  "roomReservedSuccess": "Room reserved! You have 15 minutes to arrive.",
+  "roomReservedSuccess": "Room reserved! You have 10 minutes to arrive.",
   "failedToReserveRoom": "Failed to reserve room",
   "available": "Available",
   "occupied": "Occupied",
@@ -169,6 +169,25 @@
 
   "hourlyRateFormat": "£{rate}/hour",
   "@hourlyRateFormat": {
+    "placeholders": {
+      "rate": {"type": "String"}
+    }
+  },
+  "dualRateFormat": "£{singleRate} / £{multiRate} per hour",
+  "@dualRateFormat": {
+    "placeholders": {
+      "singleRate": {"type": "String"},
+      "multiRate": {"type": "String"}
+    }
+  },
+  "singlePlayerRate": "Single: £{rate}/hr",
+  "@singlePlayerRate": {
+    "placeholders": {
+      "rate": {"type": "String"}
+    }
+  },
+  "multiPlayerRate": "Multi: £{rate}/hr",
+  "@multiPlayerRate": {
     "placeholders": {
       "rate": {"type": "String"}
     }
@@ -431,5 +450,8 @@
   "offer": "Offer",
   "deals": "Deals",
   "specialOffers": "Special Offers",
-  "bundleIncludes": "Includes"
+  "bundleIncludes": "Includes",
+
+  "playerModeSingle": "Single",
+  "playerModeMulti": "Multi"
 }

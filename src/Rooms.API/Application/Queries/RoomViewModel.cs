@@ -19,7 +19,8 @@ public record RoomViewModel
     public int Id { get; init; }
     public LocalizedText Name { get; init; } = new();
     public LocalizedText? Description { get; init; }
-    public decimal HourlyRate { get; init; }
+    public decimal SingleRate { get; init; }
+    public decimal MultiRate { get; init; }
     public RoomDisplayStatus DisplayStatus { get; init; }
 }
 
@@ -28,7 +29,8 @@ public record ReservationViewModel
     public int Id { get; init; }
     public int RoomId { get; init; }
     public LocalizedText RoomName { get; init; } = new();
-    public decimal HourlyRate { get; init; }
+    public decimal SingleRate { get; init; }
+    public decimal MultiRate { get; init; }
     /// <summary>
     /// Customer ID - null for walk-in sessions without assigned customer
     /// </summary>
@@ -38,14 +40,15 @@ public record ReservationViewModel
     public DateTime? ActualStartTime { get; init; }
     public DateTime? EndTime { get; init; }
     public decimal? TotalCost { get; init; }
-    /// <summary>
-    /// Duration rounded to nearest quarter hour (e.g. 2.25, 3.5) for POS display
-    /// </summary>
-    public decimal? RoundedHours { get; init; }
+    public string? CurrentPlayerMode { get; init; }
+    public decimal SingleRoundedHours { get; init; }
+    public decimal MultiRoundedHours { get; init; }
+    public decimal SingleCost { get; init; }
+    public decimal MultiCost { get; init; }
     public ReservationStatus Status { get; init; }
     public string? Notes { get; init; }
     /// <summary>
-    /// 6-digit access code for joining the session
+    /// 4-digit access code for joining the session
     /// </summary>
     public string? AccessCode { get; init; }
     /// <summary>
@@ -53,6 +56,7 @@ public record ReservationViewModel
     /// </summary>
     public DateTime? ExpiresAt { get; init; }
     public List<SessionMemberViewModel> Members { get; init; } = new();
+    public List<SessionSegmentViewModel> Segments { get; init; } = new();
 }
 
 public record SessionMemberViewModel
@@ -61,6 +65,14 @@ public record SessionMemberViewModel
     public string? CustomerName { get; init; }
     public DateTime JoinedAt { get; init; }
     public string Role { get; init; } = "Member";
+}
+
+public record SessionSegmentViewModel
+{
+    public string PlayerMode { get; init; } = "";
+    public decimal HourlyRate { get; init; }
+    public DateTime StartTime { get; init; }
+    public DateTime? EndTime { get; init; }
 }
 
 /// <summary>

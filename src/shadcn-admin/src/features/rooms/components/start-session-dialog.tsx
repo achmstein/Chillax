@@ -104,7 +104,7 @@ export function StartSessionDialog({
           <div className='rounded-lg bg-muted p-4 text-center'>
             <h3 className='text-lg font-semibold'>{room.name}</h3>
             <p className='text-2xl font-bold text-primary'>
-              {room.hourlyRate} EGP/hr
+              {room.singleRate} / {room.multiRate} EGP/hr
             </p>
           </div>
 

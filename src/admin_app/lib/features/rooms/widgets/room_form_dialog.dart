@@ -24,7 +24,8 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
-  late TextEditingController _hourlyRateController;
+  late TextEditingController _singleRateController;
+  late TextEditingController _multiRateController;
   bool _isSubmitting = false;
 
   @override
@@ -33,15 +34,18 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
     _nameController = TextEditingController(text: widget.room?.name.en ?? '');
     _descriptionController =
         TextEditingController(text: widget.room?.description?.en ?? '');
-    _hourlyRateController = TextEditingController(
-        text: widget.room?.hourlyRate.toStringAsFixed(2) ?? '');
+    _singleRateController = TextEditingController(
+        text: widget.room?.singleRate.toStringAsFixed(2) ?? '');
+    _multiRateController = TextEditingController(
+        text: widget.room?.multiRate.toStringAsFixed(2) ?? '');
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _hourlyRateController.dispose();
+    _singleRateController.dispose();
+    _multiRateController.dispose();
     super.dispose();
   }
 
@@ -88,16 +92,35 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Hourly rate field
+            // Single rate field
             AppText(
-              l10n.hourlyRate,
+              l10n.singleRate,
               style: theme.typography.sm.copyWith(
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 8),
             FTextField(
-              control: FTextFieldControl.managed(controller: _hourlyRateController),
+              control: FTextFieldControl.managed(controller: _singleRateController),
+              hint: '0.00',
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Multi rate field
+            AppText(
+              l10n.multiRate,
+              style: theme.typography.sm.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            FTextField(
+              control: FTextFieldControl.managed(controller: _multiRateController),
               hint: '0.00',
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
@@ -146,7 +169,8 @@ class _RoomFormDialogState extends ConsumerState<RoomFormDialog> {
             )
           : null,
       status: widget.room?.status ?? RoomStatus.available,
-      hourlyRate: double.parse(_hourlyRateController.text),
+      singleRate: double.parse(_singleRateController.text),
+      multiRate: double.parse(_multiRateController.text),
       pictureUri: widget.room?.pictureUri,
     );
 

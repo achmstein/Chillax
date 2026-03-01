@@ -13,6 +13,7 @@ public class RoomsContext : DbContext, IUnitOfWork
     public DbSet<Room> Rooms { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<SessionMember> SessionMembers { get; set; }
+    public DbSet<SessionSegment> SessionSegments { get; set; }
 
     private readonly IMediator? _mediator;
     private IDbContextTransaction? _currentTransaction;
@@ -34,6 +35,7 @@ public class RoomsContext : DbContext, IUnitOfWork
         modelBuilder.ApplyConfiguration(new RoomEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ReservationEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new SessionMemberEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new SessionSegmentEntityTypeConfiguration());
         modelBuilder.UseIntegrationEventLogs();
     }
 

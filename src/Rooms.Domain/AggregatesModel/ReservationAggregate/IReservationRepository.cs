@@ -51,4 +51,9 @@ public interface IReservationRepository : IRepository<Reservation>
     /// Get reservation with session members loaded
     /// </summary>
     Task<Reservation?> GetWithMembersAsync(int reservationId);
+
+    /// <summary>
+    /// Get reservation with session segments loaded
+    /// </summary>
+    Task<Reservation?> GetWithSegmentsAsync(int reservationId);
 }

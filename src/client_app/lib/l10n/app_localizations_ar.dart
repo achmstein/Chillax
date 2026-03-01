@@ -351,11 +351,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifyMe => 'بلغني';
 
   @override
-  String get fifteenMinutesToArrive => 'عندك 15 دقيقة توصل';
+  String get fifteenMinutesToArrive => 'عندك 10 دقايق توصل';
 
   @override
   String get reservationCancelledIfNoCheckIn =>
-      'الحجز هيتلغي لو موصلتش خلال 15 دقيقة.';
+      'الحجز هيتلغي لو موصلتش خلال 10 دقايق.';
 
   @override
   String reserveRoomName(String roomName) {
@@ -369,7 +369,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reserveNow => 'احجز دلوقتي';
 
   @override
-  String get roomReservedSuccess => 'الحجز تم! عندك 15 دقيقة توصل.';
+  String get roomReservedSuccess => 'الحجز تم! عندك 10 دقايق توصل.';
 
   @override
   String get failedToReserveRoom => 'الحجز فشل';
@@ -398,6 +398,21 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String hourlyRateFormat(String rate) {
     return '$rate ج.م/ساعة';
+  }
+
+  @override
+  String dualRateFormat(String singleRate, String multiRate) {
+    return '$singleRate / $multiRate ج.م/ساعة';
+  }
+
+  @override
+  String singlePlayerRate(String rate) {
+    return 'سنجل: $rate ج.م./ساعة';
+  }
+
+  @override
+  String multiPlayerRate(String rate) {
+    return 'مالتي: $rate ج.م./ساعة';
   }
 
   @override
@@ -885,4 +900,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bundleIncludes => 'يشمل';
+
+  @override
+  String get playerModeSingle => 'سنجل';
+
+  @override
+  String get playerModeMulti => 'مالتي';
 }

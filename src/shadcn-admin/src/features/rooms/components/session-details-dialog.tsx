@@ -30,11 +30,11 @@ function formatDuration(startTime: string): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
-function calculateCurrentCost(startTime: string, hourlyRate: number): number {
+function calculateCurrentCost(startTime: string, singleRate: number): number {
   const start = new Date(startTime)
   const now = new Date()
   const hours = (now.getTime() - start.getTime()) / (1000 * 60 * 60)
-  return Math.ceil(hours * hourlyRate * 100) / 100
+  return Math.ceil(hours * singleRate * 100) / 100
 }
 
 interface SessionDetailsDialogProps {
@@ -115,12 +115,12 @@ export function SessionDetailsDialog({
               <div className='text-muted-foreground mb-1'>Current Cost</div>
               <div className='text-3xl font-bold text-primary'>
                 {room
-                  ? calculateCurrentCost(session.startTime, room.hourlyRate).toFixed(2)
+                  ? calculateCurrentCost(session.startTime, room.singleRate).toFixed(2)
                   : '0.00'}{' '}
                 EGP
               </div>
               <div className='text-sm text-muted-foreground mt-1'>
-                @ {room?.hourlyRate} EGP/hour
+                @ {room?.singleRate} / {room?.multiRate} EGP/hour
               </div>
             </div>
           )}

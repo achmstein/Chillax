@@ -32,6 +32,9 @@ namespace Rooms.Infrastructure.Migrations
             modelBuilder.HasSequence("sessionmemberseq", "rooms")
                 .IncrementsBy(10);
 
+            modelBuilder.HasSequence("sessionsegmentseq", "rooms")
+                .IncrementsBy(10);
+
             modelBuilder.Entity("Chillax.IntegrationEventLogEF.IntegrationEventLogEntry", b =>
                 {
                     b.Property<Guid>("EventId")
@@ -84,6 +87,10 @@ namespace Rooms.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CurrentPlayerMode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<string>("CustomerId")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -98,7 +105,7 @@ namespace Rooms.Infrastructure.Migrations
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("HourlyRate")
+                    b.Property<decimal>("MultiRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
@@ -108,6 +115,10 @@ namespace Rooms.Infrastructure.Migrations
 
                     b.Property<int>("RoomId")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("SingleRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -177,6 +188,39 @@ namespace Rooms.Infrastructure.Migrations
                     b.ToTable("session_members", "rooms");
                 });
 
+            modelBuilder.Entity("Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate.SessionSegment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "sessionsegmentseq", "rooms");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("HourlyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("PlayerMode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("ReservationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReservationId");
+
+                    b.ToTable("session_segments", "rooms");
+                });
+
             modelBuilder.Entity("Chillax.Rooms.Domain.AggregatesModel.RoomAggregate.Room", b =>
                 {
                     b.Property<int>("Id")
@@ -185,7 +229,7 @@ namespace Rooms.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "roomseq", "rooms");
 
-                    b.Property<decimal>("HourlyRate")
+                    b.Property<decimal>("MultiRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
@@ -193,6 +237,10 @@ namespace Rooms.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<decimal>("SingleRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
 
@@ -234,6 +282,15 @@ namespace Rooms.Infrastructure.Migrations
                 {
                     b.HasOne("Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate.Reservation", null)
                         .WithMany("SessionMembers")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate.SessionSegment", b =>
+                {
+                    b.HasOne("Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate.Reservation", null)
+                        .WithMany("SessionSegments")
                         .HasForeignKey("ReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -288,6 +345,8 @@ namespace Rooms.Infrastructure.Migrations
             modelBuilder.Entity("Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate.Reservation", b =>
                 {
                     b.Navigation("SessionMembers");
+
+                    b.Navigation("SessionSegments");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,7 +9,8 @@ export interface Room {
   name: string
   description?: string
   status: RoomStatus
-  hourlyRate: number
+  singleRate: number
+  multiRate: number
   pictureFileName?: string
 }
 

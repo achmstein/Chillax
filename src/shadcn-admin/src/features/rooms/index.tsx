@@ -29,11 +29,11 @@ function formatDuration(startTime: string): string {
   return `${hours}h ${minutes}m`
 }
 
-function calculateCurrentCost(startTime: string, hourlyRate: number): number {
+function calculateCurrentCost(startTime: string, singleRate: number): number {
   const start = new Date(startTime)
   const now = new Date()
   const hours = (now.getTime() - start.getTime()) / (1000 * 60 * 60)
-  return Math.ceil(hours * hourlyRate * 100) / 100
+  return Math.ceil(hours * singleRate * 100) / 100
 }
 
 export function RoomsManagement() {
@@ -156,7 +156,7 @@ export function RoomsManagement() {
                           <h3 className='font-semibold'>{room.name}</h3>
                           <Badge variant='outline'>{statusInfo.label}</Badge>
                           <p className='text-lg font-bold text-primary'>
-                            {room.hourlyRate} EGP/hr
+                            {room.singleRate} / {room.multiRate} EGP/hr
                           </p>
 
                           {activeSession && activeSession.startTime && (
@@ -166,7 +166,7 @@ export function RoomsManagement() {
                                 {formatDuration(activeSession.startTime)}
                               </div>
                               <div className='font-medium text-amber-600'>
-                                ~{calculateCurrentCost(activeSession.startTime, room.hourlyRate).toFixed(2)} EGP
+                                ~{calculateCurrentCost(activeSession.startTime, room.singleRate).toFixed(2)} EGP
                               </div>
                               {activeSession.customerName && (
                                 <div className='flex items-center justify-center gap-1 text-muted-foreground'>

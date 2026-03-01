@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using MediatR;
 
 namespace Chillax.Rooms.API.Application.Commands;
@@ -16,10 +17,14 @@ public class StartWalkInSessionCommand : IRequest<StartWalkInSessionResult>
     [DataMember]
     public string? Notes { get; private set; }
 
-    public StartWalkInSessionCommand(int roomId, string? notes = null)
+    [DataMember]
+    public PlayerMode InitialPlayerMode { get; private set; }
+
+    public StartWalkInSessionCommand(int roomId, string? notes = null, PlayerMode initialPlayerMode = PlayerMode.Single)
     {
         RoomId = roomId;
         Notes = notes;
+        InitialPlayerMode = initialPlayerMode;
     }
 }
 

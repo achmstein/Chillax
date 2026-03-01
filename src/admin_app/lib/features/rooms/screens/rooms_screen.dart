@@ -119,12 +119,50 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
     await ref.read(roomsProvider.notifier).reserveRoom(roomId);
   }
 
+  Future<String?> _pickPlayerMode(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    return showAdaptiveDialog<String>(
+      context: context,
+      builder: (context) => FDialog(
+        direction: Axis.vertical,
+        title: AppText(l10n.selectPlayerMode),
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            FButton(
+              onPress: () => Navigator.of(context).pop('Single'),
+              child: AppText(l10n.playerModeSingle),
+            ),
+            const SizedBox(height: 8),
+            FButton(
+              variant: FButtonVariant.outline,
+              onPress: () => Navigator.of(context).pop('Multi'),
+              child: AppText(l10n.playerModeMulti),
+            ),
+          ],
+        ),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            child: AppText(l10n.cancel),
+            onPress: () => Navigator.of(context).pop(null),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _startWalkIn(int roomId) async {
-    await ref.read(roomsProvider.notifier).startWalkInSession(roomId);
+    final mode = await _pickPlayerMode(context);
+    if (mode == null) return;
+    await ref.read(roomsProvider.notifier).startWalkInSession(roomId, playerMode: mode);
   }
 
   Future<void> _startSession(int sessionId) async {
-    await ref.read(roomsProvider.notifier).startSession(sessionId);
+    final mode = await _pickPlayerMode(context);
+    if (mode == null) return;
+    await ref.read(roomsProvider.notifier).startSession(sessionId, playerMode: mode);
   }
 
   Future<void> _endSession(BuildContext context, int sessionId) async {
@@ -341,7 +379,7 @@ class _RoomTileState extends State<_RoomTile> {
                   Row(
                     children: [
                       AppText(
-                        l10n.hourlyRateFormat(widget.room.hourlyRate.toStringAsFixed(0)),
+                        l10n.dualRateFormat(widget.room.singleRate.toStringAsFixed(0), widget.room.multiRate.toStringAsFixed(0)),
                         style: theme.typography.sm.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -385,55 +423,70 @@ class _RoomTileState extends State<_RoomTile> {
               ),
             ),
 
-            // Action icon button - matches mobile app
+            // Action icon button
             if (isActive)
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colors.destructive,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: GestureDetector(
-                  onTap: widget.onEndSession,
-                  child: Icon(
-                    Icons.stop,
-                    color: theme.colors.destructiveForeground,
-                    size: 18,
-                  ),
-                ),
-              )
-            else if (isReserved)
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colors.primary,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: GestureDetector(
-                  onTap: widget.onStartSession,
-                  child: Transform.scale(
-                    scaleX: Directionality.of(context) == TextDirection.rtl ? -1 : 1,
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.onEndSession,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colors.destructive,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: Icon(
-                      Icons.play_arrow,
-                      color: theme.colors.primaryForeground,
+                      Icons.stop,
+                      color: theme.colors.destructiveForeground,
                       size: 18,
                     ),
                   ),
                 ),
               )
-            else if (isAvailable)
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colors.primary,
-                  borderRadius: BorderRadius.circular(20),
+            else if (isReserved)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.onStartSession,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colors.primary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Transform.scale(
+                      scaleX: Directionality.of(context) == TextDirection.rtl ? -1 : 1,
+                      child: Icon(
+                        Icons.play_arrow,
+                        color: theme.colors.primaryForeground,
+                        size: 18,
+                      ),
+                    ),
+                  ),
                 ),
-                child: GestureDetector(
-                  onTap: widget.onReserve,
-                  child: Icon(
-                    Icons.calendar_today,
-                    color: theme.colors.primaryForeground,
-                    size: 18,
+              )
+            else if (isAvailable)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.onStartWalkIn,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colors.primary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Transform.scale(
+                      scaleX: Directionality.of(context) == TextDirection.rtl ? -1 : 1,
+                      child: Icon(
+                        Icons.play_arrow,
+                        color: theme.colors.primaryForeground,
+                        size: 18,
+                      ),
+                    ),
                   ),
                 ),
               ),

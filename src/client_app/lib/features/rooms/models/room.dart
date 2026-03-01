@@ -46,14 +46,16 @@ class Room {
   final LocalizedText name;
   final LocalizedText? description;
   final RoomDisplayStatus displayStatus;
-  final double hourlyRate;
+  final double singleRate;
+  final double multiRate;
 
   Room({
     required this.id,
     required this.name,
     this.description,
     required this.displayStatus,
-    required this.hourlyRate,
+    required this.singleRate,
+    required this.multiRate,
   });
 
   /// Can the user book this room now?
@@ -65,7 +67,8 @@ class Room {
       name: _parseLocalizedText(json['name']),
       description: json['description'] != null ? _parseLocalizedText(json['description']) : null,
       displayStatus: RoomDisplayStatus.fromValue(json['displayStatus'] as int),
-      hourlyRate: (json['hourlyRate'] as num).toDouble(),
+      singleRate: (json['singleRate'] as num?)?.toDouble() ?? 0.0,
+      multiRate: (json['multiRate'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -85,7 +88,8 @@ class RoomSession {
   final int id;
   final int roomId;
   final LocalizedText roomName;
-  final double hourlyRate;
+  final double singleRate;
+  final double multiRate;
   final DateTime createdAt;
   final DateTime? actualStartTime;
   final DateTime? endTime;
@@ -93,12 +97,14 @@ class RoomSession {
   final SessionStatus status;
   final String? notes;
   final String? accessCode;
+  final String? currentPlayerMode;
 
   RoomSession({
     required this.id,
     required this.roomId,
     required this.roomName,
-    required this.hourlyRate,
+    required this.singleRate,
+    this.multiRate = 0,
     required this.createdAt,
     this.actualStartTime,
     this.endTime,
@@ -106,6 +112,7 @@ class RoomSession {
     required this.status,
     this.notes,
     this.accessCode,
+    this.currentPlayerMode,
   });
 
   /// When the reservation was created
@@ -133,7 +140,8 @@ class RoomSession {
       id: json['id'] as int,
       roomId: json['roomId'] as int,
       roomName: Room._parseLocalizedText(json['roomName'] ?? 'Room ${json['roomId']}'),
-      hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
+      singleRate: (json['singleRate'] as num?)?.toDouble() ?? 0,
+      multiRate: (json['multiRate'] as num?)?.toDouble() ?? 0,
       createdAt: DateTime.parse(json['createdAt'] as String),
       actualStartTime: json['actualStartTime'] != null
           ? DateTime.parse(json['actualStartTime'] as String)
@@ -145,6 +153,7 @@ class RoomSession {
       status: SessionStatus.fromValue(json['status'] as int),
       notes: json['notes'] as String?,
       accessCode: json['accessCode'] as String?,
+      currentPlayerMode: json['currentPlayerMode'] as String?,
     );
   }
 }

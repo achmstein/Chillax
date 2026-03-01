@@ -86,9 +86,9 @@ class RoomsNotifier extends Notifier<RoomsState> {
     }
   }
 
-  Future<bool> startSession(int sessionId) async {
+  Future<bool> startSession(int sessionId, {String? playerMode}) async {
     try {
-      await _repository.startSession(sessionId);
+      await _repository.startSession(sessionId, playerMode: playerMode);
       await loadRooms();
       return true;
     } catch (e) {
@@ -188,10 +188,22 @@ class RoomsNotifier extends Notifier<RoomsState> {
     }
   }
 
-  /// Start a walk-in session directly (without reservation)
-  Future<bool> startWalkInSession(int roomId) async {
+  /// Change player mode for an active session
+  Future<bool> changePlayerMode(int sessionId, String playerMode) async {
     try {
-      await _repository.startWalkInSession(roomId);
+      await _repository.changePlayerMode(sessionId, playerMode);
+      await loadRooms();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to change player mode: $e');
+      return false;
+    }
+  }
+
+  /// Start a walk-in session directly (without reservation)
+  Future<bool> startWalkInSession(int roomId, {String? playerMode}) async {
+    try {
+      await _repository.startWalkInSession(roomId, playerMode: playerMode);
       await loadRooms();
       return true;
     } catch (e) {

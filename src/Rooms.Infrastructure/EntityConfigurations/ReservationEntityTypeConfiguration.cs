@@ -33,9 +33,17 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
 
         builder.Property(r => r.EndTime);
 
-        builder.Property(r => r.HourlyRate)
+        builder.Property(r => r.SingleRate)
             .HasPrecision(18, 2)
             .IsRequired();
+
+        builder.Property(r => r.MultiRate)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.Property(r => r.CurrentPlayerMode)
+            .HasConversion<string>()
+            .HasMaxLength(20);
 
         builder.Property(r => r.TotalCost)
             .HasPrecision(18, 2);
@@ -63,6 +71,14 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
         builder.Navigation(r => r.SessionMembers)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        builder.HasMany(r => r.SessionSegments)
+            .WithOne()
+            .HasForeignKey(ss => ss.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(r => r.SessionSegments)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         // Indexes
         builder.HasIndex(r => r.CustomerId);
         builder.HasIndex(r => r.Status);
@@ -73,4 +89,3 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
         builder.HasIndex(r => new { r.Status, r.ExpiresAt });
     }
 }
-

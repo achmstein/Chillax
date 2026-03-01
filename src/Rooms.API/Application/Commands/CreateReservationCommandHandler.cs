@@ -59,12 +59,13 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
         if (hasActiveReservation)
             throw new RoomsDomainException("Room is currently occupied or reserved");
 
-        // Create reservation (locks hourly rate at reservation time)
+        // Create reservation (locks rates at reservation time)
         var reservation = new Reservation(
             request.RoomId,
             request.CustomerId,
             request.CustomerName,
-            room.HourlyRate,
+            room.SingleRate,
+            room.MultiRate,
             request.Notes,
             isAdminCreated: request.IsAdmin);
 

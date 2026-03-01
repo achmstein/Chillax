@@ -59,6 +59,7 @@ public class RoomQueries : IRoomQueries
         var reservations = await _context.Reservations
             .Include(r => r.Room)
             .Include(r => r.SessionMembers)
+            .Include(r => r.SessionSegments)
             .Where(r => r.CustomerId == customerId ||
                         r.SessionMembers.Any(m => m.CustomerId == customerId))
             .OrderByDescending(r => r.CreatedAt)
@@ -72,6 +73,7 @@ public class RoomQueries : IRoomQueries
         var reservations = await _context.Reservations
             .Include(r => r.Room)
             .Include(r => r.SessionMembers)
+            .Include(r => r.SessionSegments)
             .Where(r => r.Status == ReservationStatus.Active || r.Status == ReservationStatus.Reserved)
             .OrderBy(r => r.CreatedAt)
             .ToListAsync();
@@ -84,6 +86,7 @@ public class RoomQueries : IRoomQueries
         var reservation = await _context.Reservations
             .Include(r => r.Room)
             .Include(r => r.SessionMembers)
+            .Include(r => r.SessionSegments)
             .FirstOrDefaultAsync(r => r.Id == reservationId);
 
         return reservation == null ? null : MapToViewModel(reservation);
@@ -98,7 +101,8 @@ public class RoomQueries : IRoomQueries
             Id = room.Id,
             Name = room.Name,
             Description = room.Description,
-            HourlyRate = room.HourlyRate,
+            SingleRate = room.SingleRate,
+            MultiRate = room.MultiRate,
             DisplayStatus = displayStatus
         };
     }
@@ -152,14 +156,19 @@ public class RoomQueries : IRoomQueries
             Id = reservation.Id,
             RoomId = reservation.RoomId,
             RoomName = reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
-            HourlyRate = reservation.HourlyRate,
+            SingleRate = reservation.SingleRate,
+            MultiRate = reservation.MultiRate,
             CustomerId = reservation.CustomerId,
             CustomerName = reservation.CustomerName,
             CreatedAt = reservation.CreatedAt,
             ActualStartTime = reservation.ActualStartTime,
             EndTime = reservation.EndTime,
             TotalCost = reservation.TotalCost,
-            RoundedHours = reservation.GetRoundedHours(),
+            CurrentPlayerMode = reservation.CurrentPlayerMode?.ToString(),
+            SingleRoundedHours = reservation.GetSingleRoundedHours(),
+            MultiRoundedHours = reservation.GetMultiRoundedHours(),
+            SingleCost = reservation.GetSingleCost(),
+            MultiCost = reservation.GetMultiCost(),
             Status = reservation.Status,
             Notes = reservation.Notes,
             AccessCode = reservation.AccessCode,
@@ -170,6 +179,13 @@ public class RoomQueries : IRoomQueries
                 CustomerName = m.CustomerName,
                 JoinedAt = m.JoinedAt,
                 Role = m.Role.ToString()
+            }).ToList() ?? new(),
+            Segments = reservation.SessionSegments?.Select(s => new SessionSegmentViewModel
+            {
+                PlayerMode = s.PlayerMode.ToString(),
+                HourlyRate = s.HourlyRate,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime
             }).ToList() ?? new()
         };
     }
@@ -178,6 +194,7 @@ public class RoomQueries : IRoomQueries
     {
         var reservations = await _context.Reservations
             .Include(r => r.Room)
+            .Include(r => r.SessionSegments)
             .Where(r => r.RoomId == roomId)
             .Where(r => r.Status == ReservationStatus.Completed || r.Status == ReservationStatus.Cancelled)
             .OrderByDescending(r => r.EndTime ?? r.CreatedAt)

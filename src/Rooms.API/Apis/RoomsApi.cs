@@ -50,7 +50,7 @@ public static class RoomsApi
         api.MapPut("/{id:int}", UpdateRoom)
             .WithName("UpdateRoom")
             .WithSummary("Update room details")
-            .WithDescription("Update room name, description, and hourly rate (Admin only)")
+            .WithDescription("Update room name, description, and rates (Admin only)")
             .WithTags("Rooms")
             .RequireAuthorization("Admin");
 
@@ -103,6 +103,14 @@ public static class RoomsApi
             .WithName("StartWalkInSession")
             .WithSummary("Start a walk-in session")
             .WithDescription("Start a walk-in session without an assigned customer. Returns access code for customers to join. (Admin only)")
+            .WithTags("Sessions")
+            .RequireAuthorization("Admin");
+
+        // Player mode change (Admin)
+        api.MapPut("/sessions/{sessionId:int}/player-mode", ChangePlayerMode)
+            .WithName("ChangePlayerMode")
+            .WithSummary("Change player mode")
+            .WithDescription("Change the player mode (Single/Multi) for an active session (Admin only)")
             .WithTags("Sessions")
             .RequireAuthorization("Admin");
 
@@ -221,7 +229,7 @@ public static class RoomsApi
         RoomsContext context,
         CreateRoomRequest request)
     {
-        var room = new Room(request.Name, request.HourlyRate, request.Description);
+        var room = new Room(request.Name, request.SingleRate, request.MultiRate, request.Description);
         context.Rooms.Add(room);
         await context.SaveChangesAsync();
         return TypedResults.Created($"/api/rooms/{room.Id}", room.Id);
@@ -238,7 +246,7 @@ public static class RoomsApi
             return TypedResults.NotFound();
         }
 
-        room.UpdateDetails(request.Name, request.Description, request.HourlyRate);
+        room.UpdateDetails(request.Name, request.Description, request.SingleRate, request.MultiRate);
         await context.SaveChangesAsync();
         return TypedResults.Ok();
     }
@@ -348,11 +356,16 @@ public static class RoomsApi
 
     public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> StartSession(
         [FromServices] IMediator mediator,
-        [Description("The session ID")] int sessionId)
+        [Description("The session ID")] int sessionId,
+        StartSessionRequest? request = null)
     {
         try
         {
-            var command = new StartSessionCommand(sessionId);
+            var initialMode = PlayerMode.Single;
+            if (request?.PlayerMode != null && Enum.TryParse<PlayerMode>(request.PlayerMode, ignoreCase: true, out var parsed))
+                initialMode = parsed;
+
+            var command = new StartSessionCommand(sessionId, initialMode);
             var result = await mediator.Send(command);
             return result ? TypedResults.Ok() : TypedResults.NotFound();
         }
@@ -467,9 +480,30 @@ public static class RoomsApi
     {
         try
         {
-            var command = new StartWalkInSessionCommand(roomId, request?.Notes);
+            var initialMode = request?.PlayerMode ?? PlayerMode.Single;
+            var command = new StartWalkInSessionCommand(roomId, request?.Notes, initialMode);
             var result = await mediator.Send(command);
             return TypedResults.Created($"/api/rooms/sessions/{result.ReservationId}", result);
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
+    }
+
+    public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> ChangePlayerMode(
+        [FromServices] IMediator mediator,
+        [Description("The session ID")] int sessionId,
+        ChangePlayerModeRequest request)
+    {
+        try
+        {
+            if (!Enum.TryParse<PlayerMode>(request.PlayerMode, ignoreCase: true, out var playerMode))
+                return TypedResults.BadRequest<ProblemDetails>(new() { Detail = "Invalid player mode. Use 'Single' or 'Multi'." });
+
+            var command = new ChangePlayerModeCommand(sessionId, playerMode);
+            var result = await mediator.Send(command);
+            return result ? TypedResults.Ok() : TypedResults.NotFound();
         }
         catch (RoomsDomainException ex)
         {
@@ -627,7 +661,9 @@ public record ReserveRoomRequest(
     string? Notes = null
 );
 
-public record WalkInSessionRequest(string? Notes = null);
+public record WalkInSessionRequest(
+    string? Notes = null,
+    PlayerMode? PlayerMode = null);
 
 public record JoinSessionRequest(string AccessCode);
 
@@ -635,12 +671,18 @@ public record AssignCustomerRequest(string CustomerId, string? CustomerName);
 
 public record AddMemberRequest(string CustomerId, string? CustomerName);
 
+public record StartSessionRequest(string? PlayerMode = null);
+
+public record ChangePlayerModeRequest(string PlayerMode);
+
 public record CreateRoomRequest(
     LocalizedText Name,
     LocalizedText? Description,
-    decimal HourlyRate);
+    decimal SingleRate,
+    decimal MultiRate);
 
 public record UpdateRoomRequest(
     LocalizedText Name,
     LocalizedText? Description,
-    decimal HourlyRate);
+    decimal SingleRate,
+    decimal MultiRate);

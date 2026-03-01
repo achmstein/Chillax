@@ -126,12 +126,12 @@
   "youWillBeNotified": "هنبلغك!",
   "failedToSubscribe": "الاشتراك فشل",
   "notifyMe": "بلغني",
-  "fifteenMinutesToArrive": "عندك 15 دقيقة توصل",
-  "reservationCancelledIfNoCheckIn": "الحجز هيتلغي لو موصلتش خلال 15 دقيقة.",
+  "fifteenMinutesToArrive": "عندك 10 دقايق توصل",
+  "reservationCancelledIfNoCheckIn": "الحجز هيتلغي لو موصلتش خلال 10 دقايق.",
   "reserveRoomName": "احجز {roomName}",
   "perHour": "/ساعة",
   "reserveNow": "احجز دلوقتي",
-  "roomReservedSuccess": "الحجز تم! عندك 15 دقيقة توصل.",
+  "roomReservedSuccess": "الحجز تم! عندك 10 دقايق توصل.",
   "failedToReserveRoom": "الحجز فشل",
   "available": "متاحة",
   "occupied": "مشغولة",
@@ -143,6 +143,9 @@
   "statusCancelled": "ملغي",
 
   "hourlyRateFormat": "{rate} ج.م/ساعة",
+  "dualRateFormat": "{singleRate} / {multiRate} ج.م/ساعة",
+  "singlePlayerRate": "سنجل: {rate} ج.م./ساعة",
+  "multiPlayerRate": "مالتي: {rate} ج.م./ساعة",
 
   "orderHistory": "طلباتي السابقة",
   "sessionHistory": "حجوزاتي السابقة",
@@ -314,5 +317,8 @@
   "offer": "عرض",
   "deals": "الديلز",
   "specialOffers": "عروض مميزة",
-  "bundleIncludes": "يشمل"
+  "bundleIncludes": "يشمل",
+
+  "playerModeSingle": "سنجل",
+  "playerModeMulti": "مالتي"
 }

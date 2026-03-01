@@ -6,7 +6,7 @@ import '../models/room.dart';
 abstract class RoomRepository {
   Future<({List<Room> rooms, List<RoomSession> activeSessions})> loadRooms();
   Future<void> reserveRoom(int roomId);
-  Future<void> startSession(int sessionId);
+  Future<void> startSession(int sessionId, {String? playerMode});
   Future<void> endSession(int sessionId);
   Future<void> cancelSession(int sessionId);
   Future<void> createRoom(Room room);
@@ -15,7 +15,8 @@ abstract class RoomRepository {
   Future<void> assignCustomerToSession(int sessionId, String customerId, String? customerName);
   Future<void> addMemberToSession(int sessionId, String customerId, String? customerName);
   Future<void> removeMemberFromSession(int sessionId, String customerId);
-  Future<void> startWalkInSession(int roomId);
+  Future<void> startWalkInSession(int roomId, {String? playerMode});
+  Future<void> changePlayerMode(int sessionId, String playerMode);
   Future<List<RoomSession>> getSessionHistory(int roomId, {int limit = 20});
 }
 
@@ -52,8 +53,8 @@ class ApiRoomRepository implements RoomRepository {
   }
 
   @override
-  Future<void> startSession(int sessionId) async {
-    await _api.post('sessions/$sessionId/start');
+  Future<void> startSession(int sessionId, {String? playerMode}) async {
+    await _api.post('sessions/$sessionId/start', data: playerMode != null ? {'playerMode': playerMode} : null);
   }
 
   @override
@@ -103,8 +104,15 @@ class ApiRoomRepository implements RoomRepository {
   }
 
   @override
-  Future<void> startWalkInSession(int roomId) async {
-    await _api.post('sessions/walk-in/$roomId');
+  Future<void> startWalkInSession(int roomId, {String? playerMode}) async {
+    await _api.post('sessions/walk-in/$roomId', data: playerMode != null ? {'playerMode': playerMode} : null);
+  }
+
+  @override
+  Future<void> changePlayerMode(int sessionId, String playerMode) async {
+    await _api.put('sessions/$sessionId/player-mode', data: {
+      'playerMode': playerMode,
+    });
   }
 
   @override

@@ -358,11 +358,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifyMe => 'Notify Me';
 
   @override
-  String get fifteenMinutesToArrive => '15 minutes to arrive';
+  String get fifteenMinutesToArrive => '10 minutes to arrive';
 
   @override
   String get reservationCancelledIfNoCheckIn =>
-      'Your reservation will be automatically cancelled if you don\'t check in within 15 minutes.';
+      'Your reservation will be automatically cancelled if you don\'t check in within 10 minutes.';
 
   @override
   String reserveRoomName(String roomName) {
@@ -377,7 +377,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roomReservedSuccess =>
-      'Room reserved! You have 15 minutes to arrive.';
+      'Room reserved! You have 10 minutes to arrive.';
 
   @override
   String get failedToReserveRoom => 'Failed to reserve room';
@@ -406,6 +406,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String hourlyRateFormat(String rate) {
     return '£$rate/hour';
+  }
+
+  @override
+  String dualRateFormat(String singleRate, String multiRate) {
+    return '£$singleRate / £$multiRate per hour';
+  }
+
+  @override
+  String singlePlayerRate(String rate) {
+    return 'Single: £$rate/hr';
+  }
+
+  @override
+  String multiPlayerRate(String rate) {
+    return 'Multi: £$rate/hr';
   }
 
   @override
@@ -899,4 +914,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bundleIncludes => 'Includes';
+
+  @override
+  String get playerModeSingle => 'Single';
+
+  @override
+  String get playerModeMulti => 'Multi';
 }
