@@ -1,10 +1,15 @@
-# Caddy reverse proxy configuration for Chillax
-# Domain is configured via environment variable in .env
+# Caddy configuration for Chillax
+#
+# chillax.site      — static landing website
+# api.chillax.site  — reverse proxy to mobile-bff (YARP)
 #
 # Caddy handles TLS termination (auto Let's Encrypt).
-# The mobile-bff (YARP) handles all path-based routing internally,
-# including /api/* routes and /auth/* (Keycloak).
 
-{$DOMAIN} {
+chillax.site {
+	root * /srv/website
+	file_server
+}
+
+api.chillax.site {
 	reverse_proxy mobile-bff:8080
 }

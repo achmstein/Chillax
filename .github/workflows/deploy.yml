@@ -49,6 +49,11 @@ jobs:
           sed -i 's|source: ".*chillax-realm.json"|source: "./chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
           sed -i 's|target: "/opt/keycloak/data/import"|target: "/opt/keycloak/data/import/chillax-realm.json"|g' deploy-artifacts/docker-compose.yaml
 
+          # Copy Caddy files for TLS termination
+          cp deploy/docker-compose.caddy.yml deploy-artifacts/docker-compose.caddy.yml
+          cp deploy/Caddyfile deploy-artifacts/Caddyfile
+          cp -r deploy/website deploy-artifacts/website
+
           # Fill empty .env values (aspire publish generates empty placeholders)
           sed -i 's/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=postgres/' deploy-artifacts/.env
           sed -i 's/^EVENTBUS_PASSWORD=$/EVENTBUS_PASSWORD=guest/' deploy-artifacts/.env
@@ -62,6 +67,8 @@ jobs:
           sed -i 's/^LOYALTY_API_PORT=$/LOYALTY_API_PORT=8080/' deploy-artifacts/.env
           sed -i 's/^NOTIFICATION_API_PORT=$/NOTIFICATION_API_PORT=8080/' deploy-artifacts/.env
           sed -i 's/^ACCOUNTS_API_PORT=$/ACCOUNTS_API_PORT=8080/' deploy-artifacts/.env
+
+          # Domain is now hardcoded in Caddyfile (chillax.site + api.chillax.site)
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -96,14 +103,14 @@ jobs:
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
             # Pull pre-built images and build any Aspire-generated services (e.g. mobile-bff)
-            docker compose pull --ignore-buildable
-            docker compose up -d --build --remove-orphans
+            docker compose -f docker-compose.yaml -f docker-compose.caddy.yml pull --ignore-buildable
+            docker compose -f docker-compose.yaml -f docker-compose.caddy.yml up -d --build --remove-orphans
 
             # Cleanup old images
             docker image prune -f
 
             # Show running containers
-            docker compose ps
+            docker compose -f docker-compose.yaml -f docker-compose.caddy.yml ps
 
       - name: Setup Keycloak token exchange
         uses: appleboy/ssh-action@v1
@@ -121,7 +128,7 @@ jobs:
             KC="/opt/keycloak/bin/kcadm.sh"
 
             # Find the keycloak container
-            CONTAINER=$(docker compose -f "$DEPLOY_DIR/docker-compose.yaml" ps -q keycloak 2>/dev/null || docker compose -f "$DEPLOY_DIR/docker-compose.yml" ps -q keycloak 2>/dev/null)
+            CONTAINER=$(docker compose -f "$DEPLOY_DIR/docker-compose.yaml" -f "$DEPLOY_DIR/docker-compose.caddy.yml" ps -q keycloak 2>/dev/null || docker compose -f "$DEPLOY_DIR/docker-compose.yml" ps -q keycloak 2>/dev/null)
             if [ -z "$CONTAINER" ]; then
               echo "ERROR: Keycloak container not found"
               exit 1

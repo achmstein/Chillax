@@ -6,7 +6,7 @@ class AppConfig {
   static const bool _isRelease = bool.fromEnvironment('dart.vm.product');
   static String get bffBaseUrl {
     return _isRelease
-        ? 'http://145.241.109.212'
+        ? 'https://api.chillax.site'
         : 'http://localhost:8080';
   }
 
