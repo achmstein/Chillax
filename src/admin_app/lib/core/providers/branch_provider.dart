@@ -102,9 +102,10 @@ class BranchNotifier extends Notifier<BranchState> {
     state = state.copyWith(selectedBranchId: branchId);
     await _saveBranchId(branchId);
 
-    // Invalidate branch-scoped data
+    // Reload branch-scoped data
     ref.read(ordersProvider.notifier).loadOrders();
     ref.invalidate(roomsProvider);
+    ref.read(roomsProvider.notifier).loadRooms();
     ref.read(serviceRequestsProvider.notifier).loadRequests();
 
     // Re-register notifications for the new branch
