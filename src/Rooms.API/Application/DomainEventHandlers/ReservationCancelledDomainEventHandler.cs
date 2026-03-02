@@ -35,7 +35,8 @@ public class ReservationCancelledDomainEventHandler : INotificationHandler<Reser
             reservation.RoomId,
             roomName,
             reservation.CustomerId,
-            reservation.CustomerName);
+            reservation.CustomerName,
+            reservation.Room?.BranchId ?? 1);
 
         await _eventBus.PublishAsync(cancellationEvent);
 
@@ -46,7 +47,8 @@ public class ReservationCancelledDomainEventHandler : INotificationHandler<Reser
         {
             var roomAvailableEvent = new RoomBecameAvailableIntegrationEvent(
                 reservation.RoomId,
-                roomName);
+                roomName,
+                reservation.Room?.BranchId ?? 1);
 
             await _eventBus.PublishAsync(roomAvailableEvent);
         }

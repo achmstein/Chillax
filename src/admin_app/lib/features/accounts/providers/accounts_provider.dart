@@ -63,7 +63,7 @@ class AccountsState {
 
 /// Accounts provider
 class AccountsNotifier extends Notifier<AccountsState> {
-  late final AccountsRepository _repository;
+  late AccountsRepository _repository;
 
   @override
   AccountsState build() {

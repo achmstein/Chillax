@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../auth/auth_service.dart';
 import '../config/app_config.dart';
+import '../providers/branch_provider.dart';
 
 const _uuid = Uuid();
 
@@ -11,7 +12,7 @@ class ApiClient {
   final Dio _dio;
   final AuthService _authService;
 
-  ApiClient(this._authService, {required String baseUrl})
+  ApiClient(this._authService, {required String baseUrl, int Function()? branchIdGetter})
       : _dio = Dio(BaseOptions(
           baseUrl: baseUrl,
           connectTimeout: const Duration(seconds: 30),
@@ -28,6 +29,10 @@ class ApiClient {
         // Add request ID for idempotency on mutating operations
         if (options.method != 'GET') {
           options.headers['x-requestid'] = _uuid.v4();
+        }
+        // Add branch header if getter is provided
+        if (branchIdGetter != null) {
+          options.headers['X-Branch-Id'] = branchIdGetter().toString();
         }
         return handler.next(options);
       },
@@ -74,22 +79,33 @@ class ApiClient {
   }
 }
 
-/// Providers for API clients
+/// Helper to get the current branch ID from the provider container
+int Function() _branchIdGetter(Ref ref) {
+  return () => ref.read(branchProvider).selectedBranchId ?? 1;
+}
+
+/// Providers for API clients — branch-scoped services include X-Branch-Id header
 final catalogApiProvider = Provider<ApiClient>((ref) {
   final authService = ref.read(authServiceProvider.notifier);
-  return ApiClient(authService, baseUrl: AppConfig.catalogApiUrl);
+  return ApiClient(authService, baseUrl: AppConfig.catalogApiUrl, branchIdGetter: _branchIdGetter(ref));
 });
 
 final ordersApiProvider = Provider<ApiClient>((ref) {
   final authService = ref.read(authServiceProvider.notifier);
-  return ApiClient(authService, baseUrl: AppConfig.ordersApiUrl);
+  return ApiClient(authService, baseUrl: AppConfig.ordersApiUrl, branchIdGetter: _branchIdGetter(ref));
 });
 
 final roomsApiProvider = Provider<ApiClient>((ref) {
   final authService = ref.read(authServiceProvider.notifier);
-  return ApiClient(authService, baseUrl: AppConfig.roomsApiUrl);
+  return ApiClient(authService, baseUrl: AppConfig.roomsApiUrl, branchIdGetter: _branchIdGetter(ref));
 });
 
+final notificationsApiProvider = Provider<ApiClient>((ref) {
+  final authService = ref.read(authServiceProvider.notifier);
+  return ApiClient(authService, baseUrl: AppConfig.notificationsApiUrl, branchIdGetter: _branchIdGetter(ref));
+});
+
+/// Global services — no branch header needed
 final identityApiProvider = Provider<ApiClient>((ref) {
   final authService = ref.read(authServiceProvider.notifier);
   return ApiClient(authService, baseUrl: AppConfig.identityApiUrl);
@@ -100,12 +116,13 @@ final loyaltyApiProvider = Provider<ApiClient>((ref) {
   return ApiClient(authService, baseUrl: AppConfig.loyaltyApiUrl);
 });
 
-final notificationsApiProvider = Provider<ApiClient>((ref) {
-  final authService = ref.read(authServiceProvider.notifier);
-  return ApiClient(authService, baseUrl: AppConfig.notificationsApiUrl);
-});
-
 final accountsApiProvider = Provider<ApiClient>((ref) {
   final authService = ref.read(authServiceProvider.notifier);
   return ApiClient(authService, baseUrl: AppConfig.accountsApiUrl);
+});
+
+/// Branches API — no branch header (it IS the branch service)
+final branchesApiProvider = Provider<ApiClient>((ref) {
+  final authService = ref.read(authServiceProvider.notifier);
+  return ApiClient(authService, baseUrl: AppConfig.branchesApiUrl);
 });

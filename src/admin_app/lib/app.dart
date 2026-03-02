@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'core/providers/branch_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/services/signalr_service.dart';
@@ -59,7 +60,7 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
     // Remove the native splash screen after auth is initialized
     FlutterNativeSplash.remove();
 
-    // Connect SignalR if authenticated
+    // Connect SignalR and load branches if authenticated
     final authState = ref.read(authServiceProvider);
     if (authState.isAuthenticated) {
       // Set user ID on Crashlytics so crashes are tied to users
@@ -67,6 +68,7 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
         FirebaseCrashlytics.instance.setUserIdentifier(authState.userId!);
       }
       _connectSignalR();
+      ref.read(branchProvider.notifier).loadBranches();
     }
   }
 

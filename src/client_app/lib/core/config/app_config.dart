@@ -19,6 +19,7 @@ class AppConfig {
   static String get notificationsApiUrl => '$bffBaseUrl/api/notifications/';
   static String get accountsApiUrl => '$bffBaseUrl/api/accounts/';
   static String get identityApiUrl => '$bffBaseUrl/api/identity/';
+  static String get branchesApiUrl => '$bffBaseUrl/api/branches/';
 
   // Keycloak configuration (through BFF)
   static String get keycloakUrl => '$bffBaseUrl/auth';

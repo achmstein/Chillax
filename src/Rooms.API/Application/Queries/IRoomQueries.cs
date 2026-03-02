@@ -3,14 +3,14 @@ namespace Chillax.Rooms.API.Application.Queries;
 public interface IRoomQueries
 {
     /// <summary>
-    /// Get all rooms with their current display status
+    /// Get all rooms with their current display status for a branch
     /// </summary>
-    Task<IEnumerable<RoomViewModel>> GetAllRoomsAsync();
+    Task<IEnumerable<RoomViewModel>> GetAllRoomsAsync(int branchId);
 
     /// <summary>
-    /// Get rooms available now (for immediate booking)
+    /// Get rooms available now (for immediate booking) for a branch
     /// </summary>
-    Task<IEnumerable<RoomViewModel>> GetAvailableRoomsAsync();
+    Task<IEnumerable<RoomViewModel>> GetAvailableRoomsAsync(int branchId);
 
     /// <summary>
     /// Get room by ID
@@ -23,9 +23,9 @@ public interface IRoomQueries
     Task<IEnumerable<ReservationViewModel>> GetCustomerReservationsAsync(string customerId);
 
     /// <summary>
-    /// Get all active sessions (admin view)
+    /// Get all active sessions (admin view) for a branch
     /// </summary>
-    Task<IEnumerable<ReservationViewModel>> GetActiveSessionsAsync();
+    Task<IEnumerable<ReservationViewModel>> GetActiveSessionsAsync(int branchId);
 
     /// <summary>
     /// Get reservation by ID

@@ -25,6 +25,9 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
             // Index for efficient lookups by type
             entity.HasIndex(e => e.Type);
 
+            // BranchId for branch-scoped admin subscriptions (null for global/customer subscriptions)
+            entity.Property(e => e.BranchId);
+
             // Unique constraint: one subscription per user per type
             entity.HasIndex(e => new { e.UserId, e.Type }).IsUnique();
         });
@@ -42,6 +45,11 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
 
             // Index for efficient lookups by user and status
             entity.HasIndex(e => new { e.UserId, e.Status });
+
+            entity.Property(e => e.BranchId).IsRequired().HasDefaultValue(1);
+
+            // Index for efficient lookups by branch and status
+            entity.HasIndex(e => new { e.BranchId, e.Status });
 
             // Index for efficient lookups by room and status
             entity.HasIndex(e => new { e.RoomId, e.Status });

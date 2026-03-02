@@ -6,6 +6,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'app_text.dart';
 
+
 /// Tracks the current route for tab-aware refreshing
 class CurrentRouteNotifier extends Notifier<String> {
   @override

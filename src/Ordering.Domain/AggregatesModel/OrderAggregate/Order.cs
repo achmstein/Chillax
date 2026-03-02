@@ -40,6 +40,11 @@ public class Order
     /// </summary>
     public double LoyaltyDiscount { get; private set; }
 
+    /// <summary>
+    /// The branch this order was placed at
+    /// </summary>
+    public int BranchId { get; private set; }
+
     // Draft orders have this set to true
 #pragma warning disable CS0414
     private bool _isDraft;
@@ -70,7 +75,7 @@ public class Order
         _isDraft = false;
     }
 
-    public Order(string userId, string userName, LocalizedText? roomName = null, string? customerNote = null, int? buyerId = null, int pointsToRedeem = 0, double loyaltyDiscount = 0) : this()
+    public Order(string userId, string userName, int branchId, LocalizedText? roomName = null, string? customerNote = null, int? buyerId = null, int pointsToRedeem = 0, double loyaltyDiscount = 0) : this()
     {
         BuyerId = buyerId;
         OrderStatus = OrderStatus.AwaitingValidation;
@@ -79,6 +84,7 @@ public class Order
         CustomerNote = customerNote;
         PointsToRedeem = pointsToRedeem;
         LoyaltyDiscount = loyaltyDiscount;
+        BranchId = branchId;
         Description = "Order awaiting item availability validation.";
 
         // Add the OrderStartedDomainEvent to the domain events collection

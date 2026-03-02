@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Rooms.Infrastructure.Migrations
 {
     [DbContext(typeof(RoomsContext))]
-    [Migration("20260301084422_InitialCreate")]
+    [Migration("20260302005425_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -232,6 +232,11 @@ namespace Rooms.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "roomseq", "rooms");
 
+                    b.Property<int>("BranchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<decimal>("MultiRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -246,6 +251,8 @@ namespace Rooms.Infrastructure.Migrations
                         .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("PhysicalStatus");
 

@@ -320,5 +320,8 @@
   "bundleIncludes": "يشمل",
 
   "playerModeSingle": "سنجل",
-  "playerModeMulti": "مالتي"
+  "playerModeMulti": "مالتي",
+
+  "selectBranch": "اختار الفرع",
+  "switchBranch": "غيّر الفرع"
 }

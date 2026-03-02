@@ -16,9 +16,10 @@ public class RoomQueries : IRoomQueries
         _context = context;
     }
 
-    public async Task<IEnumerable<RoomViewModel>> GetAllRoomsAsync()
+    public async Task<IEnumerable<RoomViewModel>> GetAllRoomsAsync(int branchId)
     {
         var rooms = await _context.Rooms
+            .Where(r => r.BranchId == branchId)
             .OrderBy(r => r.Name.En)
             .ToListAsync();
 
@@ -34,9 +35,9 @@ public class RoomQueries : IRoomQueries
         });
     }
 
-    public async Task<IEnumerable<RoomViewModel>> GetAvailableRoomsAsync()
+    public async Task<IEnumerable<RoomViewModel>> GetAvailableRoomsAsync(int branchId)
     {
-        var allRooms = await GetAllRoomsAsync();
+        var allRooms = await GetAllRoomsAsync(branchId);
         return allRooms.Where(r => r.DisplayStatus == RoomDisplayStatus.Available);
     }
 
@@ -68,13 +69,14 @@ public class RoomQueries : IRoomQueries
         return reservations.Select(MapToViewModel);
     }
 
-    public async Task<IEnumerable<ReservationViewModel>> GetActiveSessionsAsync()
+    public async Task<IEnumerable<ReservationViewModel>> GetActiveSessionsAsync(int branchId)
     {
         var reservations = await _context.Reservations
             .Include(r => r.Room)
             .Include(r => r.SessionMembers)
             .Include(r => r.SessionSegments)
             .Where(r => r.Status == ReservationStatus.Active || r.Status == ReservationStatus.Reserved)
+            .Where(r => r.Room!.BranchId == branchId)
             .OrderBy(r => r.CreatedAt)
             .ToListAsync();
 

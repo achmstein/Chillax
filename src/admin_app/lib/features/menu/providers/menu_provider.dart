@@ -57,7 +57,7 @@ class MenuState {
 
 /// Menu provider
 class MenuNotifier extends Notifier<MenuState> {
-  late final MenuRepository _repository;
+  late MenuRepository _repository;
 
   @override
   MenuState build() {

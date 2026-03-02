@@ -137,7 +137,7 @@ final mySessionsProvider = NotifierProvider<MySessionsNotifier, AsyncValue<List<
 
 /// Sessions notifier - refreshes on demand (app resume, screen focus, pull-to-refresh)
 class MySessionsNotifier extends Notifier<AsyncValue<List<RoomSession>>> {
-  late final RoomRepository _roomService;
+  late RoomRepository _roomService;
 
   @override
   AsyncValue<List<RoomSession>> build() {
@@ -199,7 +199,7 @@ class ReservationState {
 
 /// Reservation notifier
 class ReservationNotifier extends Notifier<ReservationState> {
-  late final RoomRepository _roomService;
+  late RoomRepository _roomService;
 
   @override
   ReservationState build() {

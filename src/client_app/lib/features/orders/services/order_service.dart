@@ -352,10 +352,10 @@ class CheckoutState {
 
 /// Checkout notifier
 class CheckoutNotifier extends Notifier<CheckoutState> {
-  late final OrderRepository _orderService;
-  late final CartNotifier _cartNotifier;
-  late final MenuRepository _menuService;
-  late final AuthState _authState;
+  late OrderRepository _orderService;
+  late CartNotifier _cartNotifier;
+  late MenuRepository _menuService;
+  late AuthState _authState;
 
   @override
   CheckoutState build() {

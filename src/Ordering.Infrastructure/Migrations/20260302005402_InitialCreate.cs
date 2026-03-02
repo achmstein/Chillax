@@ -93,6 +93,7 @@ namespace Ordering.Infrastructure.Migrations
                     CustomerNote = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     PointsToRedeem = table.Column<int>(type: "integer", nullable: false),
                     LoyaltyDiscount = table.Column<double>(type: "double precision", nullable: false),
+                    BranchId = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     RoomName = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
@@ -183,6 +184,12 @@ namespace Ordering.Infrastructure.Migrations
                 table: "orderratings",
                 column: "OrderId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_orders_BranchId",
+                schema: "ordering",
+                table: "orders",
+                column: "BranchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_orders_BuyerId",

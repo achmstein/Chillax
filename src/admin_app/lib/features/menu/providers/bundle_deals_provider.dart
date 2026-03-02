@@ -26,7 +26,7 @@ class BundleDealsState {
 }
 
 class BundleDealsNotifier extends Notifier<BundleDealsState> {
-  late final MenuRepository _repository;
+  late MenuRepository _repository;
 
   @override
   BundleDealsState build() {

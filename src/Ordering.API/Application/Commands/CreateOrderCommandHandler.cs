@@ -31,6 +31,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, boo
         var order = new Order(
             message.UserId,
             message.UserName,
+            message.BranchId,
             message.RoomName,
             message.CustomerNote,
             pointsToRedeem: message.PointsToRedeem,
@@ -50,7 +51,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, boo
             .Select(i => new OrderStockItem(i.ProductId, i.Units));
 
         var awaitingValidationEvent = new OrderStatusChangedToAwaitingValidationIntegrationEvent(
-            order.Id, orderStockItems);
+            order.Id, orderStockItems, message.BranchId);
 
         await _orderingIntegrationEventService.AddAndSaveEventAsync(awaitingValidationEvent);
 

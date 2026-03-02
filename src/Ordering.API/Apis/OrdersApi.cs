@@ -1,4 +1,5 @@
 #nullable enable
+using Chillax.ServiceDefaults;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Chillax.Ordering.Domain.Seedwork;
 using Order = Chillax.Ordering.API.Application.Queries.Order;
@@ -60,6 +61,7 @@ public static class OrdersApi
     public static async Task<Results<Ok, BadRequest<string>>> CreateOrderAsync(
         [FromHeader(Name = "x-requestid")] Guid requestId,
         CreateOrderRequest request,
+        HttpContext httpContext,
         [AsParameters] OrderServices services)
     {
         services.Logger.LogInformation(
@@ -73,12 +75,15 @@ public static class OrdersApi
             return TypedResults.BadRequest("RequestId is missing.");
         }
 
+        var branchId = httpContext.GetRequiredBranchId();
+
         using (services.Logger.BeginScope(new List<KeyValuePair<string, object>> { new("IdentifiedCommandId", requestId) }))
         {
             var createOrderCommand = new CreateOrderCommand(
                 request.Items,
                 request.UserId,
                 request.UserName,
+                branchId,
                 request.RoomName,
                 request.CustomerNote,
                 request.PointsToRedeem,
@@ -216,10 +221,12 @@ public static class OrdersApi
         return TypedResults.Ok(orders);
     }
 
-    public static async Task<Ok<IEnumerable<OrderSummary>>> GetPendingOrdersAsync([AsParameters] OrderServices services)
+    public static async Task<Ok<IEnumerable<OrderSummary>>> GetPendingOrdersAsync(
+        HttpContext httpContext,
+        [AsParameters] OrderServices services)
     {
-        // Get all orders with Submitted status (pending confirmation)
-        var orders = await services.Queries.GetPendingOrdersAsync();
+        var branchId = httpContext.GetRequiredBranchId();
+        var orders = await services.Queries.GetPendingOrdersAsync(branchId);
         return TypedResults.Ok(orders);
     }
 
@@ -234,11 +241,13 @@ public static class OrdersApi
     }
 
     public static async Task<Ok<PaginatedResult<OrderSummary>>> GetAllOrdersAsync(
+        HttpContext httpContext,
         int pageIndex = 0,
         int pageSize = 20,
         [AsParameters] OrderServices services = default!)
     {
-        var orders = await services.Queries.GetAllOrdersAsync(pageIndex, pageSize);
+        var branchId = httpContext.GetRequiredBranchId();
+        var orders = await services.Queries.GetAllOrdersAsync(pageIndex, pageSize, branchId);
         return TypedResults.Ok(orders);
     }
 

@@ -4,6 +4,7 @@ using Chillax.Notification.API.IntegrationEvents.Events;
 using Chillax.Notification.API.Model;
 using Chillax.ServiceDefaults;
 using Microsoft.AspNetCore.Http.HttpResults;
+using static Chillax.ServiceDefaults.BranchHeaderExtensions;
 
 namespace Chillax.Notification.API.Apis;
 
@@ -148,7 +149,7 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token and language if changed
+            // Update FCM token, language, and branch if changed
             var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
@@ -158,6 +159,11 @@ public static class NotificationApi
             if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
             {
                 existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (existing.BranchId != request.BranchId)
+            {
+                existing.BranchId = request.BranchId;
                 changed = true;
             }
             if (changed)
@@ -172,6 +178,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.RoomAvailability,
+            BranchId = request.BranchId,
             PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
@@ -235,7 +242,7 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token and language if changed
+            // Update FCM token, language, and branch if changed
             var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
@@ -245,6 +252,11 @@ public static class NotificationApi
             if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
             {
                 existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (existing.BranchId != request.BranchId)
+            {
+                existing.BranchId = request.BranchId;
                 changed = true;
             }
             if (changed)
@@ -259,6 +271,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.AdminOrderNotification,
+            BranchId = request.BranchId,
             PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
@@ -305,7 +318,7 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token and language if changed
+            // Update FCM token, language, and branch if changed
             var changed = false;
             if (existing.FcmToken != request.FcmToken)
             {
@@ -315,6 +328,11 @@ public static class NotificationApi
             if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
             {
                 existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (existing.BranchId != request.BranchId)
+            {
+                existing.BranchId = request.BranchId;
                 changed = true;
             }
             if (changed)
@@ -329,6 +347,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.AdminReservationNotification,
+            BranchId = request.BranchId,
             PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
@@ -453,6 +472,11 @@ public static class NotificationApi
                 existing.PreferredLanguage = request.PreferredLanguage ?? "en";
                 changed = true;
             }
+            if (existing.BranchId != request.BranchId)
+            {
+                existing.BranchId = request.BranchId;
+                changed = true;
+            }
             if (changed)
             {
                 await context.SaveChangesAsync();
@@ -465,6 +489,7 @@ public static class NotificationApi
             UserId = userId,
             FcmToken = request.FcmToken,
             Type = SubscriptionType.ServiceRequests,
+            BranchId = request.BranchId,
             PreferredLanguage = request.PreferredLanguage ?? "en",
             CreatedAt = DateTime.UtcNow
         };
@@ -502,10 +527,12 @@ public static class NotificationApi
         NotificationContext context,
         IEventBus eventBus,
         ClaimsPrincipal user,
+        HttpContext httpContext,
         CreateServiceRequestDto request)
     {
         var userId = user.GetUserId()!;
         var userName = user.GetUserName() ?? "Guest";
+        var branchId = httpContext.GetRequiredBranchId();
 
         // Check for recent duplicate request (within 30 seconds)
         var recentRequest = await context.ServiceRequests
@@ -527,6 +554,7 @@ public static class NotificationApi
             UserName = userName,
             SessionId = request.SessionId,
             RoomId = request.RoomId,
+            BranchId = branchId,
             RoomName = request.RoomName,
             RequestType = request.RequestType,
             Status = ServiceRequestStatus.Pending,
@@ -543,7 +571,8 @@ public static class NotificationApi
             serviceRequest.RoomId,
             serviceRequest.RoomName,
             serviceRequest.RequestType,
-            serviceRequest.CreatedAt));
+            serviceRequest.CreatedAt,
+            branchId));
 
         return TypedResults.Created(
             $"/api/notifications/service-requests/{serviceRequest.Id}",
@@ -558,11 +587,15 @@ public static class NotificationApi
     }
 
     public static async Task<Ok<List<ServiceRequestResponse>>> GetPendingServiceRequests(
-        NotificationContext context)
+        NotificationContext context,
+        HttpContext httpContext)
     {
+        var branchId = httpContext.GetRequiredBranchId();
+
         var requests = await context.ServiceRequests
             .AsNoTracking()
             .Where(r => r.Status == ServiceRequestStatus.Pending || r.Status == ServiceRequestStatus.Acknowledged)
+            .Where(r => r.BranchId == branchId)
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new ServiceRequestResponse(
                 r.Id,
@@ -695,7 +728,8 @@ public static class NotificationApi
 
 public record SubscribeRequest(
     [property: Description("The FCM token from the mobile device")] string FcmToken,
-    [property: Description("Preferred language for notifications (en or ar)")] string? PreferredLanguage = "en"
+    [property: Description("Preferred language for notifications (en or ar)")] string? PreferredLanguage = "en",
+    [property: Description("Branch ID for branch-scoped notifications (admin only)")] int? BranchId = null
 );
 
 public record SubscriptionResponse(

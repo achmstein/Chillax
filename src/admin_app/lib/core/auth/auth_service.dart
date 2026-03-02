@@ -344,12 +344,17 @@ class AuthService extends Notifier<AuthState> {
         return;
       }
 
+      // Get current branch ID
+      final prefs = await SharedPreferences.getInstance();
+      final branchId = prefs.getInt('admin_selected_branch_id');
+
       // Register with backend
       final response = await _dio.post(
         '${AppConfig.notificationsApiUrl}subscriptions/admin-orders',
         data: {
           'fcmToken': fcmToken,
           'preferredLanguage': preferredLanguage,
+          if (branchId != null) 'branchId': branchId,
         },
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
@@ -399,12 +404,17 @@ class AuthService extends Notifier<AuthState> {
         return;
       }
 
+      // Get current branch ID
+      final prefs = await SharedPreferences.getInstance();
+      final branchId = prefs.getInt('admin_selected_branch_id');
+
       // Register with backend
       final response = await _dio.post(
         '${AppConfig.notificationsApiUrl}subscriptions/service-requests',
         data: {
           'fcmToken': fcmToken,
           'preferredLanguage': preferredLanguage,
+          if (branchId != null) 'branchId': branchId,
         },
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},
@@ -454,12 +464,17 @@ class AuthService extends Notifier<AuthState> {
         return;
       }
 
+      // Get current branch ID
+      final prefs = await SharedPreferences.getInstance();
+      final branchId = prefs.getInt('admin_selected_branch_id');
+
       // Register with backend
       final response = await _dio.post(
         '${AppConfig.notificationsApiUrl}subscriptions/admin-reservations',
         data: {
           'fcmToken': fcmToken,
           'preferredLanguage': preferredLanguage,
+          if (branchId != null) 'branchId': branchId,
         },
         options: Options(
           headers: {'Authorization': 'Bearer ${state.accessToken}'},

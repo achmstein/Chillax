@@ -42,7 +42,8 @@ public class ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
             domainEvent.Order.Id,
             domainEvent.Order.OrderStatus,
             buyer!.Name,
-            buyer.IdentityGuid);
+            buyer.IdentityGuid,
+            domainEvent.Order.BranchId);
 
         await _orderingIntegrationEventService.AddAndSaveEventAsync(integrationEvent);
 

@@ -22,6 +22,44 @@ namespace Catalog.API.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Chillax.Catalog.API.Model.BranchItemOverride", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CatalogItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsOnOfferOverride")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("OfferPriceOverride")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("PriceOverride")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogItemId");
+
+                    b.HasIndex("BranchId", "CatalogItemId")
+                        .IsUnique();
+
+                    b.ToTable("BranchItemOverrides", (string)null);
+                });
+
             modelBuilder.Entity("Chillax.Catalog.API.Model.BundleDeal", b =>
                 {
                     b.Property<int>("Id")
@@ -305,6 +343,17 @@ namespace Catalog.API.Infrastructure.Migrations
                     b.HasKey("EventId");
 
                     b.ToTable("IntegrationEventLog", (string)null);
+                });
+
+            modelBuilder.Entity("Chillax.Catalog.API.Model.BranchItemOverride", b =>
+                {
+                    b.HasOne("Chillax.Catalog.API.Model.CatalogItem", "CatalogItem")
+                        .WithMany()
+                        .HasForeignKey("CatalogItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogItem");
                 });
 
             modelBuilder.Entity("Chillax.Catalog.API.Model.BundleDeal", b =>

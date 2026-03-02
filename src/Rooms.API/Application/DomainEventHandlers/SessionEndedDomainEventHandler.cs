@@ -30,7 +30,8 @@ public class SessionEndedDomainEventHandler : INotificationHandler<SessionEndedD
         // Publish room available event for notifications
         var roomAvailableEvent = new RoomBecameAvailableIntegrationEvent(
             reservation.RoomId,
-            reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"));
+            reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
+            reservation.Room?.BranchId ?? 1);
 
         await _eventBus.PublishAsync(roomAvailableEvent);
 

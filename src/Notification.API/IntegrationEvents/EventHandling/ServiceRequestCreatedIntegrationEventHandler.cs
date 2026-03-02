@@ -20,9 +20,10 @@ public class ServiceRequestCreatedIntegrationEventHandler(
             "Handling ServiceRequestCreatedIntegrationEvent: {RequestType} for room {RoomName}",
             @event.RequestType, @event.RoomName.En);
 
-        // Get all staff subscribed to ServiceRequests
+        // Get staff subscribed to ServiceRequests for this branch
         var subscriptions = await context.Subscriptions
-            .Where(s => s.Type == SubscriptionType.ServiceRequests)
+            .Where(s => s.Type == SubscriptionType.ServiceRequests
+                && (s.BranchId == null || s.BranchId == @event.BranchId))
             .ToListAsync();
 
         if (subscriptions.Count == 0)

@@ -19,9 +19,10 @@ public class ReservationCancelledIntegrationEventHandler(
         logger.LogInformation("Handling ReservationCancelledIntegrationEvent: ReservationId={ReservationId}, Room={RoomName}, Customer={CustomerName}",
             @event.ReservationId, @event.RoomName.En, @event.CustomerName);
 
-        // Get all admin reservation notification subscriptions
+        // Get admin reservation notification subscriptions for this branch
         var subscriptions = await context.Subscriptions
-            .Where(s => s.Type == SubscriptionType.AdminReservationNotification)
+            .Where(s => s.Type == SubscriptionType.AdminReservationNotification
+                && (s.BranchId == null || s.BranchId == @event.BranchId))
             .ToListAsync();
 
         if (subscriptions.Count == 0)

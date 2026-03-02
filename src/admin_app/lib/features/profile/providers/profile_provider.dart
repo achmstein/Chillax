@@ -33,7 +33,7 @@ class ProfileState {
 
 /// Profile provider for password change and other profile operations
 class ProfileNotifier extends Notifier<ProfileState> {
-  late final ProfileRepository _repository;
+  late ProfileRepository _repository;
 
   @override
   ProfileState build() {

@@ -22,6 +22,7 @@ var catalogDb = postgres.AddDatabase("catalogdb");
 var orderDb = postgres.AddDatabase("orderingdb");
 var roomsDb = postgres.AddDatabase("roomsdb");
 var loyaltyDb = postgres.AddDatabase("loyaltydb");
+var branchDb = postgres.AddDatabase("branchdb");
 var notificationDb = postgres.AddDatabase("notificationdb");
 
 // pgAdmin for database management
@@ -100,6 +101,12 @@ var accountsApi = builder.AddProject<Projects.Accounts_API>("accounts-api")
     .WithEnvironment("Identity__Url", keycloakRealmUrl)
     .WithEnvironment("Keycloak__Realm", "chillax");
 
+var branchApi = builder.AddProject<Projects.Branch_API>("branch-api")
+    .WithReference(branchDb).WaitFor(branchDb)
+    .WithReference(keycloak)
+    .WithEnvironment("Identity__Url", keycloakRealmUrl)
+    .WithEnvironment("Keycloak__Realm", "chillax");
+
 // Configure services for Docker Compose deployment with GHCR images
 void ConfigureApiService(IResourceBuilder<ProjectResource> api, string imageSuffix)
 {
@@ -117,6 +124,7 @@ ConfigureApiService(identityApi, "identity");
 ConfigureApiService(loyaltyApi, "loyalty");
 ConfigureApiService(notificationApi, "notification");
 ConfigureApiService(accountsApi, "accounts");
+ConfigureApiService(branchApi, "branch");
 
 // Reverse proxy - BFF for Flutter apps
 // Used by both mobile app and admin app
@@ -127,7 +135,7 @@ builder.AddYarp("mobile-bff")
         endpoint.UriScheme = "http";
         endpoint.IsExternal = true;
     })
-    .ConfigureMobileBffRoutes(catalogApi, orderingApi, roomsApi, identityApi, loyaltyApi, notificationApi, accountsApi, keycloak);
+    .ConfigureMobileBffRoutes(catalogApi, orderingApi, roomsApi, identityApi, loyaltyApi, notificationApi, accountsApi, branchApi, keycloak);
 
 builder.Build().Run();
 

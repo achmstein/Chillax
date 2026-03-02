@@ -31,6 +31,11 @@ class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
             .WithMany()
             .HasForeignKey(o => o.BuyerId);
 
+        orderConfiguration.Property(o => o.BranchId)
+            .IsRequired()
+            .HasDefaultValue(1);
+
+        orderConfiguration.HasIndex(o => o.BranchId);
         orderConfiguration.HasIndex(o => o.OrderStatus);
         orderConfiguration.HasIndex(o => o.OrderDate);
     }

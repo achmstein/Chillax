@@ -13,4 +13,5 @@ public record RoomReservedIntegrationEvent(
     LocalizedText RoomName,
     string? CustomerId,
     string? CustomerName,
-    DateTime? ExpiresAt) : IntegrationEvent;
+    DateTime? ExpiresAt,
+    int BranchId = 1) : IntegrationEvent;

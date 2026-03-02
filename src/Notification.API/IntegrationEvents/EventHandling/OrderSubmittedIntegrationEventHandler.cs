@@ -19,9 +19,10 @@ public class OrderSubmittedIntegrationEventHandler(
         logger.LogInformation("Handling OrderStatusChangedToSubmittedIntegrationEvent for order {OrderId} from {BuyerName}",
             @event.OrderId, @event.BuyerName);
 
-        // Get all admin order notification subscriptions
+        // Get admin order notification subscriptions for this branch
         var subscriptions = await context.Subscriptions
-            .Where(s => s.Type == SubscriptionType.AdminOrderNotification)
+            .Where(s => s.Type == SubscriptionType.AdminOrderNotification
+                && (s.BranchId == null || s.BranchId == @event.BranchId))
             .ToListAsync();
 
         if (subscriptions.Count == 0)

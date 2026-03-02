@@ -67,7 +67,7 @@ class OrderHistoryState {
 
 /// Orders provider
 class OrdersNotifier extends Notifier<OrdersState> {
-  late final OrderRepository _repository;
+  late OrderRepository _repository;
 
   @override
   OrdersState build() {
@@ -135,7 +135,7 @@ final orderDetailsProvider = FutureProvider.family<Order, int>((ref, orderId) as
 
 /// Order history notifier for paginated all-orders
 class OrderHistoryNotifier extends Notifier<OrderHistoryState> {
-  late final OrderRepository _repository;
+  late OrderRepository _repository;
   static const _pageSize = 20;
 
   @override

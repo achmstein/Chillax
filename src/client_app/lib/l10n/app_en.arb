@@ -453,5 +453,8 @@
   "bundleIncludes": "Includes",
 
   "playerModeSingle": "Single",
-  "playerModeMulti": "Multi"
+  "playerModeMulti": "Multi",
+
+  "selectBranch": "Select Branch",
+  "switchBranch": "Switch Branch"
 }

@@ -40,6 +40,7 @@ namespace Chillax.Notification.API.Migrations
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     SessionId = table.Column<int>(type: "integer", nullable: false),
                     RoomId = table.Column<int>(type: "integer", nullable: false),
+                    BranchId = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     RequestType = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -61,6 +62,7 @@ namespace Chillax.Notification.API.Migrations
                     UserId = table.Column<string>(type: "text", nullable: false),
                     FcmToken = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
+                    BranchId = table.Column<int>(type: "integer", nullable: true),
                     PreferredLanguage = table.Column<string>(type: "character varying(5)", maxLength: 5, nullable: false, defaultValue: "en"),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -74,6 +76,11 @@ namespace Chillax.Notification.API.Migrations
                 table: "Preferences",
                 column: "UserId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceRequests_BranchId_Status",
+                table: "ServiceRequests",
+                columns: new[] { "BranchId", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ServiceRequests_CreatedAt",

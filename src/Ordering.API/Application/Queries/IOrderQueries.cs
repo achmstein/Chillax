@@ -7,14 +7,14 @@ public interface IOrderQueries
     Task<PaginatedResult<OrderSummary>> GetOrdersFromUserAsync(string userId, int pageIndex, int pageSize);
 
     /// <summary>
-    /// Get all pending orders (Submitted status) for admin review
+    /// Get all pending orders (Submitted status) for admin review, filtered by branch
     /// </summary>
-    Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync();
+    Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync(int branchId);
 
     /// <summary>
-    /// Get all orders paginated (admin) regardless of status
+    /// Get all orders paginated (admin) regardless of status, filtered by branch
     /// </summary>
-    Task<PaginatedResult<OrderSummary>> GetAllOrdersAsync(int pageIndex, int pageSize);
+    Task<PaginatedResult<OrderSummary>> GetAllOrdersAsync(int pageIndex, int pageSize, int branchId);
 }
 
 /// <summary>

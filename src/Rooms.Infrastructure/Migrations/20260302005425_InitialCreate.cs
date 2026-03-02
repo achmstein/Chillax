@@ -74,6 +74,7 @@ namespace Rooms.Infrastructure.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false),
                     SingleRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     MultiRate = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    BranchId = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     PhysicalStatus = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     Description = table.Column<string>(type: "jsonb", nullable: true),
                     Name = table.Column<string>(type: "jsonb", nullable: false)
@@ -206,6 +207,12 @@ namespace Rooms.Infrastructure.Migrations
                 schema: "rooms",
                 table: "reservations",
                 columns: new[] { "Status", "ExpiresAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_rooms_BranchId",
+                schema: "rooms",
+                table: "rooms",
+                column: "BranchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_rooms_PhysicalStatus",

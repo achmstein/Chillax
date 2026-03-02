@@ -46,7 +46,7 @@ class LoyaltyState {
 
 /// Loyalty provider
 class LoyaltyNotifier extends Notifier<LoyaltyState> {
-  late final LoyaltyRepository _repository;
+  late LoyaltyRepository _repository;
 
   @override
   LoyaltyState build() {

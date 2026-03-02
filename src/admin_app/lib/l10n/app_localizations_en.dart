@@ -1229,4 +1229,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToToggleCustomer => 'Failed to update customer status';
+
+  @override
+  String get selectBranch => 'Select Branch';
+
+  @override
+  String get switchBranch => 'Switch Branch';
+
+  @override
+  String get manageBranches => 'Manage Branches';
+
+  @override
+  String get createBranch => 'Create Branch';
+
+  @override
+  String get editBranch => 'Edit Branch';
+
+  @override
+  String get branchName => 'Branch Name';
+
+  @override
+  String get branchAddress => 'Address';
+
+  @override
+  String get branchPhone => 'Phone';
+
+  @override
+  String get branchActive => 'Active';
+
+  @override
+  String get branchCreatedSuccess => 'Branch created successfully';
+
+  @override
+  String get branchUpdatedSuccess => 'Branch updated successfully';
+
+  @override
+  String get assignAdmin => 'Assign Admin';
+
+  @override
+  String get removeAdmin => 'Remove Admin';
+
+  @override
+  String get adminAssigned => 'Admin assigned to branch';
+
+  @override
+  String get adminRemoved => 'Admin removed from branch';
+
+  @override
+  String get branchAvailability => 'Branch Availability';
+
+  @override
+  String get priceOverride => 'Price Override';
+
+  @override
+  String get noBranchesFound => 'No branches found';
+
+  @override
+  String get branches => 'Branches';
+
+  @override
+  String get branchDetails => 'Branch Details';
+
+  @override
+  String get assignedAdmins => 'Assigned Admins';
+
+  @override
+  String get noAdminsAssigned => 'No admins assigned to this branch';
+
+  @override
+  String get confirmRemoveAdmin => 'Remove this admin from the branch?';
+
+  @override
+  String get deleteBranch => 'Delete Branch';
+
+  @override
+  String get branchDeletedSuccess => 'Branch deleted successfully';
+
+  @override
+  String get inactive => 'Inactive';
+
+  @override
+  String get displayOrder => 'Display Order';
+
+  @override
+  String get saving => 'Saving...';
+
+  @override
+  String get selectAdmin => 'Select Admin';
 }

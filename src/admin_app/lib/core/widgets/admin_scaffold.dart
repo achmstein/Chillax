@@ -53,6 +53,7 @@ List<NavItem> secondaryNavItems = [
   NavItem(route: '/loyalty', labelBuilder: (l10n) => l10n.loyalty, icon: Icons.card_giftcard_outlined),
   NavItem(route: '/customers', labelBuilder: (l10n) => l10n.customers, icon: Icons.people_outline),
   NavItem(route: '/users', labelBuilder: (l10n) => l10n.usersManagement, icon: Icons.admin_panel_settings_outlined),
+  NavItem(route: '/branches', labelBuilder: (l10n) => l10n.branches, icon: Icons.store_outlined),
   NavItem(route: '/profile', labelBuilder: (l10n) => l10n.profile, icon: Icons.person_outline),
 ];
 
@@ -196,7 +197,9 @@ class _MobileLayout extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: theme.colors.background,
-      body: SafeArea(child: child),
+      body: SafeArea(
+        child: child,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: theme.colors.background,

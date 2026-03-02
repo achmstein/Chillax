@@ -10,6 +10,7 @@ import 'package:forui/forui.dart';
 import 'l10n/app_localizations.dart';
 import 'core/router/app_router.dart';
 import 'core/auth/auth_service.dart';
+import 'core/providers/branch_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/signalr_service.dart';
@@ -24,6 +25,7 @@ void main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await initializeLocale();
+  await initializeBranch();
 
   // Initialize Firebase before setting up Crashlytics handlers
   try {

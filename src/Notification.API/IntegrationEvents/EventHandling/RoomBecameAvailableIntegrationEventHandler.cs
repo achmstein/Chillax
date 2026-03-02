@@ -19,9 +19,10 @@ public class RoomBecameAvailableIntegrationEventHandler(
         logger.LogInformation("Handling RoomBecameAvailableIntegrationEvent for room {RoomId}: {RoomName}",
             @event.RoomId, @event.RoomName.En);
 
-        // Get all room availability subscriptions
+        // Get room availability subscriptions for this branch
         var subscriptions = await context.Subscriptions
-            .Where(s => s.Type == SubscriptionType.RoomAvailability)
+            .Where(s => s.Type == SubscriptionType.RoomAvailability
+                && (s.BranchId == null || s.BranchId == @event.BranchId))
             .ToListAsync();
 
         if (subscriptions.Count > 0)

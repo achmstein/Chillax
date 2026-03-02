@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/models/localized_text.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/balance_card.dart';
@@ -161,6 +163,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                 FTileGroup(
                   children: [
+                    if (ref.watch(branchProvider).branches.length > 1)
+                      FTile(
+                        prefix: const Icon(FIcons.mapPin),
+                        title: AppText(l10n.switchBranch),
+                        subtitle: AppText(
+                          ref.watch(branchProvider).selectedBranch?.name.localized(context) ?? '',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        suffix: const Icon(FIcons.chevronRight),
+                        onPress: () => _showBranchPicker(context),
+                      ),
                     FTile(
                       prefix: const Icon(FIcons.settings),
                       title: AppText(l10n.settings),
@@ -229,6 +242,69 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         ),
       ],
+    );
+  }
+
+  void _showBranchPicker(BuildContext context) {
+    final branchState = ref.read(branchProvider);
+    final theme = context.theme;
+    final current = branchState.selectedBranch;
+    if (current == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: theme.colors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...branchState.branches.map((branch) {
+              final isSelected = branch.id == current.id;
+              return ListTile(
+                dense: true,
+                visualDensity: VisualDensity.compact,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: Icon(
+                  FIcons.mapPin,
+                  size: 20,
+                  color: isSelected ? theme.colors.primary : theme.colors.foreground,
+                ),
+                title: AppText(
+                  branch.name.localized(context),
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? theme.colors.primary : theme.colors.foreground,
+                  ),
+                ),
+                trailing: isSelected
+                    ? Icon(FIcons.check, size: 16, color: theme.colors.primary)
+                    : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  if (!isSelected) {
+                    ref.read(branchProvider.notifier).selectBranch(branch.id);
+                  }
+                },
+              );
+            }),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 

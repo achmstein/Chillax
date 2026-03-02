@@ -2389,6 +2389,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to update customer status'**
   String get failedToToggleCustomer;
+
+  /// No description provided for @selectBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Branch'**
+  String get selectBranch;
+
+  /// No description provided for @switchBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Branch'**
+  String get switchBranch;
+
+  /// No description provided for @manageBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Branches'**
+  String get manageBranches;
+
+  /// No description provided for @createBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Branch'**
+  String get createBranch;
+
+  /// No description provided for @editBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Branch'**
+  String get editBranch;
+
+  /// No description provided for @branchName.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Name'**
+  String get branchName;
+
+  /// No description provided for @branchAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get branchAddress;
+
+  /// No description provided for @branchPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get branchPhone;
+
+  /// No description provided for @branchActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get branchActive;
+
+  /// No description provided for @branchCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch created successfully'**
+  String get branchCreatedSuccess;
+
+  /// No description provided for @branchUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch updated successfully'**
+  String get branchUpdatedSuccess;
+
+  /// No description provided for @assignAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign Admin'**
+  String get assignAdmin;
+
+  /// No description provided for @removeAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Admin'**
+  String get removeAdmin;
+
+  /// No description provided for @adminAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin assigned to branch'**
+  String get adminAssigned;
+
+  /// No description provided for @adminRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin removed from branch'**
+  String get adminRemoved;
+
+  /// No description provided for @branchAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Availability'**
+  String get branchAvailability;
+
+  /// No description provided for @priceOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Override'**
+  String get priceOverride;
+
+  /// No description provided for @noBranchesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No branches found'**
+  String get noBranchesFound;
+
+  /// No description provided for @branches.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches'**
+  String get branches;
+
+  /// No description provided for @branchDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Details'**
+  String get branchDetails;
+
+  /// No description provided for @assignedAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Admins'**
+  String get assignedAdmins;
+
+  /// No description provided for @noAdminsAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No admins assigned to this branch'**
+  String get noAdminsAssigned;
+
+  /// No description provided for @confirmRemoveAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this admin from the branch?'**
+  String get confirmRemoveAdmin;
+
+  /// No description provided for @deleteBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Branch'**
+  String get deleteBranch;
+
+  /// No description provided for @branchDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch deleted successfully'**
+  String get branchDeletedSuccess;
+
+  /// No description provided for @inactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get inactive;
+
+  /// No description provided for @displayOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Order'**
+  String get displayOrder;
+
+  /// No description provided for @saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get saving;
+
+  /// No description provided for @selectAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Admin'**
+  String get selectAdmin;
 }
 
 class _AppLocalizationsDelegate

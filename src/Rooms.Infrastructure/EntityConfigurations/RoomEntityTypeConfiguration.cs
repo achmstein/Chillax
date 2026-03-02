@@ -32,7 +32,12 @@ class RoomEntityTypeConfiguration : IEntityTypeConfiguration<Room>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(r => r.BranchId)
+            .IsRequired()
+            .HasDefaultValue(1);
+
         // Indexes
+        builder.HasIndex(r => r.BranchId);
         builder.HasIndex(r => r.PhysicalStatus);
     }
 }

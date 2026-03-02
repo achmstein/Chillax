@@ -920,4 +920,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerModeMulti => 'Multi';
+
+  @override
+  String get selectBranch => 'Select Branch';
+
+  @override
+  String get switchBranch => 'Switch Branch';
 }

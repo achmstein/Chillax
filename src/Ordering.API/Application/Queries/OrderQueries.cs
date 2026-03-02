@@ -81,12 +81,15 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
         };
     }
 
-    public async Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync()
+    public async Task<IEnumerable<OrderSummary>> GetPendingOrdersAsync(int branchId)
     {
-        return await context.Orders
+        var query = context.Orders
             .AsNoTracking()
             .Include(o => o.Buyer)
             .Where(o => o.OrderStatus == Ordering.Domain.AggregatesModel.OrderAggregate.OrderStatus.Submitted)
+            .Where(o => o.BranchId == branchId);
+
+        return await query
             .OrderByDescending(o => o.OrderDate)
             .Select(o => new OrderSummary
             {
@@ -103,9 +106,10 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
             .ToListAsync();
     }
 
-    public async Task<PaginatedResult<OrderSummary>> GetAllOrdersAsync(int pageIndex, int pageSize)
+    public async Task<PaginatedResult<OrderSummary>> GetAllOrdersAsync(int pageIndex, int pageSize, int branchId)
     {
-        var query = context.Orders.AsNoTracking().Include(o => o.Buyer);
+        var query = context.Orders.AsNoTracking().Include(o => o.Buyer)
+            .Where(o => o.BranchId == branchId);
 
         var totalCount = await query.CountAsync();
 

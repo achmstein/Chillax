@@ -906,4 +906,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get playerModeMulti => 'مالتي';
+
+  @override
+  String get selectBranch => 'اختار الفرع';
+
+  @override
+  String get switchBranch => 'غيّر الفرع';
 }

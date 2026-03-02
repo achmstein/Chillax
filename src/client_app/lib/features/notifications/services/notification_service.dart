@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/services/firebase_service.dart';
 
@@ -56,11 +57,15 @@ class ApiNotificationRepository implements NotificationRepository {
         return false;
       }
 
+      final prefs = await SharedPreferences.getInstance();
+      final branchId = prefs.getInt('selected_branch_id');
+
       final response = await _apiClient.post(
         'subscriptions/room-availability',
         data: {
           'fcmToken': fcmToken,
           'preferredLanguage': preferredLanguage,
+          if (branchId != null) 'branchId': branchId,
         },
       ).timeout(const Duration(seconds: 5));
 
@@ -166,7 +171,7 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
 
 /// State notifier for room availability subscription
 class RoomAvailabilityNotifier extends Notifier<AsyncValue<bool>> {
-  late final NotificationRepository _notificationService;
+  late NotificationRepository _notificationService;
 
   @override
   AsyncValue<bool> build() {

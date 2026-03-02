@@ -10,6 +10,12 @@ public class OrderStatusChangedToAwaitingValidationIntegrationEventHandler(
     {
         logger.LogInformation("Handling integration event: {IntegrationEventId} - ({@IntegrationEvent})", @event.Id, @event);
 
+        // Load branch overrides if branch is specified
+        var productIds = @event.OrderStockItems.Select(i => i.ProductId).ToList();
+        var branchOverrides = await catalogContext.BranchItemOverrides
+            .Where(o => o.BranchId == @event.BranchId && productIds.Contains(o.CatalogItemId))
+            .ToDictionaryAsync(o => o.CatalogItemId);
+
         var confirmedOrderStockItems = new List<ConfirmedOrderStockItem>();
 
         foreach (var orderStockItem in @event.OrderStockItems)
@@ -17,8 +23,10 @@ public class OrderStatusChangedToAwaitingValidationIntegrationEventHandler(
             var catalogItem = await catalogContext.CatalogItems.FindAsync(orderStockItem.ProductId);
             if (catalogItem is not null)
             {
-                // For cafe menu items, we check if the item is available (not stock-based)
-                var isAvailable = catalogItem.IsAvailable;
+                // Check branch override first, then fall back to global availability
+                var isAvailable = branchOverrides.TryGetValue(catalogItem.Id, out var branchOverride)
+                    ? branchOverride.IsAvailable
+                    : catalogItem.IsAvailable;
                 var confirmedOrderStockItem = new ConfirmedOrderStockItem(catalogItem.Id, isAvailable);
 
                 confirmedOrderStockItems.Add(confirmedOrderStockItem);

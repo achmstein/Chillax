@@ -91,6 +91,30 @@ namespace Catalog.API.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BranchItemOverrides",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BranchId = table.Column<int>(type: "integer", nullable: false),
+                    CatalogItemId = table.Column<int>(type: "integer", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "boolean", nullable: false),
+                    PriceOverride = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true),
+                    OfferPriceOverride = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true),
+                    IsOnOfferOverride = table.Column<bool>(type: "boolean", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BranchItemOverrides", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BranchItemOverrides_Catalog_CatalogItemId",
+                        column: x => x.CatalogItemId,
+                        principalTable: "Catalog",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BundleDealItems",
                 columns: table => new
                 {
@@ -227,6 +251,17 @@ namespace Catalog.API.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_BranchItemOverrides_BranchId_CatalogItemId",
+                table: "BranchItemOverrides",
+                columns: new[] { "BranchId", "CatalogItemId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BranchItemOverrides_CatalogItemId",
+                table: "BranchItemOverrides",
+                column: "CatalogItemId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_BundleDealItems_BundleDealId",
                 table: "BundleDealItems",
                 column: "BundleDealId");
@@ -293,6 +328,9 @@ namespace Catalog.API.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "BranchItemOverrides");
+
             migrationBuilder.DropTable(
                 name: "BundleDealItems");
 

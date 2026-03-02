@@ -229,6 +229,11 @@ namespace Rooms.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "roomseq", "rooms");
 
+                    b.Property<int>("BranchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<decimal>("MultiRate")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -243,6 +248,8 @@ namespace Rooms.Infrastructure.Migrations
                         .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("PhysicalStatus");
 

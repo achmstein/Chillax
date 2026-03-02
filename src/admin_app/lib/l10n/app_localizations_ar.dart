@@ -1223,4 +1223,91 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get failedToToggleCustomer => 'فشل تحديث حالة العميل';
+
+  @override
+  String get selectBranch => 'اختار الفرع';
+
+  @override
+  String get switchBranch => 'غيّر الفرع';
+
+  @override
+  String get manageBranches => 'إدارة الفروع';
+
+  @override
+  String get createBranch => 'إنشاء فرع';
+
+  @override
+  String get editBranch => 'تعديل فرع';
+
+  @override
+  String get branchName => 'اسم الفرع';
+
+  @override
+  String get branchAddress => 'العنوان';
+
+  @override
+  String get branchPhone => 'الموبايل';
+
+  @override
+  String get branchActive => 'مفعّل';
+
+  @override
+  String get branchCreatedSuccess => 'تم إنشاء الفرع بنجاح';
+
+  @override
+  String get branchUpdatedSuccess => 'تم تعديل الفرع بنجاح';
+
+  @override
+  String get assignAdmin => 'تعيين أدمن';
+
+  @override
+  String get removeAdmin => 'إزالة أدمن';
+
+  @override
+  String get adminAssigned => 'تم تعيين الأدمن للفرع';
+
+  @override
+  String get adminRemoved => 'تم إزالة الأدمن من الفرع';
+
+  @override
+  String get branchAvailability => 'توفر الفرع';
+
+  @override
+  String get priceOverride => 'تعديل السعر';
+
+  @override
+  String get noBranchesFound => 'مفيش فروع';
+
+  @override
+  String get branches => 'الفروع';
+
+  @override
+  String get branchDetails => 'تفاصيل الفرع';
+
+  @override
+  String get assignedAdmins => 'الأدمنز المعينين';
+
+  @override
+  String get noAdminsAssigned => 'مفيش أدمنز معينين للفرع ده';
+
+  @override
+  String get confirmRemoveAdmin => 'إزالة الأدمن ده من الفرع؟';
+
+  @override
+  String get deleteBranch => 'حذف الفرع';
+
+  @override
+  String get branchDeletedSuccess => 'تم حذف الفرع بنجاح';
+
+  @override
+  String get inactive => 'متوقف';
+
+  @override
+  String get displayOrder => 'ترتيب العرض';
+
+  @override
+  String get saving => 'جاري الحفظ...';
+
+  @override
+  String get selectAdmin => 'اختار أدمن';
 }

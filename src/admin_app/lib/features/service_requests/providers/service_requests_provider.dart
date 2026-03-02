@@ -38,7 +38,7 @@ class ServiceRequestsState {
 
 /// Service requests notifier
 class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
-  late final ServiceRequestsRepository _repository;
+  late ServiceRequestsRepository _repository;
 
   @override
   ServiceRequestsState build() {

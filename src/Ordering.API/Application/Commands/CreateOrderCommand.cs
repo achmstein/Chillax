@@ -45,6 +45,12 @@ public class CreateOrderCommand : IRequest<bool>
     [DataMember]
     public double LoyaltyDiscount { get; private set; }
 
+    /// <summary>
+    /// The branch this order is placed at
+    /// </summary>
+    [DataMember]
+    public int BranchId { get; private set; }
+
     [DataMember]
     public IEnumerable<OrderItemDTO> OrderItems => _orderItems;
 
@@ -57,6 +63,7 @@ public class CreateOrderCommand : IRequest<bool>
         List<BasketItem> basketItems,
         string userId,
         string userName,
+        int branchId,
         LocalizedText? roomName = null,
         string? customerNote = null,
         int pointsToRedeem = 0,
@@ -65,6 +72,7 @@ public class CreateOrderCommand : IRequest<bool>
         _orderItems = basketItems.ToOrderItemsDTO().ToList();
         UserId = userId;
         UserName = userName;
+        BranchId = branchId;
         RoomName = roomName;
         CustomerNote = customerNote;
         PointsToRedeem = pointsToRedeem;

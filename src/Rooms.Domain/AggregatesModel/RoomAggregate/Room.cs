@@ -14,13 +14,18 @@ public class Room : Entity, IAggregateRoot
     public decimal MultiRate { get; private set; }
 
     /// <summary>
+    /// The branch this room belongs to
+    /// </summary>
+    public int BranchId { get; private set; }
+
+    /// <summary>
     /// Physical status of the room (not reservation status)
     /// </summary>
     public RoomPhysicalStatus PhysicalStatus { get; private set; }
 
     protected Room() { }
 
-    public Room(LocalizedText name, decimal singleRate, decimal multiRate, LocalizedText? description = null) : this()
+    public Room(LocalizedText name, decimal singleRate, decimal multiRate, int branchId, LocalizedText? description = null) : this()
     {
         if (string.IsNullOrWhiteSpace(name.En))
             throw new RoomsDomainException("Room name is required");
@@ -35,11 +40,12 @@ public class Room : Entity, IAggregateRoot
         SingleRate = singleRate;
         MultiRate = multiRate;
         Description = description;
+        BranchId = branchId;
         PhysicalStatus = RoomPhysicalStatus.Available;
     }
 
-    public Room(string name, decimal singleRate, decimal multiRate, string? description = null, string? nameAr = null, string? descriptionAr = null)
-        : this(new LocalizedText(name, nameAr), singleRate, multiRate, description != null ? new LocalizedText(description, descriptionAr) : null)
+    public Room(string name, decimal singleRate, decimal multiRate, int branchId, string? description = null, string? nameAr = null, string? descriptionAr = null)
+        : this(new LocalizedText(name, nameAr), singleRate, multiRate, branchId, description != null ? new LocalizedText(description, descriptionAr) : null)
     {
     }
 

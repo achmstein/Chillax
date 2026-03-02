@@ -24,6 +24,12 @@ class LocalizedText {
     return LocalizedText(en: text);
   }
 
+  /// Parse nullable value
+  static LocalizedText? parseNullable(dynamic value) {
+    if (value == null) return null;
+    return parse(value);
+  }
+
   /// Parse from dynamic value — handles JSON object, plain string, or null
   static LocalizedText parse(dynamic value, [String? arValue]) {
     if (value is Map<String, dynamic>) {

@@ -300,6 +300,28 @@ public static class CatalogApi
             .WithTags("Favorites")
             .RequireAuthorization();
 
+        // Branch override endpoints (Admin)
+        api.MapPut("/branches/{branchId:int}/items/{itemId:int}/override", SetBranchItemOverride)
+            .WithName("SetBranchItemOverride")
+            .WithSummary("Set per-branch item override")
+            .WithDescription("Set availability/price override for an item at a specific branch (Admin only)")
+            .WithTags("Branch Overrides")
+            .RequireAuthorization("Admin");
+
+        api.MapDelete("/branches/{branchId:int}/items/{itemId:int}/override", RemoveBranchItemOverride)
+            .WithName("RemoveBranchItemOverride")
+            .WithSummary("Remove per-branch item override")
+            .WithDescription("Remove override so item uses global values at this branch (Admin only)")
+            .WithTags("Branch Overrides")
+            .RequireAuthorization("Admin");
+
+        api.MapGet("/branches/{branchId:int}/overrides", GetBranchOverridesForBranch)
+            .WithName("GetBranchOverrides")
+            .WithSummary("Get all overrides for a branch")
+            .WithDescription("Get all item overrides for a specific branch (Admin only)")
+            .WithTags("Branch Overrides")
+            .RequireAuthorization("Admin");
+
         return app;
     }
 
@@ -310,6 +332,7 @@ public static class CatalogApi
         [Description("Filter by category")] int? categoryId = null)
     {
         var baseUrl = GetBaseUrl(httpContext);
+        var branchId = httpContext.GetRequiredBranchId();
 
         var query = services.Context.CatalogItems
             .Include(c => c.CatalogType)
@@ -326,7 +349,9 @@ public static class CatalogApi
             .OrderBy(c => c.CatalogType!.DisplayOrder)
             .ThenBy(c => c.DisplayOrder)
             .ToListAsync();
-        return TypedResults.Ok(items.ToDtoList(baseUrl));
+
+        var overrides = await GetBranchOverrides(services.Context, branchId, items.Select(i => i.Id));
+        return TypedResults.Ok(items.ToDtoList(overrides, baseUrl));
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -336,6 +361,7 @@ public static class CatalogApi
         [Description("Filter by category")] int? categoryId = null)
     {
         var baseUrl = GetBaseUrl(httpContext);
+        var branchId = httpContext.GetRequiredBranchId();
 
         var query = services.Context.CatalogItems
             .Include(c => c.CatalogType)
@@ -352,7 +378,11 @@ public static class CatalogApi
             .OrderBy(c => c.CatalogType!.DisplayOrder)
             .ThenBy(c => c.DisplayOrder)
             .ToListAsync();
-        return TypedResults.Ok(items.ToDtoList(baseUrl));
+
+        var overrides = await GetBranchOverrides(services.Context, branchId, items.Select(i => i.Id));
+        var dtos = items.ToDtoList(overrides, baseUrl);
+        // Filter by branch-level availability
+        return TypedResults.Ok(dtos.Where(d => d.IsAvailable).ToList());
     }
 
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -1405,5 +1435,92 @@ public static class CatalogApi
         await services.Context.SaveChangesAsync();
 
         return TypedResults.Ok();
+    }
+
+    // Branch override handlers
+    public static async Task<Results<Ok<BranchItemOverrideDto>, NotFound>> SetBranchItemOverride(
+        [AsParameters] CatalogServices services,
+        [Description("The branch ID")] int branchId,
+        [Description("The catalog item ID")] int itemId,
+        BranchItemOverrideRequest request)
+    {
+        var item = await services.Context.CatalogItems.FindAsync(itemId);
+        if (item == null)
+            return TypedResults.NotFound();
+
+        var existing = await services.Context.BranchItemOverrides
+            .FirstOrDefaultAsync(o => o.BranchId == branchId && o.CatalogItemId == itemId);
+
+        if (existing != null)
+        {
+            existing.IsAvailable = request.IsAvailable;
+            existing.PriceOverride = request.PriceOverride;
+            existing.OfferPriceOverride = request.OfferPriceOverride;
+            existing.IsOnOfferOverride = request.IsOnOfferOverride;
+        }
+        else
+        {
+            existing = new BranchItemOverride
+            {
+                BranchId = branchId,
+                CatalogItemId = itemId,
+                IsAvailable = request.IsAvailable,
+                PriceOverride = request.PriceOverride,
+                OfferPriceOverride = request.OfferPriceOverride,
+                IsOnOfferOverride = request.IsOnOfferOverride
+            };
+            services.Context.BranchItemOverrides.Add(existing);
+        }
+
+        await services.Context.SaveChangesAsync();
+
+        return TypedResults.Ok(new BranchItemOverrideDto(
+            existing.Id, existing.BranchId, existing.CatalogItemId,
+            existing.IsAvailable, existing.PriceOverride,
+            existing.OfferPriceOverride, existing.IsOnOfferOverride));
+    }
+
+    public static async Task<Results<NoContent, NotFound>> RemoveBranchItemOverride(
+        [AsParameters] CatalogServices services,
+        [Description("The branch ID")] int branchId,
+        [Description("The catalog item ID")] int itemId)
+    {
+        var existing = await services.Context.BranchItemOverrides
+            .FirstOrDefaultAsync(o => o.BranchId == branchId && o.CatalogItemId == itemId);
+
+        if (existing == null)
+            return TypedResults.NotFound();
+
+        services.Context.BranchItemOverrides.Remove(existing);
+        await services.Context.SaveChangesAsync();
+
+        return TypedResults.NoContent();
+    }
+
+    public static async Task<Ok<List<BranchItemOverrideDto>>> GetBranchOverridesForBranch(
+        [AsParameters] CatalogServices services,
+        [Description("The branch ID")] int branchId)
+    {
+        var overrides = await services.Context.BranchItemOverrides
+            .AsNoTracking()
+            .Where(o => o.BranchId == branchId)
+            .Select(o => new BranchItemOverrideDto(
+                o.Id, o.BranchId, o.CatalogItemId,
+                o.IsAvailable, o.PriceOverride,
+                o.OfferPriceOverride, o.IsOnOfferOverride))
+            .ToListAsync();
+
+        return TypedResults.Ok(overrides);
+    }
+
+    /// <summary>
+    /// Helper to load branch overrides for a set of item IDs.
+    /// </summary>
+    private static async Task<Dictionary<int, BranchItemOverride>> GetBranchOverrides(
+        CatalogContext context, int branchId, IEnumerable<int> itemIds)
+    {
+        return await context.BranchItemOverrides
+            .Where(o => o.BranchId == branchId && itemIds.Contains(o.CatalogItemId))
+            .ToDictionaryAsync(o => o.CatalogItemId);
     }
 }

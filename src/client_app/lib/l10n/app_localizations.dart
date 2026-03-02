@@ -1777,6 +1777,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Multi'**
   String get playerModeMulti;
+
+  /// No description provided for @selectBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Branch'**
+  String get selectBranch;
+
+  /// No description provided for @switchBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Branch'**
+  String get switchBranch;
 }
 
 class _AppLocalizationsDelegate

@@ -8,4 +8,5 @@ public record ServiceRequestCreatedIntegrationEvent(
     int RoomId,
     LocalizedText RoomName,
     ServiceRequestType RequestType,
-    DateTime CreatedAt) : IntegrationEvent;
+    DateTime CreatedAt,
+    int BranchId = 1) : IntegrationEvent;

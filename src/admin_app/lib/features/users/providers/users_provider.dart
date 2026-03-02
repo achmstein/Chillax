@@ -40,7 +40,7 @@ class UsersState {
 
 /// Users provider
 class UsersNotifier extends Notifier<UsersState> {
-  late final UsersRepository _repository;
+  late UsersRepository _repository;
 
   @override
   UsersState build() {

@@ -205,3 +205,26 @@ public record SetBundleActiveRequest
 {
     public bool IsActive { get; init; }
 }
+
+/// <summary>
+/// DTO for branch item override
+/// </summary>
+public record BranchItemOverrideDto(
+    int Id,
+    int BranchId,
+    int CatalogItemId,
+    bool IsAvailable,
+    decimal? PriceOverride,
+    decimal? OfferPriceOverride,
+    bool? IsOnOfferOverride);
+
+/// <summary>
+/// Request to set branch item override
+/// </summary>
+public record BranchItemOverrideRequest
+{
+    public bool IsAvailable { get; init; } = true;
+    public decimal? PriceOverride { get; init; }
+    public decimal? OfferPriceOverride { get; init; }
+    public bool? IsOnOfferOverride { get; init; }
+}

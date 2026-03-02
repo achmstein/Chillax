@@ -20,6 +20,7 @@ public class CatalogContext : DbContext
     public required DbSet<UserItemFavorite> UserItemFavorites { get; set; }
     public required DbSet<BundleDeal> BundleDeals { get; set; }
     public required DbSet<BundleDealItem> BundleDealItems { get; set; }
+    public required DbSet<BranchItemOverride> BranchItemOverrides { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -32,6 +33,7 @@ public class CatalogContext : DbContext
         builder.ApplyConfiguration(new UserItemFavoriteEntityTypeConfiguration());
         builder.ApplyConfiguration(new BundleDealEntityTypeConfiguration());
         builder.ApplyConfiguration(new BundleDealItemEntityTypeConfiguration());
+        builder.ApplyConfiguration(new BranchItemOverrideEntityTypeConfiguration());
 
         // Add the outbox table to this context
         builder.UseIntegrationEventLogs();

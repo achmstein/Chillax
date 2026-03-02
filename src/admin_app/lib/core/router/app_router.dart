@@ -23,6 +23,9 @@ import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/update_name_screen.dart';
 import '../../features/profile/screens/change_password_screen.dart';
 import '../../features/users/screens/users_screen.dart';
+import '../../features/branches/screens/branches_screen.dart';
+import '../../features/branches/screens/branch_detail_screen.dart';
+import '../../features/branches/screens/branch_edit_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 
 /// Splash screen shown while checking authentication
@@ -294,6 +297,34 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => const NoTransitionPage(
               child: UsersScreen(),
             ),
+          ),
+          GoRoute(
+            path: '/branches',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: BranchesScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (context, state) => const BranchEditScreen(),
+              ),
+              GoRoute(
+                path: ':branchId',
+                builder: (context, state) {
+                  final branchId = int.parse(state.pathParameters['branchId']!);
+                  return BranchDetailScreen(branchId: branchId);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) {
+                      final branchId = int.parse(state.pathParameters['branchId']!);
+                      return BranchEditScreen(branchId: branchId);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

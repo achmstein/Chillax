@@ -31,9 +31,52 @@ public static class CatalogMappers
         };
     }
 
+    /// <summary>
+    /// Maps a catalog item to DTO with branch-specific overrides applied.
+    /// </summary>
+    public static CatalogItemDto ToDto(this CatalogItem item, BranchItemOverride? branchOverride, string? baseUrl = null)
+    {
+        if (branchOverride == null)
+            return item.ToDto(baseUrl);
+
+        var isOnOffer = branchOverride.IsOnOfferOverride ?? item.IsOnOffer;
+        var price = branchOverride.PriceOverride ?? item.Price;
+        var offerPrice = branchOverride.OfferPriceOverride ?? item.OfferPrice;
+        var effectivePrice = isOnOffer && offerPrice.HasValue ? offerPrice.Value : price;
+
+        return new CatalogItemDto
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Description = item.Description,
+            Price = price,
+            PictureUri = string.IsNullOrEmpty(item.PictureFileName)
+                ? null
+                : $"{baseUrl}/api/catalog/items/{item.Id}/pic?v={Uri.EscapeDataString(item.PictureFileName)}",
+            CatalogTypeId = item.CatalogTypeId,
+            CatalogTypeName = item.CatalogType?.Name ?? new LocalizedText(),
+            IsAvailable = branchOverride.IsAvailable,
+            IsOnOffer = isOnOffer,
+            OfferPrice = offerPrice,
+            EffectivePrice = effectivePrice,
+            IsPopular = item.IsPopular,
+            PreparationTimeMinutes = item.PreparationTimeMinutes,
+            DisplayOrder = item.DisplayOrder,
+            Customizations = item.Customizations.OrderBy(c => c.DisplayOrder).Select(c => c.ToDto()).ToList()
+        };
+    }
+
     public static List<CatalogItemDto> ToDtoList(this IEnumerable<CatalogItem> items, string? baseUrl = null)
     {
         return items.Select(i => i.ToDto(baseUrl)).ToList();
+    }
+
+    /// <summary>
+    /// Maps items to DTOs with branch-specific overrides applied.
+    /// </summary>
+    public static List<CatalogItemDto> ToDtoList(this IEnumerable<CatalogItem> items, Dictionary<int, BranchItemOverride> overrides, string? baseUrl = null)
+    {
+        return items.Select(i => i.ToDto(overrides.GetValueOrDefault(i.Id), baseUrl)).ToList();
     }
 
     public static CatalogTypeDto ToDto(this CatalogType type)

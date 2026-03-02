@@ -35,7 +35,8 @@ public class RoomReservedDomainEventHandler : INotificationHandler<RoomReservedD
             roomName,
             reservation.CustomerId,
             reservation.CustomerName,
-            reservation.ExpiresAt);
+            reservation.ExpiresAt,
+            reservation.Room?.BranchId ?? 1);
 
         await _eventBus.PublishAsync(roomReservedEvent);
     }

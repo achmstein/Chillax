@@ -50,7 +50,7 @@ class RoomsState {
 
 /// Rooms provider
 class RoomsNotifier extends Notifier<RoomsState> {
-  late final RoomRepository _repository;
+  late RoomRepository _repository;
 
   @override
   RoomsState build() {

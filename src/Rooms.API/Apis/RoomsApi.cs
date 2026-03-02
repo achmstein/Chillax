@@ -5,6 +5,7 @@ using Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 using Chillax.Rooms.Domain.AggregatesModel.RoomAggregate;
 using Chillax.Rooms.Domain.Exceptions;
 using Chillax.Rooms.Domain.SeedWork;
+using Chillax.ServiceDefaults;
 using Room = Chillax.Rooms.Domain.AggregatesModel.RoomAggregate.Room;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -198,9 +199,11 @@ public static class RoomsApi
 
     // Query endpoints
     public static async Task<Ok<IEnumerable<RoomViewModel>>> GetAllRooms(
-        [FromServices] IRoomQueries queries)
+        [FromServices] IRoomQueries queries,
+        HttpContext httpContext)
     {
-        var rooms = await queries.GetAllRoomsAsync();
+        var branchId = httpContext.GetRequiredBranchId();
+        var rooms = await queries.GetAllRoomsAsync(branchId);
         return TypedResults.Ok(rooms);
     }
 
@@ -219,17 +222,21 @@ public static class RoomsApi
     }
 
     public static async Task<Ok<IEnumerable<RoomViewModel>>> GetAvailableRooms(
-        [FromServices] IRoomQueries queries)
+        [FromServices] IRoomQueries queries,
+        HttpContext httpContext)
     {
-        var rooms = await queries.GetAvailableRoomsAsync();
+        var branchId = httpContext.GetRequiredBranchId();
+        var rooms = await queries.GetAvailableRoomsAsync(branchId);
         return TypedResults.Ok(rooms);
     }
 
     public static async Task<Created<int>> CreateRoom(
         RoomsContext context,
+        HttpContext httpContext,
         CreateRoomRequest request)
     {
-        var room = new Room(request.Name, request.SingleRate, request.MultiRate, request.Description);
+        var branchId = httpContext.GetRequiredBranchId();
+        var room = new Room(request.Name, request.SingleRate, request.MultiRate, branchId, request.Description);
         context.Rooms.Add(room);
         await context.SaveChangesAsync();
         return TypedResults.Created($"/api/rooms/{room.Id}", room.Id);
@@ -453,9 +460,11 @@ public static class RoomsApi
     }
 
     public static async Task<Ok<IEnumerable<ReservationViewModel>>> GetActiveSessions(
-        [FromServices] IRoomQueries queries)
+        [FromServices] IRoomQueries queries,
+        HttpContext httpContext)
     {
-        var sessions = await queries.GetActiveSessionsAsync();
+        var branchId = httpContext.GetRequiredBranchId();
+        var sessions = await queries.GetActiveSessionsAsync(branchId);
         return TypedResults.Ok(sessions);
     }
 
