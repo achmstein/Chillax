@@ -131,7 +131,9 @@ ConfigureApiService(branchApi, "branch");
 builder.AddYarp("mobile-bff")
     .WithEndpoint("http", endpoint =>
     {
-        endpoint.Port = 80;
+        // In production, Caddy handles ports 80/443 and proxies to mobile-bff.
+        // Port 5000 is only used for local development / Aspire dashboard.
+        endpoint.Port = 5000;
         endpoint.UriScheme = "http";
         endpoint.IsExternal = true;
     })

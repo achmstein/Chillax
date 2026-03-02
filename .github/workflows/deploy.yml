@@ -68,8 +68,10 @@ jobs:
           sed -i 's/^NOTIFICATION_API_PORT=$/NOTIFICATION_API_PORT=8080/' deploy-artifacts/.env
           sed -i 's/^ACCOUNTS_API_PORT=$/ACCOUNTS_API_PORT=8080/' deploy-artifacts/.env
           sed -i 's/^BRANCH_API_PORT=$/BRANCH_API_PORT=8080/' deploy-artifacts/.env
+          sed -i 's/^MOBILE_BFF_PORT=$/MOBILE_BFF_PORT=5000/' deploy-artifacts/.env
 
-          # Domain is now hardcoded in Caddyfile (chillax.site + api.chillax.site)
+          # Remove mobile-bff host port mapping (Caddy overlay handles ports 80/443)
+          sed -i 's/"80:${MOBILE_BFF_PORT}"/"${MOBILE_BFF_PORT}"/g' deploy-artifacts/docker-compose.yaml
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -99,6 +101,22 @@ jobs:
           envs: GHCR_TOKEN,GHCR_USER
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
+
+            # Ensure firewall allows HTTP/HTTPS for Caddy
+            if ! sudo iptables -C INPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null; then
+              REJECT_LINE=$(sudo iptables -L INPUT --line-numbers -n | grep REJECT | head -1 | awk '{print $1}')
+              if [ -n "$REJECT_LINE" ]; then
+                sudo iptables -I INPUT "$REJECT_LINE" -p tcp --dport 80 -j ACCEPT
+                sudo iptables -I INPUT "$((REJECT_LINE + 1))" -p tcp --dport 443 -j ACCEPT
+              else
+                sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+                sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+              fi
+              sudo sh -c 'iptables-save > /etc/iptables.rules'
+              echo "Firewall rules added for ports 80/443"
+            else
+              echo "Firewall rules already exist for ports 80/443"
+            fi
 
             # Login to GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
