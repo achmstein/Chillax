@@ -11,5 +11,5 @@ chillax.site {
 }
 
 api.chillax.site {
-	reverse_proxy mobile-bff:8080
+	reverse_proxy mobile-bff:5000
 }
