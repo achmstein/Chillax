@@ -5,6 +5,11 @@
 # Aspire-generated docker-compose.yml.
 
 services:
+  # Override mobile-bff to remove host port 80 (Caddy takes over)
+  mobile-bff:
+    ports: !override
+      - "5000"
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -12,6 +17,9 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./website:/srv/website:ro
