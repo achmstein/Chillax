@@ -1,15 +1,13 @@
 # Caddy TLS reverse proxy overlay
-# Usage: docker compose -f docker-compose.yml -f docker-compose.caddy.yml up -d
+# Usage: docker compose -f docker-compose.yaml -f docker-compose.caddy.yml up -d
 #
 # This is a separate compose file so it doesn't interfere with the
-# Aspire-generated docker-compose.yml.
+# Aspire-generated docker-compose.yaml.
+#
+# NOTE: The deploy workflow strips mobile-bff's host port mapping via sed
+# before copying artifacts to the server, so Caddy can bind to ports 80/443.
 
 services:
-  # Override mobile-bff to remove host port 80 (Caddy takes over)
-  mobile-bff:
-    ports: !override
-      - "5000"
-
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -20,6 +18,8 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    networks:
+      - aspire
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./website:/srv/website:ro
