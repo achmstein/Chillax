@@ -67,6 +67,7 @@ jobs:
           sed -i 's/^LOYALTY_API_PORT=$/LOYALTY_API_PORT=8080/' deploy-artifacts/.env
           sed -i 's/^NOTIFICATION_API_PORT=$/NOTIFICATION_API_PORT=8080/' deploy-artifacts/.env
           sed -i 's/^ACCOUNTS_API_PORT=$/ACCOUNTS_API_PORT=8080/' deploy-artifacts/.env
+          sed -i 's/^BRANCH_API_PORT=$/BRANCH_API_PORT=8080/' deploy-artifacts/.env
 
           # Domain is now hardcoded in Caddyfile (chillax.site + api.chillax.site)
 
