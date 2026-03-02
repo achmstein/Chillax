@@ -395,7 +395,7 @@
   },
 
   "changePassword": "Change Password",
-  "usersManagement": "Users",
+  "adminsManagement": "Admins",
   "helpAndSupport": "Help & Support",
   "newPassword": "New Password",
   "confirmPassword": "Confirm Password",
@@ -403,7 +403,7 @@
   "passwordChangedSuccess": "Password changed successfully",
   "passwordMinLength": "Password must be at least 8 characters",
   "addAdmin": "Add Admin",
-  "noUsersFound": "No users found",
+  "noAdminsFound": "No admins found",
   "adminRole": "Admin",
   "customerRole": "Customer",
   "adminCreatedSuccess": "Admin created successfully",
@@ -595,5 +595,22 @@
   "displayOrder": "Display Order",
   "save": "Save",
   "saving": "Saving...",
-  "selectAdmin": "Select Admin"
+  "selectAdmin": "Select Admin",
+  "makeOwner": "Make Owner",
+  "ownerDescription": "Owners can manage branches and create admins",
+  "owner": "Owner",
+
+  "role": "Role",
+  "adminDetails": "Admin Details",
+  "adminNotFound": "Admin not found",
+  "blockAdmin": "Block Admin",
+  "unblockAdmin": "Unblock Admin",
+  "blockAdminConfirmation": "Are you sure you want to block this admin? They will not be able to access the admin panel.",
+  "unblockAdminConfirmation": "Are you sure you want to unblock this admin? They will be able to access the admin panel again.",
+  "adminBlocked": "Admin blocked",
+  "adminUnblocked": "Admin unblocked",
+  "failedToToggleAdmin": "Failed to update admin status",
+  "assignedBranches": "Assigned Branches",
+  "noBranchesAssigned": "No branches assigned",
+  "assignBranch": "Assign Branch"
 }

@@ -206,7 +206,9 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
       builder: (context, child) {
         return FTheme(
           data: themeState.getForuiTheme(context, locale: locale),
-          child: child ?? const SizedBox.shrink(),
+          child: FToaster(
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );

@@ -15,6 +15,7 @@ class AuthState {
   final bool isInitializing;
   final bool isAuthenticated;
   final bool isAdmin;
+  final bool isOwner;
   final String? accessToken;
   final String? refreshToken;
   final String? idToken;
@@ -27,6 +28,7 @@ class AuthState {
     this.isInitializing = true,
     this.isAuthenticated = false,
     this.isAdmin = false,
+    this.isOwner = false,
     this.accessToken,
     this.refreshToken,
     this.idToken,
@@ -40,6 +42,7 @@ class AuthState {
     bool? isInitializing,
     bool? isAuthenticated,
     bool? isAdmin,
+    bool? isOwner,
     String? accessToken,
     String? refreshToken,
     String? idToken,
@@ -52,6 +55,7 @@ class AuthState {
       isInitializing: isInitializing ?? this.isInitializing,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isAdmin: isAdmin ?? this.isAdmin,
+      isOwner: isOwner ?? this.isOwner,
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
       idToken: idToken ?? this.idToken,
@@ -95,6 +99,7 @@ class AuthService extends Notifier<AuthState> {
         final claims = _parseJwt(accessToken);
         final roles = _extractRoles(claims);
         final isAdmin = roles.contains(AppConfig.adminRole);
+        final isOwner = roles.contains('Owner');
 
         // Set initial state from stored tokens
         state = state.copyWith(
@@ -103,6 +108,7 @@ class AuthService extends Notifier<AuthState> {
           idToken: idToken,
           isAuthenticated: true,
           isAdmin: isAdmin,
+          isOwner: isOwner,
           userId: claims['sub'] as String?,
           email: claims['email'] as String?,
           name: claims['name'] as String?,
@@ -130,6 +136,7 @@ class AuthService extends Notifier<AuthState> {
         isInitializing: false,
         isAuthenticated: false,
         isAdmin: false,
+        isOwner: false,
       );
     } catch (e) {
       debugPrint('Initialize error: $e');
@@ -137,6 +144,7 @@ class AuthService extends Notifier<AuthState> {
         isInitializing: false,
         isAuthenticated: false,
         isAdmin: false,
+        isOwner: false,
       );
     }
   }
@@ -312,10 +320,12 @@ class AuthService extends Notifier<AuthState> {
     final claims = _parseJwt(accessToken);
     final roles = _extractRoles(claims);
     final isAdmin = roles.contains(AppConfig.adminRole);
+    final isOwner = roles.contains('Owner');
 
     state = state.copyWith(
       isAuthenticated: true,
       isAdmin: isAdmin,
+      isOwner: isOwner,
       accessToken: accessToken,
       refreshToken: refreshToken ?? state.refreshToken,
       idToken: idToken ?? state.idToken,
@@ -647,4 +657,9 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 /// Provider for admin check
 final isAdminProvider = Provider<bool>((ref) {
   return ref.watch(authServiceProvider).isAdmin;
+});
+
+/// Provider for owner check
+final isOwnerProvider = Provider<bool>((ref) {
+  return ref.watch(authServiceProvider).isOwner;
 });

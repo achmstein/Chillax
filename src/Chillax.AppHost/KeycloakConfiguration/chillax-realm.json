@@ -68,6 +68,10 @@
       {
         "name": "Admin",
         "description": "Admin role - full system access"
+      },
+      {
+        "name": "Owner",
+        "description": "Owner role - can manage branches and create admins"
       }
     ]
   },
@@ -533,7 +537,7 @@
   "users": [
     {
       "username": "admin",
-      "email": "admin@chillax.com",
+      "email": "admin@chillax.site",
       "emailVerified": true,
       "enabled": true,
       "firstName": "Admin",
@@ -545,7 +549,7 @@
           "temporary": false
         }
       ],
-      "realmRoles": [ "Admin", "Customer", "offline_access" ]
+      "realmRoles": [ "Admin", "Owner", "Customer", "offline_access" ]
     },
     {
       "username": "service-account-identity-api-service",

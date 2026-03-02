@@ -181,7 +181,7 @@ class _CustomerTile extends StatelessWidget {
               ),
             ),
             // Status indicator
-            if (!customer.enabled)
+            if (!customer.enabled) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -195,6 +195,13 @@ class _CustomerTile extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 4),
+            ],
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: theme.colors.mutedForeground,
+            ),
           ],
         ),
       ),

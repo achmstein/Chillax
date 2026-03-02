@@ -22,13 +22,13 @@ public static class BranchApi
             .WithName("CreateBranch")
             .WithSummary("Create a branch")
             .WithTags("Branches")
-            .RequireAuthorization("Admin");
+            .RequireAuthorization("Owner");
 
         api.MapPut("/{id:int}", UpdateBranch)
             .WithName("UpdateBranch")
             .WithSummary("Update a branch")
             .WithTags("Branches")
-            .RequireAuthorization("Admin");
+            .RequireAuthorization("Owner");
 
         // Admin branch assignment
         api.MapGet("/admin/{adminUserId}", GetBranchesByAdmin)
@@ -41,13 +41,13 @@ public static class BranchApi
             .WithName("AssignAdmin")
             .WithSummary("Assign admin to branch")
             .WithTags("Admin Assignments")
-            .RequireAuthorization("Admin");
+            .RequireAuthorization("Owner");
 
         api.MapDelete("/{id:int}/admins/{userId}", RemoveAdmin)
             .WithName("RemoveAdmin")
             .WithSummary("Remove admin from branch")
             .WithTags("Admin Assignments")
-            .RequireAuthorization("Admin");
+            .RequireAuthorization("Owner");
 
         return app;
     }

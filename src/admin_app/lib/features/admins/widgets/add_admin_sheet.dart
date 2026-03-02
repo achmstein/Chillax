@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
-import '../providers/users_provider.dart';
+import '../providers/admins_provider.dart';
 
 /// Bottom sheet for adding a new admin user
 class AddAdminSheet extends ConsumerStatefulWidget {
@@ -19,6 +20,7 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
   final _passwordController = TextEditingController();
   String? _validationError;
   bool _isLoading = false;
+  bool _isOwner = false;
 
   @override
   void dispose() {
@@ -55,10 +57,11 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
       _isLoading = true;
     });
 
-    final success = await ref.read(usersProvider.notifier).createAdmin(
+    final success = await ref.read(adminsProvider.notifier).createAdmin(
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
+          isOwner: _isOwner,
         );
 
     if (!mounted) return;
@@ -77,7 +80,8 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
-    final usersState = ref.watch(usersProvider);
+    final usersState = ref.watch(adminsProvider);
+    final currentUserIsOwner = ref.watch(isOwnerProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -85,53 +89,56 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
+        top: false,
         bottom: false,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.mutedForeground,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colors.mutedForeground,
+                borderRadius: BorderRadius.circular(2),
               ),
+            ),
 
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: AppText(
-                        l10n.addAdmin,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: colors.foreground,
-                        ),
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AppText(
+                      l10n.addAdmin,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: colors.foreground,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
-                    ),
-                  ],
-                ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
+                  ),
+                ],
               ),
+            ),
 
-              Divider(height: 1, color: colors.border),
+            Divider(height: 1, color: colors.border),
 
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(16),
+            // Scrollable content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -158,6 +165,42 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
                       hint: l10n.enterPassword,
                     ),
 
+                    // Owner toggle (only visible to current owners)
+                    if (currentUserIsOwner) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText(
+                                  l10n.makeOwner,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: colors.foreground,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                AppText(
+                                  l10n.ownerDescription,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: colors.mutedForeground,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          FSwitch(
+                            value: _isOwner,
+                            onChange: (value) => setState(() => _isOwner = value),
+                          ),
+                        ],
+                      ),
+                    ],
+
                     // Validation error
                     if (_validationError != null) ...[
                       const SizedBox(height: 12),
@@ -183,31 +226,37 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
                     ],
 
                     const SizedBox(height: 24),
-
-                    // Submit button
-                    SizedBox(
-                      width: double.infinity,
-                      child: FButton(
-                        onPress: _isLoading ? null : _submit,
-                        child: _isLoading
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colors.background,
-                                ),
-                              )
-                            : AppText(l10n.create),
-                      ),
-                    ),
                   ],
                 ),
               ),
+            ),
 
-              SizedBox(height: 16 + MediaQuery.of(context).viewPadding.bottom),
-            ],
-          ),
+            // Submit button - stays at bottom
+            Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 12,
+                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: FButton(
+                  onPress: _isLoading ? null : _submit,
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colors.background,
+                          ),
+                        )
+                      : AppText(l10n.create),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

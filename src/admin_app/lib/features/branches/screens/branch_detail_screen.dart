@@ -7,9 +7,10 @@ import '../../../core/models/localized_text.dart';
 import '../../../core/services/branch_service.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../users/models/admin_user.dart';
-import '../../users/services/users_service.dart';
+import '../../admins/models/admin_user.dart';
+import '../../admins/services/admins_service.dart';
 import '../providers/branches_provider.dart';
+import '../widgets/branch_form_sheet.dart';
 
 class BranchDetailScreen extends ConsumerStatefulWidget {
   final int branchId;
@@ -34,8 +35,8 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
   Future<void> _loadAdmins() async {
     setState(() => _isLoadingAdmins = true);
     try {
-      final usersRepo = ref.read(usersRepositoryProvider);
-      final allAdmins = await usersRepo.getUsers(role: 'Admin', max: 100);
+      final adminsRepo = ref.read(adminsRepositoryProvider);
+      final allAdmins = await adminsRepo.getAdmins(role: 'Admin', max: 100);
 
       // Get branches for each admin to find who's assigned to this branch
       final repo = ref.read(branchRepositoryProvider);
@@ -198,138 +199,157 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
     final branch = _branch;
 
     if (branch == null) {
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(FIcons.arrowLeft),
-                  onPressed: () => context.pop(),
-                ),
-              ],
-            ),
-          ),
-          const Expanded(child: Center(child: CircularProgressIndicator())),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        // Header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
+      return Scaffold(
+        backgroundColor: theme.colors.background,
+        body: SafeArea(
+          child: Column(
             children: [
-              IconButton(
-                icon: const Icon(FIcons.arrowLeft),
-                onPressed: () => context.pop(),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: AppText(
-                  branch.name.localized(context),
-                  style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(FIcons.arrowLeft),
+                      onPressed: () => context.go('/branches'),
+                    ),
+                  ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(FIcons.pencil, size: 20),
-                onPressed: () => context.push('/branches/${branch.id}/edit'),
-                tooltip: l10n.editBranch,
-              ),
+              const Expanded(child: Center(child: CircularProgressIndicator())),
             ],
           ),
         ),
+      );
+    }
 
-        // Body
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Branch info
-                FTileGroup(
-                  label: AppText(l10n.branchDetails),
-                  children: [
-                    FTile(
-                      prefix: const Icon(FIcons.building),
-                      title: AppText(l10n.branchName),
-                      subtitle: AppText(branch.name.localized(context)),
+    return Scaffold(
+      backgroundColor: theme.colors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(FIcons.arrowLeft),
+                    onPressed: () => context.go('/branches'),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: AppText(
+                      branch.name.localized(context),
+                      style: theme.typography.lg.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    if (branch.address != null)
-                      FTile(
-                        prefix: const Icon(FIcons.mapPin),
-                        title: AppText(l10n.branchAddress),
-                        subtitle: AppText(branch.address!.localized(context)),
-                      ),
-                    if (branch.phone != null)
-                      FTile(
-                        prefix: const Icon(FIcons.phone),
-                        title: AppText(l10n.branchPhone),
-                        subtitle: AppText(branch.phone!),
-                      ),
-                    FTile(
-                      prefix: Icon(
-                        branch.isActive ? FIcons.circleCheck : FIcons.circleX,
-                        color: branch.isActive ? Colors.green : theme.colors.mutedForeground,
-                      ),
-                      title: AppText(branch.isActive ? l10n.active : l10n.inactive),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // Assigned admins
-                Row(
-                  children: [
-                    AppText(
-                      l10n.assignedAdmins,
-                      style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.person_add_outlined, size: 20),
-                      onPressed: _assignAdmin,
-                      tooltip: l10n.assignAdmin,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                if (_isLoadingAdmins)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else if (_assignedAdmins == null || _assignedAdmins!.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Center(
-                      child: AppText(
-                        l10n.noAdminsAssigned,
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  ...(_assignedAdmins!.map((admin) => _AdminTile(
-                        admin: admin,
-                        onRemove: () => _removeAdmin(admin),
-                      ))),
-              ],
+                  ),
+                  IconButton(
+                    icon: const Icon(FIcons.pencil, size: 20),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        useRootNavigator: true,
+                        backgroundColor: Colors.transparent,
+                        barrierColor: Colors.black.withValues(alpha: 0.5),
+                        builder: (context) => BranchFormSheet(branch: branch),
+                      );
+                    },
+                    tooltip: l10n.editBranch,
+                  ),
+                ],
+              ),
             ),
-          ),
+
+            // Body
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Branch info
+                    FTileGroup(
+                      label: AppText(l10n.branchDetails),
+                      children: [
+                        FTile(
+                          prefix: const Icon(FIcons.building),
+                          title: AppText(l10n.branchName),
+                          subtitle: AppText(branch.name.localized(context)),
+                        ),
+                        if (branch.address != null)
+                          FTile(
+                            prefix: const Icon(FIcons.mapPin),
+                            title: AppText(l10n.branchAddress),
+                            subtitle: AppText(branch.address!.localized(context)),
+                          ),
+                        if (branch.phone != null)
+                          FTile(
+                            prefix: const Icon(FIcons.phone),
+                            title: AppText(l10n.branchPhone),
+                            subtitle: AppText(branch.phone!),
+                          ),
+                        FTile(
+                          prefix: Icon(
+                            branch.isActive ? FIcons.circleCheck : FIcons.circleX,
+                            color: branch.isActive ? Colors.green : theme.colors.mutedForeground,
+                          ),
+                          title: AppText(branch.isActive ? l10n.active : l10n.inactive),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Assigned admins
+                    Row(
+                      children: [
+                        AppText(
+                          l10n.assignedAdmins,
+                          style: theme.typography.sm.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.person_add_outlined, size: 20),
+                          onPressed: _assignAdmin,
+                          tooltip: l10n.assignAdmin,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    if (_isLoadingAdmins)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else if (_assignedAdmins == null || _assignedAdmins!.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(
+                          child: AppText(
+                            l10n.noAdminsAssigned,
+                            style: theme.typography.sm.copyWith(
+                              color: theme.colors.mutedForeground,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      ...(_assignedAdmins!.map((admin) => _AdminTile(
+                            admin: admin,
+                            onRemove: () => _removeAdmin(admin),
+                          ))),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

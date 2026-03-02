@@ -97,7 +97,11 @@ class _BranchEditScreenState extends ConsumerState<BranchEditScreen> {
           content: Text(_isEditing ? l10n.branchUpdatedSuccess : l10n.branchCreatedSuccess),
         ),
       );
-      context.pop();
+      if (_isEditing) {
+        context.go('/branches/${widget.branchId}');
+      } else {
+        context.go('/branches');
+      }
     }
 
     if (mounted) {
@@ -110,7 +114,10 @@ class _BranchEditScreenState extends ConsumerState<BranchEditScreen> {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Column(
+    return Scaffold(
+      backgroundColor: theme.colors.background,
+      body: SafeArea(
+        child: Column(
       children: [
         // Header with back button
         Padding(
@@ -119,7 +126,13 @@ class _BranchEditScreenState extends ConsumerState<BranchEditScreen> {
             children: [
               IconButton(
                 icon: const Icon(FIcons.arrowLeft),
-                onPressed: () => context.pop(),
+                onPressed: () {
+                  if (_isEditing) {
+                    context.go('/branches/${widget.branchId}');
+                  } else {
+                    context.go('/branches');
+                  }
+                },
               ),
               const SizedBox(width: 4),
               AppText(
@@ -231,6 +244,8 @@ class _BranchEditScreenState extends ConsumerState<BranchEditScreen> {
           ),
         ),
       ],
+    ),
+      ),
     );
   }
 }

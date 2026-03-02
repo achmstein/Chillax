@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../auth/auth_service.dart';
 import '../../features/orders/providers/orders_provider.dart';
 import '../../features/rooms/providers/rooms_provider.dart';
 import '../../features/rooms/models/room.dart';
@@ -47,13 +48,13 @@ List<NavItem> mainNavItems = [
 ];
 
 /// Secondary nav items (shown in More menu on mobile, sidebar on tablet)
-List<NavItem> secondaryNavItems = [
+List<NavItem> getSecondaryNavItems({required bool isOwner}) => [
   NavItem(route: '/menu', labelBuilder: (l10n) => l10n.menu, icon: Icons.restaurant_menu_outlined),
   NavItem(route: '/bundles', labelBuilder: (l10n) => l10n.bundleDeals, icon: Icons.local_offer_outlined),
   NavItem(route: '/loyalty', labelBuilder: (l10n) => l10n.loyalty, icon: Icons.card_giftcard_outlined),
   NavItem(route: '/customers', labelBuilder: (l10n) => l10n.customers, icon: Icons.people_outline),
-  NavItem(route: '/users', labelBuilder: (l10n) => l10n.usersManagement, icon: Icons.admin_panel_settings_outlined),
-  NavItem(route: '/branches', labelBuilder: (l10n) => l10n.branches, icon: Icons.store_outlined),
+  if (isOwner) NavItem(route: '/admins', labelBuilder: (l10n) => l10n.adminsManagement, icon: Icons.admin_panel_settings_outlined),
+  if (isOwner) NavItem(route: '/branches', labelBuilder: (l10n) => l10n.branches, icon: Icons.store_outlined),
   NavItem(route: '/profile', labelBuilder: (l10n) => l10n.profile, icon: Icons.person_outline),
 ];
 
@@ -108,18 +109,18 @@ class _MobileLayout extends ConsumerWidget {
 
   const _MobileLayout({required this.child, required this.currentRoute});
 
-  int _getSelectedIndex() {
+  int _getSelectedIndex(List<NavItem> secondaryItems) {
     for (int i = 0; i < mainNavItems.length; i++) {
       if (currentRoute.startsWith(mainNavItems[i].route)) return i;
     }
     // Check if current route is in secondary items (More is selected)
-    for (final item in secondaryNavItems) {
+    for (final item in secondaryItems) {
       if (currentRoute.startsWith(item.route)) return mainNavItems.length; // More index
     }
     return 0;
   }
 
-  void _showMoreMenu(BuildContext context, WidgetRef ref) {
+  void _showMoreMenu(BuildContext context, WidgetRef ref, List<NavItem> secondaryItems) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
@@ -148,7 +149,7 @@ class _MobileLayout extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               // Nav items
-              ...secondaryNavItems.map((item) {
+              ...secondaryItems.map((item) {
                 final isSelected = currentRoute.startsWith(item.route);
                 return ListTile(
                   dense: true,
@@ -184,7 +185,9 @@ class _MobileLayout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
-    final selectedIndex = _getSelectedIndex();
+    final isOwner = ref.watch(isOwnerProvider);
+    final secondaryItems = getSecondaryNavItems(isOwner: isOwner);
+    final selectedIndex = _getSelectedIndex(secondaryItems);
     final isProfileSelected = selectedIndex == mainNavItems.length;
     final ordersState = ref.watch(ordersProvider);
     final pendingOrdersCount = ordersState.orders.length;
@@ -230,7 +233,7 @@ class _MobileLayout extends ConsumerWidget {
                 // More button
                 _MoreNavItem(
                   isSelected: isProfileSelected,
-                  onTap: () => _showMoreMenu(context, ref),
+                  onTap: () => _showMoreMenu(context, ref, secondaryItems),
                   label: l10n.more,
                 ),
               ],

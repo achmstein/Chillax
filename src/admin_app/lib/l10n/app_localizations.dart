@@ -1580,11 +1580,11 @@ abstract class AppLocalizations {
   /// **'Change Password'**
   String get changePassword;
 
-  /// No description provided for @usersManagement.
+  /// No description provided for @adminsManagement.
   ///
   /// In en, this message translates to:
-  /// **'Users'**
-  String get usersManagement;
+  /// **'Admins'**
+  String get adminsManagement;
 
   /// No description provided for @helpAndSupport.
   ///
@@ -1628,11 +1628,11 @@ abstract class AppLocalizations {
   /// **'Add Admin'**
   String get addAdmin;
 
-  /// No description provided for @noUsersFound.
+  /// No description provided for @noAdminsFound.
   ///
   /// In en, this message translates to:
-  /// **'No users found'**
-  String get noUsersFound;
+  /// **'No admins found'**
+  String get noAdminsFound;
 
   /// No description provided for @adminRole.
   ///
@@ -2563,6 +2563,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Admin'**
   String get selectAdmin;
+
+  /// No description provided for @makeOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Make Owner'**
+  String get makeOwner;
+
+  /// No description provided for @ownerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Owners can manage branches and create admins'**
+  String get ownerDescription;
+
+  /// No description provided for @owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get owner;
+
+  /// No description provided for @role.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get role;
+
+  /// No description provided for @adminDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Details'**
+  String get adminDetails;
+
+  /// No description provided for @adminNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin not found'**
+  String get adminNotFound;
+
+  /// No description provided for @blockAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Block Admin'**
+  String get blockAdmin;
+
+  /// No description provided for @unblockAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock Admin'**
+  String get unblockAdmin;
+
+  /// No description provided for @blockAdminConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to block this admin? They will not be able to access the admin panel.'**
+  String get blockAdminConfirmation;
+
+  /// No description provided for @unblockAdminConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to unblock this admin? They will be able to access the admin panel again.'**
+  String get unblockAdminConfirmation;
+
+  /// No description provided for @adminBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin blocked'**
+  String get adminBlocked;
+
+  /// No description provided for @adminUnblocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin unblocked'**
+  String get adminUnblocked;
+
+  /// No description provided for @failedToToggleAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update admin status'**
+  String get failedToToggleAdmin;
+
+  /// No description provided for @assignedBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Branches'**
+  String get assignedBranches;
+
+  /// No description provided for @noBranchesAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No branches assigned'**
+  String get noBranchesAssigned;
+
+  /// No description provided for @assignBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign Branch'**
+  String get assignBranch;
 }
 
 class _AppLocalizationsDelegate

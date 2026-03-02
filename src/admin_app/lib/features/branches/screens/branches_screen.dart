@@ -7,6 +7,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/branches_provider.dart';
+import '../widgets/branch_form_sheet.dart';
 
 class BranchesScreen extends ConsumerStatefulWidget {
   const BranchesScreen({super.key});
@@ -54,7 +55,16 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.add, size: 22),
-                onPressed: () => context.push('/branches/new'),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useRootNavigator: true,
+                    backgroundColor: Colors.transparent,
+                    barrierColor: Colors.black.withValues(alpha: 0.5),
+                    builder: (context) => const BranchFormSheet(),
+                  );
+                },
                 tooltip: l10n.createBranch,
               ),
             ],
@@ -101,8 +111,9 @@ class _BranchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
 
-    return InkWell(
-      onTap: () => context.push('/branches/${branch.id}'),
+    return GestureDetector(
+      onTap: () => context.go('/branches/${branch.id}'),
+      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(

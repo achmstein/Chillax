@@ -22,10 +22,10 @@ import '../../features/accounts/screens/account_detail_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/update_name_screen.dart';
 import '../../features/profile/screens/change_password_screen.dart';
-import '../../features/users/screens/users_screen.dart';
+import '../../features/admins/screens/admins_screen.dart';
+import '../../features/admins/screens/admin_detail_screen.dart';
 import '../../features/branches/screens/branches_screen.dart';
 import '../../features/branches/screens/branch_detail_screen.dart';
-import '../../features/branches/screens/branch_edit_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 
 /// Splash screen shown while checking authentication
@@ -293,10 +293,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/users',
+            path: '/admins',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: UsersScreen(),
+              child: AdminsScreen(),
             ),
+            routes: [
+              GoRoute(
+                path: ':adminId',
+                builder: (context, state) {
+                  final adminId = state.pathParameters['adminId']!;
+                  return AdminDetailScreen(adminId: adminId);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/branches',
@@ -305,24 +314,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
             routes: [
               GoRoute(
-                path: 'new',
-                builder: (context, state) => const BranchEditScreen(),
-              ),
-              GoRoute(
                 path: ':branchId',
                 builder: (context, state) {
                   final branchId = int.parse(state.pathParameters['branchId']!);
                   return BranchDetailScreen(branchId: branchId);
                 },
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    builder: (context, state) {
-                      final branchId = int.parse(state.pathParameters['branchId']!);
-                      return BranchEditScreen(branchId: branchId);
-                    },
-                  ),
-                ],
               ),
             ],
           ),

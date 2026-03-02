@@ -28,7 +28,7 @@ var notificationDb = postgres.AddDatabase("notificationdb");
 // pgAdmin for database management
 builder.AddContainer("pgadmin", "dpage/pgadmin4", "9.7.0")
     .WithHttpEndpoint(port: 5050, targetPort: 80)
-    .WithEnvironment("PGADMIN_DEFAULT_EMAIL", "admin@chillax.com")
+    .WithEnvironment("PGADMIN_DEFAULT_EMAIL", "admin@chillax.site")
     .WithEnvironment("PGADMIN_DEFAULT_PASSWORD", "admin")
     .WithEnvironment("PGADMIN_CONFIG_SERVER_MODE", "False")
     .WithLifetime(ContainerLifetime.Persistent)
@@ -53,7 +53,7 @@ var keycloakRealmUrl = ReferenceExpression.Create($"{keycloakEndpoint}/realms/ch
 
 var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
-    .WithReference(catalogDb)
+    .WithReference(catalogDb).WaitFor(catalogDb)
     .WithReference(keycloak)
     .WithEnvironment("Identity__Url", keycloakRealmUrl)
     .WithEnvironment("Keycloak__Realm", "chillax");

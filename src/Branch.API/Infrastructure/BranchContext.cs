@@ -44,14 +44,22 @@ public class BranchContextSeed(ILogger<BranchContextSeed> logger) : IDbSeeder<Br
     {
         if (!await context.Branches.AnyAsync())
         {
-            context.Branches.Add(new Model.Branch
-            {
-                Name = new LocalizedText("Chillax", "شيلاكس"),
-                IsActive = true,
-                DisplayOrder = 1
-            });
+            context.Branches.AddRange(
+                new Model.Branch
+                {
+                    Name = new LocalizedText("El-Manshia", "المنشية"),
+                    IsActive = true,
+                    DisplayOrder = 1
+                },
+                new Model.Branch
+                {
+                    Name = new LocalizedText("El-Benzina", "البنزينة"),
+                    IsActive = true,
+                    DisplayOrder = 2
+                }
+            );
             await context.SaveChangesAsync();
-            logger.LogInformation("Seeded default branch");
+            logger.LogInformation("Seeded default branches");
         }
     }
 }

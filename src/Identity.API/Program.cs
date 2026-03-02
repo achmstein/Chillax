@@ -98,7 +98,7 @@ app.MapPost("/api/identity/register", async (RegisterRequest request, IHttpClien
     return Results.Problem($"Registration failed: {errorContent}", statusCode: (int)createResponse.StatusCode);
 });
 
-// Register admin endpoint (admin only - protected)
+// Register admin endpoint (owner only - protected)
 app.MapPost("/api/identity/register-admin", async (RegisterAdminRequest request, IHttpClientFactory httpClientFactory, IConfiguration config) =>
 {
     var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
@@ -202,11 +202,26 @@ app.MapPost("/api/identity/register-admin", async (RegisterAdminRequest request,
 
     var adminRole = await roleResponse.Content.ReadFromJsonAsync<KeycloakRole>();
 
-    // Assign Admin role to user
-    var roleMappingEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}/role-mappings/realm";
-    var roleAssignPayload = new[] { adminRole };
+    // Build list of roles to assign
+    var rolesToAssign = new List<KeycloakRole> { adminRole! };
 
-    var assignResponse = await client.PostAsJsonAsync(roleMappingEndpoint, roleAssignPayload);
+    // If IsOwner requested, also fetch and assign Owner role
+    if (request.IsOwner)
+    {
+        var ownerRolesEndpoint = $"{adminUrl}/admin/realms/{realm}/roles/Owner";
+        var ownerRoleResponse = await client.GetAsync(ownerRolesEndpoint);
+
+        if (ownerRoleResponse.IsSuccessStatusCode)
+        {
+            var ownerRole = await ownerRoleResponse.Content.ReadFromJsonAsync<KeycloakRole>();
+            if (ownerRole != null) rolesToAssign.Add(ownerRole);
+        }
+    }
+
+    // Assign roles to user
+    var roleMappingEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}/role-mappings/realm";
+
+    var assignResponse = await client.PostAsJsonAsync(roleMappingEndpoint, rolesToAssign);
 
     if (!assignResponse.IsSuccessStatusCode && assignResponse.StatusCode != System.Net.HttpStatusCode.NoContent)
     {
@@ -215,7 +230,7 @@ app.MapPost("/api/identity/register-admin", async (RegisterAdminRequest request,
     }
 
     return Results.Ok(new { message = "Admin registered successfully" });
-}).RequireAuthorization("Admin");
+}).RequireAuthorization("Owner");
 
 // List users endpoint (admin only)
 // Supports filtering: role=Admin (only admins), excludeRole=Admin (exclude admins, i.e. customers only)
@@ -883,7 +898,7 @@ app.MapPut("/api/identity/users/{userId}/toggle-enabled", async (string userId, 
 app.Run();
 
 record RegisterRequest(string? Name, string Email, string Password, string? PhoneNumber);
-record RegisterAdminRequest(string? Name, string Email, string Password);
+record RegisterAdminRequest(string? Name, string Email, string Password, bool IsOwner = false);
 record ChangePasswordRequest(string NewPassword);
 record UpdateEmailRequest(string NewEmail);
 record UpdateNameRequest(string NewName);

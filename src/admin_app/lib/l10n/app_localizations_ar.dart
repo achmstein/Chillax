@@ -48,7 +48,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signOut => 'تسجيل الخروج';
 
   @override
-  String get adminDashboard => 'لوحة تحكم الأدمن';
+  String get adminDashboard => 'لوحة تحكم المدير';
 
   @override
   String get usernameOrEmail => 'اليوزر أو الإيميل';
@@ -67,7 +67,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adminRoleRequired =>
-      'لازم يكون عندك صلاحية أدمن عشان تدخل التطبيق ده.';
+      'لازم يكون عندك صلاحية مدير عشان تدخل التطبيق ده.';
 
   @override
   String get enterBothFields => 'من فضلك اكتب اليوزر والباسورد.';
@@ -338,7 +338,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profile => 'الملف الشخصي';
 
   @override
-  String get adminUser => 'مستخدم أدمن';
+  String get adminUser => 'مستخدم مدير';
 
   @override
   String get about => 'عن التطبيق';
@@ -802,7 +802,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changePassword => 'تغيير الباسورد';
 
   @override
-  String get usersManagement => 'المستخدمين';
+  String get adminsManagement => 'المديرين';
 
   @override
   String get helpAndSupport => 'المساعدة والدعم';
@@ -823,19 +823,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passwordMinLength => 'الباسورد لازم يكون 8 حروف على الأقل';
 
   @override
-  String get addAdmin => 'إضافة أدمن';
+  String get addAdmin => 'إضافة مدير';
 
   @override
-  String get noUsersFound => 'مفيش مستخدمين';
+  String get noAdminsFound => 'مفيش مديرين';
 
   @override
-  String get adminRole => 'أدمن';
+  String get adminRole => 'مدير';
 
   @override
   String get customerRole => 'عميل';
 
   @override
-  String get adminCreatedSuccess => 'تم إنشاء الأدمن بنجاح';
+  String get adminCreatedSuccess => 'تم إنشاء المدير بنجاح';
 
   @override
   String get enabled => 'مفعّل';
@@ -1258,16 +1258,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get branchUpdatedSuccess => 'تم تعديل الفرع بنجاح';
 
   @override
-  String get assignAdmin => 'تعيين أدمن';
+  String get assignAdmin => 'تعيين مدير';
 
   @override
-  String get removeAdmin => 'إزالة أدمن';
+  String get removeAdmin => 'إزالة مدير';
 
   @override
-  String get adminAssigned => 'تم تعيين الأدمن للفرع';
+  String get adminAssigned => 'تم تعيين المدير للفرع';
 
   @override
-  String get adminRemoved => 'تم إزالة الأدمن من الفرع';
+  String get adminRemoved => 'تم إزالة المدير من الفرع';
 
   @override
   String get branchAvailability => 'توفر الفرع';
@@ -1285,13 +1285,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get branchDetails => 'تفاصيل الفرع';
 
   @override
-  String get assignedAdmins => 'الأدمنز المعينين';
+  String get assignedAdmins => 'المديرين المعينين';
 
   @override
-  String get noAdminsAssigned => 'مفيش أدمنز معينين للفرع ده';
+  String get noAdminsAssigned => 'مفيش مديرين معينين للفرع ده';
 
   @override
-  String get confirmRemoveAdmin => 'إزالة الأدمن ده من الفرع؟';
+  String get confirmRemoveAdmin => 'إزالة المدير ده من الفرع؟';
 
   @override
   String get deleteBranch => 'حذف الفرع';
@@ -1309,5 +1309,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String get saving => 'جاري الحفظ...';
 
   @override
-  String get selectAdmin => 'اختار أدمن';
+  String get selectAdmin => 'اختار مدير';
+
+  @override
+  String get makeOwner => 'تعيين كمالك';
+
+  @override
+  String get ownerDescription => 'المالك يقدر يدير الفروع وينشئ مديرين جداد';
+
+  @override
+  String get owner => 'مالك';
+
+  @override
+  String get role => 'الدور';
+
+  @override
+  String get adminDetails => 'تفاصيل المدير';
+
+  @override
+  String get adminNotFound => 'المدير مش موجود';
+
+  @override
+  String get blockAdmin => 'حظر المدير';
+
+  @override
+  String get unblockAdmin => 'إلغاء حظر المدير';
+
+  @override
+  String get blockAdminConfirmation =>
+      'متأكد إنك عايز تحظر المدير ده؟ مش هيقدر يدخل لوحة التحكم.';
+
+  @override
+  String get unblockAdminConfirmation =>
+      'متأكد إنك عايز تلغي حظر المدير ده؟ هيقدر يدخل لوحة التحكم تاني.';
+
+  @override
+  String get adminBlocked => 'تم حظر المدير';
+
+  @override
+  String get adminUnblocked => 'تم إلغاء حظر المدير';
+
+  @override
+  String get failedToToggleAdmin => 'فشل تحديث حالة المدير';
+
+  @override
+  String get assignedBranches => 'الفروع المعينة';
+
+  @override
+  String get noBranchesAssigned => 'مفيش فروع معينة';
+
+  @override
+  String get assignBranch => 'تعيين فرع';
 }

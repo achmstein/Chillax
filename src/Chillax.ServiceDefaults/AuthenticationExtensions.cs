@@ -74,6 +74,8 @@ public static class AuthenticationExtensions
         {
             // Admin policy requires the "Admin" role
             options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+            // Owner policy requires the "Owner" role (branch management, admin creation)
+            options.AddPolicy("Owner", policy => policy.RequireRole("Owner"));
         });
 
         return services;

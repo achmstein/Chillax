@@ -806,7 +806,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changePassword => 'Change Password';
 
   @override
-  String get usersManagement => 'Users';
+  String get adminsManagement => 'Admins';
 
   @override
   String get helpAndSupport => 'Help & Support';
@@ -830,7 +830,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addAdmin => 'Add Admin';
 
   @override
-  String get noUsersFound => 'No users found';
+  String get noAdminsFound => 'No admins found';
 
   @override
   String get adminRole => 'Admin';
@@ -1316,4 +1316,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectAdmin => 'Select Admin';
+
+  @override
+  String get makeOwner => 'Make Owner';
+
+  @override
+  String get ownerDescription => 'Owners can manage branches and create admins';
+
+  @override
+  String get owner => 'Owner';
+
+  @override
+  String get role => 'Role';
+
+  @override
+  String get adminDetails => 'Admin Details';
+
+  @override
+  String get adminNotFound => 'Admin not found';
+
+  @override
+  String get blockAdmin => 'Block Admin';
+
+  @override
+  String get unblockAdmin => 'Unblock Admin';
+
+  @override
+  String get blockAdminConfirmation =>
+      'Are you sure you want to block this admin? They will not be able to access the admin panel.';
+
+  @override
+  String get unblockAdminConfirmation =>
+      'Are you sure you want to unblock this admin? They will be able to access the admin panel again.';
+
+  @override
+  String get adminBlocked => 'Admin blocked';
+
+  @override
+  String get adminUnblocked => 'Admin unblocked';
+
+  @override
+  String get failedToToggleAdmin => 'Failed to update admin status';
+
+  @override
+  String get assignedBranches => 'Assigned Branches';
+
+  @override
+  String get noBranchesAssigned => 'No branches assigned';
+
+  @override
+  String get assignBranch => 'Assign Branch';
 }

@@ -735,11 +735,40 @@ public static class CatalogApi
             return TypedResults.NotFound();
         }
 
-        // If explicit value provided, use it; otherwise toggle (backwards compatible)
+        var baseUrl = GetBaseUrl(httpContext);
+        var branchId = httpContext.GetBranchId();
+
+        if (branchId.HasValue)
+        {
+            // Branch-scoped: create/update a BranchItemOverride
+            var existing = await services.Context.BranchItemOverrides
+                .FirstOrDefaultAsync(o => o.BranchId == branchId.Value && o.CatalogItemId == id);
+
+            var newAvailability = request?.IsAvailable ?? !(existing?.IsAvailable ?? item.IsAvailable);
+
+            if (existing != null)
+            {
+                existing.IsAvailable = newAvailability;
+            }
+            else
+            {
+                existing = new BranchItemOverride
+                {
+                    BranchId = branchId.Value,
+                    CatalogItemId = id,
+                    IsAvailable = newAvailability,
+                };
+                services.Context.BranchItemOverrides.Add(existing);
+            }
+
+            await services.Context.SaveChangesAsync();
+            return TypedResults.Ok(item.ToDto(existing, baseUrl));
+        }
+
+        // No branch header: modify global availability
         item.IsAvailable = request?.IsAvailable ?? !item.IsAvailable;
         await services.Context.SaveChangesAsync();
 
-        var baseUrl = GetBaseUrl(httpContext);
         return TypedResults.Ok(item.ToDto(baseUrl));
     }
 
@@ -778,11 +807,42 @@ public static class CatalogApi
             }
         }
 
+        var baseUrl = GetBaseUrl(httpContext);
+        var branchId = httpContext.GetBranchId();
+
+        if (branchId.HasValue)
+        {
+            // Branch-scoped: create/update a BranchItemOverride
+            var existing = await services.Context.BranchItemOverrides
+                .FirstOrDefaultAsync(o => o.BranchId == branchId.Value && o.CatalogItemId == id);
+
+            if (existing != null)
+            {
+                existing.IsOnOfferOverride = request.IsOnOffer;
+                existing.OfferPriceOverride = request.IsOnOffer ? request.OfferPrice : null;
+            }
+            else
+            {
+                existing = new BranchItemOverride
+                {
+                    BranchId = branchId.Value,
+                    CatalogItemId = id,
+                    IsAvailable = item.IsAvailable,
+                    IsOnOfferOverride = request.IsOnOffer,
+                    OfferPriceOverride = request.IsOnOffer ? request.OfferPrice : null,
+                };
+                services.Context.BranchItemOverrides.Add(existing);
+            }
+
+            await services.Context.SaveChangesAsync();
+            return TypedResults.Ok(item.ToDto(existing, baseUrl));
+        }
+
+        // No branch header: modify global offer
         item.IsOnOffer = request.IsOnOffer;
         item.OfferPrice = request.IsOnOffer ? request.OfferPrice : null;
         await services.Context.SaveChangesAsync();
 
-        var baseUrl = GetBaseUrl(httpContext);
         return TypedResults.Ok(item.ToDto(baseUrl));
     }
 

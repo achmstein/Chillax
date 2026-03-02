@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/branch.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/services/branch_service.dart';
 
 class BranchesManagementState {
@@ -56,6 +57,7 @@ class BranchesManagementNotifier extends Notifier<BranchesManagementState> {
     try {
       await _repository.createBranch(data);
       await loadBranches();
+      ref.read(branchProvider.notifier).refresh();
       return true;
     } catch (e) {
       debugPrint('Failed to create branch: $e');
@@ -68,6 +70,7 @@ class BranchesManagementNotifier extends Notifier<BranchesManagementState> {
     try {
       await _repository.updateBranch(id, data);
       await loadBranches();
+      ref.read(branchProvider.notifier).refresh();
       return true;
     } catch (e) {
       debugPrint('Failed to update branch: $e');
