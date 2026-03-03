@@ -55,7 +55,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
       children: [
         // Header
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 48),
             child: Row(
@@ -119,7 +119,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
       itemCount: state.requests.length,
       itemBuilder: (context, index) {
         final request = state.requests[index];

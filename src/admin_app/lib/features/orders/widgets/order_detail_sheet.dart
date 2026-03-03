@@ -79,7 +79,7 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
 
           // Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
             child: Row(
               children: [
                 Expanded(

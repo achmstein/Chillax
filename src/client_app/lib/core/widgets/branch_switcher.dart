@@ -38,29 +38,28 @@ class BranchSwitcher extends ConsumerWidget {
     final selectedBranch = branchState.selectedBranch;
     if (selectedBranch == null) return const SizedBox.shrink();
 
-    return GestureDetector(
-      onTap: () => _showBranchPicker(context, ref, branchState.branches, selectedBranch),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: theme.colors.secondary,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(FIcons.mapPin, size: 14, color: theme.colors.secondaryForeground),
-            const SizedBox(width: 4),
-            AppText(
-              selectedBranch.name.localized(context),
-              style: theme.typography.xs.copyWith(
-                color: theme.colors.secondaryForeground,
-                fontWeight: FontWeight.w600,
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(start: 12, end: 12, top: 8),
+        child: GestureDetector(
+          onTap: () => _showBranchPicker(context, ref, branchState.branches, selectedBranch),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(FIcons.mapPin, size: 14, color: theme.colors.foreground),
+              const SizedBox(width: 4),
+              AppText(
+                selectedBranch.name.localized(context),
+                style: theme.typography.sm.copyWith(
+                  color: theme.colors.foreground,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(width: 2),
-            Icon(FIcons.chevronDown, size: 12, color: theme.colors.secondaryForeground),
-          ],
+              const SizedBox(width: 2),
+              Icon(FIcons.chevronDown, size: 18, color: theme.colors.mutedForeground),
+            ],
+          ),
         ),
       ),
     );

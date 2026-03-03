@@ -26,7 +26,7 @@ class BundleDealsScreen extends ConsumerWidget {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
               child: Row(
                 children: [
                   AppText(

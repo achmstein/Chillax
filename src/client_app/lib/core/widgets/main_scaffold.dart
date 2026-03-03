@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'app_text.dart';
+import 'branch_switcher.dart';
 
 
 /// Tracks the current route for tab-aware refreshing
@@ -103,7 +104,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       ),
       child: SafeArea(
         bottom: false,
-        child: widget.child,
+        child: Column(
+          children: [
+            const BranchSwitcher(),
+            Expanded(child: widget.child),
+          ],
+        ),
       ),
     );
   }

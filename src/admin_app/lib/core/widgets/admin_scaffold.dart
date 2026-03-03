@@ -9,6 +9,7 @@ import '../../features/rooms/models/room.dart';
 import '../../features/service_requests/providers/service_requests_provider.dart';
 import '../../l10n/app_localizations.dart';
 import 'app_text.dart';
+import 'branch_switcher.dart';
 
 /// Notifier to track current route for triggering refreshes when navigating
 class CurrentRouteNotifier extends Notifier<String> {
@@ -198,12 +199,18 @@ class _MobileLayout extends ConsumerWidget {
     final serviceRequestsState = ref.watch(serviceRequestsProvider);
     final pendingRequestsCount = serviceRequestsState.pendingRequests.length;
 
-    return Scaffold(
-      backgroundColor: theme.colors.background,
-      body: SafeArea(
-        child: child,
+    return FScaffold(
+      childPad: false,
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            const BranchSwitcher(),
+            Expanded(child: child),
+          ],
+        ),
       ),
-      bottomNavigationBar: Container(
+      footer: Container(
         decoration: BoxDecoration(
           color: theme.colors.background,
           border: Border(top: BorderSide(color: theme.colors.border)),
