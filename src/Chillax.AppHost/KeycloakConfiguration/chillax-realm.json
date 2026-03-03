@@ -594,8 +594,8 @@
       "linkOnly": false,
       "firstBrokerLoginFlowAlias": "first broker login",
       "config": {
-        "clientId": "YOUR_APPLE_SERVICE_ID",
-        "clientSecret": "YOUR_APPLE_KEY_CONTENTS",
+        "clientId": "com.chillax.client.signin",
+        "clientSecret": "GENERATED_BY_ROTATE_APPLE_SECRET_WORKFLOW",
         "syncMode": "IMPORT",
         "defaultScope": "openid name email",
         "authorizationUrl": "https://appleid.apple.com/auth/authorize",
