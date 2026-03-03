@@ -27,9 +27,6 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(roomsProvider.notifier).loadRooms();
-    });
 
     // Auto-refresh for live timers
     _timer = Timer.periodic(AppConfig.roomsRefreshInterval, (_) {
@@ -470,7 +467,7 @@ class _RoomTileState extends State<_RoomTile> {
             else if (isAvailable)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: widget.onStartWalkIn,
+                onTap: widget.onReserve,
                 child: Padding(
                   padding: const EdgeInsets.all(4),
                   child: Container(
@@ -479,13 +476,10 @@ class _RoomTileState extends State<_RoomTile> {
                       color: theme.colors.primary,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Transform.scale(
-                      scaleX: Directionality.of(context) == TextDirection.rtl ? -1 : 1,
-                      child: Icon(
-                        Icons.play_arrow,
-                        color: theme.colors.primaryForeground,
-                        size: 18,
-                      ),
+                    child: Icon(
+                      Icons.bookmark_add_outlined,
+                      color: theme.colors.primaryForeground,
+                      size: 18,
                     ),
                   ),
                 ),

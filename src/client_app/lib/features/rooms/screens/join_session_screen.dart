@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/models/localized_text.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -100,7 +101,8 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
         // Refresh sessions and go back
         final l10n = AppLocalizations.of(context)!;
         ref.read(mySessionsProvider.notifier).refresh();
-        ref.invalidate(roomsProvider);
+        final branchId = ref.read(selectedBranchIdProvider);
+        if (branchId != null) ref.invalidate(roomsProvider(branchId));
         Navigator.pop(context, true);
         showFToast(
           context: context,

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../models/bundle_deal.dart';
 import '../services/menu_service.dart';
 
@@ -30,8 +31,8 @@ class BundleDealsNotifier extends Notifier<BundleDealsState> {
 
   @override
   BundleDealsState build() {
+    ref.watch(selectedBranchIdProvider);
     _repository = ref.read(menuRepositoryProvider);
-    // Auto-load bundles when the provider is first read
     Future.microtask(() => loadBundles());
     return const BundleDealsState(isLoading: true);
   }

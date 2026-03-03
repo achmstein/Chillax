@@ -22,9 +22,6 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(menuProvider.notifier).loadMenu();
-    });
 
     // Listen to route changes and refresh when navigating to this screen
     ref.listenManual(currentRouteProvider, (previous, next) {

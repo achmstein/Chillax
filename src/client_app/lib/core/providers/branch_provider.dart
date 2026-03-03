@@ -3,9 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/branch.dart';
 import '../services/branch_service.dart';
-import '../../../features/menu/services/menu_service.dart';
-import '../../../features/rooms/services/room_service.dart';
-import '../../../features/orders/services/order_service.dart';
 import '../../../features/cart/services/cart_service.dart';
 
 const String _branchKey = 'selected_branch_id';
@@ -98,11 +95,10 @@ class BranchNotifier extends Notifier<BranchState> {
     state = state.copyWith(selectedBranchId: branchId);
     await _saveBranchId(branchId);
 
-    // Invalidate branch-scoped data so it reloads for the new branch
-    ref.invalidate(categoriesProvider);
-    ref.invalidate(roomsProvider);
-    ref.invalidate(mySessionsProvider);
-    ref.read(ordersProvider.notifier).refresh();
+    // Branch-scoped providers use .family(branchId) so switching branches
+    // creates a fresh provider instance with clean loading state.
+    // mySessionsProvider watches selectedBranchIdProvider directly (Notifier).
+    // Cart is local state — just clear it on branch switch:
     ref.read(cartProvider.notifier).clear();
   }
 

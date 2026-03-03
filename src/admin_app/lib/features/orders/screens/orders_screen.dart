@@ -22,9 +22,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    Future.microtask(() {
-      ref.read(ordersProvider.notifier).loadOrders();
-    });
 
     ref.listenManual(currentRouteProvider, (previous, next) {
       if (next == '/orders' && previous != '/orders' && previous != null) {

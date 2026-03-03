@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../models/room.dart';
 
 /// Abstract room repository
@@ -120,8 +121,8 @@ final roomRepositoryProvider = Provider<RoomRepository>((ref) {
   return ApiRoomRepository(apiClient);
 });
 
-/// Provider for all rooms
-final roomsProvider = FutureProvider<List<Room>>((ref) async {
+/// Provider for all rooms — keyed by branch ID for clean state per branch
+final roomsProvider = FutureProvider.family<List<Room>, int>((ref, branchId) async {
   final service = ref.watch(roomRepositoryProvider);
   return service.getRooms();
 });
@@ -141,6 +142,7 @@ class MySessionsNotifier extends Notifier<AsyncValue<List<RoomSession>>> {
 
   @override
   AsyncValue<List<RoomSession>> build() {
+    ref.watch(selectedBranchIdProvider);
     _roomService = ref.watch(roomRepositoryProvider);
     _loadSessions();
     return const AsyncValue.loading();

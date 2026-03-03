@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/localized_text.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../models/menu_item.dart';
 import '../services/menu_service.dart';
 
@@ -61,8 +62,10 @@ class MenuNotifier extends Notifier<MenuState> {
 
   @override
   MenuState build() {
+    ref.watch(selectedBranchIdProvider);
     _repository = ref.read(menuRepositoryProvider);
-    return const MenuState();
+    Future.microtask(() => loadMenu());
+    return const MenuState(isLoading: true);
   }
 
   Future<void> loadMenu() async {

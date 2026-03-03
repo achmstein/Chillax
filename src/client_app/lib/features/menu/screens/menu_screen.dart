@@ -11,6 +11,7 @@ import '../../../core/models/localized_text.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../models/bundle_deal.dart';
 import '../models/menu_item.dart';
@@ -24,7 +25,8 @@ import '../../rooms/services/room_service.dart';
 import '../widgets/item_customization_sheet.dart';
 
 /// Provider for grouped menu items by category with localized names
-final groupedMenuItemsProvider = FutureProvider.family<Map<MenuCategory, List<MenuItem>>, Locale>((ref, locale) async {
+/// Keyed by (Locale, branchId) for clean state per branch
+final groupedMenuItemsProvider = FutureProvider.family<Map<MenuCategory, List<MenuItem>>, (Locale, int)>((ref, _) async {
   final service = ref.watch(menuRepositoryProvider);
   final categories = await service.getCategories();
   final items = await service.getMenuItems();
@@ -165,8 +167,12 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
-    final groupedItemsAsync = ref.watch(groupedMenuItemsProvider(locale));
-    final bundlesAsync = ref.watch(activeBundlesProvider);
+    final branchId = ref.watch(selectedBranchIdProvider);
+    if (branchId == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final groupedItemsAsync = ref.watch(groupedMenuItemsProvider((locale, branchId)));
+    final bundlesAsync = ref.watch(activeBundlesProvider(branchId));
     final bundles = bundlesAsync.value ?? [];
     final cart = ref.watch(cartProvider);
     final colors = context.theme.colors;
@@ -198,7 +204,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                   AppText(l10n.failedToLoadMenu(error.toString()), style: TextStyle(color: colors.foreground)),
                   const SizedBox(height: 16),
                   FButton(
-                    onPress: () => ref.refresh(groupedMenuItemsProvider(locale)),
+                    onPress: () => ref.refresh(groupedMenuItemsProvider((locale, branchId))),
                     child: Text(l10n.retry),
                   ),
                 ],
@@ -259,8 +265,8 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                       color: colors.primary,
                       backgroundColor: colors.background,
                       onRefresh: () async {
-                        ref.invalidate(activeBundlesProvider);
-                        ref.refresh(groupedMenuItemsProvider(locale));
+                        ref.invalidate(activeBundlesProvider(branchId));
+                        ref.refresh(groupedMenuItemsProvider((locale, branchId)));
                       },
                       child: ScrollablePositionedList.builder(
                         itemScrollController: _itemScrollController,

@@ -35,9 +35,6 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(serviceRequestsProvider.notifier).loadRequests();
-    });
 
     // Listen to route changes and refresh when navigating to this screen
     ref.listenManual(currentRouteProvider, (previous, next) {

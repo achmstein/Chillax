@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
 
@@ -54,8 +55,10 @@ class RoomsNotifier extends Notifier<RoomsState> {
 
   @override
   RoomsState build() {
+    ref.watch(selectedBranchIdProvider);
     _repository = ref.read(roomRepositoryProvider);
-    return const RoomsState();
+    Future.microtask(() => loadRooms());
+    return const RoomsState(isLoading: true);
   }
 
   Future<void> loadRooms() async {

@@ -162,8 +162,8 @@ final menuItemsProvider = FutureProvider.family<List<MenuItem>, int?>(
   },
 );
 
-/// Provider for categories
-final categoriesProvider = FutureProvider<List<MenuCategory>>((ref) async {
+/// Provider for categories — keyed by branch ID for clean state per branch
+final categoriesProvider = FutureProvider.family<List<MenuCategory>, int>((ref, branchId) async {
   final service = ref.watch(menuRepositoryProvider);
   return service.getCategories();
 });
@@ -187,8 +187,8 @@ final userPreferenceProvider = FutureProvider.family<UserItemPreference?, int>(
   },
 );
 
-/// Provider for active bundle deals
-final activeBundlesProvider = FutureProvider<List<BundleDeal>>((ref) async {
+/// Provider for active bundle deals — keyed by branch ID for clean state per branch
+final activeBundlesProvider = FutureProvider.family<List<BundleDeal>, int>((ref, branchId) async {
   final service = ref.watch(menuRepositoryProvider);
   return service.getActiveBundles();
 });

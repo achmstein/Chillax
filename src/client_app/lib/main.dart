@@ -143,7 +143,8 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
 
     _signalRSubscriptions.add(
       signalR.onRoomStatusChanged.listen((_) {
-        ref.invalidate(roomsProvider);
+        final branchId = ref.read(selectedBranchIdProvider);
+        if (branchId != null) ref.invalidate(roomsProvider(branchId));
         ref.read(mySessionsProvider.notifier).refresh();
       }),
     );

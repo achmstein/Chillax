@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../models/service_request.dart';
 import '../services/service_requests_service.dart';
 
@@ -42,13 +43,14 @@ class ServiceRequestsNotifier extends Notifier<ServiceRequestsState> {
 
   @override
   ServiceRequestsState build() {
+    ref.watch(selectedBranchIdProvider);
     _repository = ref.read(serviceRequestsRepositoryProvider);
-    return const ServiceRequestsState();
+    Future.microtask(() => loadRequests());
+    return const ServiceRequestsState(isLoading: true);
   }
 
   /// Load pending service requests
   Future<void> loadRequests() async {
-    if (state.isLoading) return;
     state = state.copyWith(isLoading: true, error: null);
 
     try {

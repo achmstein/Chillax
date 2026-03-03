@@ -9,6 +9,7 @@ import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/widgets/main_scaffold.dart';
 import '../../notifications/services/notification_service.dart';
 import '../../service_request/models/service_request.dart';
@@ -43,7 +44,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     ref.listenManual(currentRouteProvider, (previous, next) {
       if (next == '/rooms' && previous != '/rooms') {
         ref.read(mySessionsProvider.notifier).refresh();
-        ref.invalidate(roomsProvider);
+        final branchId = ref.read(selectedBranchIdProvider);
+        if (branchId != null) ref.invalidate(roomsProvider(branchId));
         _startPolling();
       } else if (previous == '/rooms' && next != '/rooms') {
         _stopPolling();
@@ -70,7 +72,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       ref.read(mySessionsProvider.notifier).refresh();
-      ref.invalidate(roomsProvider);
+      final branchId = ref.read(selectedBranchIdProvider);
+      if (branchId != null) ref.invalidate(roomsProvider(branchId));
     });
   }
 
@@ -82,9 +85,13 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Refresh sessions when app comes to foreground
+    // Use refresh (not invalidate) to keep showing existing rooms
+    // while fetching — the first request after resume often fails
+    // due to stale sockets, and invalidate would flash an error.
     if (state == AppLifecycleState.resumed) {
       ref.read(mySessionsProvider.notifier).refresh();
-      ref.invalidate(roomsProvider);
+      final branchId = ref.read(selectedBranchIdProvider);
+      if (branchId != null) ref.refresh(roomsProvider(branchId));
     }
   }
 
@@ -109,7 +116,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         _codeController.clear();
         _codeFocusNode.unfocus();
         ref.read(mySessionsProvider.notifier).refresh();
-        ref.invalidate(roomsProvider);
+        final branchId = ref.read(selectedBranchIdProvider);
+        if (branchId != null) ref.invalidate(roomsProvider(branchId));
         showFToast(
           context: context,
           title: Text(l10n.joinedSession),
@@ -129,7 +137,11 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
-    final roomsAsync = ref.watch(roomsProvider);
+    final branchId = ref.watch(selectedBranchIdProvider);
+    if (branchId == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final roomsAsync = ref.watch(roomsProvider(branchId));
     final sessionsAsync = ref.watch(mySessionsProvider);
     final l10n = AppLocalizations.of(context)!;
 
@@ -279,6 +291,8 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     RoomSession? reservedSession,
     RoomSession? activeSession,
   ) {
+    final branchId = ref.read(selectedBranchIdProvider)!;
+
     return roomsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
@@ -290,7 +304,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
             AppText(AppLocalizations.of(context)!.failedToLoadRooms),
             const SizedBox(height: 16),
             FButton(
-              onPress: () => ref.refresh(roomsProvider),
+              onPress: () => ref.refresh(roomsProvider(branchId)),
               child: Text(AppLocalizations.of(context)!.retry),
             ),
           ],
@@ -307,7 +321,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           color: colors.primary,
           backgroundColor: colors.background,
           onRefresh: () async {
-            ref.invalidate(roomsProvider);
+            ref.invalidate(roomsProvider(branchId));
             await ref.read(mySessionsProvider.notifier).refresh();
           },
           child: ListView.builder(
@@ -878,7 +892,8 @@ class _ReservedSessionBanner extends ConsumerWidget {
         final service = ref.read(roomRepositoryProvider);
         await service.cancelReservation(session.id);
         ref.read(mySessionsProvider.notifier).refresh();
-        ref.invalidate(roomsProvider);
+        final branchId = ref.read(selectedBranchIdProvider);
+        if (branchId != null) ref.invalidate(roomsProvider(branchId));
         if (context.mounted) {
           showFToast(
             context: context,
@@ -1349,7 +1364,8 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
 
     if (success && mounted) {
       Navigator.pop(context);
-      ref.invalidate(roomsProvider);
+      final branchId = ref.read(selectedBranchIdProvider);
+      if (branchId != null) ref.invalidate(roomsProvider(branchId));
       ref.read(mySessionsProvider.notifier).refresh();
       showFToast(
         context: context,

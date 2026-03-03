@@ -4,9 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/auth_service.dart';
 import '../models/branch.dart';
 import '../services/branch_service.dart';
-import '../../../features/orders/providers/orders_provider.dart';
-import '../../../features/rooms/providers/rooms_provider.dart';
-import '../../../features/service_requests/providers/service_requests_provider.dart';
 
 const String _branchKey = 'admin_selected_branch_id';
 
@@ -102,13 +99,8 @@ class BranchNotifier extends Notifier<BranchState> {
     state = state.copyWith(selectedBranchId: branchId);
     await _saveBranchId(branchId);
 
-    // Reload branch-scoped data
-    ref.read(ordersProvider.notifier).loadOrders();
-    ref.invalidate(roomsProvider);
-    ref.read(roomsProvider.notifier).loadRooms();
-    ref.read(serviceRequestsProvider.notifier).loadRequests();
-
-    // Re-register notifications for the new branch
+    // Branch-scoped providers watch selectedBranchIdProvider and auto-rebuild.
+    // Re-register notifications for the new branch:
     ref.read(authServiceProvider.notifier).reregisterNotifications();
   }
 

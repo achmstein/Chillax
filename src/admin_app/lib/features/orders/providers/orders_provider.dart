@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../models/order.dart';
 import '../services/order_service.dart';
 
@@ -71,8 +72,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   @override
   OrdersState build() {
+    ref.watch(selectedBranchIdProvider);
     _repository = ref.read(orderRepositoryProvider);
-    return const OrdersState();
+    Future.microtask(() => loadOrders());
+    return const OrdersState(isLoading: true);
   }
 
   Future<void> loadOrders() async {
