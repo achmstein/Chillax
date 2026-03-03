@@ -78,6 +78,7 @@ class AuthService extends Notifier<AuthState> {
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _idTokenKey = 'id_token';
+  static const _pendingAppleNameKey = 'pending_apple_name';
 
   /// Token endpoint URL
   String get _tokenEndpoint => '${AppConfig.identityUrl}/protocol/openid-connect/token';
@@ -113,6 +114,10 @@ class AuthService extends Notifier<AuthState> {
             isInitializing: false,
             isAuthenticated: true,
           );
+
+          // Retry pending Apple name update if a previous attempt failed
+          await _retryPendingAppleNameUpdate();
+
           return;
         }
       }
@@ -238,11 +243,15 @@ class AuthService extends Notifier<AuthState> {
         providerAlias = 'apple';
         tokenType = 'urn:ietf:params:oauth:token-type:id_token';
 
-        // Apple only provides the name on the FIRST sign-in
+        // Apple only provides the name on the FIRST sign-in — persist it
+        // locally so we can retry if the Keycloak update fails
         final givenName = credential.givenName;
         final familyName = credential.familyName;
         if (givenName != null || familyName != null) {
           _appleDisplayName = [givenName, familyName].whereType<String>().join(' ').trim();
+          if (_appleDisplayName!.isNotEmpty) {
+            await _storage.write(key: _pendingAppleNameKey, value: _appleDisplayName);
+          }
           debugPrint('Apple sign in successful, got identity token and name: $_appleDisplayName');
         } else {
           _appleDisplayName = null;
@@ -312,7 +321,21 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
-  /// Update the user's name in Keycloak via the BFF identity endpoint
+  /// Retry a pending Apple name update from a previous failed attempt.
+  Future<void> _retryPendingAppleNameUpdate() async {
+    try {
+      final pendingName = await _storage.read(key: _pendingAppleNameKey);
+      if (pendingName != null && pendingName.isNotEmpty && state.accessToken != null) {
+        debugPrint('Found pending Apple name update: $pendingName');
+        await _updateNameInKeycloak(state.accessToken!, pendingName);
+      }
+    } catch (e) {
+      debugPrint('Error retrying pending Apple name update: $e');
+    }
+  }
+
+  /// Update the user's name in Keycloak via the BFF identity endpoint.
+  /// Clears the persisted pending name on success so we don't retry.
   Future<void> _updateNameInKeycloak(String accessToken, String name) async {
     try {
       debugPrint('Updating user name in Keycloak: $name');
@@ -324,10 +347,11 @@ class AuthService extends Notifier<AuthState> {
           headers: {'Authorization': 'Bearer $accessToken'},
         ),
       );
+      await _storage.delete(key: _pendingAppleNameKey);
       debugPrint('User name updated in Keycloak successfully');
     } catch (e) {
-      // Non-critical: don't fail the sign-in if name update fails
-      debugPrint('Failed to update name in Keycloak: $e');
+      // Non-critical: don't fail the sign-in — will retry on next app launch
+      debugPrint('Failed to update name in Keycloak (will retry): $e');
     }
   }
 
@@ -528,6 +552,7 @@ class AuthService extends Notifier<AuthState> {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _idTokenKey);
+    await _storage.delete(key: _pendingAppleNameKey);
 
     state = const AuthState(isInitializing: false);
   }
