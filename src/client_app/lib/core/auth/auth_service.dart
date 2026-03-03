@@ -72,6 +72,9 @@ class AuthService extends Notifier<AuthState> {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _googleSignInInitialized = false;
 
+  // Apple provides the user's name only on the first sign-in
+  String? _appleDisplayName;
+
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _idTokenKey = 'id_token';
@@ -234,7 +237,17 @@ class AuthService extends Notifier<AuthState> {
         socialToken = credential.identityToken;
         providerAlias = 'apple';
         tokenType = 'urn:ietf:params:oauth:token-type:id_token';
-        debugPrint('Apple sign in successful, got identity token');
+
+        // Apple only provides the name on the FIRST sign-in
+        final givenName = credential.givenName;
+        final familyName = credential.familyName;
+        if (givenName != null || familyName != null) {
+          _appleDisplayName = [givenName, familyName].whereType<String>().join(' ').trim();
+          debugPrint('Apple sign in successful, got identity token and name: $_appleDisplayName');
+        } else {
+          _appleDisplayName = null;
+          debugPrint('Apple sign in successful, got identity token (no name provided)');
+        }
       }
 
       if (socialToken == null) {
@@ -278,6 +291,14 @@ class AuthService extends Notifier<AuthState> {
           refreshToken: data['refresh_token'],
           idToken: data['id_token'],
         );
+
+        // After Apple Sign In, update the user's name in Keycloak
+        // Apple only provides the name on the first sign-in
+        if (_appleDisplayName != null && _appleDisplayName!.isNotEmpty) {
+          await _updateNameInKeycloak(data['access_token'], _appleDisplayName!);
+          _appleDisplayName = null;
+        }
+
         return true;
       }
       return false;
@@ -288,6 +309,25 @@ class AuthService extends Notifier<AuthState> {
     } catch (e) {
       debugPrint('Token exchange error: $e');
       return false;
+    }
+  }
+
+  /// Update the user's name in Keycloak via the BFF identity endpoint
+  Future<void> _updateNameInKeycloak(String accessToken, String name) async {
+    try {
+      debugPrint('Updating user name in Keycloak: $name');
+      await _dio.post(
+        '${AppConfig.bffBaseUrl}/api/identity/update-name',
+        data: {'newName': name},
+        options: Options(
+          contentType: Headers.jsonContentType,
+          headers: {'Authorization': 'Bearer $accessToken'},
+        ),
+      );
+      debugPrint('User name updated in Keycloak successfully');
+    } catch (e) {
+      // Non-critical: don't fail the sign-in if name update fails
+      debugPrint('Failed to update name in Keycloak: $e');
     }
   }
 
@@ -457,6 +497,16 @@ class AuthService extends Notifier<AuthState> {
       email = claims['email'] as String?;
       // Keycloak: 'name' is full name (firstName + lastName), 'preferred_username' is username
       name = claims['name'] as String? ?? claims['preferred_username'] as String?;
+
+      // Apple Sign In: Keycloak often stores the email as the name.
+      // Use the name from Apple's credential if the JWT name looks like an email.
+      if (_appleDisplayName != null && _appleDisplayName!.isNotEmpty) {
+        if (name == null || name == email || (name.contains('@'))) {
+          debugPrint('Using Apple-provided name instead of JWT name: $_appleDisplayName');
+          name = _appleDisplayName;
+        }
+        _appleDisplayName = null;
+      }
       debugPrint('Extracted user info - userId: $userId, email: $email, name: $name');
     }
 
