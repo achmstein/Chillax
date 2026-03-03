@@ -794,7 +794,7 @@ class _CurrentStateSection extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.bookmark_outline, size: 18),
+                      const Icon(Icons.bookmark_add_outlined, size: 18),
                       const SizedBox(width: 8),
                       AppText(l10n.reserve),
                     ],

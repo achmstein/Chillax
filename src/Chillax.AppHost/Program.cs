@@ -131,12 +131,17 @@ ConfigureApiService(branchApi, "branch");
 builder.AddYarp("mobile-bff")
     .WithEndpoint("http", endpoint =>
     {
-        // In production, Caddy handles ports 80/443 and proxies to mobile-bff.
-        // Port 5000 is only used for local development / Aspire dashboard.
+        // Port 5000 to avoid conflict with Caddy on port 80 in production.
+        // Caddy handles TLS on 443 and proxies to mobile-bff:5000 inside Docker.
         endpoint.Port = 5000;
         endpoint.UriScheme = "http";
         endpoint.IsExternal = true;
+        // Bypass Aspire's DCP proxy which forces HTTP/2.
+        // Connect directly to the container for HTTP/1.1 (Flutter/Dio).
+        endpoint.IsProxied = false;
     })
+    // Ensure Kestrel accepts HTTP/1.1 on port 5000
+    .WithEnvironment("Kestrel__EndpointDefaults__Protocols", "Http1AndHttp2")
     .ConfigureMobileBffRoutes(catalogApi, orderingApi, roomsApi, identityApi, loyaltyApi, notificationApi, accountsApi, branchApi, keycloak);
 
 builder.Build().Run();

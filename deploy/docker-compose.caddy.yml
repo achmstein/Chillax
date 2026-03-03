@@ -4,8 +4,8 @@
 # This is a separate compose file so it doesn't interfere with the
 # Aspire-generated docker-compose.yaml.
 #
-# NOTE: The deploy workflow strips mobile-bff's host port mapping via sed
-# before copying artifacts to the server, so Caddy can bind to ports 80/443.
+# Mobile-bff runs on port 5000 to avoid conflict with Caddy on port 80.
+# Caddy handles TLS (Let's Encrypt) and proxies api.chillax.site → mobile-bff:5000.
 
 services:
   caddy:

@@ -489,7 +489,9 @@ public static class RoomsApi
     {
         try
         {
-            var initialMode = request?.PlayerMode ?? PlayerMode.Single;
+            var initialMode = PlayerMode.Single;
+            if (request?.PlayerMode != null && Enum.TryParse<PlayerMode>(request.PlayerMode, ignoreCase: true, out var parsed))
+                initialMode = parsed;
             var command = new StartWalkInSessionCommand(roomId, request?.Notes, initialMode);
             var result = await mediator.Send(command);
             return TypedResults.Created($"/api/rooms/sessions/{result.ReservationId}", result);
@@ -672,7 +674,7 @@ public record ReserveRoomRequest(
 
 public record WalkInSessionRequest(
     string? Notes = null,
-    PlayerMode? PlayerMode = null);
+    string? PlayerMode = null);
 
 public record JoinSessionRequest(string AccessCode);
 

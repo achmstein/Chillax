@@ -1367,9 +1367,6 @@
           }
         }
       },
-      "PlayerMode": {
-        "type": "integer"
-      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -1795,13 +1792,9 @@
             ]
           },
           "playerMode": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PlayerMode"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           }
         }

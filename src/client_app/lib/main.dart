@@ -19,6 +19,7 @@ import 'core/theme/app_theme.dart';
 import 'features/notifications/services/notification_service.dart';
 import 'features/orders/services/order_service.dart';
 import 'features/rooms/services/room_service.dart';
+import 'features/settings/providers/settings_provider.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -83,6 +84,14 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _wasAuthenticated) {
       ref.read(signalRServiceProvider).reconnectIfNeeded();
+      _reregisterNotificationsIfEnabled();
+    }
+  }
+
+  void _reregisterNotificationsIfEnabled() {
+    final prefs = ref.read(settingsProvider).preferences;
+    if (prefs.orderStatusUpdates) {
+      _registerForOrderNotifications();
     }
   }
 
@@ -174,6 +183,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
     } else if (!authState.isAuthenticated && _wasAuthenticated) {
       _wasAuthenticated = false;
       _cancelSignalRSubscriptions();
+      ref.read(notificationRepositoryProvider).unregisterFromOrderNotifications();
     }
 
     return MaterialApp.router(

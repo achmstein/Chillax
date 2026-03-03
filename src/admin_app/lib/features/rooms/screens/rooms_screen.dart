@@ -383,11 +383,14 @@ class _RoomTileState extends State<_RoomTile> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      AppText(
-                        '• ${_getStatusLabel(l10n)}',
-                        style: theme.typography.sm.copyWith(
-                          color: _getStatusColor(theme),
-                          fontSize: 13,
+                      Flexible(
+                        child: AppText(
+                          '• ${_getStatusLabel(l10n)}',
+                          style: theme.typography.sm.copyWith(
+                            color: _getStatusColor(theme),
+                            fontSize: 13,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

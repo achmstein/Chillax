@@ -83,12 +83,14 @@ class SettingsNotifier extends Notifier<SettingsState> {
       await _service.updateNotificationPreferences(newPreferences);
       state = state.copyWith(isSaving: false);
 
-      // When re-enabling order notifications, refresh the FCM token registration
+      // Register/unregister FCM token based on order notification toggle
       if (orderStatusUpdates == true) {
         final lang = ref.read(localeProvider)?.languageCode ?? 'en';
         ref.read(notificationRepositoryProvider).registerForOrderNotifications(
           preferredLanguage: lang,
         );
+      } else if (orderStatusUpdates == false) {
+        ref.read(notificationRepositoryProvider).unregisterFromOrderNotifications();
       }
     } catch (e) {
       // Revert on error
