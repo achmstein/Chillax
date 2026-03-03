@@ -605,6 +605,7 @@
         "useJwksUrl": "true",
         "validateSignature": "true",
         "disableUserInfo": "true",
+        "disableTypeClaimCheck": "true",
         "clientAuthMethod": "client_secret_post"
       }
     }
