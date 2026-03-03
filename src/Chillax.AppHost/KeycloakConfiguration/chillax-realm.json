@@ -604,6 +604,7 @@
         "issuer": "https://appleid.apple.com",
         "useJwksUrl": "true",
         "validateSignature": "true",
+        "disableUserInfo": "true",
         "clientAuthMethod": "client_secret_post"
       }
     }
