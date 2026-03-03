@@ -594,7 +594,7 @@
       "linkOnly": false,
       "firstBrokerLoginFlowAlias": "first broker login",
       "config": {
-        "clientId": "com.chillax.client.signin",
+        "clientId": "com.chillax.client",
         "clientSecret": "GENERATED_BY_ROTATE_APPLE_SECRET_WORKFLOW",
         "syncMode": "IMPORT",
         "defaultScope": "openid name email",

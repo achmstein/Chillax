@@ -233,7 +233,7 @@ class AuthService extends Notifier<AuthState> {
 
         socialToken = credential.identityToken;
         providerAlias = 'apple';
-        tokenType = 'urn:ietf:params:oauth:token-type:id_token';
+        tokenType = 'urn:ietf:params:oauth:token-type:access_token';
         debugPrint('Apple sign in successful, got identity token');
       }
 
