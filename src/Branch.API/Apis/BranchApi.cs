@@ -107,8 +107,22 @@ public static class BranchApi
 
     public static async Task<Ok<List<BranchResponse>>> GetBranchesByAdmin(
         BranchContext context,
+        ClaimsPrincipal user,
         [Description("The admin user ID")] string adminUserId)
     {
+        // Owners see all active branches
+        if (user.IsInRole("Owner"))
+        {
+            var allBranches = await context.Branches
+                .AsNoTracking()
+                .Where(b => b.IsActive)
+                .OrderBy(b => b.DisplayOrder)
+                .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder))
+                .ToListAsync();
+
+            return TypedResults.Ok(allBranches);
+        }
+
         var branches = await context.AdminBranchAssignments
             .AsNoTracking()
             .Where(a => a.AdminUserId == adminUserId)
