@@ -140,8 +140,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/complete-profile';
       }
 
-      // Redirect to menu if authenticated and on login/register page
-      if (isAuthenticated && !needsProfileCompletion && (isLoggingIn || isRegistering)) {
+      // Redirect to menu if authenticated and on login/register/complete-profile page
+      if (isAuthenticated && !needsProfileCompletion && (isLoggingIn || isRegistering || isCompletingProfile)) {
         return '/menu';
       }
 

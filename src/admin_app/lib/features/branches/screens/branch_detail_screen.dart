@@ -339,7 +339,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                     else
                       ...(_assignedAdmins!.map((admin) => _AdminTile(
                             admin: admin,
-                            onRemove: () => _removeAdmin(admin),
+                            onRemove: admin.isOwner ? null : () => _removeAdmin(admin),
                           ))),
                   ],
                 ),
@@ -354,9 +354,9 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
 
 class _AdminTile extends StatelessWidget {
   final AdminUser admin;
-  final VoidCallback onRemove;
+  final VoidCallback? onRemove;
 
-  const _AdminTile({required this.admin, required this.onRemove});
+  const _AdminTile({required this.admin, this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -391,14 +391,15 @@ class _AdminTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.person_remove_outlined,
-              size: 18,
-              color: theme.colors.destructive,
+          if (onRemove != null)
+            IconButton(
+              icon: Icon(
+                Icons.person_remove_outlined,
+                size: 18,
+                color: theme.colors.destructive,
+              ),
+              onPressed: onRemove,
             ),
-            onPressed: onRemove,
-          ),
         ],
       ),
     );

@@ -152,6 +152,7 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
                   branches: _branches,
                   isLoading: _isLoadingBranches,
                   isOwner: isOwner,
+                  isAdminOwner: isAdminOwner,
                   adminId: widget.adminId,
                   onBranchRemoved: _loadBranches,
                   onAssignBranch: () => _showAssignBranchSheet(context),
@@ -649,6 +650,7 @@ class _BranchesSection extends ConsumerWidget {
   final List<Branch> branches;
   final bool isLoading;
   final bool isOwner;
+  final bool isAdminOwner;
   final String adminId;
   final VoidCallback onBranchRemoved;
   final VoidCallback onAssignBranch;
@@ -658,6 +660,7 @@ class _BranchesSection extends ConsumerWidget {
     required this.branches,
     required this.isLoading,
     required this.isOwner,
+    required this.isAdminOwner,
     required this.adminId,
     required this.onBranchRemoved,
     required this.onAssignBranch,
@@ -684,7 +687,7 @@ class _BranchesSection extends ConsumerWidget {
                 ),
               ),
               const Spacer(),
-              if (isOwner)
+              if (isOwner && !isAdminOwner)
                 IconButton(
                   icon: const Icon(Icons.add, size: 20),
                   onPressed: onAssignBranch,
@@ -757,7 +760,7 @@ class _BranchesSection extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    if (isOwner)
+                    if (isOwner && !isAdminOwner)
                       IconButton(
                         icon: Icon(
                           Icons.remove_circle_outline,

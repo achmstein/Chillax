@@ -49,6 +49,7 @@ class AdminUser {
   }
 
   bool get isAdmin => realmRoles.contains('Admin');
+  bool get isOwner => realmRoles.contains('Owner');
 
   factory AdminUser.fromJson(Map<String, dynamic> json) {
     return AdminUser(

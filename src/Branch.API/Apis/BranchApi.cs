@@ -110,8 +110,9 @@ public static class BranchApi
         ClaimsPrincipal user,
         [Description("The admin user ID")] string adminUserId)
     {
-        // Owners see all active branches
-        if (user.IsInRole("Owner"))
+        // Owners see all active branches when querying their own branches
+        var callerId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
+        if (user.IsInRole("Owner") && callerId == adminUserId)
         {
             var allBranches = await context.Branches
                 .AsNoTracking()
