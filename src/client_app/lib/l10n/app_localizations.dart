@@ -1789,6 +1789,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Switch Branch'**
   String get switchBranch;
+
+  /// No description provided for @completeYourProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Your Profile'**
+  String get completeYourProfile;
+
+  /// No description provided for @completeProfileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name and phone number to continue'**
+  String get completeProfileDescription;
+
+  /// No description provided for @invalidPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid phone number (01xxxxxxxxx).'**
+  String get invalidPhone;
+
+  /// No description provided for @profileCompletionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save profile. Please try again.'**
+  String get profileCompletionFailed;
 }
 
 class _AppLocalizationsDelegate

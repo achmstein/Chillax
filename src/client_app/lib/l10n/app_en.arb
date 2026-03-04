@@ -456,5 +456,10 @@
   "playerModeMulti": "Multi",
 
   "selectBranch": "Select Branch",
-  "switchBranch": "Switch Branch"
+  "switchBranch": "Switch Branch",
+
+  "completeYourProfile": "Complete Your Profile",
+  "completeProfileDescription": "Please enter your name and phone number to continue",
+  "invalidPhone": "Please enter a valid phone number (01xxxxxxxxx).",
+  "profileCompletionFailed": "Failed to save profile. Please try again."
 }

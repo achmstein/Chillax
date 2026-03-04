@@ -164,6 +164,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           // Content
           Expanded(
             child: sessionsAsync.when(
+              skipLoadingOnRefresh: true,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, _) => _buildRoomsList(context, roomsAsync, null, null),
               data: (sessions) {
@@ -293,82 +294,99 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   ) {
     final branchId = ref.read(selectedBranchIdProvider)!;
 
+    // If error but we have previous data (e.g. stale socket after app resume),
+    // keep showing the cached rooms instead of flashing an error
     return roomsAsync.when(
+      skipLoadingOnRefresh: true,
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(FIcons.circleAlert, size: 48, color: context.theme.colors.mutedForeground),
-            const SizedBox(height: 16),
-            AppText(AppLocalizations.of(context)!.failedToLoadRooms),
-            const SizedBox(height: 16),
-            FButton(
-              onPress: () => ref.refresh(roomsProvider(branchId)),
-              child: Text(AppLocalizations.of(context)!.retry),
-            ),
-          ],
-        ),
-      ),
-      data: (rooms) {
-        final colors = context.theme.colors;
-        final allUnavailable = rooms.isNotEmpty &&
-            rooms.every((r) => !r.canBookNow);
-        // Only show notify banner if all rooms unavailable AND user has no reservation
-        final showNotifyBanner = allUnavailable && reservedSession == null;
-
-        return RefreshIndicator(
-          color: colors.primary,
-          backgroundColor: colors.background,
-          onRefresh: () async {
-            ref.invalidate(roomsProvider(branchId));
-            await ref.read(mySessionsProvider.notifier).refresh();
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: _getItemCount(rooms, reservedSession, showNotifyBanner),
-            itemBuilder: (context, index) {
-              int currentIndex = index;
-
-              // Reserved session banner (always first if exists)
-              if (reservedSession != null && currentIndex == 0) {
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: _ReservedSessionBanner(session: reservedSession),
-                );
-              }
-              if (reservedSession != null) currentIndex--;
-
-              // Notify me banner (if all rooms unavailable and no reservation)
-              if (showNotifyBanner && currentIndex == 0) {
-                return const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: NotifyMeBanner(),
-                );
-              }
-              if (showNotifyBanner) currentIndex--;
-
-              // Room items
-              final room = rooms[currentIndex];
-              return Column(
-                children: [
-                  RoomListItem(
-                    room: room,
-                    canReserve: reservedSession == null,
-                  ),
-                  if (currentIndex < rooms.length - 1)
-                    Divider(
-                      height: 1,
-                      indent: 16,
-                      endIndent: 16,
-                      color: context.theme.colors.border,
-                    ),
-                ],
-              );
-            },
+      error: (error, _) {
+        // Previous data still available — show it, polling will refresh
+        if (roomsAsync.hasValue) {
+          return _buildRoomsContent(context, roomsAsync.value!, reservedSession, activeSession);
+        }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(FIcons.circleAlert, size: 48, color: context.theme.colors.mutedForeground),
+              const SizedBox(height: 16),
+              AppText(AppLocalizations.of(context)!.failedToLoadRooms),
+              const SizedBox(height: 16),
+              FButton(
+                onPress: () => ref.refresh(roomsProvider(branchId)),
+                child: Text(AppLocalizations.of(context)!.retry),
+              ),
+            ],
           ),
         );
       },
+      data: (rooms) => _buildRoomsContent(context, rooms, reservedSession, activeSession),
+    );
+  }
+
+  Widget _buildRoomsContent(
+    BuildContext context,
+    List<Room> rooms,
+    RoomSession? reservedSession,
+    RoomSession? activeSession,
+  ) {
+    final branchId = ref.read(selectedBranchIdProvider)!;
+    final colors = context.theme.colors;
+    final allUnavailable = rooms.isNotEmpty &&
+        rooms.every((r) => !r.canBookNow);
+    // Only show notify banner if all rooms unavailable AND user has no reservation
+    final showNotifyBanner = allUnavailable && reservedSession == null;
+
+    return RefreshIndicator(
+      color: colors.primary,
+      backgroundColor: colors.background,
+      onRefresh: () async {
+        ref.invalidate(roomsProvider(branchId));
+        await ref.read(mySessionsProvider.notifier).refresh();
+      },
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: _getItemCount(rooms, reservedSession, showNotifyBanner),
+        itemBuilder: (context, index) {
+          int currentIndex = index;
+
+          // Reserved session banner (always first if exists)
+          if (reservedSession != null && currentIndex == 0) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: _ReservedSessionBanner(session: reservedSession),
+            );
+          }
+          if (reservedSession != null) currentIndex--;
+
+          // Notify me banner (if all rooms unavailable and no reservation)
+          if (showNotifyBanner && currentIndex == 0) {
+            return const Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: NotifyMeBanner(),
+            );
+          }
+          if (showNotifyBanner) currentIndex--;
+
+          // Room items
+          final room = rooms[currentIndex];
+          return Column(
+            children: [
+              RoomListItem(
+                room: room,
+                canReserve: reservedSession == null,
+              ),
+              if (currentIndex < rooms.length - 1)
+                Divider(
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: context.theme.colors.border,
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 

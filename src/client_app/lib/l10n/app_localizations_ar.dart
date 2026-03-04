@@ -48,16 +48,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get name => 'الاسم';
 
   @override
-  String get enterUsername => 'ادخل اليوزر';
+  String get enterUsername => 'دخل اليوزر';
 
   @override
-  String get enterUsernameOrEmail => 'ادخل اليوزر أو الايميل';
+  String get enterUsernameOrEmail => 'دخل اليوزر أو الايميل';
 
   @override
-  String get enterEmail => 'ادخل الايميل';
+  String get enterEmail => 'دخل الايميل';
 
   @override
-  String get enterPassword => 'ادخل الباسورد';
+  String get enterPassword => 'دخل الباسورد';
 
   @override
   String get createPassword => 'اعمل باسورد';
@@ -93,7 +93,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get guestUser => 'زائر';
 
   @override
-  String get enterBothEmailAndPassword => 'ادخل الايميل والباسورد.';
+  String get enterBothEmailAndPassword => 'دخل الايميل والباسورد.';
 
   @override
   String get invalidCredentials => 'الايميل أو الباسورد غلط. جرب تاني.';
@@ -258,13 +258,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToLoadDetails => 'التفاصيل مش بتحمل';
 
   @override
-  String get enterSixDigitCode => 'ادخل كود من 6 أرقام';
+  String get enterSixDigitCode => 'دخل كود من 6 أرقام';
 
   @override
-  String get enterFourDigitCode => 'ادخل كود من 4 أرقام';
+  String get enterFourDigitCode => 'دخل كود من 4 أرقام';
 
   @override
-  String get enterCode => 'ادخل الكود';
+  String get enterCode => 'دخل الكود';
 
   @override
   String get invalidCode => 'الكود غلط';
@@ -687,7 +687,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newPassword => 'الباسورد الجديد';
 
   @override
-  String get enterNewPassword => 'ادخل الباسورد الجديد';
+  String get enterNewPassword => 'دخل الباسورد الجديد';
 
   @override
   String get passwordMustBe8Chars => 'الباسورد لازم يكون 8 حروف على الأقل';
@@ -705,10 +705,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newEmail => 'الايميل الجديد';
 
   @override
-  String get pleaseEnterEmail => 'ادخل الايميل';
+  String get pleaseEnterEmail => 'دخل الايميل';
 
   @override
-  String get pleaseEnterValidEmail => 'ادخل ايميل صحيح';
+  String get pleaseEnterValidEmail => 'دخل ايميل صحيح';
 
   @override
   String get emailUpdatedSuccessfully => 'الايميل اتغير';
@@ -754,7 +754,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get currentEmail => 'الايميل الحالي';
 
   @override
-  String get enterNewEmailAddress => 'ادخل الايميل الجديد';
+  String get enterNewEmailAddress => 'دخل الايميل الجديد';
 
   @override
   String get emailUpdateInstructions =>
@@ -778,7 +778,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get phoneNumber => 'رقم الموبايل';
 
   @override
-  String get enterPhoneNumber => 'ادخل رقم الموبايل';
+  String get enterPhoneNumber => 'دخل رقم الموبايل';
 
   @override
   String get yourPhoneNumber => 'رقمك';
@@ -823,7 +823,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get joinSession => 'ادخل الجلسة';
 
   @override
-  String get enterAccessCode => 'ادخل كود الدخول';
+  String get enterAccessCode => 'دخل كود الدخول';
 
   @override
   String get accessCodeDescription => 'اطلب الكود من صاحب الجلسة أو الموظف';
@@ -855,7 +855,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get updateName => 'تحديث الاسم';
 
   @override
-  String get enterNewName => 'ادخل اسمك الجديد';
+  String get enterNewName => 'دخل اسمك الجديد';
 
   @override
   String get nameUpdatedSuccessfully => 'تم تحديث الاسم بنجاح';
@@ -912,4 +912,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get switchBranch => 'غيّر الفرع';
+
+  @override
+  String get completeYourProfile => 'كمّل بياناتك';
+
+  @override
+  String get completeProfileDescription => 'دخل اسمك ورقم موبايلك عشان تكمل';
+
+  @override
+  String get invalidPhone => 'دخل رقم موبايل صحيح (01xxxxxxxxx).';
+
+  @override
+  String get profileCompletionFailed => 'مقدرناش نحفظ البيانات. جرب تاني.';
 }

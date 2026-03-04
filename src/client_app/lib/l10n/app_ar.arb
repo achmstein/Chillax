@@ -18,10 +18,10 @@
   "confirmPassword": "تأكيد الباسورد",
   "name": "الاسم",
 
-  "enterUsername": "ادخل اليوزر",
-  "enterUsernameOrEmail": "ادخل اليوزر أو الايميل",
-  "enterEmail": "ادخل الايميل",
-  "enterPassword": "ادخل الباسورد",
+  "enterUsername": "دخل اليوزر",
+  "enterUsernameOrEmail": "دخل اليوزر أو الايميل",
+  "enterEmail": "دخل الايميل",
+  "enterPassword": "دخل الباسورد",
   "createPassword": "اعمل باسورد",
   "confirmYourPassword": "أكد الباسورد",
   "chooseUsername": "اختار يوزر",
@@ -37,7 +37,7 @@
   "createAccount": "عمل حساب",
   "guestUser": "زائر",
 
-  "enterBothEmailAndPassword": "ادخل الايميل والباسورد.",
+  "enterBothEmailAndPassword": "دخل الايميل والباسورد.",
   "invalidCredentials": "الايميل أو الباسورد غلط. جرب تاني.",
   "anErrorOccurred": "حصل مشكلة: {error}",
   "socialSignInFailed": "الدخول فشل. جرب تاني.",
@@ -95,9 +95,9 @@
   "rateThisOrder": "قيّم الطلب ده",
   "failedToLoadDetails": "التفاصيل مش بتحمل",
 
-  "enterSixDigitCode": "ادخل كود من 6 أرقام",
-  "enterFourDigitCode": "ادخل كود من 4 أرقام",
-  "enterCode": "ادخل الكود",
+  "enterSixDigitCode": "دخل كود من 6 أرقام",
+  "enterFourDigitCode": "دخل كود من 4 أرقام",
+  "enterCode": "دخل الكود",
   "invalidCode": "الكود غلط",
   "joinedSession": "دخلت الجلسة!",
   "failedToLoadRooms": "الاوض مش بتحمل",
@@ -236,15 +236,15 @@
   "ratingExcellent": "ممتاز",
 
   "newPassword": "الباسورد الجديد",
-  "enterNewPassword": "ادخل الباسورد الجديد",
+  "enterNewPassword": "دخل الباسورد الجديد",
   "passwordMustBe8Chars": "الباسورد لازم يكون 8 حروف على الأقل",
   "pleaseConfirmPassword": "أكد الباسورد",
   "passwordChangedSuccessfully": "الباسورد اتغير",
   "failedToChangePassword": "الباسورد مش بيتغير. جرب تاني.",
 
   "newEmail": "الايميل الجديد",
-  "pleaseEnterEmail": "ادخل الايميل",
-  "pleaseEnterValidEmail": "ادخل ايميل صحيح",
+  "pleaseEnterEmail": "دخل الايميل",
+  "pleaseEnterValidEmail": "دخل ايميل صحيح",
   "emailUpdatedSuccessfully": "الايميل اتغير",
   "failedToUpdateEmail": "الايميل مش بيتغير. جرب تاني.",
 
@@ -258,7 +258,7 @@
   "createStrongPassword": "اعمل باسورد قوي",
   "passwordRequirements": "الباسورد لازم يكون 8 حروف على الأقل. نفضل خلط حروف وأرقام ورموز.",
   "currentEmail": "الايميل الحالي",
-  "enterNewEmailAddress": "ادخل الايميل الجديد",
+  "enterNewEmailAddress": "دخل الايميل الجديد",
   "emailUpdateInstructions": "هنحدث حسابك بالايميل الجديد. تأكد إنك تقدر تدخل عليه.",
 
   "failedToLoadSessions": "الجلسات مش بتحمل",
@@ -267,7 +267,7 @@
   "durationLabel": "المدة: {duration}",
 
   "phoneNumber": "رقم الموبايل",
-  "enterPhoneNumber": "ادخل رقم الموبايل",
+  "enterPhoneNumber": "دخل رقم الموبايل",
   "yourPhoneNumber": "رقمك",
 
   "tierBronze": "برونزي",
@@ -289,7 +289,7 @@
   "customizable": "قابل للتخصيص",
 
   "joinSession": "ادخل الجلسة",
-  "enterAccessCode": "ادخل كود الدخول",
+  "enterAccessCode": "دخل كود الدخول",
   "accessCodeDescription": "اطلب الكود من صاحب الجلسة أو الموظف",
   "sessionFound": "الجلسة موجودة",
   "sessionNotFound": "الجلسة مش موجودة",
@@ -300,7 +300,7 @@
   "failedToSendRequest": "الطلب مش بيتبعت",
 
   "updateName": "تحديث الاسم",
-  "enterNewName": "ادخل اسمك الجديد",
+  "enterNewName": "دخل اسمك الجديد",
   "nameUpdatedSuccessfully": "تم تحديث الاسم بنجاح",
   "newName": "الاسم الجديد",
   "failedToUpdateName": "الاسم مش بيتغير. جرب تاني.",
@@ -323,5 +323,10 @@
   "playerModeMulti": "مالتي",
 
   "selectBranch": "اختار الفرع",
-  "switchBranch": "غيّر الفرع"
+  "switchBranch": "غيّر الفرع",
+
+  "completeYourProfile": "كمّل بياناتك",
+  "completeProfileDescription": "دخل اسمك ورقم موبايلك عشان تكمل",
+  "invalidPhone": "دخل رقم موبايل صحيح (01xxxxxxxxx).",
+  "profileCompletionFailed": "مقدرناش نحفظ البيانات. جرب تاني."
 }

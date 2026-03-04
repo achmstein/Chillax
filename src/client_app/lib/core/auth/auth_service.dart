@@ -18,6 +18,7 @@ enum SocialProvider { google, apple }
 class AuthState {
   final bool isInitializing;
   final bool isAuthenticated;
+  final bool needsProfileCompletion;
   final String? accessToken;
   final String? refreshToken;
   final String? idToken;
@@ -28,6 +29,7 @@ class AuthState {
   const AuthState({
     this.isInitializing = true,
     this.isAuthenticated = false,
+    this.needsProfileCompletion = false,
     this.accessToken,
     this.refreshToken,
     this.idToken,
@@ -39,6 +41,7 @@ class AuthState {
   AuthState copyWith({
     bool? isInitializing,
     bool? isAuthenticated,
+    bool? needsProfileCompletion,
     String? accessToken,
     String? refreshToken,
     String? idToken,
@@ -49,6 +52,7 @@ class AuthState {
     return AuthState(
       isInitializing: isInitializing ?? this.isInitializing,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      needsProfileCompletion: needsProfileCompletion ?? this.needsProfileCompletion,
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
       idToken: idToken ?? this.idToken,
@@ -72,13 +76,10 @@ class AuthService extends Notifier<AuthState> {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _googleSignInInitialized = false;
 
-  // Apple provides the user's name only on the first sign-in
-  String? _appleDisplayName;
-
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _idTokenKey = 'id_token';
-  static const _pendingAppleNameKey = 'pending_apple_name';
+  static const _needsProfileCompletionKey = 'needs_profile_completion';
 
   /// Token endpoint URL
   String get _tokenEndpoint => '${AppConfig.identityUrl}/protocol/openid-connect/token';
@@ -110,13 +111,19 @@ class AuthService extends Notifier<AuthState> {
         final refreshed = await this.refreshToken();
         debugPrint('Auth init - token refresh result: $refreshed');
         if (refreshed) {
+          // Read persisted profile completion flag for instant UI
+          final needsCompletion = await _storage.read(key: _needsProfileCompletionKey);
+
           state = state.copyWith(
             isInitializing: false,
             isAuthenticated: true,
+            needsProfileCompletion: needsCompletion == 'true',
           );
 
-          // Retry pending Apple name update if a previous attempt failed
-          await _retryPendingAppleNameUpdate();
+          // Re-verify against server in background (clears flag if profile was completed elsewhere)
+          if (needsCompletion == 'true') {
+            checkProfileCompleteness();
+          }
 
           return;
         }
@@ -242,21 +249,7 @@ class AuthService extends Notifier<AuthState> {
         socialToken = credential.identityToken;
         providerAlias = 'apple';
         tokenType = 'urn:ietf:params:oauth:token-type:id_token';
-
-        // Apple only provides the name on the FIRST sign-in — persist it
-        // locally so we can retry if the Keycloak update fails
-        final givenName = credential.givenName;
-        final familyName = credential.familyName;
-        if (givenName != null || familyName != null) {
-          _appleDisplayName = [givenName, familyName].whereType<String>().join(' ').trim();
-          if (_appleDisplayName!.isNotEmpty) {
-            await _storage.write(key: _pendingAppleNameKey, value: _appleDisplayName);
-          }
-          debugPrint('Apple sign in successful, got identity token and name: $_appleDisplayName');
-        } else {
-          _appleDisplayName = null;
-          debugPrint('Apple sign in successful, got identity token (no name provided)');
-        }
+        debugPrint('Apple sign in successful, got identity token');
       }
 
       if (socialToken == null) {
@@ -301,12 +294,8 @@ class AuthService extends Notifier<AuthState> {
           idToken: data['id_token'],
         );
 
-        // After Apple Sign In, update the user's name in Keycloak
-        // Apple only provides the name on the first sign-in
-        if (_appleDisplayName != null && _appleDisplayName!.isNotEmpty) {
-          await _updateNameInKeycloak(data['access_token'], _appleDisplayName!);
-          _appleDisplayName = null;
-        }
+        // Check if social login user needs to complete their profile
+        await checkProfileCompleteness();
 
         return true;
       }
@@ -321,37 +310,73 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
-  /// Retry a pending Apple name update from a previous failed attempt.
-  Future<void> _retryPendingAppleNameUpdate() async {
+  /// Check if the user's profile is complete (has name + phone).
+  /// Called after social login. If the check fails, assumes incomplete
+  /// so the user can never bypass profile completion.
+  Future<void> checkProfileCompleteness() async {
     try {
-      final pendingName = await _storage.read(key: _pendingAppleNameKey);
-      if (pendingName != null && pendingName.isNotEmpty && state.accessToken != null) {
-        debugPrint('Found pending Apple name update: $pendingName');
-        await _updateNameInKeycloak(state.accessToken!, pendingName);
+      final response = await _dio.get(
+        '${AppConfig.bffBaseUrl}/api/identity/my-profile',
+        options: Options(
+          headers: {'Authorization': 'Bearer ${state.accessToken}'},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final isComplete = response.data['isProfileComplete'] == true;
+        if (!isComplete) {
+          await _storage.write(key: _needsProfileCompletionKey, value: 'true');
+          state = state.copyWith(needsProfileCompletion: true);
+          debugPrint('Profile incomplete — user needs to complete profile');
+        } else {
+          await _storage.delete(key: _needsProfileCompletionKey);
+          state = state.copyWith(needsProfileCompletion: false);
+        }
+      } else {
+        // Non-200: assume incomplete to be safe
+        await _storage.write(key: _needsProfileCompletionKey, value: 'true');
+        state = state.copyWith(needsProfileCompletion: true);
       }
     } catch (e) {
-      debugPrint('Error retrying pending Apple name update: $e');
+      // Network error: assume incomplete — will re-check on next app launch
+      debugPrint('Profile completeness check failed, assuming incomplete: $e');
+      await _storage.write(key: _needsProfileCompletionKey, value: 'true');
+      state = state.copyWith(needsProfileCompletion: true);
     }
   }
 
-  /// Update the user's name in Keycloak via the BFF identity endpoint.
-  /// Clears the persisted pending name on success so we don't retry.
-  Future<void> _updateNameInKeycloak(String accessToken, String name) async {
+  /// Submit name + phone to complete the user's profile.
+  /// Returns true on success, false on failure.
+  Future<bool> completeProfile(String name, String phoneNumber) async {
     try {
-      debugPrint('Updating user name in Keycloak: $name');
-      await _dio.post(
-        '${AppConfig.bffBaseUrl}/api/identity/update-name',
-        data: {'newName': name},
+      final response = await _dio.post(
+        '${AppConfig.bffBaseUrl}/api/identity/complete-profile',
+        data: {'name': name, 'phoneNumber': phoneNumber},
         options: Options(
           contentType: Headers.jsonContentType,
-          headers: {'Authorization': 'Bearer $accessToken'},
+          headers: {'Authorization': 'Bearer ${state.accessToken}'},
         ),
       );
-      await _storage.delete(key: _pendingAppleNameKey);
-      debugPrint('User name updated in Keycloak successfully');
+
+      if (response.statusCode == 200) {
+        await _storage.delete(key: _needsProfileCompletionKey);
+        state = state.copyWith(needsProfileCompletion: false, name: name);
+        return true;
+      }
+      return false;
+    } on DioException catch (e) {
+      // If token expired, try refreshing and retry once
+      if (e.response?.statusCode == 401) {
+        final refreshed = await refreshToken();
+        if (refreshed) {
+          return completeProfile(name, phoneNumber);
+        }
+      }
+      debugPrint('Complete profile error: ${e.response?.statusCode} - ${e.response?.data}');
+      return false;
     } catch (e) {
-      // Non-critical: don't fail the sign-in — will retry on next app launch
-      debugPrint('Failed to update name in Keycloak (will retry): $e');
+      debugPrint('Complete profile error: $e');
+      return false;
     }
   }
 
@@ -521,16 +546,6 @@ class AuthService extends Notifier<AuthState> {
       email = claims['email'] as String?;
       // Keycloak: 'name' is full name (firstName + lastName), 'preferred_username' is username
       name = claims['name'] as String? ?? claims['preferred_username'] as String?;
-
-      // Apple Sign In: Keycloak often stores the email as the name.
-      // Use the name from Apple's credential if the JWT name looks like an email.
-      if (_appleDisplayName != null && _appleDisplayName!.isNotEmpty) {
-        if (name == null || name == email || (name.contains('@'))) {
-          debugPrint('Using Apple-provided name instead of JWT name: $_appleDisplayName');
-          name = _appleDisplayName;
-        }
-        _appleDisplayName = null;
-      }
       debugPrint('Extracted user info - userId: $userId, email: $email, name: $name');
     }
 
@@ -552,7 +567,7 @@ class AuthService extends Notifier<AuthState> {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _idTokenKey);
-    await _storage.delete(key: _pendingAppleNameKey);
+    await _storage.delete(key: _needsProfileCompletionKey);
 
     state = const AuthState(isInitializing: false);
   }

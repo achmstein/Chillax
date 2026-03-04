@@ -895,6 +895,154 @@ app.MapPut("/api/identity/users/{userId}/toggle-enabled", async (string userId, 
     return Results.Problem($"Failed to toggle user enabled state: {errorContent}", statusCode: (int)updateResponse.StatusCode);
 }).RequireAuthorization("Admin");
 
+// Get current user's profile (authenticated user)
+app.MapGet("/api/identity/my-profile", async (HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var userId = httpContext.User.GetUserId();
+    if (string.IsNullOrEmpty(userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var userEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}";
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    var userResponse = await client.GetAsync(userEndpoint);
+
+    if (!userResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to fetch user profile", statusCode: (int)userResponse.StatusCode);
+    }
+
+    var user = await userResponse.Content.ReadFromJsonAsync<KeycloakUser>();
+    if (user == null)
+    {
+        return Results.NotFound();
+    }
+
+    var fullName = $"{user.FirstName} {user.LastName}".Trim();
+    var phoneNumber = user.Attributes?.GetValueOrDefault("phoneNumber")?.FirstOrDefault();
+    var isProfileComplete = !string.IsNullOrWhiteSpace(user.FirstName) && !string.IsNullOrWhiteSpace(phoneNumber);
+
+    return Results.Ok(new
+    {
+        name = fullName,
+        email = user.Email,
+        phoneNumber = phoneNumber,
+        isProfileComplete = isProfileComplete
+    });
+}).RequireAuthorization();
+
+// Complete profile (authenticated user - sets name + phone after social sign-in)
+app.MapPost("/api/identity/complete-profile", async (CompleteProfileRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var userId = httpContext.User.GetUserId();
+    if (string.IsNullOrEmpty(userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.PhoneNumber))
+    {
+        return Results.BadRequest(new { message = "Name and phone number are required" });
+    }
+
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var userEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}";
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+    // GET current user to preserve existing attributes
+    var getResponse = await client.GetAsync(userEndpoint);
+    if (!getResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to fetch user", statusCode: (int)getResponse.StatusCode);
+    }
+
+    var user = await getResponse.Content.ReadFromJsonAsync<KeycloakUser>();
+    if (user == null)
+    {
+        return Results.NotFound();
+    }
+
+    // Merge attributes
+    var attributes = user.Attributes ?? new Dictionary<string, string[]>();
+    attributes["phoneNumber"] = [request.PhoneNumber];
+
+    // Split name into first/last
+    var nameParts = request.Name.Split(' ', 2);
+    var firstName = nameParts.Length > 0 ? nameParts[0] : request.Name;
+    var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+
+    var updatePayload = new
+    {
+        firstName = firstName,
+        lastName = lastName,
+        attributes = attributes
+    };
+
+    var updateResponse = await client.PutAsJsonAsync(userEndpoint, updatePayload);
+
+    if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        return Results.Ok(new { message = "Profile completed successfully" });
+    }
+
+    var errorContent = await updateResponse.Content.ReadAsStringAsync();
+    return Results.Problem($"Failed to complete profile: {errorContent}", statusCode: (int)updateResponse.StatusCode);
+}).RequireAuthorization();
+
 app.Run();
 
 record RegisterRequest(string? Name, string Email, string Password, string? PhoneNumber);
@@ -902,6 +1050,7 @@ record RegisterAdminRequest(string? Name, string Email, string Password, bool Is
 record ChangePasswordRequest(string NewPassword);
 record UpdateEmailRequest(string NewEmail);
 record UpdateNameRequest(string NewName);
+record CompleteProfileRequest(string Name, string PhoneNumber);
 
 record UserDto(
     string Id,
@@ -924,6 +1073,7 @@ class KeycloakUser
     public string? LastName { get; set; }
     public bool Enabled { get; set; }
     public long? CreatedTimestamp { get; set; }
+    public Dictionary<string, string[]>? Attributes { get; set; }
 }
 
 // Keycloak role model for deserialization

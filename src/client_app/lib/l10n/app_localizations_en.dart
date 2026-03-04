@@ -926,4 +926,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchBranch => 'Switch Branch';
+
+  @override
+  String get completeYourProfile => 'Complete Your Profile';
+
+  @override
+  String get completeProfileDescription =>
+      'Please enter your name and phone number to continue';
+
+  @override
+  String get invalidPhone => 'Please enter a valid phone number (01xxxxxxxxx).';
+
+  @override
+  String get profileCompletionFailed =>
+      'Failed to save profile. Please try again.';
 }

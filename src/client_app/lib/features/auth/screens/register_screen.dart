@@ -50,6 +50,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
+    // Egyptian phone validation: 01xxxxxxxxx (11 digits starting with 01)
+    if (!RegExp(r'^01[0-9]{9}$').hasMatch(phone)) {
+      setState(() {
+        _error = l10n.invalidPhone;
+      });
+      return;
+    }
+
     if (password != confirmPassword) {
       setState(() {
         _error = l10n.passwordsDontMatch;
