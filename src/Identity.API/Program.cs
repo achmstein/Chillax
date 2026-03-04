@@ -647,6 +647,90 @@ app.MapPost("/api/identity/update-name", async (UpdateNameRequest request, HttpC
     return Results.Problem($"Failed to update name: {errorContent}", statusCode: (int)updateResponse.StatusCode);
 }).RequireAuthorization();
 
+// Update profile (name + phone) - used from settings
+app.MapPost("/api/identity/update-profile", async (UpdateProfileRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var userId = httpContext.User.GetUserId();
+    if (string.IsNullOrEmpty(userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.PhoneNumber))
+    {
+        return Results.BadRequest(new { message = "Name and phone number are required" });
+    }
+
+    var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
+    var realm = config["Keycloak:Realm"] ?? "chillax";
+    var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
+    var adminClientSecret = config["Keycloak:AdminClientSecret"];
+
+    var client = httpClientFactory.CreateClient("KeycloakAdmin");
+
+    // Get admin token
+    var tokenEndpoint = $"{keycloakUrl}/protocol/openid-connect/token";
+    var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+    {
+        ["grant_type"] = "client_credentials",
+        ["client_id"] = adminClientId,
+        ["client_secret"] = adminClientSecret ?? ""
+    });
+
+    var tokenResponse = await client.PostAsync(tokenEndpoint, tokenRequest);
+    if (!tokenResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to authenticate with identity provider", statusCode: 500);
+    }
+
+    var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+    var accessToken = tokenJson.GetProperty("access_token").GetString();
+
+    var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
+    var userEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}";
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+    // GET current user to preserve existing attributes
+    var getResponse = await client.GetAsync(userEndpoint);
+    if (!getResponse.IsSuccessStatusCode)
+    {
+        return Results.Problem("Failed to fetch user", statusCode: (int)getResponse.StatusCode);
+    }
+
+    var user = await getResponse.Content.ReadFromJsonAsync<KeycloakUser>();
+    if (user == null)
+    {
+        return Results.NotFound();
+    }
+
+    // Merge attributes
+    var attributes = user.Attributes ?? new Dictionary<string, string[]>();
+    attributes["phoneNumber"] = [request.PhoneNumber];
+
+    // Split name into first/last
+    var nameParts = request.Name.Split(' ', 2);
+    var firstName = nameParts.Length > 0 ? nameParts[0] : request.Name;
+    var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+
+    var updatePayload = new
+    {
+        firstName = firstName,
+        lastName = lastName,
+        attributes = attributes
+    };
+
+    var updateResponse = await client.PutAsJsonAsync(userEndpoint, updatePayload);
+
+    if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        return Results.Ok(new { message = "Profile updated successfully" });
+    }
+
+    var errorContent = await updateResponse.Content.ReadAsStringAsync();
+    return Results.Problem($"Failed to update profile: {errorContent}", statusCode: (int)updateResponse.StatusCode);
+}).RequireAuthorization();
+
 // Admin: Update customer name endpoint
 app.MapPut("/api/identity/users/{userId}/name", async (string userId, UpdateNameRequest request, IHttpClientFactory httpClientFactory, IConfiguration config) =>
 {
@@ -1051,6 +1135,7 @@ record ChangePasswordRequest(string NewPassword);
 record UpdateEmailRequest(string NewEmail);
 record UpdateNameRequest(string NewName);
 record CompleteProfileRequest(string Name, string PhoneNumber);
+record UpdateProfileRequest(string Name, string PhoneNumber);
 
 record UserDto(
     string Id,

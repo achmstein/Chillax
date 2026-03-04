@@ -214,13 +214,10 @@
   "orderStatusUpdatesDescription": "Get notified when your order status changes",
   "promotionsAndOffers": "Promotions & Offers",
   "promotionsDescription": "Receive special deals and discounts",
-  "sessionReminders": "Session Reminders",
-  "sessionRemindersDescription": "Get reminded before your gaming session",
   "appearance": "Appearance",
   "theme": "Theme",
   "account": "Account",
   "changePassword": "Change Password",
-  "updateEmail": "Update Email",
   "deleteAccount": "Delete Account",
   "deleteAccountConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
   "accountDeletedSuccessfully": "Account deleted successfully",
@@ -344,12 +341,6 @@
   "passwordChangedSuccessfully": "Password changed successfully",
   "failedToChangePassword": "Failed to change password. Please try again.",
 
-  "newEmail": "New Email",
-  "pleaseEnterEmail": "Please enter an email address",
-  "pleaseEnterValidEmail": "Please enter a valid email address",
-  "emailUpdatedSuccessfully": "Email updated successfully",
-  "failedToUpdateEmail": "Failed to update email. Please try again.",
-
   "supportEmail": "support@chillax.com",
   "supportPhone": "0100 469 8 469",
 
@@ -364,10 +355,6 @@
 
   "createStrongPassword": "Create a strong password",
   "passwordRequirements": "Your password must be at least 8 characters long. We recommend using a mix of letters, numbers, and symbols.",
-  "currentEmail": "Current Email",
-  "enterNewEmailAddress": "Enter your new email address",
-  "emailUpdateInstructions": "We'll update your account with the new email address. Make sure you have access to this email.",
-
   "failedToLoadSessions": "Failed to load sessions",
   "noSessionsYet": "No sessions yet",
   "reserveRoomToStart": "Reserve a room to get started",
@@ -432,6 +419,10 @@
   "nameUpdatedSuccessfully": "Name updated successfully",
   "newName": "New name",
   "failedToUpdateName": "Failed to update name. Please try again.",
+
+  "updateProfile": "Update Profile",
+  "profileUpdatedSuccessfully": "Profile updated successfully",
+  "failedToUpdateProfile": "Failed to update profile. Please try again.",
 
   "callUs": "Call Us",
   "mostPopular": "Most Popular",

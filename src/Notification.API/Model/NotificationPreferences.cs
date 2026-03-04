@@ -6,7 +6,6 @@ public class NotificationPreferences
     public required string UserId { get; set; }
     public bool OrderStatusUpdates { get; set; } = true;
     public bool PromotionsAndOffers { get; set; } = true;
-    public bool SessionReminders { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -68,12 +68,10 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> updateNotificationPreference({
     bool? orderStatusUpdates,
     bool? promotionsAndOffers,
-    bool? sessionReminders,
   }) async {
     final newPreferences = state.preferences.copyWith(
       orderStatusUpdates: orderStatusUpdates,
       promotionsAndOffers: promotionsAndOffers,
-      sessionReminders: sessionReminders,
     );
 
     // Optimistic update
@@ -98,7 +96,6 @@ class SettingsNotifier extends Notifier<SettingsState> {
         preferences: state.preferences.copyWith(
           orderStatusUpdates: orderStatusUpdates != null ? !orderStatusUpdates : null,
           promotionsAndOffers: promotionsAndOffers != null ? !promotionsAndOffers : null,
-          sessionReminders: sessionReminders != null ? !sessionReminders : null,
         ),
         isSaving: false,
         error: e.toString(),
@@ -119,11 +116,13 @@ class SettingsNotifier extends Notifier<SettingsState> {
     }
   }
 
-  Future<bool> updateEmail(String newEmail) async {
+  Future<bool> updateProfile(String newName, String phoneNumber) async {
     state = state.copyWith(isSaving: true, clearError: true);
 
     try {
-      await _service.updateEmail(newEmail);
+      await _service.updateProfile(newName, phoneNumber);
+      // Refresh auth state to pick up the new name from refreshed token
+      await ref.read(authServiceProvider.notifier).refreshToken();
       state = state.copyWith(isSaving: false);
       return true;
     } catch (e) {
@@ -132,18 +131,11 @@ class SettingsNotifier extends Notifier<SettingsState> {
     }
   }
 
-  Future<bool> updateName(String newName) async {
-    state = state.copyWith(isSaving: true, clearError: true);
-
+  Future<String?> getPhoneNumber() async {
     try {
-      await _service.updateName(newName);
-      // Refresh auth state to pick up the new name from refreshed token
-      await ref.read(authServiceProvider.notifier).refreshToken();
-      state = state.copyWith(isSaving: false);
-      return true;
+      return await _service.getPhoneNumber();
     } catch (e) {
-      state = state.copyWith(isSaving: false, error: e.toString());
-      return false;
+      return null;
     }
   }
 

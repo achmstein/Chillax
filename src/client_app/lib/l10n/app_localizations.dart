@@ -962,18 +962,6 @@ abstract class AppLocalizations {
   /// **'Receive special deals and discounts'**
   String get promotionsDescription;
 
-  /// No description provided for @sessionReminders.
-  ///
-  /// In en, this message translates to:
-  /// **'Session Reminders'**
-  String get sessionReminders;
-
-  /// No description provided for @sessionRemindersDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Get reminded before your gaming session'**
-  String get sessionRemindersDescription;
-
   /// No description provided for @appearance.
   ///
   /// In en, this message translates to:
@@ -997,12 +985,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change Password'**
   String get changePassword;
-
-  /// No description provided for @updateEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Email'**
-  String get updateEmail;
 
   /// No description provided for @deleteAccount.
   ///
@@ -1394,36 +1376,6 @@ abstract class AppLocalizations {
   /// **'Failed to change password. Please try again.'**
   String get failedToChangePassword;
 
-  /// No description provided for @newEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'New Email'**
-  String get newEmail;
-
-  /// No description provided for @pleaseEnterEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter an email address'**
-  String get pleaseEnterEmail;
-
-  /// No description provided for @pleaseEnterValidEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter a valid email address'**
-  String get pleaseEnterValidEmail;
-
-  /// No description provided for @emailUpdatedSuccessfully.
-  ///
-  /// In en, this message translates to:
-  /// **'Email updated successfully'**
-  String get emailUpdatedSuccessfully;
-
-  /// No description provided for @failedToUpdateEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to update email. Please try again.'**
-  String get failedToUpdateEmail;
-
   /// No description provided for @supportEmail.
   ///
   /// In en, this message translates to:
@@ -1489,24 +1441,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your password must be at least 8 characters long. We recommend using a mix of letters, numbers, and symbols.'**
   String get passwordRequirements;
-
-  /// No description provided for @currentEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Current Email'**
-  String get currentEmail;
-
-  /// No description provided for @enterNewEmailAddress.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your new email address'**
-  String get enterNewEmailAddress;
-
-  /// No description provided for @emailUpdateInstructions.
-  ///
-  /// In en, this message translates to:
-  /// **'We\'ll update your account with the new email address. Make sure you have access to this email.'**
-  String get emailUpdateInstructions;
 
   /// No description provided for @failedToLoadSessions.
   ///
@@ -1699,6 +1633,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to update name. Please try again.'**
   String get failedToUpdateName;
+
+  /// No description provided for @updateProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Profile'**
+  String get updateProfile;
+
+  /// No description provided for @profileUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get profileUpdatedSuccessfully;
+
+  /// No description provided for @failedToUpdateProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update profile. Please try again.'**
+  String get failedToUpdateProfile;
 
   /// No description provided for @callUs.
   ///

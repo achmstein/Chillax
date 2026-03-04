@@ -473,13 +473,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get promotionsDescription => 'Receive special deals and discounts';
 
   @override
-  String get sessionReminders => 'Session Reminders';
-
-  @override
-  String get sessionRemindersDescription =>
-      'Get reminded before your gaming session';
-
-  @override
   String get appearance => 'Appearance';
 
   @override
@@ -490,9 +483,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changePassword => 'Change Password';
-
-  @override
-  String get updateEmail => 'Update Email';
 
   @override
   String get deleteAccount => 'Delete Account';
@@ -714,21 +704,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to change password. Please try again.';
 
   @override
-  String get newEmail => 'New Email';
-
-  @override
-  String get pleaseEnterEmail => 'Please enter an email address';
-
-  @override
-  String get pleaseEnterValidEmail => 'Please enter a valid email address';
-
-  @override
-  String get emailUpdatedSuccessfully => 'Email updated successfully';
-
-  @override
-  String get failedToUpdateEmail => 'Failed to update email. Please try again.';
-
-  @override
   String get supportEmail => 'support@chillax.com';
 
   @override
@@ -761,16 +736,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get passwordRequirements =>
       'Your password must be at least 8 characters long. We recommend using a mix of letters, numbers, and symbols.';
-
-  @override
-  String get currentEmail => 'Current Email';
-
-  @override
-  String get enterNewEmailAddress => 'Enter your new email address';
-
-  @override
-  String get emailUpdateInstructions =>
-      'We\'ll update your account with the new email address. Make sure you have access to this email.';
 
   @override
   String get failedToLoadSessions => 'Failed to load sessions';
@@ -879,6 +844,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToUpdateName => 'Failed to update name. Please try again.';
+
+  @override
+  String get updateProfile => 'Update Profile';
+
+  @override
+  String get profileUpdatedSuccessfully => 'Profile updated successfully';
+
+  @override
+  String get failedToUpdateProfile =>
+      'Failed to update profile. Please try again.';
 
   @override
   String get callUs => 'Call Us';

@@ -67,7 +67,6 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
             entity.Property(e => e.UserId).IsRequired().HasMaxLength(256);
             entity.Property(e => e.OrderStatusUpdates).IsRequired();
             entity.Property(e => e.PromotionsAndOffers).IsRequired();
-            entity.Property(e => e.SessionReminders).IsRequired();
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
 

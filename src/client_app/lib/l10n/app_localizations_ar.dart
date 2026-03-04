@@ -464,12 +464,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get promotionsDescription => 'هنبلغك بالعروض والخصومات';
 
   @override
-  String get sessionReminders => 'تذكير الجلسات';
-
-  @override
-  String get sessionRemindersDescription => 'هنفكرك قبل الجلسة';
-
-  @override
   String get appearance => 'الشكل';
 
   @override
@@ -480,9 +474,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get changePassword => 'غير الباسورد';
-
-  @override
-  String get updateEmail => 'غير الايميل';
 
   @override
   String get deleteAccount => 'امسح الحساب';
@@ -702,21 +693,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToChangePassword => 'الباسورد مش بيتغير. جرب تاني.';
 
   @override
-  String get newEmail => 'الايميل الجديد';
-
-  @override
-  String get pleaseEnterEmail => 'دخل الايميل';
-
-  @override
-  String get pleaseEnterValidEmail => 'دخل ايميل صحيح';
-
-  @override
-  String get emailUpdatedSuccessfully => 'الايميل اتغير';
-
-  @override
-  String get failedToUpdateEmail => 'الايميل مش بيتغير. جرب تاني.';
-
-  @override
   String get supportEmail => 'support@chillax.com';
 
   @override
@@ -749,16 +725,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get passwordRequirements =>
       'الباسورد لازم يكون 8 حروف على الأقل. نفضل خلط حروف وأرقام ورموز.';
-
-  @override
-  String get currentEmail => 'الايميل الحالي';
-
-  @override
-  String get enterNewEmailAddress => 'دخل الايميل الجديد';
-
-  @override
-  String get emailUpdateInstructions =>
-      'هنحدث حسابك بالايميل الجديد. تأكد إنك تقدر تدخل عليه.';
 
   @override
   String get failedToLoadSessions => 'الجلسات مش بتحمل';
@@ -865,6 +831,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get failedToUpdateName => 'الاسم مش بيتغير. جرب تاني.';
+
+  @override
+  String get updateProfile => 'تعديل الملف الشخصي';
+
+  @override
+  String get profileUpdatedSuccessfully => 'تم تحديث البيانات بنجاح';
+
+  @override
+  String get failedToUpdateProfile => 'مقدرناش نحدث البيانات. جرب تاني.';
 
   @override
   String get callUs => 'كلمنا';

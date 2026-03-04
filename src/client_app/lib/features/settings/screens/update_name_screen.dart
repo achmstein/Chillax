@@ -16,38 +16,48 @@ class UpdateNameScreen extends ConsumerStatefulWidget {
 
 class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _isLoading = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    // Pre-fill with current name
     final authState = ref.read(authServiceProvider);
     if (authState.name != null) {
       _nameController.text = authState.name!;
+    }
+    // Load current phone from profile
+    _loadCurrentPhone();
+  }
+
+  Future<void> _loadCurrentPhone() async {
+    final phone = await ref.read(settingsProvider.notifier).getPhoneNumber();
+    if (phone != null && mounted) {
+      _phoneController.text = phone;
     }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
-  String? _validateName(AppLocalizations l10n) {
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
-      return l10n.fillAllFields;
-    }
-    return null;
-  }
-
-  Future<void> _handleUpdateName() async {
+  Future<void> _handleUpdate() async {
     final l10n = AppLocalizations.of(context)!;
-    final validationError = _validateName(l10n);
-    if (validationError != null) {
-      setState(() => _error = validationError);
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (name.isEmpty || phone.isEmpty) {
+      setState(() => _error = l10n.fillAllFields);
+      return;
+    }
+
+    // Egyptian phone validation: 01xxxxxxxxx (11 digits starting with 01)
+    if (!RegExp(r'^01[0-9]{9}$').hasMatch(phone)) {
+      setState(() => _error = l10n.invalidPhone);
       return;
     }
 
@@ -57,8 +67,9 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
     });
 
     try {
-      final success = await ref.read(settingsProvider.notifier).updateName(
-        _nameController.text.trim(),
+      final success = await ref.read(settingsProvider.notifier).updateProfile(
+        name,
+        phone,
       );
 
       if (mounted) {
@@ -66,12 +77,12 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
           context.pop();
           showFToast(
             context: context,
-            title: AppText(l10n.nameUpdatedSuccessfully),
+            title: AppText(l10n.profileUpdatedSuccessfully),
             icon: Icon(FIcons.circleCheck, color: Colors.green.shade600),
           );
         } else {
           setState(() {
-            _error = l10n.failedToUpdateName;
+            _error = l10n.failedToUpdateProfile;
             _isLoading = false;
           });
         }
@@ -90,7 +101,6 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final colors = theme.colors;
-    final authState = ref.watch(authServiceProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
@@ -110,7 +120,7 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: AppText(
-                      l10n.updateName,
+                      l10n.updateProfile,
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -136,53 +146,22 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
                       const SizedBox(height: 24),
                     ],
 
-                    // Current name display
-                    if (authState.name != null) ...[
-                      AppText(
-                        l10n.name,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: colors.mutedForeground,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colors.muted,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: AppText(
-                          authState.name!,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: colors.foreground,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // Instructions
-                    AppText(
-                      l10n.enterNewName,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: colors.foreground,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
                     // Name field
                     FTextField(
                       control: FTextFieldControl.managed(controller: _nameController),
-                      label: AppText(l10n.newName),
+                      label: AppText(l10n.name),
                       hint: l10n.yourDisplayName,
                       enabled: !_isLoading,
-                      onSubmit: (_) => _handleUpdateName(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Phone field
+                    FTextField(
+                      control: FTextFieldControl.managed(controller: _phoneController),
+                      label: AppText(l10n.phoneNumber),
+                      hint: l10n.enterPhoneNumber,
+                      enabled: !_isLoading,
+                      keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 32),
 
@@ -190,7 +169,7 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: FButton(
-                        onPress: _isLoading ? null : _handleUpdateName,
+                        onPress: _isLoading ? null : _handleUpdate,
                         child: _isLoading
                             ? const SizedBox(
                                 height: 20,
@@ -200,7 +179,7 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : AppText(l10n.updateName),
+                            : AppText(l10n.updateProfile),
                       ),
                     ),
                   ],

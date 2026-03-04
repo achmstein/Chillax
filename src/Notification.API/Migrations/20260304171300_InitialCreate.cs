@@ -21,7 +21,6 @@ namespace Chillax.Notification.API.Migrations
                     UserId = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     OrderStatusUpdates = table.Column<bool>(type: "boolean", nullable: false),
                     PromotionsAndOffers = table.Column<bool>(type: "boolean", nullable: false),
-                    SessionReminders = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },

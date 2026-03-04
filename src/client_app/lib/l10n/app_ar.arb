@@ -163,13 +163,10 @@
   "orderStatusUpdatesDescription": "هنبلغك لما الطلب يتغير",
   "promotionsAndOffers": "العروض",
   "promotionsDescription": "هنبلغك بالعروض والخصومات",
-  "sessionReminders": "تذكير الجلسات",
-  "sessionRemindersDescription": "هنفكرك قبل الجلسة",
   "appearance": "الشكل",
   "theme": "الثيم",
   "account": "الحساب",
   "changePassword": "غير الباسورد",
-  "updateEmail": "غير الايميل",
   "deleteAccount": "امسح الحساب",
   "deleteAccountConfirmation": "متأكد انك عايز تمسح حسابك؟ مش هتقدر ترجعه.",
   "accountDeletedSuccessfully": "الحساب اتمسح",
@@ -242,12 +239,6 @@
   "passwordChangedSuccessfully": "الباسورد اتغير",
   "failedToChangePassword": "الباسورد مش بيتغير. جرب تاني.",
 
-  "newEmail": "الايميل الجديد",
-  "pleaseEnterEmail": "دخل الايميل",
-  "pleaseEnterValidEmail": "دخل ايميل صحيح",
-  "emailUpdatedSuccessfully": "الايميل اتغير",
-  "failedToUpdateEmail": "الايميل مش بيتغير. جرب تاني.",
-
   "supportEmail": "support@chillax.com",
   "supportPhone": "0100 469 8 469",
 
@@ -257,10 +248,6 @@
 
   "createStrongPassword": "اعمل باسورد قوي",
   "passwordRequirements": "الباسورد لازم يكون 8 حروف على الأقل. نفضل خلط حروف وأرقام ورموز.",
-  "currentEmail": "الايميل الحالي",
-  "enterNewEmailAddress": "دخل الايميل الجديد",
-  "emailUpdateInstructions": "هنحدث حسابك بالايميل الجديد. تأكد إنك تقدر تدخل عليه.",
-
   "failedToLoadSessions": "الجلسات مش بتحمل",
   "noSessionsYet": "مفيش حجوزات لسه",
   "reserveRoomToStart": "احجز اوضة عشان تبدأ",
@@ -304,6 +291,10 @@
   "nameUpdatedSuccessfully": "تم تحديث الاسم بنجاح",
   "newName": "الاسم الجديد",
   "failedToUpdateName": "الاسم مش بيتغير. جرب تاني.",
+
+  "updateProfile": "تعديل الملف الشخصي",
+  "profileUpdatedSuccessfully": "تم تحديث البيانات بنجاح",
+  "failedToUpdateProfile": "مقدرناش نحدث البيانات. جرب تاني.",
 
   "callUs": "كلمنا",
   "mostPopular": "الأكثر طلباً",

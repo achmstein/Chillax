@@ -84,18 +84,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             },
                           ),
                         ),
-                        FTile(
-                          title: AppText(l10n.sessionReminders),
-                          subtitle: AppText(l10n.sessionRemindersDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                          suffix: FSwitch(
-                            value: settingsState.preferences.sessionReminders,
-                            onChange: (value) {
-                              ref.read(settingsProvider.notifier).updateNotificationPreference(
-                                sessionReminders: value,
-                              );
-                            },
-                          ),
-                        ),
                       ],
                     ),
 
@@ -133,22 +121,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         children: [
                           FTile(
                             prefix: const Icon(FIcons.user),
-                            title: AppText(l10n.updateName),
+                            title: AppText(l10n.updateProfile),
                             suffix: const Icon(FIcons.chevronRight),
-                            onPress: () => context.push('/settings/update-name'),
+                            onPress: () => _showUpdateProfileSheet(context, ref),
                           ),
-                          FTile(
-                            prefix: const Icon(FIcons.lock),
-                            title: AppText(l10n.changePassword),
-                            suffix: const Icon(FIcons.chevronRight),
-                            onPress: () => context.push('/settings/change-password'),
-                          ),
-                          FTile(
-                            prefix: const Icon(FIcons.mail),
-                            title: AppText(l10n.updateEmail),
-                            suffix: const Icon(FIcons.chevronRight),
-                            onPress: () => context.push('/settings/update-email'),
-                          ),
+                          if (!authState.isSocialLogin)
+                            FTile(
+                              prefix: const Icon(FIcons.lock),
+                              title: AppText(l10n.changePassword),
+                              suffix: const Icon(FIcons.chevronRight),
+                              onPress: () => _showChangePasswordSheet(context, ref),
+                            ),
                           FTile(
                             prefix: Icon(FIcons.trash2, color: AppTheme.errorColor),
                             title: AppText(l10n.deleteAccount, style: TextStyle(color: AppTheme.errorColor)),
@@ -226,6 +209,56 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         },
         currentLocale: currentLocale,
         l10n: l10n,
+      ),
+    );
+  }
+
+  void _showUpdateProfileSheet(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final authState = ref.read(authServiceProvider);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (sheetContext) => _UpdateProfileSheet(
+        ref: ref,
+        l10n: l10n,
+        currentName: authState.name,
+        onSuccess: () {
+          Navigator.pop(sheetContext);
+          showFToast(
+            context: context,
+            title: AppText(l10n.profileUpdatedSuccessfully),
+            icon: Icon(FIcons.circleCheck, color: Colors.green.shade600),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showChangePasswordSheet(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (sheetContext) => _ChangePasswordSheet(
+        ref: ref,
+        l10n: l10n,
+        onSuccess: () {
+          Navigator.pop(sheetContext);
+          showFToast(
+            context: context,
+            title: AppText(l10n.passwordChangedSuccessfully),
+            icon: Icon(FIcons.circleCheck, color: Colors.green.shade600),
+          );
+        },
       ),
     );
   }
@@ -565,6 +598,405 @@ class _LanguageSelectorSheet extends StatelessWidget {
 
             const SizedBox(height: 16),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet for updating profile (name + phone)
+class _UpdateProfileSheet extends StatefulWidget {
+  final WidgetRef ref;
+  final AppLocalizations l10n;
+  final String? currentName;
+  final VoidCallback onSuccess;
+
+  const _UpdateProfileSheet({
+    required this.ref,
+    required this.l10n,
+    required this.currentName,
+    required this.onSuccess,
+  });
+
+  @override
+  State<_UpdateProfileSheet> createState() => _UpdateProfileSheetState();
+}
+
+class _UpdateProfileSheetState extends State<_UpdateProfileSheet> {
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.currentName != null) {
+      _nameController.text = widget.currentName!;
+    }
+    _loadCurrentPhone();
+  }
+
+  Future<void> _loadCurrentPhone() async {
+    final phone = await widget.ref.read(settingsProvider.notifier).getPhoneNumber();
+    if (phone != null && mounted) {
+      _phoneController.text = phone;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleUpdate() async {
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (name.isEmpty || phone.isEmpty) {
+      setState(() => _error = widget.l10n.fillAllFields);
+      return;
+    }
+
+    if (!RegExp(r'^01[0-9]{9}$').hasMatch(phone)) {
+      setState(() => _error = widget.l10n.invalidPhone);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final success = await widget.ref.read(settingsProvider.notifier).updateProfile(name, phone);
+      if (mounted) {
+        if (success) {
+          widget.onSuccess();
+        } else {
+          setState(() {
+            _error = widget.l10n.failedToUpdateProfile;
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = widget.l10n.anErrorOccurred(e.toString());
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final colors = theme.colors;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.background,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.mutedForeground,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppText(
+                        widget.l10n.updateProfile,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: colors.foreground,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
+                    ),
+                  ],
+                ),
+              ),
+
+              Divider(height: 1, color: colors.border),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_error != null) ...[
+                      FAlert(
+                        variant: FAlertVariant.destructive,
+                        icon: const Icon(FIcons.circleAlert),
+                        title: AppText(widget.l10n.error),
+                        subtitle: AppText(_error!),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    FTextField(
+                      control: FTextFieldControl.managed(controller: _nameController),
+                      label: AppText(widget.l10n.name),
+                      hint: widget.l10n.yourDisplayName,
+                      enabled: !_isLoading,
+                    ),
+                    const SizedBox(height: 16),
+
+                    FTextField(
+                      control: FTextFieldControl.managed(controller: _phoneController),
+                      label: AppText(widget.l10n.phoneNumber),
+                      hint: widget.l10n.enterPhoneNumber,
+                      enabled: !_isLoading,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 24),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: FButton(
+                        onPress: _isLoading ? null : _handleUpdate,
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : AppText(widget.l10n.updateProfile),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet for changing password
+class _ChangePasswordSheet extends StatefulWidget {
+  final WidgetRef ref;
+  final AppLocalizations l10n;
+  final VoidCallback onSuccess;
+
+  const _ChangePasswordSheet({
+    required this.ref,
+    required this.l10n,
+    required this.onSuccess,
+  });
+
+  @override
+  State<_ChangePasswordSheet> createState() => _ChangePasswordSheetState();
+}
+
+class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleChangePassword() async {
+    final password = _newPasswordController.text;
+    final confirm = _confirmPasswordController.text;
+
+    if (password.isEmpty) {
+      setState(() => _error = widget.l10n.enterNewPassword);
+      return;
+    }
+    if (password.length < 8) {
+      setState(() => _error = widget.l10n.passwordMustBe8Chars);
+      return;
+    }
+    if (confirm.isEmpty) {
+      setState(() => _error = widget.l10n.pleaseConfirmPassword);
+      return;
+    }
+    if (password != confirm) {
+      setState(() => _error = widget.l10n.passwordsDontMatch);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final success = await widget.ref.read(settingsProvider.notifier).changePassword(password);
+      if (mounted) {
+        if (success) {
+          widget.onSuccess();
+        } else {
+          setState(() {
+            _error = widget.l10n.failedToChangePassword;
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = widget.l10n.anErrorOccurred(e.toString());
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final colors = theme.colors;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.background,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.mutedForeground,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppText(
+                        widget.l10n.changePassword,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: colors.foreground,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Icon(FIcons.x, size: 24, color: colors.mutedForeground),
+                    ),
+                  ],
+                ),
+              ),
+
+              Divider(height: 1, color: colors.border),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_error != null) ...[
+                      FAlert(
+                        variant: FAlertVariant.destructive,
+                        icon: const Icon(FIcons.circleAlert),
+                        title: AppText(widget.l10n.error),
+                        subtitle: AppText(_error!),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    AppText(
+                      widget.l10n.passwordRequirements,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colors.mutedForeground,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    FTextField.password(
+                      control: FTextFieldControl.managed(controller: _newPasswordController),
+                      label: AppText(widget.l10n.newPassword),
+                      hint: widget.l10n.enterNewPassword,
+                      enabled: !_isLoading,
+                    ),
+                    const SizedBox(height: 16),
+
+                    FTextField.password(
+                      control: FTextFieldControl.managed(controller: _confirmPasswordController),
+                      label: AppText(widget.l10n.confirmPassword),
+                      hint: widget.l10n.pleaseConfirmPassword,
+                      enabled: !_isLoading,
+                      onSubmit: (_) => _handleChangePassword(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: FButton(
+                        onPress: _isLoading ? null : _handleChangePassword,
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : AppText(widget.l10n.changePassword),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

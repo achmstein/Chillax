@@ -39,9 +39,6 @@ namespace Chillax.Notification.API.Migrations
                     b.Property<bool>("PromotionsAndOffers")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("SessionReminders")
-                        .HasColumnType("boolean");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 

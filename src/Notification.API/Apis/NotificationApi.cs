@@ -677,14 +677,12 @@ public static class NotificationApi
             // Return default preferences if none exist
             return TypedResults.Ok(new NotificationPreferencesResponse(
                 OrderStatusUpdates: true,
-                PromotionsAndOffers: true,
-                SessionReminders: true));
+                PromotionsAndOffers: true));
         }
 
         return TypedResults.Ok(new NotificationPreferencesResponse(
             preferences.OrderStatusUpdates,
-            preferences.PromotionsAndOffers,
-            preferences.SessionReminders));
+            preferences.PromotionsAndOffers));
     }
 
     public static async Task<Ok> UpdateNotificationPreferences(
@@ -705,7 +703,6 @@ public static class NotificationApi
                 UserId = userId,
                 OrderStatusUpdates = request.OrderStatusUpdates,
                 PromotionsAndOffers = request.PromotionsAndOffers,
-                SessionReminders = request.SessionReminders,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -716,7 +713,6 @@ public static class NotificationApi
             // Update existing preferences
             preferences.OrderStatusUpdates = request.OrderStatusUpdates;
             preferences.PromotionsAndOffers = request.PromotionsAndOffers;
-            preferences.SessionReminders = request.SessionReminders;
             preferences.UpdatedAt = DateTime.UtcNow;
         }
 
@@ -757,12 +753,10 @@ public record ServiceRequestResponse(
 
 public record NotificationPreferencesResponse(
     bool OrderStatusUpdates,
-    bool PromotionsAndOffers,
-    bool SessionReminders
+    bool PromotionsAndOffers
 );
 
 public record UpdateNotificationPreferencesRequest(
     [property: Description("Receive notifications when order status changes")] bool OrderStatusUpdates,
-    [property: Description("Receive promotional offers and discounts")] bool PromotionsAndOffers,
-    [property: Description("Receive reminders before gaming sessions")] bool SessionReminders
+    [property: Description("Receive promotional offers and discounts")] bool PromotionsAndOffers
 );

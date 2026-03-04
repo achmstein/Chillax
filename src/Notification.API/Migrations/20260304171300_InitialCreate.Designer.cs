@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillax.Notification.API.Migrations
 {
     [DbContext(typeof(NotificationContext))]
-    [Migration("20260302013657_InitialCreate")]
+    [Migration("20260304171300_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -40,9 +40,6 @@ namespace Chillax.Notification.API.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("PromotionsAndOffers")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("SessionReminders")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("UpdatedAt")

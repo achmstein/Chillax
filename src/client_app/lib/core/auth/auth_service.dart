@@ -19,6 +19,7 @@ class AuthState {
   final bool isInitializing;
   final bool isAuthenticated;
   final bool needsProfileCompletion;
+  final bool isSocialLogin;
   final String? accessToken;
   final String? refreshToken;
   final String? idToken;
@@ -30,6 +31,7 @@ class AuthState {
     this.isInitializing = true,
     this.isAuthenticated = false,
     this.needsProfileCompletion = false,
+    this.isSocialLogin = false,
     this.accessToken,
     this.refreshToken,
     this.idToken,
@@ -42,6 +44,7 @@ class AuthState {
     bool? isInitializing,
     bool? isAuthenticated,
     bool? needsProfileCompletion,
+    bool? isSocialLogin,
     String? accessToken,
     String? refreshToken,
     String? idToken,
@@ -53,6 +56,7 @@ class AuthState {
       isInitializing: isInitializing ?? this.isInitializing,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       needsProfileCompletion: needsProfileCompletion ?? this.needsProfileCompletion,
+      isSocialLogin: isSocialLogin ?? this.isSocialLogin,
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
       idToken: idToken ?? this.idToken,
@@ -80,6 +84,7 @@ class AuthService extends Notifier<AuthState> {
   static const _refreshTokenKey = 'refresh_token';
   static const _idTokenKey = 'id_token';
   static const _needsProfileCompletionKey = 'needs_profile_completion';
+  static const _isSocialLoginKey = 'is_social_login';
 
   /// Token endpoint URL
   String get _tokenEndpoint => '${AppConfig.identityUrl}/protocol/openid-connect/token';
@@ -111,13 +116,15 @@ class AuthService extends Notifier<AuthState> {
         final refreshed = await this.refreshToken();
         debugPrint('Auth init - token refresh result: $refreshed');
         if (refreshed) {
-          // Read persisted profile completion flag for instant UI
+          // Read persisted flags for instant UI
           final needsCompletion = await _storage.read(key: _needsProfileCompletionKey);
+          final isSocial = await _storage.read(key: _isSocialLoginKey);
 
           state = state.copyWith(
             isInitializing: false,
             isAuthenticated: true,
             needsProfileCompletion: needsCompletion == 'true',
+            isSocialLogin: isSocial == 'true',
           );
 
           // Re-verify against server in background (clears flag if profile was completed elsewhere)
@@ -294,6 +301,10 @@ class AuthService extends Notifier<AuthState> {
           idToken: data['id_token'],
         );
 
+        // Mark as social login
+        await _storage.write(key: _isSocialLoginKey, value: 'true');
+        state = state.copyWith(isSocialLogin: true);
+
         // Check if social login user needs to complete their profile
         await checkProfileCompleteness();
 
@@ -389,7 +400,7 @@ class AuthService extends Notifier<AuthState> {
         data: {
           'name': name,
           'email': email,
-          'phone': phone,
+          'phoneNumber': phone,
           'password': password,
         },
         options: Options(
@@ -568,6 +579,7 @@ class AuthService extends Notifier<AuthState> {
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _idTokenKey);
     await _storage.delete(key: _needsProfileCompletionKey);
+    await _storage.delete(key: _isSocialLoginKey);
 
     state = const AuthState(isInitializing: false);
   }
