@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/localized_text_field.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
@@ -577,9 +578,7 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
 
     final l10n = AppLocalizations.of(context)!;
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AppText(l10n.pleaseSelectCategory)),
-      );
+      showErrorToast(context, l10n.pleaseSelectCategory);
       return;
     }
 
@@ -607,9 +606,7 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
     final offerPrice = _isOnOffer ? double.tryParse(offerPriceText) : null;
 
     if (_isOnOffer && (offerPrice == null || offerPrice <= 0 || offerPrice >= price)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AppText(l10n.offerPriceMustBeLess)),
-      );
+      showErrorToast(context, l10n.offerPriceMustBeLess);
       setState(() => _isSubmitting = false);
       return;
     }
@@ -667,15 +664,11 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: AppText(l10n.itemSaved)),
-        );
+        showSuccessToast(context, l10n.itemSaved);
         context.pop();
       }
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AppText(l10n.failedToSaveItem)),
-      );
+      showErrorToast(context, l10n.failedToSaveItem);
     }
 
     setState(() => _isSubmitting = false);

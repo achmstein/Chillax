@@ -5,6 +5,7 @@ class Customer {
   final String? email;
   final String? firstName;
   final String? lastName;
+  final String? phoneNumber;
   final bool enabled;
   final DateTime? createdAt;
 
@@ -14,6 +15,7 @@ class Customer {
     this.email,
     this.firstName,
     this.lastName,
+    this.phoneNumber,
     this.enabled = true,
     this.createdAt,
   });
@@ -44,6 +46,7 @@ class Customer {
       email: json['email'] as String?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
       enabled: json['enabled'] as bool? ?? true,
       createdAt: json['createdTimestamp'] != null
           ? DateTime.fromMillisecondsSinceEpoch(json['createdTimestamp'] as int)

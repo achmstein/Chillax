@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../accounts/providers/accounts_provider.dart';
 import '../../orders/models/order.dart';
@@ -95,6 +96,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
 
     return Scaffold(
       backgroundColor: theme.colors.background,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -207,7 +209,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go('/customers'),
+            onPressed: () => context.pop(),
           ),
           const SizedBox(width: 4),
           Expanded(
@@ -221,6 +223,14 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (customer?.phoneNumber != null && customer!.phoneNumber!.isNotEmpty)
+                  AppText(
+                    customer.phoneNumber!,
+                    style: theme.typography.xs.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 if (customer?.email != null)
                   AppText(
                     customer!.email!,
@@ -235,8 +245,8 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
           if (customer != null) ...[
             IconButton(
               icon: const Icon(Icons.edit_outlined, size: 22),
-              onPressed: () => _showEditNameSheet(context, customer),
-              tooltip: l10n.editName,
+              onPressed: () => _showEditProfileSheet(context, customer),
+              tooltip: l10n.updateProfile,
             ),
             IconButton(
               icon: const Icon(Icons.add_circle_outline, size: 22),
@@ -301,40 +311,41 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.colors.background,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16 + MediaQuery.of(context).viewPadding.bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: theme.colors.mutedForeground,
-                      borderRadius: BorderRadius.circular(2),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colors.background,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.colors.mutedForeground,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                AppText(
-                  l10n.addCharge,
+                  AppText(
+                    l10n.addCharge,
                   style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
@@ -373,9 +384,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         onPress: () async {
                           final amount = double.tryParse(amountController.text);
                           if (amount == null || amount <= 0) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: AppText(l10n.pleaseEnterValidAmount)),
-                            );
+                            showErrorToast(context, l10n.pleaseEnterValidAmount);
                             return;
                           }
 
@@ -390,11 +399,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
 
                           if (context.mounted) {
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: AppText(success ? l10n.chargeAdded : l10n.failedToAddCharge),
-                              ),
-                            );
+                            if (success) {
+                              showSuccessToast(context, l10n.chargeAdded);
+                            } else {
+                              showErrorToast(context, l10n.failedToAddCharge);
+                            }
                           }
                         },
                         child: AppText(l10n.addCharge),
@@ -407,62 +416,74 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 
-  void _showEditNameSheet(BuildContext context, Customer customer) {
+  void _showEditProfileSheet(BuildContext context, Customer customer) {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
     final nameController = TextEditingController(text: customer.displayName);
+    final phoneController = TextEditingController(text: customer.phoneNumber ?? '');
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.colors.background,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16 + MediaQuery.of(context).viewPadding.bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: theme.colors.mutedForeground,
-                      borderRadius: BorderRadius.circular(2),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colors.background,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.colors.mutedForeground,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                AppText(
-                  l10n.editName,
+                  AppText(
+                    l10n.updateProfile,
                   style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
 
-                AppText(l10n.newName, style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
+                AppText(l10n.name, style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
                 const SizedBox(height: 8),
                 FTextField(
                   control: FTextFieldControl.managed(controller: nameController),
                   hint: l10n.enterNewName,
+                ),
+                const SizedBox(height: 16),
+
+                AppText(l10n.phoneNumber, style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
+                FTextField(
+                  control: FTextFieldControl.managed(controller: phoneController),
+                  hint: l10n.enterPhoneNumber,
+                  keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 24),
 
@@ -480,18 +501,19 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       child: FButton(
                         onPress: () async {
                           final newName = nameController.text.trim();
+                          final newPhone = phoneController.text.trim();
                           if (newName.isEmpty) return;
 
                           final success = await ref.read(customersProvider.notifier)
-                              .updateCustomerName(customer.id, newName);
+                              .updateCustomerProfile(customer.id, newName, newPhone);
 
                           if (context.mounted) {
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: AppText(success ? l10n.nameUpdatedSuccessfully : l10n.failedToUpdateName),
-                              ),
-                            );
+                            if (success) {
+                              showSuccessToast(context, l10n.profileUpdatedSuccessfully);
+                            } else {
+                              showErrorToast(context, l10n.failedToUpdateProfile);
+                            }
                           }
                         },
                         child: AppText(l10n.save),
@@ -503,6 +525,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -537,15 +560,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     final success = await ref.read(customersProvider.notifier)
         .toggleCustomerEnabled(customer.id);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: AppText(
-            success
-                ? (isBlocking ? l10n.customerBlocked : l10n.customerUnblocked)
-                : l10n.failedToToggleCustomer,
-          ),
-        ),
-      );
+      if (success) {
+        showSuccessToast(context, isBlocking ? l10n.customerBlocked : l10n.customerUnblocked);
+      } else {
+        showErrorToast(context, l10n.failedToToggleCustomer);
+      }
     }
   }
 
@@ -559,40 +578,41 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.colors.background,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16 + MediaQuery.of(context).viewPadding.bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: theme.colors.mutedForeground,
-                      borderRadius: BorderRadius.circular(2),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colors.background,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.colors.mutedForeground,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                AppText(
-                  l10n.resetPassword,
+                  AppText(
+                    l10n.resetPassword,
                   style: theme.typography.lg.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
@@ -620,9 +640,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         onPress: () async {
                           final newPassword = passwordController.text;
                           if (newPassword.length < 8) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: AppText(l10n.passwordMinLength)),
-                            );
+                            showErrorToast(context, l10n.passwordMinLength);
                             return;
                           }
 
@@ -631,11 +649,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
 
                           if (context.mounted) {
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: AppText(success ? l10n.passwordResetSuccess : l10n.failedToResetPassword),
-                              ),
-                            );
+                            if (success) {
+                              showSuccessToast(context, l10n.passwordResetSuccess);
+                            } else {
+                              showErrorToast(context, l10n.failedToResetPassword);
+                            }
                           }
                         },
                         child: AppText(l10n.resetPassword),
@@ -647,6 +665,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/localized_text_field.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 
@@ -51,17 +52,19 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colors.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colors.background,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
             Center(
               child: Container(
                 margin: const EdgeInsets.only(top: 12, bottom: 8),
@@ -99,7 +102,7 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
                   left: 16,
                   right: 16,
                   top: 16,
-                  bottom: 16 + MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).viewPadding.bottom,
+                  bottom: 16,
                 ),
                 child: Form(
                   key: _formKey,
@@ -209,6 +212,7 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -242,9 +246,7 @@ class _CustomizationGroupSheetState extends State<CustomizationGroupSheet> {
         .toList();
 
     if (options.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AppText(AppLocalizations.of(context)!.optionRequired)),
-      );
+      showErrorToast(context, AppLocalizations.of(context)!.optionRequired);
       return;
     }
 

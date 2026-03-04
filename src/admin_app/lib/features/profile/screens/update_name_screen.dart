@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/profile_provider.dart';
 
@@ -53,11 +54,7 @@ class _UpdateNameScreenState extends ConsumerState<UpdateNameScreen> {
       if (mounted) {
         if (success) {
           context.pop();
-          showFToast(
-            context: context,
-            title: AppText(l10n.nameUpdatedSuccessfully),
-            icon: Icon(FIcons.circleCheck, color: Colors.green.shade600),
-          );
+          showSuccessToast(context, l10n.nameUpdatedSuccessfully);
         } else {
           setState(() {
             _error = l10n.failedToUpdateName;

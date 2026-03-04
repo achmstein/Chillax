@@ -7,6 +7,7 @@ import '../../../core/auth/auth_service.dart';
 import '../../../core/models/branch.dart';
 import '../../../core/services/branch_service.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../branches/providers/branches_provider.dart';
 import '../models/admin_user.dart';
@@ -96,6 +97,7 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
 
     return Scaffold(
       backgroundColor: theme.colors.background,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: RefreshIndicator(
           color: theme.colors.primary,
@@ -262,41 +264,40 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.colors.background,
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom +
-                  16 +
-                  MediaQuery.of(context).viewPadding.bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: theme.colors.mutedForeground,
-                      borderRadius: BorderRadius.circular(2),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colors.background,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.colors.mutedForeground,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                AppText(
-                  l10n.editName,
+                  const SizedBox(height: 16),
+                  AppText(
+                    l10n.editName,
                   style: theme.typography.lg
                       .copyWith(fontWeight: FontWeight.bold),
                 ),
@@ -333,13 +334,11 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
 
                           if (context.mounted) {
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: AppText(success
-                                    ? l10n.nameUpdatedSuccessfully
-                                    : l10n.failedToUpdateName),
-                              ),
-                            );
+                            if (success) {
+                              showSuccessToast(context, l10n.nameUpdatedSuccessfully);
+                            } else {
+                              showErrorToast(context, l10n.failedToUpdateName);
+                            }
                           }
                         },
                         child: AppText(l10n.save),
@@ -351,6 +350,7 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -365,41 +365,40 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
       isScrollControlled: true,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.colors.background,
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom +
-                  16 +
-                  MediaQuery.of(context).viewPadding.bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: theme.colors.mutedForeground,
-                      borderRadius: BorderRadius.circular(2),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colors.background,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.colors.mutedForeground,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                AppText(
-                  l10n.resetPassword,
+                  const SizedBox(height: 16),
+                  AppText(
+                    l10n.resetPassword,
                   style: theme.typography.lg
                       .copyWith(fontWeight: FontWeight.bold),
                 ),
@@ -429,10 +428,7 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
                         onPress: () async {
                           final newPassword = passwordController.text;
                           if (newPassword.length < 8) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: AppText(l10n.passwordMinLength)),
-                            );
+                            showErrorToast(context, l10n.passwordMinLength);
                             return;
                           }
 
@@ -442,13 +438,11 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
 
                           if (context.mounted) {
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: AppText(success
-                                    ? l10n.passwordResetSuccess
-                                    : l10n.failedToResetPassword),
-                              ),
-                            );
+                            if (success) {
+                              showSuccessToast(context, l10n.passwordResetSuccess);
+                            } else {
+                              showErrorToast(context, l10n.failedToResetPassword);
+                            }
                           }
                         },
                         child: AppText(l10n.resetPassword),
@@ -460,6 +454,7 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -496,15 +491,11 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
     final success =
         await ref.read(adminsProvider.notifier).toggleAdminEnabled(admin.id);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: AppText(
-            success
-                ? (isBlocking ? l10n.adminBlocked : l10n.adminUnblocked)
-                : l10n.failedToToggleAdmin,
-          ),
-        ),
-      );
+      if (success) {
+        showSuccessToast(context, isBlocking ? l10n.adminBlocked : l10n.adminUnblocked);
+      } else {
+        showErrorToast(context, l10n.failedToToggleAdmin);
+      }
     }
   }
 
@@ -599,13 +590,11 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
                             await _loadBranches();
                           }
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: AppText(success
-                                    ? l10n.adminAssigned
-                                    : l10n.failedToLoad),
-                              ),
-                            );
+                            if (success) {
+                              showSuccessToast(context, l10n.adminAssigned);
+                            } else {
+                              showErrorToast(context, l10n.failedToLoad);
+                            }
                           }
                         },
                       );
@@ -809,13 +798,11 @@ class _BranchesSection extends ConsumerWidget {
                             onBranchRemoved();
                           }
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: AppText(success
-                                    ? l10n.adminRemoved
-                                    : l10n.failedToLoad),
-                              ),
-                            );
+                            if (success) {
+                              showSuccessToast(context, l10n.adminRemoved);
+                            } else {
+                              showErrorToast(context, l10n.failedToLoad);
+                            }
                           }
                         },
                       ),

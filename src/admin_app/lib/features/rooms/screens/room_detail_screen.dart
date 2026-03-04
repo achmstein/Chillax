@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/models/localized_text.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../customers/models/customer.dart';
 import '../models/room.dart';
@@ -75,6 +76,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
 
     return Scaffold(
       backgroundColor: theme.colors.background,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -306,9 +308,11 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
             );
           }
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(success ? l10n.customerAssigned : l10n.failedToAssignCustomer)),
-            );
+            if (success) {
+              showSuccessToast(context, l10n.customerAssigned);
+            } else {
+              showErrorToast(context, l10n.failedToAssignCustomer);
+            }
           }
         },
       ),
@@ -319,9 +323,11 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final success = await ref.read(roomsProvider.notifier).removeMemberFromSession(sessionId, customerId);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(success ? l10n.memberRemoved : l10n.failedToRemoveMember)),
-      );
+      if (success) {
+        showSuccessToast(context, l10n.memberRemoved);
+      } else {
+        showErrorToast(context, l10n.failedToRemoveMember);
+      }
     }
   }
 
@@ -565,22 +571,25 @@ class _CurrentStateSection extends StatelessWidget {
                   runSpacing: 8,
                   alignment: WrapAlignment.center,
                   children: session!.members.map((member) {
-                    return Chip(
-                      avatar: Icon(
-                        member.isOwner ? Icons.star : Icons.person,
-                        size: 16,
-                        color: member.isOwner ? Colors.amber : theme.colors.mutedForeground,
+                    return GestureDetector(
+                      onTap: () => context.push('/customers/${member.customerId}'),
+                      child: Chip(
+                        avatar: Icon(
+                          member.isOwner ? Icons.star : Icons.person,
+                          size: 16,
+                          color: member.isOwner ? Colors.amber : theme.colors.mutedForeground,
+                        ),
+                        label: AppText(
+                          member.customerName ?? member.customerId,
+                          style: theme.typography.sm,
+                        ),
+                        deleteIcon: member.isOwner ? null : const Icon(Icons.close, size: 16),
+                        onDeleted: member.isOwner || onRemoveMember == null
+                            ? null
+                            : () => onRemoveMember!(member.customerId),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      label: AppText(
-                        member.customerName ?? member.customerId,
-                        style: theme.typography.sm,
-                      ),
-                      deleteIcon: member.isOwner ? null : const Icon(Icons.close, size: 16),
-                      onDeleted: member.isOwner || onRemoveMember == null
-                          ? null
-                          : () => onRemoveMember!(member.customerId),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     );
                   }).toList(),
                 ),
@@ -588,16 +597,24 @@ class _CurrentStateSection extends StatelessWidget {
               const SizedBox(height: 12),
             ] else if (session!.userName != null) ...[
               // Fallback: show single user name if no members loaded
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.person_outline, size: 16, color: theme.colors.mutedForeground),
-                  const SizedBox(width: 4),
-                  AppText(
-                    session!.userName!,
-                    style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
-                  ),
-                ],
+              GestureDetector(
+                onTap: session!.customerId != null
+                    ? () => context.push('/customers/${session!.customerId}')
+                    : null,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.person_outline, size: 16, color: theme.colors.mutedForeground),
+                    const SizedBox(width: 4),
+                    AppText(
+                      session!.userName!,
+                      style: theme.typography.sm.copyWith(
+                        color: theme.colors.mutedForeground,
+                        decoration: session!.customerId != null ? TextDecoration.underline : null,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
             ],
@@ -660,14 +677,19 @@ class _CurrentStateSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   if (session!.userName != null)
-                    Chip(
-                      avatar: const Icon(Icons.star, size: 16, color: Colors.amber),
-                      label: AppText(
-                        session!.userName!,
-                        style: theme.typography.sm,
+                    GestureDetector(
+                      onTap: session!.customerId != null
+                          ? () => context.push('/customers/${session!.customerId}')
+                          : null,
+                      child: Chip(
+                        avatar: const Icon(Icons.star, size: 16, color: Colors.amber),
+                        label: AppText(
+                          session!.userName!,
+                          style: theme.typography.sm,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     )
                   else if (onAssignCustomer != null)
                     GestureDetector(
@@ -1123,8 +1145,21 @@ class _HistorySection extends StatelessWidget {
     final hSuffix = l10n.hoursShort;
     final locale = Localizations.localeOf(context).languageCode;
 
-    final hasSingle = session.singleRoundedHours != null && session.singleRoundedHours! > 0;
-    final hasMulti = session.multiRoundedHours != null && session.multiRoundedHours! > 0;
+    // Calculate actual duration per mode from segments
+    Duration singleDuration = Duration.zero;
+    Duration multiDuration = Duration.zero;
+    for (final seg in session.segments) {
+      final end = seg.endTime ?? DateTime.now();
+      final segDuration = end.difference(seg.startTime);
+      if (seg.playerMode == 'Multi') {
+        multiDuration += segDuration;
+      } else {
+        singleDuration += segDuration;
+      }
+    }
+
+    final hasSingle = singleDuration > Duration.zero;
+    final hasMulti = multiDuration > Duration.zero;
 
     showModalBottomSheet(
       context: context,
@@ -1219,7 +1254,10 @@ class _HistorySection extends StatelessWidget {
                         child: _modeCard(
                           theme,
                           l10n.playerModeSingle,
-                          _formatRoundedHours(session.singleRoundedHours!, hSuffix),
+                          _formatDuration(singleDuration),
+                          session.singleRoundedHours != null && session.singleRoundedHours! > 0
+                              ? _formatRoundedHours(session.singleRoundedHours!, hSuffix)
+                              : null,
                           theme.colors.primary,
                         ),
                       ),
@@ -1230,7 +1268,10 @@ class _HistorySection extends StatelessWidget {
                         child: _modeCard(
                           theme,
                           l10n.playerModeMulti,
-                          _formatRoundedHours(session.multiRoundedHours!, hSuffix),
+                          _formatDuration(multiDuration),
+                          session.multiRoundedHours != null && session.multiRoundedHours! > 0
+                              ? _formatRoundedHours(session.multiRoundedHours!, hSuffix)
+                              : null,
                           Colors.orange,
                         ),
                       ),
@@ -1244,7 +1285,7 @@ class _HistorySection extends StatelessWidget {
     );
   }
 
-  Widget _modeCard(FThemeData theme, String label, String value, Color color) {
+  Widget _modeCard(FThemeData theme, String label, String duration, String? roundedHours, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
@@ -1255,13 +1296,24 @@ class _HistorySection extends StatelessWidget {
       child: Column(
         children: [
           AppText(
-            value,
+            duration,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: color,
+              fontFamily: 'monospace',
+              letterSpacing: 1,
             ),
           ),
+          if (roundedHours != null) ...[
+            const SizedBox(height: 2),
+            AppText(
+              roundedHours,
+              style: theme.typography.xs.copyWith(
+                color: color.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
           const SizedBox(height: 4),
           AppText(
             label,
@@ -1274,6 +1326,14 @@ class _HistorySection extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Format duration as HH:MM:SS
+String _formatDuration(Duration d) {
+  final hours = d.inHours.toString().padLeft(2, '0');
+  final minutes = (d.inMinutes % 60).toString().padLeft(2, '0');
+  final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
+  return '$hours:$minutes:$seconds';
 }
 
 /// Format rounded hours: show "3h" for whole, "3.25h" / "3.5h" / "3.75h" for fractions

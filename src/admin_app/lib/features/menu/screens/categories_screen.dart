@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
@@ -76,10 +77,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                   onPressed: () async {
                     final success = await notifier.saveReorderedCategories();
                     if (context.mounted) {
-                      final messenger = ScaffoldMessenger.of(context);
-                      messenger.showSnackBar(
-                        SnackBar(content: AppText(success ? l10n.orderSavedSuccess : l10n.failedToSaveOrder)),
-                      );
+                      if (success) {
+                        showSuccessToast(context, l10n.orderSavedSuccess);
+                      } else {
+                        showErrorToast(context, l10n.failedToSaveOrder);
+                      }
                     }
                   },
                   tooltip: l10n.saveOrder,
@@ -225,7 +227,6 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       return;
     }
 
-    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
@@ -250,9 +251,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     if (confirmed == true) {
       final success = await ref.read(menuProvider.notifier).deleteCategory(category.id);
       if (mounted && success) {
-        messenger.showSnackBar(
-          SnackBar(content: AppText(l10n.categoryDeletedSuccess)),
-        );
+        showSuccessToast(context, l10n.categoryDeletedSuccess);
       }
     }
   }

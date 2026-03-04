@@ -169,7 +169,14 @@ class _CustomerTile extends StatelessWidget {
                     style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (customer.email != null) ...[
+                  if (customer.phoneNumber != null && customer.phoneNumber!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    AppText(
+                      customer.phoneNumber!,
+                      style: theme.typography.xs.copyWith(color: theme.colors.mutedForeground),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ] else if (customer.email != null) ...[
                     const SizedBox(height: 2),
                     AppText(
                       customer.email!,

@@ -440,6 +440,18 @@ abstract class AppLocalizations {
   /// **'Edit Room'**
   String get editRoom;
 
+  /// No description provided for @roomSavedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Room saved successfully'**
+  String get roomSavedSuccess;
+
+  /// No description provided for @failedToSaveRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save room'**
+  String get failedToSaveRoom;
+
   /// No description provided for @noRoomsConfigured.
   ///
   /// In en, this message translates to:
@@ -655,6 +667,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Category updated successfully'**
   String get categoryUpdatedSuccess;
+
+  /// No description provided for @failedToSaveCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save category'**
+  String get failedToSaveCategory;
 
   /// No description provided for @categoryDeletedSuccess.
   ///
@@ -1652,6 +1670,12 @@ abstract class AppLocalizations {
   /// **'Admin created successfully'**
   String get adminCreatedSuccess;
 
+  /// No description provided for @failedToCreateAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create admin'**
+  String get failedToCreateAdmin;
+
   /// No description provided for @enabled.
   ///
   /// In en, this message translates to:
@@ -2204,6 +2228,36 @@ abstract class AppLocalizations {
   /// **'Members'**
   String get members;
 
+  /// No description provided for @updateProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Profile'**
+  String get updateProfile;
+
+  /// No description provided for @profileUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get profileUpdatedSuccessfully;
+
+  /// No description provided for @failedToUpdateProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update profile'**
+  String get failedToUpdateProfile;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get phoneNumber;
+
+  /// No description provided for @enterPhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter phone number'**
+  String get enterPhoneNumber;
+
   /// No description provided for @editName.
   ///
   /// In en, this message translates to:
@@ -2455,6 +2509,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Branch updated successfully'**
   String get branchUpdatedSuccess;
+
+  /// No description provided for @failedToSaveBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save branch'**
+  String get failedToSaveBranch;
 
   /// No description provided for @assignAdmin.
   ///

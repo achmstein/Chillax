@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/customer_account.dart';
 import '../providers/accounts_provider.dart';
@@ -77,6 +78,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
 
     return Scaffold(
       backgroundColor: theme.colors.background,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -85,7 +87,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
 
             // Balance and actions
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
               child: Column(
                 children: [
                   // Balance label
@@ -100,12 +102,12 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                   AppText(
                     l10n.priceFormat(account.balance.toStringAsFixed(0)),
                     style: TextStyle(
-                      fontSize: 36,
+                      fontSize: 32,
                       fontWeight: FontWeight.w600,
                       color: hasBalance ? const Color(0xFFEF4444) : theme.colors.foreground,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   // Action buttons - full width, side by side
                   Row(
                     children: [
@@ -387,57 +389,58 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
       decoration: BoxDecoration(
         color: theme.colors.background,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
-        top: false,
-        bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colors.mutedForeground,
-                borderRadius: BorderRadius.circular(2),
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colors.mutedForeground,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
 
-            // Header
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AppText(
-                      widget.title,
-                      style: theme.typography.lg.copyWith(
-                        fontWeight: FontWeight.bold,
+              // Header
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppText(
+                        widget.title,
+                        style: theme.typography.lg.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Icon(Icons.close, color: theme.colors.mutedForeground),
-                  ),
-                ],
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(Icons.close, color: theme.colors.mutedForeground),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // Form content
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 16,
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
+              // Form content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 0,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,7 +513,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
+                bottom: 12,
               ),
               child: Row(
                 children: [
@@ -543,6 +546,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -550,9 +554,7 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
     final l10n = AppLocalizations.of(context)!;
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AppText(l10n.pleaseEnterValidAmount)),
-      );
+      showErrorToast(context, l10n.pleaseEnterValidAmount);
       return;
     }
 
@@ -584,17 +586,9 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
       if (success) {
         Navigator.of(context).pop();
         widget.onComplete?.call();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: AppText(widget.isPayment ? l10n.paymentRecorded : l10n.chargeAdded),
-          ),
-        );
+        showSuccessToast(context, widget.isPayment ? l10n.paymentRecorded : l10n.chargeAdded);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: AppText(widget.isPayment ? l10n.failedToRecordPayment : l10n.failedToAddCharge),
-          ),
-        );
+        showErrorToast(context, widget.isPayment ? l10n.failedToRecordPayment : l10n.failedToAddCharge);
       }
     }
   }

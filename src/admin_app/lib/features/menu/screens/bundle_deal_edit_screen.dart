@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/localized_text_field.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/bundle_deal.dart';
 import '../models/menu_item.dart';
@@ -336,9 +337,7 @@ class _BundleDealEditScreenState extends ConsumerState<BundleDealEditScreen> {
     final l10n = AppLocalizations.of(context)!;
     if (_nameEnController.text.trim().isEmpty) return;
     if (_selectedItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AppText(l10n.selectItems)),
-      );
+      showErrorToast(context, l10n.selectItems);
       return;
     }
 
@@ -385,9 +384,7 @@ class _BundleDealEditScreenState extends ConsumerState<BundleDealEditScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: AppText(l10n.itemSaved)),
-        );
+        showSuccessToast(context, l10n.itemSaved);
         context.pop();
       }
     }

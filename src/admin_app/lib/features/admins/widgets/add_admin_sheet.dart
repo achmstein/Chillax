@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/admins_provider.dart';
 
@@ -70,9 +71,9 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
 
     if (success) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.adminCreatedSuccess)),
-      );
+      showSuccessToast(context, l10n.adminCreatedSuccess);
+    } else {
+      showErrorToast(context, l10n.failedToCreateAdmin);
     }
   }
 
@@ -83,18 +84,19 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
     final usersState = ref.watch(adminsProvider);
     final currentUserIsOwner = ref.watch(isOwnerProvider);
 
-    return Container(
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
       decoration: BoxDecoration(
         color: colors.background,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        top: false,
-        bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
             Container(
               margin: const EdgeInsets.only(top: 12, bottom: 8),
               width: 40,
@@ -137,7 +139,7 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
                   left: 16,
                   right: 16,
                   top: 16,
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  bottom: 0,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +239,7 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
+                bottom: 12,
               ),
               child: SizedBox(
                 width: double.infinity,
@@ -259,6 +261,7 @@ class _AddAdminSheetState extends ConsumerState<AddAdminSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 }

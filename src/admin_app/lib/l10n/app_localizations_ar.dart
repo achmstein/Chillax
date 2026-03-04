@@ -191,6 +191,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get editRoom => 'تعديل الغرفة';
 
   @override
+  String get roomSavedSuccess => 'تم حفظ الغرفة بنجاح';
+
+  @override
+  String get failedToSaveRoom => 'فشل حفظ الغرفة';
+
+  @override
   String get noRoomsConfigured => 'مفيش اوض متضافة';
 
   @override
@@ -302,6 +308,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get categoryUpdatedSuccess => 'تم تحديث القسم بنجاح';
+
+  @override
+  String get failedToSaveCategory => 'فشل حفظ القسم';
 
   @override
   String get categoryDeletedSuccess => 'تم حذف القسم بنجاح';
@@ -838,6 +847,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminCreatedSuccess => 'تم إنشاء المدير بنجاح';
 
   @override
+  String get failedToCreateAdmin => 'فشل إنشاء المدير';
+
+  @override
   String get enabled => 'مفعّل';
 
   @override
@@ -1128,6 +1140,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get members => 'الأعضاء';
 
   @override
+  String get updateProfile => 'تعديل البيانات';
+
+  @override
+  String get profileUpdatedSuccessfully => 'تم تعديل البيانات بنجاح';
+
+  @override
+  String get failedToUpdateProfile => 'فشل تعديل البيانات';
+
+  @override
+  String get phoneNumber => 'رقم الموبايل';
+
+  @override
+  String get enterPhoneNumber => 'ادخل رقم الموبايل';
+
+  @override
   String get editName => 'تعديل الاسم';
 
   @override
@@ -1256,6 +1283,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get branchUpdatedSuccess => 'تم تعديل الفرع بنجاح';
+
+  @override
+  String get failedToSaveBranch => 'فشل حفظ الفرع';
 
   @override
   String get assignAdmin => 'تعيين مدير';

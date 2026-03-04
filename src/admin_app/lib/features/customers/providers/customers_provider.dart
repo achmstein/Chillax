@@ -86,14 +86,14 @@ class CustomersNotifier extends Notifier<CustomersState> {
     }
   }
 
-  Future<bool> updateCustomerName(String customerId, String newName) async {
+  Future<bool> updateCustomerProfile(String customerId, String name, String phoneNumber) async {
     try {
-      await _repository.updateCustomerName(customerId, newName);
-      // Reload customers to reflect the name change
+      await _repository.updateCustomerProfile(customerId, name, phoneNumber);
+      // Reload customers to reflect the changes
       await loadCustomers();
       return true;
     } catch (e) {
-      debugPrint('Failed to update customer name: $e');
+      debugPrint('Failed to update customer profile: $e');
       return false;
     }
   }

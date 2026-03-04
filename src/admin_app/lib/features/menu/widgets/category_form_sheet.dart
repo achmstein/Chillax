@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/localized_text_field.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
@@ -44,18 +45,19 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colors.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        top: false,
-        bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colors.background,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
             Container(
               margin: const EdgeInsets.only(top: 12, bottom: 8),
               width: 40,
@@ -94,7 +96,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                   left: 16,
                   right: 16,
                   top: 16,
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  bottom: 0,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +121,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
+                bottom: 12,
               ),
               child: Row(
                 children: [
@@ -149,6 +151,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -174,8 +177,14 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
 
     setState(() => _isSubmitting = false);
 
-    if (success && mounted) {
-      Navigator.of(context).pop(true);
+    if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
+      if (success) {
+        Navigator.of(context).pop(true);
+        showSuccessToast(context, widget.isEditing ? l10n.categoryUpdatedSuccess : l10n.categoryCreatedSuccess);
+      } else {
+        showErrorToast(context, l10n.failedToSaveCategory);
+      }
     }
   }
 }

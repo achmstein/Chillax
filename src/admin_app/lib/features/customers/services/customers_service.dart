@@ -11,7 +11,7 @@ abstract class CustomersRepository {
     String? excludeRole,
   });
   Future<Customer?> getCustomer(String customerId);
-  Future<void> updateCustomerName(String customerId, String newName);
+  Future<void> updateCustomerProfile(String customerId, String name, String phoneNumber);
   Future<void> resetCustomerPassword(String customerId, String newPassword);
   Future<bool> toggleCustomerEnabled(String customerId);
 }
@@ -56,8 +56,8 @@ class ApiCustomersRepository implements CustomersRepository {
   }
 
   @override
-  Future<void> updateCustomerName(String customerId, String newName) async {
-    await _api.put('/users/$customerId/name', data: {'newName': newName});
+  Future<void> updateCustomerProfile(String customerId, String name, String phoneNumber) async {
+    await _api.put('/users/$customerId/profile', data: {'name': name, 'phoneNumber': phoneNumber});
   }
 
   @override

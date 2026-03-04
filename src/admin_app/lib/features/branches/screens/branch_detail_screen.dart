@@ -6,6 +6,7 @@ import '../../../core/models/branch.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/services/branch_service.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../admins/models/admin_user.dart';
 import '../../admins/services/admins_service.dart';
@@ -147,9 +148,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
           .assignAdmin(widget.branchId, selected.id);
       if (success && mounted) {
         final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.adminAssigned)),
-        );
+        showSuccessToast(context, l10n.adminAssigned);
         _loadAdmins();
       }
     }
@@ -184,9 +183,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
           .read(branchesManagementProvider.notifier)
           .removeAdmin(widget.branchId, admin.id);
       if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.adminRemoved)),
-        );
+        showSuccessToast(context, l10n.adminRemoved);
         _loadAdmins();
       }
     }
@@ -224,6 +221,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
 
     return Scaffold(
       backgroundColor: theme.colors.background,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [

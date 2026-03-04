@@ -193,6 +193,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editRoom => 'Edit Room';
 
   @override
+  String get roomSavedSuccess => 'Room saved successfully';
+
+  @override
+  String get failedToSaveRoom => 'Failed to save room';
+
+  @override
   String get noRoomsConfigured => 'No rooms configured';
 
   @override
@@ -304,6 +310,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoryUpdatedSuccess => 'Category updated successfully';
+
+  @override
+  String get failedToSaveCategory => 'Failed to save category';
 
   @override
   String get categoryDeletedSuccess => 'Category deleted successfully';
@@ -842,6 +851,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminCreatedSuccess => 'Admin created successfully';
 
   @override
+  String get failedToCreateAdmin => 'Failed to create admin';
+
+  @override
   String get enabled => 'Enabled';
 
   @override
@@ -1133,6 +1145,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get members => 'Members';
 
   @override
+  String get updateProfile => 'Update Profile';
+
+  @override
+  String get profileUpdatedSuccessfully => 'Profile updated successfully';
+
+  @override
+  String get failedToUpdateProfile => 'Failed to update profile';
+
+  @override
+  String get phoneNumber => 'Phone Number';
+
+  @override
+  String get enterPhoneNumber => 'Enter phone number';
+
+  @override
   String get editName => 'Edit Name';
 
   @override
@@ -1262,6 +1289,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get branchUpdatedSuccess => 'Branch updated successfully';
+
+  @override
+  String get failedToSaveBranch => 'Failed to save branch';
 
   @override
   String get assignAdmin => 'Assign Admin';

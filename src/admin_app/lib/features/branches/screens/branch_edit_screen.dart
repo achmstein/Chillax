@@ -7,6 +7,7 @@ import '../../../core/models/branch.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/localized_text_field.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/branches_provider.dart';
 
@@ -92,11 +93,7 @@ class _BranchEditScreenState extends ConsumerState<BranchEditScreen> {
 
     if (success && mounted) {
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_isEditing ? l10n.branchUpdatedSuccess : l10n.branchCreatedSuccess),
-        ),
-      );
+      showSuccessToast(context, _isEditing ? l10n.branchUpdatedSuccess : l10n.branchCreatedSuccess);
       if (_isEditing) {
         context.go('/branches/${widget.branchId}');
       } else {

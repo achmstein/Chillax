@@ -80,7 +80,7 @@ class BranchSwitcher extends ConsumerWidget {
                 visualDensity: VisualDensity.compact,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 leading: Icon(
-                  Icons.location_on_outlined,
+                  FIcons.mapPin,
                   size: 20,
                   color: isSelected ? theme.colors.primary : theme.colors.foreground,
                 ),

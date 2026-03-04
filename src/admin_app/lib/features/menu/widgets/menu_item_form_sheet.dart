@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/localized_text_field.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/menu_item.dart';
 import '../providers/menu_provider.dart';
@@ -67,14 +68,15 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(menuProvider);
 
-    return Container(
-      width: 400,
-      color: theme.colors.background,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        width: 400,
+        color: theme.colors.background,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header
             Padding(
               padding: const EdgeInsets.all(16),
@@ -103,7 +105,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                   left: 16,
                   right: 16,
                   top: 16,
-                  bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
+                  bottom: 16,
                 ),
                 child: Form(
                   key: _formKey,
@@ -235,7 +237,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
                 left: 16,
                 right: 16,
                 top: 16,
-                bottom: 16 + MediaQuery.of(context).viewPadding.bottom,
+                bottom: 16,
               ),
               child: Row(
                 children: [
@@ -265,6 +267,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -273,9 +276,7 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
 
     final l10n = AppLocalizations.of(context)!;
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AppText(l10n.pleaseSelectCategory)),
-      );
+      showErrorToast(context, l10n.pleaseSelectCategory);
       return;
     }
 
@@ -313,8 +314,13 @@ class _MenuItemFormSheetState extends ConsumerState<MenuItemFormSheet> {
 
     setState(() => _isSubmitting = false);
 
-    if (success && mounted) {
-      Navigator.of(context).pop(true);
+    if (mounted) {
+      if (success) {
+        Navigator.of(context).pop(true);
+        showSuccessToast(context, l10n.itemSaved);
+      } else {
+        showErrorToast(context, l10n.failedToSaveItem);
+      }
     }
   }
 }

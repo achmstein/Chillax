@@ -307,7 +307,8 @@ app.MapGet("/api/identity/users", async (IHttpClientFactory httpClientFactory, I
             user.LastName,
             user.Enabled,
             user.CreatedTimestamp,
-            realmRoles
+            realmRoles,
+            user.Attributes?.GetValueOrDefault("phoneNumber")?.FirstOrDefault()
         ));
     }
 
@@ -405,7 +406,8 @@ app.MapGet("/api/identity/users/{userId}", async (string userId, IHttpClientFact
         user.LastName,
         user.Enabled,
         user.CreatedTimestamp,
-        realmRoles
+        realmRoles,
+        user.Attributes?.GetValueOrDefault("phoneNumber")?.FirstOrDefault()
     ));
 }).RequireAuthorization("Admin");
 
@@ -731,9 +733,14 @@ app.MapPost("/api/identity/update-profile", async (UpdateProfileRequest request,
     return Results.Problem($"Failed to update profile: {errorContent}", statusCode: (int)updateResponse.StatusCode);
 }).RequireAuthorization();
 
-// Admin: Update customer name endpoint
-app.MapPut("/api/identity/users/{userId}/name", async (string userId, UpdateNameRequest request, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+// Admin: Update customer profile (name + phone) endpoint
+app.MapPut("/api/identity/users/{userId}/profile", async (string userId, UpdateProfileRequest request, IHttpClientFactory httpClientFactory, IConfiguration config) =>
 {
+    if (string.IsNullOrWhiteSpace(request.Name))
+    {
+        return Results.BadRequest(new { message = "Name is required" });
+    }
+
     var keycloakUrl = config["Identity:Url"] ?? throw new InvalidOperationException("Identity:Url not configured");
     var realm = config["Keycloak:Realm"] ?? "chillax";
     var adminClientId = config["Keycloak:AdminClientId"] ?? "admin-cli";
@@ -759,36 +766,56 @@ app.MapPut("/api/identity/users/{userId}/name", async (string userId, UpdateName
     var tokenJson = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
     var accessToken = tokenJson.GetProperty("access_token").GetString();
 
-    // Update user name via Admin API
     var adminUrl = keycloakUrl.Replace($"/realms/{realm}", "");
     var userEndpoint = $"{adminUrl}/admin/realms/{realm}/users/{userId}";
 
-    // Split name into first/last if space present (matching registration pattern)
-    var nameParts = request.NewName?.Split(' ', 2) ?? [];
-    var firstName = nameParts.Length > 0 ? nameParts[0] : request.NewName;
-    var lastName = nameParts.Length > 1 ? nameParts[1] : "";
-
-    var namePayload = new
-    {
-        firstName = firstName,
-        lastName = lastName
-    };
-
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    var updateResponse = await client.PutAsJsonAsync(userEndpoint, namePayload);
 
-    if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    // GET current user to preserve existing attributes
+    var getResponse = await client.GetAsync(userEndpoint);
+    if (!getResponse.IsSuccessStatusCode)
     {
-        return Results.Ok(new { message = "Name updated successfully" });
+        if (getResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return Results.NotFound(new { message = "User not found" });
+        }
+        return Results.Problem("Failed to fetch user", statusCode: (int)getResponse.StatusCode);
     }
 
-    if (updateResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+    var user = await getResponse.Content.ReadFromJsonAsync<KeycloakUser>();
+    if (user == null)
     {
         return Results.NotFound(new { message = "User not found" });
     }
 
+    // Merge attributes
+    var attributes = user.Attributes ?? new Dictionary<string, string[]>();
+    if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+    {
+        attributes["phoneNumber"] = [request.PhoneNumber];
+    }
+
+    // Split name into first/last
+    var nameParts = request.Name.Split(' ', 2);
+    var firstName = nameParts.Length > 0 ? nameParts[0] : request.Name;
+    var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+
+    var updatePayload = new
+    {
+        firstName = firstName,
+        lastName = lastName,
+        attributes = attributes
+    };
+
+    var updateResponse = await client.PutAsJsonAsync(userEndpoint, updatePayload);
+
+    if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
+    {
+        return Results.Ok(new { message = "Profile updated successfully" });
+    }
+
     var errorContent = await updateResponse.Content.ReadAsStringAsync();
-    return Results.Problem($"Failed to update name: {errorContent}", statusCode: (int)updateResponse.StatusCode);
+    return Results.Problem($"Failed to update profile: {errorContent}", statusCode: (int)updateResponse.StatusCode);
 }).RequireAuthorization("Admin");
 
 // Admin: Reset customer password endpoint
@@ -1145,7 +1172,8 @@ record UserDto(
     string? LastName,
     bool Enabled,
     long? CreatedTimestamp,
-    List<string> RealmRoles
+    List<string> RealmRoles,
+    string? PhoneNumber = null
 );
 
 // Keycloak user model for deserialization

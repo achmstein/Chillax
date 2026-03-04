@@ -6,6 +6,7 @@ import '../../../core/models/branch.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/localized_text_field.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/branches_provider.dart';
 
@@ -80,18 +81,15 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
       success = await notifier.createBranch(data);
     }
 
-    if (success && mounted) {
-      final l10n = AppLocalizations.of(context)!;
-      Navigator.of(context).pop(true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(widget.isEditing ? l10n.branchUpdatedSuccess : l10n.branchCreatedSuccess),
-        ),
-      );
-    }
-
     if (mounted) {
-      setState(() => _isSaving = false);
+      final l10n = AppLocalizations.of(context)!;
+      if (success) {
+        Navigator.of(context).pop(true);
+        showSuccessToast(context, widget.isEditing ? l10n.branchUpdatedSuccess : l10n.branchCreatedSuccess);
+      } else {
+        setState(() => _isSaving = false);
+        showErrorToast(context, l10n.failedToSaveBranch);
+      }
     }
   }
 
@@ -100,18 +98,19 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
       decoration: BoxDecoration(
         color: theme.colors.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        top: false,
-        bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
             Container(
               margin: const EdgeInsets.only(top: 12, bottom: 8),
               width: 40,
@@ -148,7 +147,7 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
                   left: 16,
                   right: 16,
                   top: 16,
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  bottom: 0,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +242,7 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
+                bottom: 12,
               ),
               child: SizedBox(
                 width: double.infinity,
@@ -265,6 +264,7 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 }

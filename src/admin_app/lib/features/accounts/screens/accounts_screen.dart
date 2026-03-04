@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/widgets/admin_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/toast_helpers.dart';
 import '../../../core/widgets/ui_components.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../customers/models/customer.dart';
@@ -80,7 +81,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 AppText(
                   l10n.totalOutstanding,
@@ -276,57 +277,58 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
     final theme = context.theme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
       decoration: BoxDecoration(
         color: theme.colors.background,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
-        top: false,
-        bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colors.mutedForeground,
-                borderRadius: BorderRadius.circular(2),
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colors.mutedForeground,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
 
-            // Header
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AppText(
-                      l10n.addCharge,
-                      style: theme.typography.lg.copyWith(
-                        fontWeight: FontWeight.bold,
+              // Header
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppText(
+                        l10n.addCharge,
+                        style: theme.typography.lg.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Icon(Icons.close, color: theme.colors.mutedForeground),
-                  ),
-                ],
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(Icons.close, color: theme.colors.mutedForeground),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // Form content
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 16,
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
+              // Form content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 0,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,7 +486,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: 12 + MediaQuery.of(context).viewPadding.bottom,
+                bottom: 12,
               ),
               child: Row(
                 children: [
@@ -516,6 +518,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -535,9 +538,7 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
 
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AppText(l10n.pleaseEnterValidAmount)),
-      );
+      showErrorToast(context, l10n.pleaseEnterValidAmount);
       return;
     }
 
@@ -557,13 +558,9 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
     if (mounted) {
       if (success) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: AppText(l10n.chargeAddedSuccess)),
-        );
+        showSuccessToast(context, l10n.chargeAddedSuccess);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: AppText(l10n.failedToAddCharge)),
-        );
+        showErrorToast(context, l10n.failedToAddCharge);
       }
     }
   }

@@ -123,11 +123,10 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                       title: l10n.noLoyaltyAccounts,
                     )
                   else
-                    ListView.separated(
+                    ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: state.accounts.length,
-                      separatorBuilder: (_, __) => const FDivider(),
                       itemBuilder: (context, index) {
                         final account = state.accounts[index];
                         return _AccountTile(
