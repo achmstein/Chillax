@@ -17,6 +17,12 @@ public static class BranchApi
             .WithSummary("List active branches")
             .WithTags("Branches");
 
+        api.MapGet("/all", GetAllBranches)
+            .WithName("GetAllBranches")
+            .WithSummary("List all branches including inactive")
+            .WithTags("Branches")
+            .RequireAuthorization("Owner");
+
         // Admin endpoints
         api.MapPost("/", CreateBranch)
             .WithName("CreateBranch")
@@ -57,6 +63,17 @@ public static class BranchApi
         var branches = await context.Branches
             .AsNoTracking()
             .Where(b => b.IsActive)
+            .OrderBy(b => b.DisplayOrder)
+            .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder))
+            .ToListAsync();
+
+        return TypedResults.Ok(branches);
+    }
+
+    public static async Task<Ok<List<BranchResponse>>> GetAllBranches(BranchContext context)
+    {
+        var branches = await context.Branches
+            .AsNoTracking()
             .OrderBy(b => b.DisplayOrder)
             .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder))
             .ToListAsync();
@@ -110,13 +127,12 @@ public static class BranchApi
         ClaimsPrincipal user,
         [Description("The admin user ID")] string adminUserId)
     {
-        // Owners see all active branches when querying their own branches
+        // Owners see all branches (including inactive) when querying their own branches
         var callerId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
         if (user.IsInRole("Owner") && callerId == adminUserId)
         {
             var allBranches = await context.Branches
                 .AsNoTracking()
-                .Where(b => b.IsActive)
                 .OrderBy(b => b.DisplayOrder)
                 .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder))
                 .ToListAsync();

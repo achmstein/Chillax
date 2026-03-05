@@ -18,7 +18,7 @@ class ApiBranchRepository implements BranchRepository {
 
   @override
   Future<List<Branch>> getBranches() async {
-    final response = await _apiClient.get<List<dynamic>>('');
+    final response = await _apiClient.get<List<dynamic>>('all');
     return (response.data ?? [])
         .map((e) => Branch.fromJson(e as Map<String, dynamic>))
         .toList();
