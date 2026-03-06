@@ -33,6 +33,14 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
     WidgetsBinding.instance.addObserver(this);
     _initializeApp();
     _setupFCMHandlers();
+
+    // When user logs in, load branches and connect SignalR
+    ref.listenManual(authServiceProvider, (previous, next) {
+      if (previous != null && !previous.isAuthenticated && next.isAuthenticated) {
+        _connectSignalR();
+        ref.read(branchProvider.notifier).loadBranches();
+      }
+    });
   }
 
   @override
@@ -105,6 +113,7 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('FCM message opened app: ${message.data}');
       _handleFCMMessage(message);
+      _navigateFromFCM(message);
     });
 
     // Check for initial message (app opened from terminated state)
@@ -112,8 +121,25 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
       if (message != null) {
         debugPrint('FCM initial message: ${message.data}');
         _handleFCMMessage(message);
+        // Delay navigation to let router initialize
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _navigateFromFCM(message);
+        });
       }
     });
+  }
+
+  void _navigateFromFCM(RemoteMessage message) {
+    final type = message.data['type'];
+    final route = switch (type) {
+      'service_request' => '/service-requests',
+      'new_order' => '/orders',
+      'new_reservation' => '/rooms',
+      _ => null,
+    };
+    if (route != null) {
+      ref.read(routerProvider).go(route);
+    }
   }
 
   void _handleFCMMessage(RemoteMessage message) {

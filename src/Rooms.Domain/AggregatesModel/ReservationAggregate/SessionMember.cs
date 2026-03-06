@@ -3,7 +3,7 @@ using Chillax.Rooms.Domain.SeedWork;
 namespace Chillax.Rooms.Domain.AggregatesModel.ReservationAggregate;
 
 /// <summary>
-/// Represents a member of a session (owner or member who joined via access code)
+/// Represents a member of a session (owner or member who joined via QR scan)
 /// </summary>
 public class SessionMember : Entity
 {

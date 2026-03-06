@@ -38,16 +38,6 @@ public interface IReservationRepository : IRepository<Reservation>
     Task<bool> HasActiveReservationAsync(int roomId);
 
     /// <summary>
-    /// Get an active session by access code
-    /// </summary>
-    Task<Reservation?> GetByAccessCodeAsync(string accessCode);
-
-    /// <summary>
-    /// Check if an access code is already in use by an active session
-    /// </summary>
-    Task<bool> IsAccessCodeInUseAsync(string accessCode);
-
-    /// <summary>
     /// Get reservation with session members loaded
     /// </summary>
     Task<Reservation?> GetWithMembersAsync(int reservationId);
@@ -56,4 +46,9 @@ public interface IReservationRepository : IRepository<Reservation>
     /// Get reservation with session segments loaded
     /// </summary>
     Task<Reservation?> GetWithSegmentsAsync(int reservationId);
+
+    /// <summary>
+    /// Get the active session for a room (with members loaded)
+    /// </summary>
+    Task<Reservation?> GetActiveSessionForRoomAsync(int roomId);
 }

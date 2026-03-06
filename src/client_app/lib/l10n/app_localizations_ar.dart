@@ -258,18 +258,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToLoadDetails => 'التفاصيل مش بتحمل';
 
   @override
-  String get enterSixDigitCode => 'دخل كود من 6 أرقام';
-
-  @override
-  String get enterFourDigitCode => 'دخل كود من 4 أرقام';
-
-  @override
-  String get enterCode => 'دخل الكود';
-
-  @override
-  String get invalidCode => 'الكود غلط';
-
-  @override
   String get joinedSession => 'دخلت الجلسة!';
 
   @override
@@ -277,12 +265,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sessionActive => 'الجلسة شغالة';
-
-  @override
-  String get shareCodeWithFriends => 'شير الكود مع صحابك';
-
-  @override
-  String get codeCopied => 'الكود اتنسخ!';
 
   @override
   String get needSomething => 'عايز حاجة؟';
@@ -294,7 +276,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get controller => 'دراع';
 
   @override
-  String get getBill => 'الفاتورة';
+  String get getBill => 'الشيك';
 
   @override
   String get waiterNotified => 'الويتر عرف';
@@ -303,7 +285,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get controllerRequestSent => 'طلب الدراع اتبعت';
 
   @override
-  String get billRequestSent => 'طلب الفاتورة اتبعت';
+  String get billRequestSent => 'طلب الشيك اتبعت';
 
   @override
   String get reserved => 'محجوزة';
@@ -372,6 +354,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get roomReservedSuccess => 'الحجز تم! عندك 10 دقايق توصل.';
 
   @override
+  String get roomReservedSuccessQr => 'تم الحجز!';
+
+  @override
   String get failedToReserveRoom => 'الحجز فشل';
 
   @override
@@ -402,7 +387,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String dualRateFormat(String singleRate, String multiRate) {
-    return '$singleRate / $multiRate ج.م/ساعة';
+    return '$singleRate · $multiRate ج.م/ساعة';
   }
 
   @override
@@ -786,24 +771,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customizable => 'قابل للتخصيص';
 
   @override
-  String get joinSession => 'ادخل الجلسة';
-
-  @override
-  String get enterAccessCode => 'دخل كود الدخول';
-
-  @override
-  String get accessCodeDescription => 'اطلب الكود من صاحب الجلسة أو الموظف';
-
-  @override
-  String get sessionFound => 'الجلسة موجودة';
-
-  @override
-  String get sessionNotFound => 'الجلسة مش موجودة';
-
-  @override
-  String get failedToFetchSession => 'الجلسة مش بتحمل';
-
-  @override
   String get failedToJoinSession => 'الدخول للجلسة فشل';
 
   @override
@@ -816,6 +783,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get failedToSendRequest => 'الطلب مش بيتبعت';
+
+  @override
+  String get switchToMulti => 'مالتي';
+
+  @override
+  String get switchToMultiRequestSent => 'طلب المالتي اتبعت';
+
+  @override
+  String get switchToSingle => 'سنجل';
+
+  @override
+  String get switchToSingleRequestSent => 'طلب السنجل اتبعت';
+
+  @override
+  String get leaveSession => 'اخرج من الاوضة';
+
+  @override
+  String get leaveSessionConfirmation => 'متأكد انك عايز تخرج من الاوضة؟';
+
+  @override
+  String get yesLeave => 'أيوه، اخرج';
+
+  @override
+  String get leftSession => 'خرجت من الاوضة';
+
+  @override
+  String get failedToLeaveSession => 'مقدرناش نخرجك من الاوضة';
 
   @override
   String get updateName => 'تحديث الاسم';
@@ -887,6 +881,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get switchBranch => 'غيّر الفرع';
+
+  @override
+  String get cannotSwitchBranchDuringSession =>
+      'مينفعش تغيّر الفرع وانت في اوضة';
+
+  @override
+  String get scanQr => 'امسح الكود';
+
+  @override
+  String get scanToJoin => 'سكان QR';
+
+  @override
+  String get pointCameraAtQr => 'وجه الكاميرا على كود الاوضة';
+
+  @override
+  String get noActiveSession => 'مفيش جلسة شغالة';
+
+  @override
+  String get alreadyInSession => 'انت في الجلسة دي اصلا';
+
+  @override
+  String get reserveThisRoom => 'احجزها';
+
+  @override
+  String get invalidQrCode => 'كود مش صحيح';
+
+  @override
+  String get roomNotAvailable => 'الاوضة مش متاحة';
 
   @override
   String get completeYourProfile => 'كمّل بياناتك';

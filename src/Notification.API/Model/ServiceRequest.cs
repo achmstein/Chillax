@@ -20,7 +20,9 @@ public enum ServiceRequestType
 {
     CallWaiter = 1,
     ControllerChange = 2,
-    ReceiptToPay = 3
+    ReceiptToPay = 3,
+    SwitchToMulti = 4,
+    SwitchToSingle = 5
 }
 
 public enum ServiceRequestStatus

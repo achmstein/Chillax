@@ -33,12 +33,12 @@ public interface IRoomQueries
     Task<ReservationViewModel?> GetReservationByIdAsync(int reservationId);
 
     /// <summary>
-    /// Get session preview by access code (for joining)
-    /// </summary>
-    Task<SessionPreviewViewModel?> GetSessionPreviewByCodeAsync(string accessCode);
-
-    /// <summary>
     /// Get completed session history for a room
     /// </summary>
     Task<IEnumerable<ReservationViewModel>> GetRoomSessionHistoryAsync(int roomId, int limit = 20);
+
+    /// <summary>
+    /// Get room scan info (for QR code scan-to-join)
+    /// </summary>
+    Task<RoomScanViewModel?> GetRoomScanInfoAsync(int roomId, string customerId);
 }

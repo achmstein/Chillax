@@ -76,6 +76,19 @@ public static class NotificationApi
             .WithDescription("Unregister device from order status notifications")
             .WithTags("Subscriptions");
 
+        // User session notification endpoints (for customers)
+        api.MapPost("/subscriptions/user-sessions", SubscribeToUserSessionNotifications)
+            .WithName("SubscribeToUserSessionNotifications")
+            .WithSummary("Subscribe to user session notifications")
+            .WithDescription("Register device to receive FCM notifications when your session starts or ends")
+            .WithTags("Subscriptions");
+
+        api.MapDelete("/subscriptions/user-sessions", UnsubscribeFromUserSessionNotifications)
+            .WithName("UnsubscribeFromUserSessionNotifications")
+            .WithSummary("Unsubscribe from user session notifications")
+            .WithDescription("Unregister device from session notifications")
+            .WithTags("Subscriptions");
+
         // Service request subscription (for staff/admin)
         api.MapPost("/subscriptions/service-requests", SubscribeToServiceRequests)
             .WithName("SubscribeToServiceRequests")
@@ -191,7 +204,7 @@ public static class NotificationApi
             new SubscriptionResponse(subscription.Id, subscription.Type, subscription.CreatedAt));
     }
 
-    public static async Task<Results<NoContent, NotFound>> UnsubscribeFromRoomAvailability(
+    public static async Task<NoContent> UnsubscribeFromRoomAvailability(
         NotificationContext context,
         ClaimsPrincipal user)
     {
@@ -200,18 +213,17 @@ public static class NotificationApi
         var subscription = await context.Subscriptions
             .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.RoomAvailability);
 
-        if (subscription == null)
+        if (subscription != null)
         {
-            return TypedResults.NotFound();
+            context.Subscriptions.Remove(subscription);
+            await context.SaveChangesAsync();
         }
 
-        context.Subscriptions.Remove(subscription);
-        await context.SaveChangesAsync();
-
+        // Always return 204 — idempotent (already deleted = success)
         return TypedResults.NoContent();
     }
 
-    public static async Task<Results<Ok<SubscriptionResponse>, NotFound>> GetRoomAvailabilitySubscription(
+    public static async Task<Ok<RoomAvailabilityStatusResponse>> GetRoomAvailabilitySubscription(
         NotificationContext context,
         ClaimsPrincipal user)
     {
@@ -222,10 +234,13 @@ public static class NotificationApi
 
         if (subscription == null)
         {
-            return TypedResults.NotFound();
+            return TypedResults.Ok(new RoomAvailabilityStatusResponse(IsSubscribed: false));
         }
 
-        return TypedResults.Ok(new SubscriptionResponse(subscription.Id, subscription.Type, subscription.CreatedAt));
+        return TypedResults.Ok(new RoomAvailabilityStatusResponse(
+            IsSubscribed: true,
+            Id: subscription.Id,
+            CreatedAt: subscription.CreatedAt));
     }
 
     // Admin order notification handlers
@@ -436,6 +451,74 @@ public static class NotificationApi
 
         var subscription = await context.Subscriptions
             .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.UserOrderNotification);
+
+        if (subscription == null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        context.Subscriptions.Remove(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.NoContent();
+    }
+
+    // User session notification handlers
+    public static async Task<Results<Ok<SubscriptionResponse>, Created<SubscriptionResponse>>> SubscribeToUserSessionNotifications(
+        NotificationContext context,
+        ClaimsPrincipal user,
+        SubscribeRequest request)
+    {
+        var userId = user.GetUserId()!;
+
+        var existing = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.UserSessionNotification);
+
+        if (existing != null)
+        {
+            var changed = false;
+            if (existing.FcmToken != request.FcmToken)
+            {
+                existing.FcmToken = request.FcmToken;
+                changed = true;
+            }
+            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
+            {
+                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+                changed = true;
+            }
+            if (changed)
+            {
+                await context.SaveChangesAsync();
+            }
+            return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
+        }
+
+        var subscription = new NotificationSubscription
+        {
+            UserId = userId,
+            FcmToken = request.FcmToken,
+            Type = SubscriptionType.UserSessionNotification,
+            PreferredLanguage = request.PreferredLanguage ?? "en",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.Subscriptions.Add(subscription);
+        await context.SaveChangesAsync();
+
+        return TypedResults.Created(
+            "/api/notifications/subscriptions/user-sessions",
+            new SubscriptionResponse(subscription.Id, subscription.Type, subscription.CreatedAt));
+    }
+
+    public static async Task<Results<NoContent, NotFound>> UnsubscribeFromUserSessionNotifications(
+        NotificationContext context,
+        ClaimsPrincipal user)
+    {
+        var userId = user.GetUserId()!;
+
+        var subscription = await context.Subscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == SubscriptionType.UserSessionNotification);
 
         if (subscription == null)
         {
@@ -759,4 +842,10 @@ public record NotificationPreferencesResponse(
 public record UpdateNotificationPreferencesRequest(
     [property: Description("Receive notifications when order status changes")] bool OrderStatusUpdates,
     [property: Description("Receive promotional offers and discounts")] bool PromotionsAndOffers
+);
+
+public record RoomAvailabilityStatusResponse(
+    bool IsSubscribed,
+    int? Id = null,
+    DateTime? CreatedAt = null
 );

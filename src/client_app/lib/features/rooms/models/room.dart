@@ -96,8 +96,8 @@ class RoomSession {
   final double? totalCost;
   final SessionStatus status;
   final String? notes;
-  final String? accessCode;
   final String? currentPlayerMode;
+  final String? customerId;
 
   RoomSession({
     required this.id,
@@ -111,8 +111,8 @@ class RoomSession {
     this.totalCost,
     required this.status,
     this.notes,
-    this.accessCode,
     this.currentPlayerMode,
+    this.customerId,
   });
 
   /// When the reservation was created
@@ -152,8 +152,8 @@ class RoomSession {
       totalCost: (json['totalCost'] as num?)?.toDouble(),
       status: SessionStatus.fromValue(json['status'] as int),
       notes: json['notes'] as String?,
-      accessCode: json['accessCode'] as String?,
       currentPlayerMode: json['currentPlayerMode'] as String?,
+      customerId: json['customerId'] as String?,
     );
   }
 }
@@ -181,6 +181,44 @@ class SessionPreview {
       roomName: Room._parseLocalizedText(json['roomName']),
       startTime: DateTime.parse(json['startTime'] as String),
       memberCount: json['memberCount'] as int,
+    );
+  }
+}
+
+/// Room scan result (from QR code scan)
+class RoomScanResult {
+  final int roomId;
+  final LocalizedText roomName;
+  final double singleRate;
+  final double multiRate;
+  final RoomDisplayStatus displayStatus;
+  final bool hasActiveSession;
+  final SessionPreview? sessionPreview;
+  final bool isAlreadyMember;
+
+  RoomScanResult({
+    required this.roomId,
+    required this.roomName,
+    required this.singleRate,
+    required this.multiRate,
+    required this.displayStatus,
+    required this.hasActiveSession,
+    this.sessionPreview,
+    required this.isAlreadyMember,
+  });
+
+  factory RoomScanResult.fromJson(Map<String, dynamic> json) {
+    return RoomScanResult(
+      roomId: json['roomId'] as int,
+      roomName: Room._parseLocalizedText(json['roomName']),
+      singleRate: (json['singleRate'] as num?)?.toDouble() ?? 0.0,
+      multiRate: (json['multiRate'] as num?)?.toDouble() ?? 0.0,
+      displayStatus: RoomDisplayStatus.fromValue(json['displayStatus'] as int),
+      hasActiveSession: json['hasActiveSession'] as bool,
+      sessionPreview: json['sessionPreview'] != null
+          ? SessionPreview.fromJson(json['sessionPreview'] as Map<String, dynamic>)
+          : null,
+      isAlreadyMember: json['isAlreadyMember'] as bool,
     );
   }
 }

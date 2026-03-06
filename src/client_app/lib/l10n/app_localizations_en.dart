@@ -262,18 +262,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToLoadDetails => 'Failed to load details';
 
   @override
-  String get enterSixDigitCode => 'Enter 6-digit code';
-
-  @override
-  String get enterFourDigitCode => 'Enter 4-digit code';
-
-  @override
-  String get enterCode => 'Enter code';
-
-  @override
-  String get invalidCode => 'Invalid code';
-
-  @override
   String get joinedSession => 'Joined session!';
 
   @override
@@ -281,12 +269,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sessionActive => 'Session Active';
-
-  @override
-  String get shareCodeWithFriends => 'Share code with friends';
-
-  @override
-  String get codeCopied => 'Code copied!';
 
   @override
   String get needSomething => 'Need something?';
@@ -380,6 +362,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Room reserved! You have 10 minutes to arrive.';
 
   @override
+  String get roomReservedSuccessQr => 'Room reserved!';
+
+  @override
   String get failedToReserveRoom => 'Failed to reserve room';
 
   @override
@@ -410,7 +395,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dualRateFormat(String singleRate, String multiRate) {
-    return '£$singleRate / £$multiRate per hour';
+    return '£$singleRate · £$multiRate /hr';
   }
 
   @override
@@ -797,25 +782,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customizable => 'Customizable';
 
   @override
-  String get joinSession => 'Join Session';
-
-  @override
-  String get enterAccessCode => 'Enter Access Code';
-
-  @override
-  String get accessCodeDescription =>
-      'Ask the session owner or staff for the 6-digit code';
-
-  @override
-  String get sessionFound => 'Session Found';
-
-  @override
-  String get sessionNotFound => 'Session not found';
-
-  @override
-  String get failedToFetchSession => 'Failed to fetch session';
-
-  @override
   String get failedToJoinSession => 'Failed to join session';
 
   @override
@@ -829,6 +795,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToSendRequest => 'Failed to send request';
+
+  @override
+  String get switchToMulti => 'Multi';
+
+  @override
+  String get switchToMultiRequestSent => 'Multi request sent';
+
+  @override
+  String get switchToSingle => 'Single';
+
+  @override
+  String get switchToSingleRequestSent => 'Single request sent';
+
+  @override
+  String get leaveSession => 'Leave Room';
+
+  @override
+  String get leaveSessionConfirmation =>
+      'Are you sure you want to leave this room?';
+
+  @override
+  String get yesLeave => 'Yes, Leave';
+
+  @override
+  String get leftSession => 'Left room';
+
+  @override
+  String get failedToLeaveSession => 'Failed to leave room';
 
   @override
   String get updateName => 'Update Name';
@@ -901,6 +895,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchBranch => 'Switch Branch';
+
+  @override
+  String get cannotSwitchBranchDuringSession =>
+      'You can\'t switch branches during an active session';
+
+  @override
+  String get scanQr => 'Scan QR';
+
+  @override
+  String get scanToJoin => 'Scan to Join';
+
+  @override
+  String get pointCameraAtQr => 'Point camera at room QR code';
+
+  @override
+  String get noActiveSession => 'No active session';
+
+  @override
+  String get alreadyInSession => 'You\'re already in this session';
+
+  @override
+  String get reserveThisRoom => 'Reserve';
+
+  @override
+  String get invalidQrCode => 'Invalid QR code';
+
+  @override
+  String get roomNotAvailable => 'Room not available';
 
   @override
   String get completeYourProfile => 'Complete Your Profile';

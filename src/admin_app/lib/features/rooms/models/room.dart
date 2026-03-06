@@ -196,7 +196,6 @@ class RoomSession {
   final double? multiRoundedHours;
   final double? singleCost;
   final double? multiCost;
-  final String? accessCode;
   final DateTime? expiresAt;
   final List<SessionMember> members;
   final List<SessionSegment> segments;
@@ -219,7 +218,6 @@ class RoomSession {
     this.multiRoundedHours,
     this.singleCost,
     this.multiCost,
-    this.accessCode,
     this.expiresAt,
     this.members = const [],
     this.segments = const [],
@@ -329,7 +327,6 @@ class RoomSession {
       multiRoundedHours: (json['multiRoundedHours'] as num?)?.toDouble(),
       singleCost: (json['singleCost'] as num?)?.toDouble(),
       multiCost: (json['multiCost'] as num?)?.toDouble(),
-      accessCode: json['accessCode'] as String?,
       expiresAt: json['expiresAt'] != null
           ? DateTime.parse(json['expiresAt'] as String)
           : null,

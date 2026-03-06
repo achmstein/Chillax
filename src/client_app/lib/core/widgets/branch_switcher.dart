@@ -4,6 +4,10 @@ import 'package:forui/forui.dart';
 import '../models/branch.dart';
 import '../models/localized_text.dart';
 import '../providers/branch_provider.dart';
+import '../theme/app_theme.dart';
+import '../../features/rooms/models/room.dart';
+import '../../features/rooms/services/room_service.dart';
+import '../../l10n/app_localizations.dart';
 import 'app_text.dart';
 
 /// Thin bar that shows the branch switcher chip, hidden when only one branch
@@ -66,6 +70,20 @@ class BranchSwitcher extends ConsumerWidget {
   }
 
   void _showBranchPicker(BuildContext context, WidgetRef ref, List<Branch> branches, Branch current) {
+    // Check for active session
+    final sessions = ref.read(mySessionsProvider);
+    final hasActiveSession = sessions.value?.any((s) => s.status == SessionStatus.active) ?? false;
+
+    if (hasActiveSession) {
+      final l10n = AppLocalizations.of(context)!;
+      showFToast(
+        context: context,
+        title: Text(l10n.cannotSwitchBranchDuringSession),
+        icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+      );
+      return;
+    }
+
     final theme = context.theme;
 
     showModalBottomSheet(

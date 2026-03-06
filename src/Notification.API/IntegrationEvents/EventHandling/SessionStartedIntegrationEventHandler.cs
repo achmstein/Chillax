@@ -1,11 +1,15 @@
 using Chillax.EventBus.Abstractions;
 using Chillax.Notification.API.Hubs;
 using Chillax.Notification.API.IntegrationEvents.Events;
+using Chillax.Notification.API.Model;
+using Chillax.Notification.API.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Chillax.Notification.API.IntegrationEvents.EventHandling;
 
 public class SessionStartedIntegrationEventHandler(
+    NotificationContext context,
+    IFcmService fcmService,
     IHubContext<NotificationHub> hubContext,
     ILogger<SessionStartedIntegrationEventHandler> logger) : IIntegrationEventHandler<SessionStartedIntegrationEvent>
 {
@@ -31,6 +35,48 @@ public class SessionStartedIntegrationEventHandler(
                 roomId = @event.RoomId,
                 reservationId = @event.ReservationId
             });
+
+            // Send FCM data message to the customer for session notification
+            await SendSessionStartedFcm(@event, @event.CustomerId);
+        }
+    }
+
+    private async Task SendSessionStartedFcm(SessionStartedIntegrationEvent @event, string userId)
+    {
+        var subscriptions = await context.Subscriptions
+            .Where(s => s.UserId == userId && s.Type == SubscriptionType.UserSessionNotification)
+            .ToListAsync();
+
+        if (subscriptions.Count == 0)
+        {
+            logger.LogInformation("No session notification subscription found for user {UserId}", userId);
+            return;
+        }
+
+        var startTimeMs = @event.ActualStartTime?.ToUniversalTime()
+            .Subtract(DateTime.UnixEpoch).TotalMilliseconds.ToString("0") ?? "";
+
+        foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
+        {
+            var lang = group.Key;
+            var tokens = group.Select(s => s.FcmToken).ToList();
+            var roomName = @event.RoomName.GetText(lang);
+
+            var data = new Dictionary<string, string>
+            {
+                { "type", "session_started" },
+                { "sessionId", @event.ReservationId.ToString() },
+                { "roomId", @event.RoomId.ToString() },
+                { "roomName", roomName },
+                { "roomNameEn", @event.RoomName.GetText("en") },
+                { "roomNameAr", @event.RoomName.GetText("ar") ?? @event.RoomName.GetText("en") },
+                { "startTimeMs", startTimeMs },
+                { "locale", lang }
+            };
+
+            var successCount = await fcmService.SendBatchDataMessagesAsync(tokens, data);
+            logger.LogInformation("Sent {SuccessCount}/{TotalCount} session started FCM to user {UserId} in {Lang}",
+                successCount, tokens.Count, userId, lang);
         }
     }
 }

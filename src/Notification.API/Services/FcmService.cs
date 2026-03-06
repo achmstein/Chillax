@@ -183,4 +183,54 @@ public class FcmService : IFcmService
             return 0;
         }
     }
+
+    public async Task<int> SendBatchDataMessagesAsync(IEnumerable<string> fcmTokens, Dictionary<string, string> data)
+    {
+        var tokenList = fcmTokens.ToList();
+        if (tokenList.Count == 0)
+        {
+            return 0;
+        }
+
+        if (!_isInitialized)
+        {
+            _logger.LogInformation("Simulating batch FCM data messages to {Count} tokens: {Data}",
+                tokenList.Count, string.Join(", ", data.Select(d => $"{d.Key}={d.Value}")));
+            return tokenList.Count;
+        }
+
+        try
+        {
+            var messages = tokenList.Select(token => new Message
+            {
+                Token = token,
+                Data = data,
+                Android = new AndroidConfig
+                {
+                    Priority = Priority.High
+                },
+                Apns = new ApnsConfig
+                {
+                    Headers = new Dictionary<string, string>
+                    {
+                        { "apns-priority", "10" }
+                    },
+                    Aps = new Aps
+                    {
+                        ContentAvailable = true
+                    }
+                }
+            }).ToList();
+
+            var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+            _logger.LogInformation("Batch FCM data messages sent: {Success}/{Total} successful",
+                response.SuccessCount, tokenList.Count);
+            return response.SuccessCount;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send batch FCM data messages");
+            return 0;
+        }
+    }
 }

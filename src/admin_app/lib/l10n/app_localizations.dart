@@ -1082,6 +1082,18 @@ abstract class AppLocalizations {
   /// **'Receipt to Pay'**
   String get receiptToPay;
 
+  /// No description provided for @switchToMulti.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Multi'**
+  String get switchToMulti;
+
+  /// No description provided for @switchToSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Single'**
+  String get switchToSingle;
+
   /// No description provided for @customers.
   ///
   /// In en, this message translates to:
@@ -1165,12 +1177,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The customer will be charged for the time used.'**
   String get customerWillBeCharged;
-
-  /// No description provided for @accessCodeCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Access code copied!'**
-  String get accessCodeCopied;
 
   /// No description provided for @record.
   ///
@@ -1291,12 +1297,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ready to Start'**
   String get readyToStart;
-
-  /// No description provided for @codeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Code: {code}'**
-  String codeLabel(String code);
 
   /// No description provided for @balance.
   ///
@@ -1583,7 +1583,7 @@ abstract class AppLocalizations {
   /// No description provided for @dualRateFormat.
   ///
   /// In en, this message translates to:
-  /// **'£{singleRate} / £{multiRate} per hr'**
+  /// **'£{singleRate} · £{multiRate} /hr'**
   String dualRateFormat(String singleRate, String multiRate);
 
   /// No description provided for @balanceFormat.

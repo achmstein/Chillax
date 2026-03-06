@@ -37,10 +37,20 @@ public static class NotificationMessages
         new($"{roomName.GetText("en")} - {userName} needs a different controller",
             $"{roomName.GetText("ar")} - {userName} عايز دراع تاني");
 
-    public static readonly LocalizedText BillRequestedTitle = new("Bill Requested", "عايز الحساب");
+    public static readonly LocalizedText BillRequestedTitle = new("Bill Requested", "عايز الشيك");
     public static LocalizedText BillRequestedBody(LocalizedText roomName, string userName) =>
         new($"{roomName.GetText("en")} - {userName} wants to pay",
             $"{roomName.GetText("ar")} - {userName} عايز يدفع");
+
+    public static readonly LocalizedText SwitchToMultiTitle = new("Switch to Multi", "عايز مالتي");
+    public static LocalizedText SwitchToMultiBody(LocalizedText roomName, string userName) =>
+        new($"{roomName.GetText("en")} - {userName} wants to switch to multi",
+            $"{roomName.GetText("ar")} - {userName} عايز يحول مالتي");
+
+    public static readonly LocalizedText SwitchToSingleTitle = new("Switch to Single", "عايز سنجل");
+    public static LocalizedText SwitchToSingleBody(LocalizedText roomName, string userName) =>
+        new($"{roomName.GetText("en")} - {userName} wants to switch to single",
+            $"{roomName.GetText("ar")} - {userName} عايز يحول سنجل");
 
     public static readonly LocalizedText ServiceRequestTitle = new("Service Request", "محتاج مساعدة");
     public static LocalizedText ServiceRequestBody(LocalizedText roomName, string userName) =>

@@ -6,7 +6,7 @@ namespace Chillax.Rooms.API.Application.Commands;
 
 /// <summary>
 /// Command to start a walk-in session without an assigned customer.
-/// The first customer to join via access code becomes the owner.
+/// The first customer to join via QR scan becomes the owner.
 /// </summary>
 [DataContract]
 public class StartWalkInSessionCommand : IRequest<StartWalkInSessionResult>
@@ -28,4 +28,4 @@ public class StartWalkInSessionCommand : IRequest<StartWalkInSessionResult>
     }
 }
 
-public record StartWalkInSessionResult(int ReservationId, string AccessCode);
+public record StartWalkInSessionResult(int ReservationId);

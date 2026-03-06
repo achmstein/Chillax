@@ -17,5 +17,6 @@ public enum SubscriptionType
     AdminOrderNotification = 2,
     ServiceRequests = 3,
     AdminReservationNotification = 4,
-    UserOrderNotification = 5
+    UserOrderNotification = 5,
+    UserSessionNotification = 6
 }

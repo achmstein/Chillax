@@ -115,15 +115,9 @@
   "rateThisOrder": "Rate This Order",
   "failedToLoadDetails": "Failed to load details",
 
-  "enterSixDigitCode": "Enter 6-digit code",
-  "enterFourDigitCode": "Enter 4-digit code",
-  "enterCode": "Enter code",
-  "invalidCode": "Invalid code",
   "joinedSession": "Joined session!",
   "failedToLoadRooms": "Failed to load rooms",
   "sessionActive": "Session Active",
-  "shareCodeWithFriends": "Share code with friends",
-  "codeCopied": "Code copied!",
   "needSomething": "Need something?",
   "callWaiter": "Waiter",
   "controller": "Controller",
@@ -157,6 +151,7 @@
   "perHour": "/hr",
   "reserveNow": "Reserve Now",
   "roomReservedSuccess": "Room reserved! You have 10 minutes to arrive.",
+  "roomReservedSuccessQr": "Room reserved!",
   "failedToReserveRoom": "Failed to reserve room",
   "available": "Available",
   "occupied": "Occupied",
@@ -173,7 +168,7 @@
       "rate": {"type": "String"}
     }
   },
-  "dualRateFormat": "£{singleRate} / £{multiRate} per hour",
+  "dualRateFormat": "£{singleRate} · £{multiRate} /hr",
   "@dualRateFormat": {
     "placeholders": {
       "singleRate": {"type": "String"},
@@ -398,12 +393,6 @@
 
   "customizable": "Customizable",
 
-  "joinSession": "Join Session",
-  "enterAccessCode": "Enter Access Code",
-  "accessCodeDescription": "Ask the session owner or staff for the 6-digit code",
-  "sessionFound": "Session Found",
-  "sessionNotFound": "Session not found",
-  "failedToFetchSession": "Failed to fetch session",
   "failedToJoinSession": "Failed to join session",
   "memberCountFormat": "{count} members",
   "@memberCountFormat": {
@@ -413,6 +402,15 @@
   },
   "pleaseWaitBeforeRequest": "Please wait before making another request",
   "failedToSendRequest": "Failed to send request",
+  "switchToMulti": "Multi",
+  "switchToMultiRequestSent": "Multi request sent",
+  "switchToSingle": "Single",
+  "switchToSingleRequestSent": "Single request sent",
+  "leaveSession": "Leave Room",
+  "leaveSessionConfirmation": "Are you sure you want to leave this room?",
+  "yesLeave": "Yes, Leave",
+  "leftSession": "Left room",
+  "failedToLeaveSession": "Failed to leave room",
 
   "updateName": "Update Name",
   "enterNewName": "Enter your new display name",
@@ -448,6 +446,16 @@
 
   "selectBranch": "Select Branch",
   "switchBranch": "Switch Branch",
+  "cannotSwitchBranchDuringSession": "You can't switch branches during an active session",
+
+  "scanQr": "Scan QR",
+  "scanToJoin": "Scan to Join",
+  "pointCameraAtQr": "Point camera at room QR code",
+  "noActiveSession": "No active session",
+  "alreadyInSession": "You're already in this session",
+  "reserveThisRoom": "Reserve",
+  "invalidQrCode": "Invalid QR code",
+  "roomNotAvailable": "Room not available",
 
   "completeYourProfile": "Complete Your Profile",
   "completeProfileDescription": "Please enter your name and phone number to continue",

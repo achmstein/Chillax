@@ -173,7 +173,9 @@
   "hoursAgo": "من {hours} ساعة",
   "callWaiter": "استدعاء ويتر",
   "controllerChange": "تغيير الدراع",
-  "receiptToPay": "الفاتورة للدفع",
+  "receiptToPay": "الشيك للدفع",
+  "switchToMulti": "تحويل مالتي",
+  "switchToSingle": "تحويل سنجل",
 
   "customers": "العملاء",
   "more": "المزيد",
@@ -191,8 +193,6 @@
   "reserve": "حجز",
   "walkIn": "زيارة مباشرة",
   "customerWillBeCharged": "هيتحاسب العميل على الوقت اللي استخدمه.",
-  "accessCodeCopied": "تم نسخ كود الدخول!",
-
   "record": "تسجيل",
   "paymentRecorded": "تم تسجيل الدفع",
   "failedToRecordPayment": "فشل تسجيل الدفع",
@@ -219,8 +219,6 @@
   "amountEgpLabel": "المبلغ (جنيه)",
 
   "readyToStart": "جاهز للبدء",
-  "codeLabel": "الكود: {code}",
-
   "balance": "الرصيد",
   "memberSince": "عضو من",
   "status": "الحالة",
@@ -272,7 +270,7 @@
   "currency": "ج.م",
   "priceFormat": "{price} ج.م",
   "hourlyRateFormat": "{rate} ج.م/ساعة",
-  "dualRateFormat": "{singleRate} / {multiRate} ج.م/ساعة",
+  "dualRateFormat": "{singleRate} · {multiRate} ج.م/ساعة",
   "balanceFormat": "{amount} {currency}",
 
   "changePassword": "تغيير الباسورد",

@@ -44,23 +44,16 @@ public class StartWalkInSessionCommandHandler : IRequestHandler<StartWalkInSessi
             request.InitialPlayerMode,
             request.Notes);
 
-        // Ensure unique access code among active sessions
-        for (var i = 0; i < 10 && await _reservationRepository.IsAccessCodeInUseAsync(reservation.AccessCode!); i++)
-        {
-            reservation.GenerateAccessCode();
-        }
-
         _reservationRepository.Add(reservation);
 
         // Update room physical status
         room.SetOccupied();
         _roomRepository.Update(room);
 
-        _logger.LogInformation("Starting walk-in session for room {RoomId} with access code {AccessCode}",
-            request.RoomId, reservation.AccessCode);
+        _logger.LogInformation("Starting walk-in session for room {RoomId}", request.RoomId);
 
         await _reservationRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
 
-        return new StartWalkInSessionResult(reservation.Id, reservation.AccessCode!);
+        return new StartWalkInSessionResult(reservation.Id);
     }
 }

@@ -12,4 +12,5 @@ public record SessionStartedIntegrationEvent(
     int RoomId,
     LocalizedText RoomName,
     string? CustomerId,
-    string? CustomerName) : IntegrationEvent;
+    string? CustomerName,
+    DateTime? ActualStartTime) : IntegrationEvent;

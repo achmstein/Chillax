@@ -89,6 +89,12 @@ public class ServiceRequestCreatedIntegrationEventHandler(
             ServiceRequestType.ReceiptToPay => (
                 NotificationMessages.BillRequestedTitle.GetText(lang),
                 NotificationMessages.BillRequestedBody(@event.RoomName, @event.UserName).GetText(lang)),
+            ServiceRequestType.SwitchToMulti => (
+                NotificationMessages.SwitchToMultiTitle.GetText(lang),
+                NotificationMessages.SwitchToMultiBody(@event.RoomName, @event.UserName).GetText(lang)),
+            ServiceRequestType.SwitchToSingle => (
+                NotificationMessages.SwitchToSingleTitle.GetText(lang),
+                NotificationMessages.SwitchToSingleBody(@event.RoomName, @event.UserName).GetText(lang)),
             _ => (
                 NotificationMessages.ServiceRequestTitle.GetText(lang),
                 NotificationMessages.ServiceRequestBody(@event.RoomName, @event.UserName).GetText(lang))

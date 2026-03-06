@@ -20,6 +20,10 @@ extension ServiceRequestTypeLocalization on ServiceRequestType {
         return l10n.controllerChange;
       case ServiceRequestType.receiptToPay:
         return l10n.receiptToPay;
+      case ServiceRequestType.switchToMulti:
+        return l10n.switchToMulti;
+      case ServiceRequestType.switchToSingle:
+        return l10n.switchToSingle;
     }
   }
 }
@@ -251,6 +255,14 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
         icon = Icons.receipt_long;
         color = const Color(0xFF16A34A);
         break;
+      case ServiceRequestType.switchToMulti:
+        icon = Icons.people;
+        color = const Color(0xFFEA580C);
+        break;
+      case ServiceRequestType.switchToSingle:
+        icon = Icons.person;
+        color = const Color(0xFF2563EB);
+        break;
     }
 
     return Container(
@@ -463,6 +475,14 @@ class _RequestTile extends StatelessWidget {
       case ServiceRequestType.receiptToPay:
         icon = Icons.receipt_long;
         color = const Color(0xFF16A34A);
+        break;
+      case ServiceRequestType.switchToMulti:
+        icon = Icons.people;
+        color = const Color(0xFFEA580C);
+        break;
+      case ServiceRequestType.switchToSingle:
+        icon = Icons.person;
+        color = const Color(0xFF2563EB);
         break;
     }
 

@@ -27,6 +27,23 @@ public class SessionEndedDomainEventHandler : INotificationHandler<SessionEndedD
         _logger.LogInformation("Session ended: {ReservationId}, Room: {RoomId}, Cost: {Cost}",
             reservation.Id, reservation.RoomId, reservation.TotalCost);
 
+        // Publish session ended event for FCM notification dismissal
+        var memberIds = reservation.SessionMembers
+            .Select(m => m.CustomerId)
+            .ToList();
+        if (reservation.CustomerId != null && !memberIds.Contains(reservation.CustomerId))
+        {
+            memberIds.Add(reservation.CustomerId);
+        }
+
+        var sessionEndedEvent = new SessionEndedIntegrationEvent(
+            reservation.Id,
+            reservation.RoomId,
+            reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
+            memberIds);
+
+        await _eventBus.PublishAsync(sessionEndedEvent);
+
         // Publish room available event for notifications
         var roomAvailableEvent = new RoomBecameAvailableIntegrationEvent(
             reservation.RoomId,

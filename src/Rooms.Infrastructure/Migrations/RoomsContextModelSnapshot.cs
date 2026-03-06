@@ -74,13 +74,6 @@ namespace Rooms.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "reservationseq", "rooms");
 
-                    b.Property<string>("AccessCode")
-                        .HasMaxLength(6)
-                        .HasColumnType("character varying(6)");
-
-                    b.Property<DateTime?>("AccessCodeGeneratedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime?>("ActualStartTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -130,8 +123,6 @@ namespace Rooms.Infrastructure.Migrations
                         .HasColumnType("numeric(18,2)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccessCode");
 
                     b.HasIndex("CreatedAt");
 

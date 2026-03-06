@@ -53,6 +53,9 @@ dependencies:
   firebase_crashlytics: ^5.0.7
   firebase_messaging: ^16.1.1
 
+  # QR Scanner
+  mobile_scanner: ^6.0.0
+
   # Splash
   flutter_native_splash: ^2.4.0
   url_launcher: ^6.3.2

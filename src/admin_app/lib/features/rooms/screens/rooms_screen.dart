@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' show DateFormat;
 import '../../../core/config/app_config.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/admin_scaffold.dart';
@@ -360,41 +359,35 @@ class _RoomTileState extends State<_RoomTile> {
                       fontSize: 15,
                     ),
                   ),
-                  if (widget.room.description != null) ...[
-                    const SizedBox(height: 4),
-                    AppText(
-                      widget.room.description!.localized(context),
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                        fontSize: 13,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
                   const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      AppText(
-                        l10n.dualRateFormat(widget.room.singleRate.toStringAsFixed(0), widget.room.multiRate.toStringAsFixed(0)),
-                        style: theme.typography.sm.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                  if (isAvailable)
+                    Row(
+                      children: [
+                        AppText(
+                          l10n.dualRateFormat(widget.room.singleRate.toStringAsFixed(0), widget.room.multiRate.toStringAsFixed(0)),
+                          style: theme.typography.sm.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: AppText(
+                        const SizedBox(width: 8),
+                        AppText(
                           '• ${_getStatusLabel(l10n)}',
                           style: theme.typography.sm.copyWith(
                             color: _getStatusColor(theme),
                             fontSize: 13,
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
+                      ],
+                    )
+                  else
+                    AppText(
+                      _getStatusLabel(l10n),
+                      style: theme.typography.sm.copyWith(
+                        color: _getStatusColor(theme),
+                        fontSize: 13,
                       ),
-                    ],
-                  ),
+                    ),
                   if (widget.session?.userName != null) ...[
                     const SizedBox(height: 4),
                     Row(
@@ -467,10 +460,10 @@ class _RoomTileState extends State<_RoomTile> {
                   ),
                 ),
               )
-            else if (isAvailable)
+            else if (isAvailable) ...[
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: widget.onReserve,
+                onTap: () => widget.onStartWalkIn(),
                 child: Padding(
                   padding: const EdgeInsets.all(4),
                   child: Container(
@@ -480,13 +473,33 @@ class _RoomTileState extends State<_RoomTile> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Icon(
-                      Icons.bookmark_add_outlined,
+                      Icons.directions_walk,
                       color: theme.colors.primaryForeground,
                       size: 18,
                     ),
                   ),
                 ),
               ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.onReserve,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colors.primary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      Icons.bookmark_add_outlined,
+                      color: theme.colors.primary,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -495,7 +508,7 @@ class _RoomTileState extends State<_RoomTile> {
 
   String _getStatusLabel(AppLocalizations l10n) {
     if (widget.session?.status == SessionStatus.active) {
-      return l10n.statusActive;
+      return widget.session!.formattedDuration;
     }
     if (widget.session?.status == SessionStatus.reserved) {
       // Show countdown if expiration time is available

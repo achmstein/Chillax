@@ -129,28 +129,6 @@ public class RoomQueries : IRoomQueries
         return RoomDisplayStatus.Available;
     }
 
-    public async Task<SessionPreviewViewModel?> GetSessionPreviewByCodeAsync(string accessCode)
-    {
-        var reservation = await _context.Reservations
-            .Include(r => r.Room)
-            .Include(r => r.SessionMembers)
-            .Where(r => r.AccessCode == accessCode)
-            .Where(r => r.Status == ReservationStatus.Active)
-            .FirstOrDefaultAsync();
-
-        if (reservation == null)
-            return null;
-
-        return new SessionPreviewViewModel
-        {
-            SessionId = reservation.Id,
-            RoomId = reservation.RoomId,
-            RoomName = reservation.Room?.Name ?? new LocalizedText($"Room {reservation.RoomId}"),
-            StartTime = reservation.ActualStartTime ?? reservation.CreatedAt,
-            MemberCount = reservation.SessionMembers.Count
-        };
-    }
-
     private static ReservationViewModel MapToViewModel(Reservation reservation)
     {
         return new ReservationViewModel
@@ -173,7 +151,6 @@ public class RoomQueries : IRoomQueries
             MultiCost = reservation.GetMultiCost(),
             Status = reservation.Status,
             Notes = reservation.Notes,
-            AccessCode = reservation.AccessCode,
             ExpiresAt = reservation.GetExpirationTime(),
             Members = reservation.SessionMembers?.Select(m => new SessionMemberViewModel
             {
@@ -189,6 +166,53 @@ public class RoomQueries : IRoomQueries
                 StartTime = s.StartTime,
                 EndTime = s.EndTime
             }).ToList() ?? new()
+        };
+    }
+
+    public async Task<RoomScanViewModel?> GetRoomScanInfoAsync(int roomId, string customerId)
+    {
+        var room = await _context.Rooms.FindAsync(roomId);
+        if (room == null) return null;
+
+        var roomReservations = await _context.Reservations
+            .Include(r => r.SessionMembers)
+            .Where(r => r.RoomId == roomId)
+            .Where(r => r.Status == ReservationStatus.Reserved || r.Status == ReservationStatus.Active)
+            .ToListAsync();
+
+        var displayStatus = ComputeDisplayStatus(room, roomReservations);
+
+        var activeReservation = roomReservations
+            .FirstOrDefault(r => r.Status == ReservationStatus.Active);
+
+        SessionPreviewViewModel? sessionPreview = null;
+        bool isAlreadyMember = false;
+
+        if (activeReservation != null)
+        {
+            sessionPreview = new SessionPreviewViewModel
+            {
+                SessionId = activeReservation.Id,
+                RoomId = activeReservation.RoomId,
+                RoomName = room.Name,
+                StartTime = activeReservation.ActualStartTime ?? activeReservation.CreatedAt,
+                MemberCount = activeReservation.SessionMembers.Count
+            };
+
+            isAlreadyMember = activeReservation.CustomerId == customerId ||
+                activeReservation.SessionMembers.Any(m => m.CustomerId == customerId);
+        }
+
+        return new RoomScanViewModel
+        {
+            RoomId = room.Id,
+            RoomName = room.Name,
+            SingleRate = room.SingleRate,
+            MultiRate = room.MultiRate,
+            DisplayStatus = displayStatus,
+            HasActiveSession = activeReservation != null,
+            SessionPreview = sessionPreview,
+            IsAlreadyMember = isAlreadyMember
         };
     }
 

@@ -539,7 +539,7 @@
           "Sessions"
         ],
         "summary": "Start a walk-in session",
-        "description": "Start a walk-in session without an assigned customer. Returns access code for customers to join. (Admin only)",
+        "description": "Start a walk-in session without an assigned customer (Admin only)",
         "operationId": "StartWalkInSession",
         "parameters": [
           {
@@ -663,57 +663,6 @@
         ]
       }
     },
-    "/api/rooms/sessions/join": {
-      "post": {
-        "tags": [
-          "Sessions"
-        ],
-        "summary": "Join a session",
-        "description": "Join an active session using the 4-digit access code",
-        "operationId": "JoinSession",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/JoinSessionRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JoinSessionResult"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          }
-        },
-        "security": [
-          { }
-        ]
-      }
-    },
     "/api/rooms/sessions/{sessionId}/leave": {
       "post": {
         "tags": [
@@ -801,51 +750,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          }
-        },
-        "security": [
-          { }
-        ]
-      }
-    },
-    "/api/rooms/sessions/by-code/{code}": {
-      "get": {
-        "tags": [
-          "Sessions"
-        ],
-        "summary": "Preview session by access code",
-        "description": "Get session preview before joining",
-        "operationId": "GetSessionByCode",
-        "parameters": [
-          {
-            "name": "code",
-            "in": "path",
-            "description": "The 4-digit access code",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SessionPreviewViewModel"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found"
           },
           "401": {
             "description": "Unauthorized"
@@ -1213,6 +1117,107 @@
           { }
         ]
       }
+    },
+    "/api/rooms/{roomId}/scan": {
+      "get": {
+        "tags": [
+          "Rooms"
+        ],
+        "summary": "Get room scan info",
+        "description": "Get room info and active session status for QR code scan-to-join",
+        "operationId": "ScanRoom",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "description": "The room ID",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomScanViewModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
+      }
+    },
+    "/api/rooms/sessions/join-by-room/{roomId}": {
+      "post": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Join session by room",
+        "description": "Join the active session of a room (via QR scan)",
+        "operationId": "JoinSessionByRoom",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "description": "The room ID",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinSessionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          { }
+        ]
+      }
     }
   },
   "components": {
@@ -1301,17 +1306,6 @@
               "string"
             ],
             "format": "double"
-          }
-        }
-      },
-      "JoinSessionRequest": {
-        "required": [
-          "accessCode"
-        ],
-        "type": "object",
-        "properties": {
-          "accessCode": {
-            "type": "string"
           }
         }
       },
@@ -1532,12 +1526,6 @@
               "string"
             ]
           },
-          "accessCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
           "expiresAt": {
             "type": [
               "null",
@@ -1581,6 +1569,57 @@
       },
       "RoomPhysicalStatus": {
         "type": "integer"
+      },
+      "RoomScanViewModel": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "roomName": {
+            "$ref": "#/components/schemas/LocalizedText"
+          },
+          "singleRate": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "multiRate": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "displayStatus": {
+            "$ref": "#/components/schemas/RoomDisplayStatus"
+          },
+          "hasActiveSession": {
+            "type": "boolean"
+          },
+          "sessionPreview": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SessionPreviewViewModel"
+              }
+            ]
+          },
+          "isAlreadyMember": {
+            "type": "boolean"
+          }
+        }
       },
       "RoomViewModel": {
         "type": "object",
@@ -1724,8 +1763,7 @@
       },
       "StartWalkInSessionResult": {
         "required": [
-          "reservationId",
-          "accessCode"
+          "reservationId"
         ],
         "type": "object",
         "properties": {
@@ -1736,9 +1774,6 @@
               "string"
             ],
             "format": "int32"
-          },
-          "accessCode": {
-            "type": "string"
           }
         }
       },

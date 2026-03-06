@@ -103,7 +103,7 @@ public static class RoomsApi
         api.MapPost("/sessions/walk-in/{roomId:int}", StartWalkInSession)
             .WithName("StartWalkInSession")
             .WithSummary("Start a walk-in session")
-            .WithDescription("Start a walk-in session without an assigned customer. Returns access code for customers to join. (Admin only)")
+            .WithDescription("Start a walk-in session without an assigned customer (Admin only)")
             .WithTags("Sessions")
             .RequireAuthorization("Admin");
 
@@ -116,13 +116,6 @@ public static class RoomsApi
             .RequireAuthorization("Admin");
 
         // Session membership endpoints (Customer)
-        api.MapPost("/sessions/join", JoinSession)
-            .WithName("JoinSession")
-            .WithSummary("Join a session")
-            .WithDescription("Join an active session using the 4-digit access code")
-            .WithTags("Sessions")
-            .RequireAuthorization();
-
         api.MapPost("/sessions/{sessionId:int}/leave", LeaveSession)
             .WithName("LeaveSession")
             .WithSummary("Leave a session")
@@ -134,13 +127,6 @@ public static class RoomsApi
             .WithName("CancelMyReservation")
             .WithSummary("Cancel my reservation")
             .WithDescription("Cancel your own reservation (only if still in Reserved status)")
-            .WithTags("Sessions")
-            .RequireAuthorization();
-
-        api.MapGet("/sessions/by-code/{code}", GetSessionByCode)
-            .WithName("GetSessionByCode")
-            .WithSummary("Preview session by access code")
-            .WithDescription("Get session preview before joining")
             .WithTags("Sessions")
             .RequireAuthorization();
 
@@ -193,6 +179,21 @@ public static class RoomsApi
             .WithDescription("Get completed sessions history for a specific room (Admin only)")
             .WithTags("Sessions")
             .RequireAuthorization("Admin");
+
+        // QR scan endpoints
+        api.MapGet("/{roomId:int}/scan", ScanRoom)
+            .WithName("ScanRoom")
+            .WithSummary("Get room scan info")
+            .WithDescription("Get room info and active session status for QR code scan-to-join")
+            .WithTags("Rooms")
+            .RequireAuthorization();
+
+        api.MapPost("/sessions/join-by-room/{roomId:int}", JoinSessionByRoom)
+            .WithName("JoinSessionByRoom")
+            .WithSummary("Join session by room")
+            .WithDescription("Join the active session of a room (via QR scan)")
+            .WithTags("Sessions")
+            .RequireAuthorization();
 
         return app;
     }
@@ -522,34 +523,6 @@ public static class RoomsApi
         }
     }
 
-    public static async Task<Results<Ok<JoinSessionResult>, BadRequest<ProblemDetails>>> JoinSession(
-        [FromServices] IMediator mediator,
-        HttpContext httpContext,
-        JoinSessionRequest request)
-    {
-        var customerId = httpContext.User.GetUserId();
-        if (string.IsNullOrEmpty(customerId))
-        {
-            return TypedResults.BadRequest<ProblemDetails>(new()
-            {
-                Detail = "User ID not found in token"
-            });
-        }
-
-        var customerName = httpContext.User.GetUserName();
-
-        try
-        {
-            var command = new JoinSessionCommand(request.AccessCode, customerId, customerName);
-            var result = await mediator.Send(command);
-            return TypedResults.Ok(result);
-        }
-        catch (RoomsDomainException ex)
-        {
-            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
-        }
-    }
-
     public static async Task<Results<Ok, NotFound, BadRequest<ProblemDetails>>> LeaveSession(
         [FromServices] IMediator mediator,
         HttpContext httpContext,
@@ -645,16 +618,48 @@ public static class RoomsApi
         }
     }
 
-    public static async Task<Results<Ok<SessionPreviewViewModel>, NotFound>> GetSessionByCode(
+    public static async Task<Results<Ok<RoomScanViewModel>, NotFound>> ScanRoom(
         [FromServices] IRoomQueries queries,
-        [Description("The 4-digit access code")] string code)
+        HttpContext httpContext,
+        [Description("The room ID")] int roomId)
     {
-        var preview = await queries.GetSessionPreviewByCodeAsync(code);
-        if (preview == null)
+        var customerId = httpContext.User.GetUserId() ?? string.Empty;
+        var result = await queries.GetRoomScanInfoAsync(roomId, customerId);
+
+        if (result == null)
         {
             return TypedResults.NotFound();
         }
-        return TypedResults.Ok(preview);
+
+        return TypedResults.Ok(result);
+    }
+
+    public static async Task<Results<Ok<JoinSessionResult>, BadRequest<ProblemDetails>>> JoinSessionByRoom(
+        [FromServices] IMediator mediator,
+        HttpContext httpContext,
+        [Description("The room ID")] int roomId)
+    {
+        var customerId = httpContext.User.GetUserId();
+        if (string.IsNullOrEmpty(customerId))
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new()
+            {
+                Detail = "User ID not found in token"
+            });
+        }
+
+        var customerName = httpContext.User.GetUserName();
+
+        try
+        {
+            var command = new JoinSessionByRoomCommand(roomId, customerId, customerName);
+            var result = await mediator.Send(command);
+            return TypedResults.Ok(result);
+        }
+        catch (RoomsDomainException ex)
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new() { Detail = ex.Message });
+        }
     }
 
     public static async Task<Ok<IEnumerable<ReservationViewModel>>> GetRoomSessionHistory(
@@ -675,8 +680,6 @@ public record ReserveRoomRequest(
 public record WalkInSessionRequest(
     string? Notes = null,
     string? PlayerMode = null);
-
-public record JoinSessionRequest(string AccessCode);
 
 public record AssignCustomerRequest(string CustomerId, string? CustomerName);
 

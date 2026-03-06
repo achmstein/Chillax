@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'qr_scan_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/localized_text.dart';
 import '../../../core/providers/locale_provider.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -27,12 +28,9 @@ class RoomsScreen extends ConsumerStatefulWidget {
 }
 
 class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingObserver {
-  final _codeController = TextEditingController();
-  final _codeFocusNode = FocusNode();
-  bool _isJoining = false;
-  String? _joinError;
   Timer? _pollTimer;
   late final SignalRService _signalRService;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -54,6 +52,15 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
 
     _startPolling();
 
+    // Scroll to top when a new reservation appears
+    ref.listenManual(mySessionsProvider, (previous, next) {
+      final hadReserved = previous?.value?.any((s) => s.status == SessionStatus.reserved) ?? false;
+      final hasReserved = next.value?.any((s) => s.status == SessionStatus.reserved) ?? false;
+      if (!hadReserved && hasReserved && _scrollController.hasClients) {
+        _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      }
+    });
+
     // Join SignalR rooms group for realtime updates
     _signalRService.joinRoomsGroup();
   }
@@ -61,10 +68,9 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
   @override
   void dispose() {
     _stopPolling();
+    _scrollController.dispose();
     _signalRService.leaveRoomsGroup();
     WidgetsBinding.instance.removeObserver(this);
-    _codeController.dispose();
-    _codeFocusNode.dispose();
     super.dispose();
   }
 
@@ -95,44 +101,10 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     }
   }
 
-  Future<void> _joinSession() async {
-    final l10n = AppLocalizations.of(context)!;
-    final code = _codeController.text.trim();
-    if (code.length != 4) {
-      setState(() => _joinError = l10n.enterFourDigitCode);
-      return;
-    }
-
-    setState(() {
-      _isJoining = true;
-      _joinError = null;
-    });
-
-    try {
-      final service = ref.read(roomRepositoryProvider);
-      await service.joinSession(code);
-
-      if (mounted) {
-        _codeController.clear();
-        _codeFocusNode.unfocus();
-        ref.read(mySessionsProvider.notifier).refresh();
-        final branchId = ref.read(selectedBranchIdProvider);
-        if (branchId != null) ref.invalidate(roomsProvider(branchId));
-        showFToast(
-          context: context,
-          title: Text(l10n.joinedSession),
-          icon: Icon(FIcons.check, color: AppTheme.successColor),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _joinError = l10n.invalidCode);
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isJoining = false);
-      }
-    }
+  void _openQrScanner() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const QrScanScreen()),
+    );
   }
 
   @override
@@ -153,12 +125,18 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     return Scaffold(
       backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: false,
-      bottomNavigationBar: !hasActiveSession ? _buildJoinSessionBar() : null,
       body: Column(
         children: [
           // Header
           FHeader(
             title: AppText(l10n.rooms, style: TextStyle(fontSize: 18)),
+            suffixes: [
+              if (!hasActiveSession)
+                FHeaderAction(
+                  icon: const Icon(Icons.qr_code_scanner, size: 20),
+                  onPress: _openQrScanner,
+                ),
+            ],
           ),
 
           // Content
@@ -187,102 +165,6 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildJoinSessionBar() {
-    final colors = context.theme.colors;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: BoxDecoration(
-        color: colors.background,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-          children: [
-            // Code input
-            Expanded(
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppTheme.textMuted.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: _joinError != null
-                      ? Border.all(color: AppTheme.errorColor.withValues(alpha: 0.5))
-                      : null,
-                ),
-                child: TextField(
-                  controller: _codeController,
-                  focusNode: _codeFocusNode,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  maxLength: 4,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 10,
-                  ),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    hintText: AppLocalizations.of(context)!.enterCode,
-                    hintStyle: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                      letterSpacing: 0,
-                      color: AppTheme.textMuted,
-                    ),
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
-                  onChanged: (_) {
-                    if (_joinError != null) {
-                      setState(() => _joinError = null);
-                    }
-                  },
-                  onSubmitted: (_) => _joinSession(),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Join button
-            SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _isJoining ? null : _joinSession,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                ),
-                child: _isJoining
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : AppText(
-                        AppLocalizations.of(context)!.join,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-              ),
-            ),
-          ],
-        ),
     );
   }
 
@@ -345,6 +227,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
         await ref.read(mySessionsProvider.notifier).refresh();
       },
       child: ListView.builder(
+        controller: _scrollController,
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: _getItemCount(rooms, reservedSession, showNotifyBanner),
         itemBuilder: (context, index) {
@@ -482,13 +365,10 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
               ),
               child: Column(
                 children: [
-                  // Room name
+                  // Room name + player mode in one row
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(FIcons.gamepad2, color: Colors.white, size: 24),
-                      const SizedBox(width: 8),
                       AppText(
                         session.roomName.localized(context),
                         style: TextStyle(
@@ -497,84 +377,31 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      if (session.currentPlayerMode != null) ...[
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                          ),
+                          child: AppText(
+                            session.currentPlayerMode == 'Single'
+                                ? AppLocalizations.of(context)!.playerModeSingle
+                                : AppLocalizations.of(context)!.playerModeMulti,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
 
-                  // Player mode badge
-                  if (session.currentPlayerMode != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-                      ),
-                      child: AppText(
-                        session.currentPlayerMode == 'Single'
-                            ? AppLocalizations.of(context)!.playerModeSingle
-                            : AppLocalizations.of(context)!.playerModeMulti,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  // Access code display
-                  if (session.accessCode != null) ...[
-                    const SizedBox(height: 20),
-                    AppText(
-                      AppLocalizations.of(context)!.shareCodeWithFriends,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () {
-                        // Copy to clipboard
-                        Clipboard.setData(ClipboardData(text: session.accessCode!));
-                        showFToast(
-                          context: context,
-                          title: Text(AppLocalizations.of(context)!.codeCopied),
-                          icon: Icon(FIcons.check, color: AppTheme.successColor),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AppText(
-                              session.accessCode!,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 6,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Icon(
-                              FIcons.copy,
-                              color: Colors.white.withValues(alpha: 0.7),
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
                   // Timer
                   AppText(
@@ -584,6 +411,21 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 2,
+                    ),
+                  ),
+
+                  // Price per hour
+                  const SizedBox(height: 8),
+                  AppText(
+                    AppLocalizations.of(context)!.hourlyRateFormat(
+                      (session.currentPlayerMode == 'Multi'
+                              ? session.multiRate
+                              : session.singleRate)
+                          .toStringAsFixed(0),
+                    ),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -602,12 +444,12 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
             ),
             const SizedBox(height: 16),
 
-            // Action buttons grid
+            // Action buttons grid - row 1
             Row(
               children: [
                 Expanded(
                   child: _QuickActionButton(
-                    icon: FIcons.user,
+                    icon: FIcons.bellRing,
                     label: AppLocalizations.of(context)!.callWaiter,
                     cooldownSeconds: _getCooldownRemaining(ServiceRequestType.callWaiter),
                     onTap: () => _submitRequest(ServiceRequestType.callWaiter),
@@ -622,7 +464,13 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                     onTap: () => _submitRequest(ServiceRequestType.controllerChange),
                   ),
                 ),
-                const SizedBox(width: 12),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Action buttons grid - row 2
+            Row(
+              children: [
                 Expanded(
                   child: _QuickActionButton(
                     icon: FIcons.receipt,
@@ -631,8 +479,45 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                     onTap: () => _submitRequest(ServiceRequestType.receiptToPay),
                   ),
                 ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: session.currentPlayerMode == 'Multi'
+                      ? _QuickActionButton(
+                          icon: FIcons.user,
+                          label: AppLocalizations.of(context)!.switchToSingle,
+                          cooldownSeconds: _getCooldownRemaining(ServiceRequestType.switchToSingle),
+                          onTap: () => _submitRequest(ServiceRequestType.switchToSingle),
+                        )
+                      : _QuickActionButton(
+                          icon: FIcons.users,
+                          label: AppLocalizations.of(context)!.switchToMulti,
+                          cooldownSeconds: _getCooldownRemaining(ServiceRequestType.switchToMulti),
+                          onTap: () => _submitRequest(ServiceRequestType.switchToMulti),
+                        ),
+                ),
               ],
             ),
+
+            // Leave session button (non-owners only)
+            if (session.customerId != null &&
+                session.customerId != ref.read(authServiceProvider).userId) ...[
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FButton(
+                  variant: FButtonVariant.outline,
+                  onPress: () => _confirmLeaveSession(session.id),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(FIcons.logOut, size: 16),
+                      const SizedBox(width: 8),
+                      Text(AppLocalizations.of(context)!.leaveSession),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -686,7 +571,61 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
         return l10n.controllerRequestSent;
       case ServiceRequestType.receiptToPay:
         return l10n.billRequestSent;
+      case ServiceRequestType.switchToMulti:
+        return l10n.switchToMultiRequestSent;
+      case ServiceRequestType.switchToSingle:
+        return l10n.switchToSingleRequestSent;
     }
+  }
+
+  void _confirmLeaveSession(int sessionId) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showFDialog(
+      context: context,
+      builder: (dialogContext, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        title: AppText(l10n.leaveSession),
+        body: AppText(l10n.leaveSessionConfirmation),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.pop(dialogContext),
+            child: AppText(l10n.cancel),
+          ),
+          FButton(
+            variant: FButtonVariant.destructive,
+            onPress: () async {
+              Navigator.pop(dialogContext);
+              try {
+                await ref.read(roomRepositoryProvider).leaveSession(sessionId);
+                if (!mounted) return;
+
+                ref.read(mySessionsProvider.notifier).refresh();
+                final branchId = ref.read(selectedBranchIdProvider);
+                if (branchId != null) ref.invalidate(roomsProvider(branchId));
+
+                showFToast(
+                  context: context,
+                  title: Text(l10n.leftSession),
+                  icon: Icon(FIcons.check, color: AppTheme.successColor),
+                );
+              } catch (e) {
+                if (mounted) {
+                  showFToast(
+                    context: context,
+                    title: Text(l10n.failedToLeaveSession),
+                    icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+                  );
+                }
+              }
+            },
+            child: AppText(l10n.yesLeave),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -874,6 +813,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
                 color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 13,
                 decoration: TextDecoration.underline,
+                decorationColor: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ),
@@ -983,36 +923,32 @@ class NotifyMeBanner extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             error: (_, st) => IconButton(
-              onPressed: () => ref.refresh(roomAvailabilitySubscriptionProvider),
+              onPressed: () => ref.invalidate(roomAvailabilitySubscriptionProvider),
               icon: Icon(FIcons.refreshCw, color: AppTheme.errorColor),
             ),
             data: (isSubscribed) => FSwitch(
               value: isSubscribed,
               onChange: (value) async {
+                final repo = ref.read(notificationRepositoryProvider);
                 if (value) {
-                  final success = await ref
-                      .read(roomAvailabilitySubscriptionProvider.notifier)
-                      .subscribe(preferredLanguage: locale.languageCode);
+                  final success = await repo.subscribeToRoomAvailability(
+                    preferredLanguage: locale?.languageCode ?? 'en',
+                  );
+                  ref.invalidate(roomAvailabilitySubscriptionProvider);
                   if (context.mounted) {
-                    if (success) {
-                      showFToast(
-                        context: context,
-                        title: Text(l10n.youWillBeNotified),
-                        icon: Icon(FIcons.bell, color: AppTheme.successColor),
-                      );
-                    } else {
-                      showFToast(
-                        context: context,
-                        title: Text(l10n.failedToSubscribe),
-                        icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
-                      );
-                    }
+                    showFToast(
+                      context: context,
+                      title: Text(success ? l10n.youWillBeNotified : l10n.failedToSubscribe),
+                      icon: Icon(
+                        success ? FIcons.bell : FIcons.circleX,
+                        color: success ? AppTheme.successColor : AppTheme.errorColor,
+                      ),
+                    );
                   }
                 } else {
-                  final success = await ref
-                      .read(roomAvailabilitySubscriptionProvider.notifier)
-                      .unsubscribe();
-                  if (success && context.mounted) {
+                  await repo.unsubscribeFromRoomAvailability();
+                  ref.invalidate(roomAvailabilitySubscriptionProvider);
+                  if (context.mounted) {
                     showFToast(
                       context: context,
                       title: Text(l10n.unsubscribedFromNotifications),

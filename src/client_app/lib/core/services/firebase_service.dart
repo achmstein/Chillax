@@ -2,12 +2,60 @@ import 'dart:io' show Platform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/localized_text.dart';
+import '../router/app_router.dart';
+import '../../features/notifications/services/notification_service.dart';
+import '../../features/rooms/models/room.dart';
+import '../../features/rooms/services/room_service.dart';
+import 'session_notification_service.dart';
+
+/// Method channel for native notification (used in background handler)
+const _nativeChannel = MethodChannel('com.chillax.client/session_notification');
 
 /// Background message handler (must be top-level function)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+
+  final data = message.data;
+  final type = data['type'];
+
+  if (type == 'session_started') {
+    // Show notification natively from background
+    try {
+      await _nativeChannel.invokeMethod('show', {
+        'roomName': data['roomName'] ?? '',
+        'duration': '00:00:00',
+        'startTimeMs': int.tryParse(data['startTimeMs'] ?? ''),
+        'locale': data['locale'] ?? 'en',
+      });
+    } catch (_) {
+      // Method channel may not be available in background isolate
+    }
+
+    // Save session info for action handling
+    final prefs = await SharedPreferences.getInstance();
+    if (data['sessionId'] != null) {
+      await prefs.setInt('active_session_id', int.parse(data['sessionId']));
+    }
+    if (data['roomId'] != null) {
+      await prefs.setInt('active_session_room_id', int.parse(data['roomId']));
+    }
+    if (data['roomName'] != null) {
+      await prefs.setString('active_session_room_name_en', data['roomName']);
+    }
+    if (data['accessToken'] != null) {
+      await prefs.setString('active_session_access_token', data['accessToken']);
+    }
+  } else if (type == 'session_ended') {
+    try {
+      await _nativeChannel.invokeMethod('dismiss');
+    } catch (_) {}
+  }
 }
 
 /// Firebase messaging service for handling FCM tokens and notifications
@@ -15,12 +63,18 @@ class FirebaseService {
   FirebaseMessaging? _messaging;
   String? _fcmToken;
   bool _initialized = false;
+  Ref? _ref;
 
   /// Callbacks to invoke when the FCM token is refreshed (e.g. re-register subscriptions)
   final List<void Function(String newToken)> _tokenRefreshCallbacks = [];
 
   String? get fcmToken => _fcmToken;
   bool get isInitialized => _initialized;
+
+  /// Set Riverpod ref for accessing providers in foreground handlers
+  void setRef(Ref ref) {
+    _ref = ref;
+  }
 
   /// Register a callback to be invoked when the FCM token refreshes.
   void onTokenRefresh(void Function(String newToken) callback) {
@@ -59,7 +113,10 @@ class FirebaseService {
 
         final initialMessage = await _messaging!.getInitialMessage();
         if (initialMessage != null) {
-          _handleMessageOpenedApp(initialMessage);
+          // Delay navigation to let router initialize
+          Future.delayed(const Duration(milliseconds: 500), () {
+            _handleMessageOpenedApp(initialMessage);
+          });
         }
       }
     } catch (_) {
@@ -93,11 +150,69 @@ class FirebaseService {
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
-    // TODO: show in-app notification
+    final data = message.data;
+    final type = data['type'];
+
+    if (type == 'session_started') {
+      _handleSessionStarted(data);
+    } else if (type == 'session_ended') {
+      _handleSessionEnded();
+    } else if (type == 'room_available') {
+      // Backend auto-deletes the subscription after notifying — reset cached state
+      _ref?.invalidate(roomAvailabilitySubscriptionProvider);
+    }
+  }
+
+  void _handleSessionStarted(Map<String, dynamic> data) {
+    if (_ref == null) return;
+
+    // Refresh sessions to pick up the new active session
+    _ref!.read(mySessionsProvider.notifier).refresh();
+
+    // Show notification immediately
+    _ref!.read(sessionNotificationServiceProvider).showSessionNotification(
+      _buildSessionFromData(data),
+      data['locale'] ?? 'en',
+    );
+  }
+
+  void _handleSessionEnded() {
+    if (_ref == null) return;
+
+    _ref!.read(mySessionsProvider.notifier).refresh();
+    _ref!.read(sessionNotificationServiceProvider).dismissNotification();
+  }
+
+  /// Build a minimal RoomSession from FCM data for the notification
+  RoomSession _buildSessionFromData(Map<String, dynamic> data) {
+    return RoomSession(
+      id: int.tryParse(data['sessionId']?.toString() ?? '') ?? 0,
+      roomId: int.tryParse(data['roomId']?.toString() ?? '') ?? 0,
+      roomName: LocalizedText(
+        en: data['roomNameEn'] ?? data['roomName'] ?? '',
+        ar: data['roomNameAr'],
+      ),
+      singleRate: 0,
+      createdAt: DateTime.now(),
+      actualStartTime: data['startTimeMs'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(data['startTimeMs'].toString()))
+          : DateTime.now(),
+      status: SessionStatus.active,
+    );
   }
 
   void _handleMessageOpenedApp(RemoteMessage message) {
-    // TODO: navigate to relevant screen based on message data
+    if (_ref == null) return;
+
+    final type = message.data['type'];
+    final route = switch (type) {
+      'order_confirmed' || 'order_cancelled' => '/orders',
+      'session_started' || 'session_ended' || 'reservation_cancelled' || 'room_available' => '/rooms',
+      _ => null,
+    };
+    if (route != null) {
+      _ref!.read(routerProvider).go(route);
+    }
   }
 
   /// Get or refresh the FCM token
@@ -111,5 +226,7 @@ class FirebaseService {
 
 /// Provider for Firebase service
 final firebaseServiceProvider = Provider<FirebaseService>((ref) {
-  return FirebaseService();
+  final service = FirebaseService();
+  service.setRef(ref);
+  return service;
 });

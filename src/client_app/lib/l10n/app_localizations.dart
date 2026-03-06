@@ -578,30 +578,6 @@ abstract class AppLocalizations {
   /// **'Failed to load details'**
   String get failedToLoadDetails;
 
-  /// No description provided for @enterSixDigitCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter 6-digit code'**
-  String get enterSixDigitCode;
-
-  /// No description provided for @enterFourDigitCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter 4-digit code'**
-  String get enterFourDigitCode;
-
-  /// No description provided for @enterCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter code'**
-  String get enterCode;
-
-  /// No description provided for @invalidCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid code'**
-  String get invalidCode;
-
   /// No description provided for @joinedSession.
   ///
   /// In en, this message translates to:
@@ -619,18 +595,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Session Active'**
   String get sessionActive;
-
-  /// No description provided for @shareCodeWithFriends.
-  ///
-  /// In en, this message translates to:
-  /// **'Share code with friends'**
-  String get shareCodeWithFriends;
-
-  /// No description provided for @codeCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Code copied!'**
-  String get codeCopied;
 
   /// No description provided for @needSomething.
   ///
@@ -800,6 +764,12 @@ abstract class AppLocalizations {
   /// **'Room reserved! You have 10 minutes to arrive.'**
   String get roomReservedSuccess;
 
+  /// No description provided for @roomReservedSuccessQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Room reserved!'**
+  String get roomReservedSuccessQr;
+
   /// No description provided for @failedToReserveRoom.
   ///
   /// In en, this message translates to:
@@ -857,7 +827,7 @@ abstract class AppLocalizations {
   /// No description provided for @dualRateFormat.
   ///
   /// In en, this message translates to:
-  /// **'£{singleRate} / £{multiRate} per hour'**
+  /// **'£{singleRate} · £{multiRate} /hr'**
   String dualRateFormat(String singleRate, String multiRate);
 
   /// No description provided for @singlePlayerRate.
@@ -1544,42 +1514,6 @@ abstract class AppLocalizations {
   /// **'Customizable'**
   String get customizable;
 
-  /// No description provided for @joinSession.
-  ///
-  /// In en, this message translates to:
-  /// **'Join Session'**
-  String get joinSession;
-
-  /// No description provided for @enterAccessCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter Access Code'**
-  String get enterAccessCode;
-
-  /// No description provided for @accessCodeDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Ask the session owner or staff for the 6-digit code'**
-  String get accessCodeDescription;
-
-  /// No description provided for @sessionFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Session Found'**
-  String get sessionFound;
-
-  /// No description provided for @sessionNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Session not found'**
-  String get sessionNotFound;
-
-  /// No description provided for @failedToFetchSession.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to fetch session'**
-  String get failedToFetchSession;
-
   /// No description provided for @failedToJoinSession.
   ///
   /// In en, this message translates to:
@@ -1603,6 +1537,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to send request'**
   String get failedToSendRequest;
+
+  /// No description provided for @switchToMulti.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi'**
+  String get switchToMulti;
+
+  /// No description provided for @switchToMultiRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi request sent'**
+  String get switchToMultiRequestSent;
+
+  /// No description provided for @switchToSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get switchToSingle;
+
+  /// No description provided for @switchToSingleRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Single request sent'**
+  String get switchToSingleRequestSent;
+
+  /// No description provided for @leaveSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Room'**
+  String get leaveSession;
+
+  /// No description provided for @leaveSessionConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave this room?'**
+  String get leaveSessionConfirmation;
+
+  /// No description provided for @yesLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Leave'**
+  String get yesLeave;
+
+  /// No description provided for @leftSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Left room'**
+  String get leftSession;
+
+  /// No description provided for @failedToLeaveSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to leave room'**
+  String get failedToLeaveSession;
 
   /// No description provided for @updateName.
   ///
@@ -1741,6 +1729,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Switch Branch'**
   String get switchBranch;
+
+  /// No description provided for @cannotSwitchBranchDuringSession.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t switch branches during an active session'**
+  String get cannotSwitchBranchDuringSession;
+
+  /// No description provided for @scanQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get scanQr;
+
+  /// No description provided for @scanToJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to Join'**
+  String get scanToJoin;
+
+  /// No description provided for @pointCameraAtQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Point camera at room QR code'**
+  String get pointCameraAtQr;
+
+  /// No description provided for @noActiveSession.
+  ///
+  /// In en, this message translates to:
+  /// **'No active session'**
+  String get noActiveSession;
+
+  /// No description provided for @alreadyInSession.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re already in this session'**
+  String get alreadyInSession;
+
+  /// No description provided for @reserveThisRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve'**
+  String get reserveThisRoom;
+
+  /// No description provided for @invalidQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR code'**
+  String get invalidQrCode;
+
+  /// No description provided for @roomNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Room not available'**
+  String get roomNotAvailable;
 
   /// No description provided for @completeYourProfile.
   ///

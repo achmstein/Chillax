@@ -16,11 +16,6 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
         builder.Property(r => r.CustomerId)
             .HasMaxLength(100);
 
-        builder.Property(r => r.AccessCode)
-            .HasMaxLength(6);
-
-        builder.Property(r => r.AccessCodeGeneratedAt);
-
         builder.Property(r => r.CustomerName)
             .HasMaxLength(200);
 
@@ -85,7 +80,6 @@ class ReservationEntityTypeConfiguration : IEntityTypeConfiguration<Reservation>
         builder.HasIndex(r => r.CreatedAt);
         builder.HasIndex(r => new { r.RoomId, r.Status });
         builder.HasIndex(r => new { r.CustomerId, r.Status });
-        builder.HasIndex(r => r.AccessCode);
         builder.HasIndex(r => new { r.Status, r.ExpiresAt });
     }
 }

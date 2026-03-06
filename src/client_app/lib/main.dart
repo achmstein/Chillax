@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -13,11 +14,13 @@ import 'core/auth/auth_service.dart';
 import 'core/providers/branch_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/services/firebase_service.dart';
+import 'core/services/session_notification_service.dart';
 import 'core/services/signalr_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/notifications/services/notification_service.dart';
 import 'features/orders/services/order_service.dart';
+import 'features/rooms/models/room.dart';
 import 'features/rooms/services/room_service.dart';
 import 'features/settings/providers/settings_provider.dart';
 
@@ -91,7 +94,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
   void _reregisterNotificationsIfEnabled() {
     final prefs = ref.read(settingsProvider).preferences;
     if (prefs.orderStatusUpdates) {
-      _registerForOrderNotifications();
+      _registerForNotifications();
     }
   }
 
@@ -112,6 +115,25 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
 
     // Initialize Firebase messaging in background (never blocks UI)
     _initializeFirebaseMessaging();
+
+    // Initialize session notification service
+    try {
+      await ref.read(sessionNotificationServiceProvider).initialize();
+    } catch (e) {
+      debugPrint('Session notification init failed: $e');
+    }
+
+    // Listen for navigation from native (e.g. notification tap)
+    const navigationChannel = MethodChannel('com.chillax.client/navigation');
+    navigationChannel.setMethodCallHandler((call) async {
+      if (call.method == 'navigateTo') {
+        final route = call.arguments as String?;
+        if (route != null) {
+          final router = ref.read(routerProvider);
+          router.go(route);
+        }
+      }
+    });
   }
 
   Future<void> _initializeFirebaseMessaging() async {
@@ -119,7 +141,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
       await ref.read(firebaseServiceProvider).initialize();
 
       if (ref.read(authServiceProvider).isAuthenticated) {
-        _registerForOrderNotifications();
+        _registerForNotifications();
       }
     } catch (e) {
       debugPrint('Firebase messaging initialization failed: $e');
@@ -133,16 +155,40 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
     _signalRSubscriptions.clear();
   }
 
-  void _registerForOrderNotifications() {
+  void _registerForNotifications() {
     final lang = ref.read(localeProvider)?.languageCode ?? 'en';
-    ref.read(notificationRepositoryProvider).registerForOrderNotifications(
-      preferredLanguage: lang,
-    );
+    final notificationRepo = ref.read(notificationRepositoryProvider);
+
+    notificationRepo.registerForOrderNotifications(preferredLanguage: lang);
+    notificationRepo.registerForSessionNotifications(preferredLanguage: lang);
 
     ref.read(firebaseServiceProvider).onTokenRefresh((_) {
+      final lang = ref.read(localeProvider)?.languageCode ?? 'en';
       ref.read(notificationRepositoryProvider).registerForOrderNotifications(
-        preferredLanguage: ref.read(localeProvider)?.languageCode ?? 'en',
+        preferredLanguage: lang,
       );
+      ref.read(notificationRepositoryProvider).registerForSessionNotifications(
+        preferredLanguage: lang,
+      );
+    });
+  }
+
+  void _listenForSessionChanges() {
+    ref.listen<AsyncValue<List<RoomSession>>>(mySessionsProvider, (previous, next) {
+      final notificationService = ref.read(sessionNotificationServiceProvider);
+      final lang = ref.read(localeProvider)?.languageCode ?? 'en';
+
+      next.whenData((sessions) {
+        final activeSession = sessions
+            .where((s) => s.status == SessionStatus.active)
+            .toList();
+
+        if (activeSession.isNotEmpty) {
+          notificationService.showSessionNotification(activeSession.first, lang);
+        } else {
+          notificationService.dismissNotification();
+        }
+      });
     });
   }
 
@@ -155,6 +201,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
         final branchId = ref.read(selectedBranchIdProvider);
         if (branchId != null) ref.invalidate(roomsProvider(branchId));
         ref.read(mySessionsProvider.notifier).refresh();
+        ref.invalidate(roomAvailabilitySubscriptionProvider);
       }),
     );
     _signalRSubscriptions.add(
@@ -179,12 +226,17 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
         }
       } catch (_) {}
       _connectSignalR();
-      _registerForOrderNotifications();
+      _registerForNotifications();
     } else if (!authState.isAuthenticated && _wasAuthenticated) {
       _wasAuthenticated = false;
       _cancelSignalRSubscriptions();
       ref.read(notificationRepositoryProvider).unregisterFromOrderNotifications();
+      ref.read(notificationRepositoryProvider).unregisterFromSessionNotifications();
+      ref.read(sessionNotificationServiceProvider).dismissNotification();
     }
+
+    // Listen for session changes and manage notification
+    _listenForSessionChanges();
 
     return MaterialApp.router(
       title: 'Chillax',

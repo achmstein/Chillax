@@ -537,6 +537,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiptToPay => 'Receipt to Pay';
 
   @override
+  String get switchToMulti => 'Switch to Multi';
+
+  @override
+  String get switchToSingle => 'Switch to Single';
+
+  @override
   String get customers => 'Customers';
 
   @override
@@ -581,9 +587,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get customerWillBeCharged =>
       'The customer will be charged for the time used.';
-
-  @override
-  String get accessCodeCopied => 'Access code copied!';
 
   @override
   String get record => 'Record';
@@ -646,11 +649,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readyToStart => 'Ready to Start';
-
-  @override
-  String codeLabel(String code) {
-    return 'Code: $code';
-  }
 
   @override
   String get balance => 'Balance';
@@ -803,7 +801,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dualRateFormat(String singleRate, String multiRate) {
-    return '£$singleRate / £$multiRate per hr';
+    return '£$singleRate · £$multiRate /hr';
   }
 
   @override

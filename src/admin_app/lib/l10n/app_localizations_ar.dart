@@ -532,7 +532,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get controllerChange => 'تغيير الدراع';
 
   @override
-  String get receiptToPay => 'الفاتورة للدفع';
+  String get receiptToPay => 'الشيك للدفع';
+
+  @override
+  String get switchToMulti => 'تحويل مالتي';
+
+  @override
+  String get switchToSingle => 'تحويل سنجل';
 
   @override
   String get customers => 'العملاء';
@@ -577,9 +583,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerWillBeCharged => 'هيتحاسب العميل على الوقت اللي استخدمه.';
-
-  @override
-  String get accessCodeCopied => 'تم نسخ كود الدخول!';
 
   @override
   String get record => 'تسجيل';
@@ -642,11 +645,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get readyToStart => 'جاهز للبدء';
-
-  @override
-  String codeLabel(String code) {
-    return 'الكود: $code';
-  }
 
   @override
   String get balance => 'الرصيد';
@@ -799,7 +797,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String dualRateFormat(String singleRate, String multiRate) {
-    return '$singleRate / $multiRate ج.م/ساعة';
+    return '$singleRate · $multiRate ج.م/ساعة';
   }
 
   @override

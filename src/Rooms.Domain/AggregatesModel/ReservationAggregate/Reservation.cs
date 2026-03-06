@@ -29,16 +29,6 @@ public class Reservation : Entity, IAggregateRoot
     public string? CustomerId { get; private set; }
     public string? CustomerName { get; private set; }
 
-    /// <summary>
-    /// 4-digit access code for joining the session
-    /// </summary>
-    public string? AccessCode { get; private set; }
-
-    /// <summary>
-    /// When the access code was generated
-    /// </summary>
-    public DateTime? AccessCodeGeneratedAt { get; private set; }
-
     private readonly List<SessionMember> _sessionMembers = new();
     public IReadOnlyCollection<SessionMember> SessionMembers => _sessionMembers.AsReadOnly();
 
@@ -166,14 +156,13 @@ public class Reservation : Entity, IAggregateRoot
         var rate = initialMode == PlayerMode.Single ? singleRate : multiRate;
         reservation._sessionSegments.Add(new SessionSegment(0, initialMode, rate, now));
 
-        reservation.GenerateAccessCode();
         reservation.AddDomainEvent(new SessionStartedDomainEvent(reservation));
         return reservation;
     }
 
     /// <summary>
     /// Create an immediate session (walk-in, starts now) without an assigned customer.
-    /// The first customer to join via access code becomes the owner.
+    /// The first customer to join via QR scan becomes the owner.
     /// </summary>
     public static Reservation CreateWalkInWithoutOwner(
         int roomId,
@@ -206,7 +195,6 @@ public class Reservation : Entity, IAggregateRoot
         var rate = initialMode == PlayerMode.Single ? singleRate : multiRate;
         reservation._sessionSegments.Add(new SessionSegment(0, initialMode, rate, now));
 
-        reservation.GenerateAccessCode();
         reservation.AddDomainEvent(new SessionStartedDomainEvent(reservation));
         return reservation;
     }
@@ -226,8 +214,6 @@ public class Reservation : Entity, IAggregateRoot
 
         var rate = initialMode == PlayerMode.Single ? SingleRate : MultiRate;
         _sessionSegments.Add(new SessionSegment(Id, initialMode, rate, now));
-
-        GenerateAccessCode();
 
         // Add the assigned customer as Owner session member now that session is active
         if (!string.IsNullOrWhiteSpace(CustomerId) && !_sessionMembers.Any(m => m.CustomerId == CustomerId))
@@ -439,28 +425,6 @@ public class Reservation : Entity, IAggregateRoot
     }
 
     /// <summary>
-    /// Generate a new access code in AABB format (paired digits, e.g. "1133")
-    /// </summary>
-    public void GenerateAccessCode()
-    {
-        var a = Random.Shared.Next(0, 10);
-        var b = Random.Shared.Next(0, 10);
-        AccessCode = $"{a}{a}{b}{b}";
-        AccessCodeGeneratedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Regenerate the access code (e.g., if compromised)
-    /// </summary>
-    public void RegenerateAccessCode()
-    {
-        if (Status != ReservationStatus.Active)
-            throw new RoomsDomainException("Can only regenerate access code for active sessions");
-
-        GenerateAccessCode();
-    }
-
-    /// <summary>
     /// Add a member to the session. First joiner of a walk-in session becomes the owner.
     /// </summary>
     public void AddMember(string customerId, string? customerName)
@@ -486,6 +450,8 @@ public class Reservation : Entity, IAggregateRoot
 
         var member = new SessionMember(Id, customerId, customerName, role);
         _sessionMembers.Add(member);
+
+        AddDomainEvent(new SessionMemberJoinedDomainEvent(this, customerId));
     }
 
     /// <summary>

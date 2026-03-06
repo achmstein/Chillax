@@ -12,9 +12,9 @@ abstract class RoomRepository {
   Future<int> reserveRoom(int roomId);
   Future<List<RoomSession>> getMySessions();
   Future<void> cancelReservation(int sessionId);
-  Future<SessionPreview?> getSessionPreview(String accessCode);
-  Future<JoinSessionResult> joinSession(String accessCode);
   Future<void> leaveSession(int sessionId);
+  Future<RoomScanResult> scanRoom(int roomId);
+  Future<JoinSessionResult> joinSessionByRoom(int roomId);
 }
 
 /// API-backed room repository
@@ -85,33 +85,28 @@ class ApiRoomRepository implements RoomRepository {
     await _apiClient.post('sessions/my/$sessionId/cancel');
   }
 
-  /// Get session preview by access code
-  @override
-  Future<SessionPreview?> getSessionPreview(String accessCode) async {
-    try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
-        'sessions/by-code/$accessCode',
-      );
-      return SessionPreview.fromJson(response.data!);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Join a session via access code
-  @override
-  Future<JoinSessionResult> joinSession(String accessCode) async {
-    final response = await _apiClient.post<Map<String, dynamic>>(
-      'sessions/join',
-      data: {'accessCode': accessCode},
-    );
-    return JoinSessionResult.fromJson(response.data!);
-  }
-
   /// Leave a session
   @override
   Future<void> leaveSession(int sessionId) async {
     await _apiClient.post('sessions/$sessionId/leave');
+  }
+
+  /// Scan room (QR code scan-to-join)
+  @override
+  Future<RoomScanResult> scanRoom(int roomId) async {
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      '$roomId/scan',
+    );
+    return RoomScanResult.fromJson(response.data!);
+  }
+
+  /// Join session by room ID (via QR scan)
+  @override
+  Future<JoinSessionResult> joinSessionByRoom(int roomId) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      'sessions/join-by-room/$roomId',
+    );
+    return JoinSessionResult.fromJson(response.data!);
   }
 }
 

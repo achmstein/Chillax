@@ -6,27 +6,27 @@ using Microsoft.Extensions.Logging;
 
 namespace Chillax.Rooms.API.Application.Commands;
 
-public class JoinSessionCommandHandler : IRequestHandler<JoinSessionCommand, JoinSessionResult>
+public class JoinSessionByRoomCommandHandler : IRequestHandler<JoinSessionByRoomCommand, JoinSessionResult>
 {
     private readonly IReservationRepository _reservationRepository;
-    private readonly ILogger<JoinSessionCommandHandler> _logger;
+    private readonly ILogger<JoinSessionByRoomCommandHandler> _logger;
 
-    public JoinSessionCommandHandler(
+    public JoinSessionByRoomCommandHandler(
         IReservationRepository reservationRepository,
-        ILogger<JoinSessionCommandHandler> logger)
+        ILogger<JoinSessionByRoomCommandHandler> logger)
     {
         _reservationRepository = reservationRepository;
         _logger = logger;
     }
 
-    public async Task<JoinSessionResult> Handle(JoinSessionCommand request, CancellationToken cancellationToken)
+    public async Task<JoinSessionResult> Handle(JoinSessionByRoomCommand request, CancellationToken cancellationToken)
     {
-        // Find active session by access code
-        var reservation = await _reservationRepository.GetByAccessCodeAsync(request.AccessCode);
+        // Find active session for this room
+        var reservation = await _reservationRepository.GetActiveSessionForRoomAsync(request.RoomId);
         if (reservation == null)
-            throw new RoomsDomainException("Invalid access code or session has ended");
+            throw new RoomsDomainException("No active session in this room");
 
-        // Check if customer already has an active session
+        // Check if customer already has an active session in another room
         var existingReservation = await _reservationRepository
             .GetActiveReservationForCustomerAsync(request.CustomerId);
 
@@ -41,8 +41,8 @@ public class JoinSessionCommandHandler : IRequestHandler<JoinSessionCommand, Joi
         var role = reservation.GetMemberRole(request.CustomerId);
         var isOwner = role == SessionMemberRole.Owner;
 
-        _logger.LogInformation("Customer {CustomerId} joined session {ReservationId} as {Role}",
-            request.CustomerId, reservation.Id, role);
+        _logger.LogInformation("Customer {CustomerId} joined session {ReservationId} in room {RoomId} via QR scan",
+            request.CustomerId, reservation.Id, request.RoomId);
 
         await _reservationRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
 

@@ -541,25 +541,6 @@ class _CurrentStateSection extends StatelessWidget {
               const SizedBox(height: 16),
             ],
 
-            // Access code row
-            if (session!.accessCode != null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.key_outlined, size: 16, color: theme.colors.mutedForeground),
-                  const SizedBox(width: 4),
-                  AppText(
-                    session!.accessCode!,
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
-                      fontFamily: 'monospace',
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
             const SizedBox(height: 16),
 
             // Members list
@@ -718,16 +699,6 @@ class _CurrentStateSection extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (session!.accessCode != null) ...[
-                    const SizedBox(height: 4),
-                    AppText(
-                      l10n.codeLabel(session!.accessCode!),
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ],
                   // Countdown timer display
                   if (session!.expiresAt != null) ...[
                     const SizedBox(height: 16),

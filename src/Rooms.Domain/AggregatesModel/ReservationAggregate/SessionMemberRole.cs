@@ -11,7 +11,7 @@ public enum SessionMemberRole
     Owner = 1,
 
     /// <summary>
-    /// Joined via access code
+    /// Joined via QR scan
     /// </summary>
     Member = 2
 }

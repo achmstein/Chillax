@@ -5,13 +5,13 @@ using MediatR;
 namespace Chillax.Rooms.API.Application.Commands;
 
 /// <summary>
-/// Command for a customer to join an active session via access code.
+/// Command for a customer to join the active session of a room (via QR scan).
 /// </summary>
 [DataContract]
-public class JoinSessionCommand : IRequest<JoinSessionResult>
+public class JoinSessionByRoomCommand : IRequest<JoinSessionResult>
 {
     [DataMember]
-    public string AccessCode { get; private set; }
+    public int RoomId { get; private set; }
 
     [DataMember]
     public string CustomerId { get; private set; }
@@ -19,9 +19,9 @@ public class JoinSessionCommand : IRequest<JoinSessionResult>
     [DataMember]
     public string? CustomerName { get; private set; }
 
-    public JoinSessionCommand(string accessCode, string customerId, string? customerName)
+    public JoinSessionByRoomCommand(int roomId, string customerId, string? customerName)
     {
-        AccessCode = accessCode;
+        RoomId = roomId;
         CustomerId = customerId;
         CustomerName = customerName;
     }

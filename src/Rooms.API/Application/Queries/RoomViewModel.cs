@@ -48,10 +48,6 @@ public record ReservationViewModel
     public ReservationStatus Status { get; init; }
     public string? Notes { get; init; }
     /// <summary>
-    /// 4-digit access code for joining the session
-    /// </summary>
-    public string? AccessCode { get; init; }
-    /// <summary>
     /// When this reservation expires if not started (only for Reserved status)
     /// </summary>
     public DateTime? ExpiresAt { get; init; }
@@ -85,4 +81,19 @@ public record SessionPreviewViewModel
     public LocalizedText RoomName { get; init; } = new();
     public DateTime StartTime { get; init; }
     public int MemberCount { get; init; }
+}
+
+/// <summary>
+/// Room scan result (for QR code scan-to-join)
+/// </summary>
+public record RoomScanViewModel
+{
+    public int RoomId { get; init; }
+    public LocalizedText RoomName { get; init; } = new();
+    public decimal SingleRate { get; init; }
+    public decimal MultiRate { get; init; }
+    public RoomDisplayStatus DisplayStatus { get; init; }
+    public bool HasActiveSession { get; init; }
+    public SessionPreviewViewModel? SessionPreview { get; init; }
+    public bool IsAlreadyMember { get; init; }
 }

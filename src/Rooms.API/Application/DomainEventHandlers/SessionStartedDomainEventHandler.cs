@@ -33,7 +33,8 @@ public class SessionStartedDomainEventHandler : INotificationHandler<SessionStar
             reservation.RoomId,
             roomName,
             reservation.CustomerId,
-            reservation.CustomerName);
+            reservation.CustomerName,
+            reservation.ActualStartTime);
 
         await _eventBus.PublishAsync(sessionStartedEvent);
     }

@@ -7,7 +7,9 @@ import '../../../core/models/localized_text.dart';
 enum ServiceRequestType {
   callWaiter(1, 'Call Waiter', FIcons.user),
   controllerChange(2, 'Controller', FIcons.gamepad2),
-  receiptToPay(3, 'Pay Bill', FIcons.receipt);
+  receiptToPay(3, 'Pay Bill', FIcons.receipt),
+  switchToMulti(4, 'Switch to Multi', FIcons.users),
+  switchToSingle(5, 'Switch to Single', FIcons.user);
 
   final int value;
   final String label;

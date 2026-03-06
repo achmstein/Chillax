@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
     <application
         android:label="Chillax"
         android:name="${applicationName}"
@@ -43,6 +47,26 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
+        <!-- Session foreground service -->
+        <service
+            android:name=".SessionForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Gaming session timer with quick action controls" />
+        </service>
+        <!-- Session notification action receiver -->
+        <receiver
+            android:name=".SessionActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.chillax.client.ACTION_CALL_WAITER"/>
+                <action android:name="com.chillax.client.ACTION_CONTROLLER"/>
+                <action android:name="com.chillax.client.ACTION_GET_BILL"/>
+                <action android:name="com.chillax.client.ACTION_SWITCH_MODE"/>
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

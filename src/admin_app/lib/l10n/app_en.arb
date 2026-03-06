@@ -243,6 +243,8 @@
   "callWaiter": "Call Waiter",
   "controllerChange": "Controller Change",
   "receiptToPay": "Receipt to Pay",
+  "switchToMulti": "Switch to Multi",
+  "switchToSingle": "Switch to Single",
 
   "customers": "Customers",
   "more": "More",
@@ -267,8 +269,6 @@
   "reserve": "Reserve",
   "walkIn": "Walk-in",
   "customerWillBeCharged": "The customer will be charged for the time used.",
-  "accessCodeCopied": "Access code copied!",
-
   "record": "Record",
   "paymentRecorded": "Payment recorded",
   "failedToRecordPayment": "Failed to record payment",
@@ -302,15 +302,6 @@
   "amountEgpLabel": "Amount (EGP)",
 
   "readyToStart": "Ready to Start",
-  "codeLabel": "Code: {code}",
-  "@codeLabel": {
-    "placeholders": {
-      "code": {
-        "type": "String"
-      }
-    }
-  },
-
   "balance": "Balance",
   "memberSince": "Member since",
   "status": "Status",
@@ -382,7 +373,7 @@
       "rate": {"type": "String"}
     }
   },
-  "dualRateFormat": "£{singleRate} / £{multiRate} per hr",
+  "dualRateFormat": "£{singleRate} · £{multiRate} /hr",
   "@dualRateFormat": {
     "placeholders": {
       "singleRate": {"type": "String"},

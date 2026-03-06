@@ -35,12 +35,6 @@ public class StartSessionCommandHandler : IRequestHandler<StartSessionCommand, b
         // Start session on reservation (raises SessionStartedDomainEvent)
         reservation.StartSession(request.InitialMode);
 
-        // Ensure unique access code among active sessions
-        for (var i = 0; i < 10 && await _reservationRepository.IsAccessCodeInUseAsync(reservation.AccessCode!); i++)
-        {
-            reservation.GenerateAccessCode();
-        }
-
         // Update room physical status
         room.SetOccupied();
 
