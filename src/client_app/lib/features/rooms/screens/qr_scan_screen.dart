@@ -57,6 +57,12 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
 
       if (!mounted) return;
 
+      // Auto-switch branch if room belongs to a different branch
+      final currentBranchId = ref.read(selectedBranchIdProvider);
+      if (result.branchId != currentBranchId) {
+        ref.read(branchProvider.notifier).selectBranch(result.branchId);
+      }
+
       if (result.isAlreadyMember) {
         final l10n = AppLocalizations.of(context)!;
         showFToast(

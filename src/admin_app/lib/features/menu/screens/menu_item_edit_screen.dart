@@ -107,6 +107,7 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
 
     return Scaffold(
       backgroundColor: theme.colors.background,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -147,7 +148,7 @@ class _MenuItemEditScreenState extends ConsumerState<MenuItemEditScreen> {
             // Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).viewInsets.bottom),
                 child: Form(
                   key: _formKey,
                   child: Column(

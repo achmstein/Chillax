@@ -205,6 +205,7 @@ public class RoomQueries : IRoomQueries
 
         return new RoomScanViewModel
         {
+            BranchId = room.BranchId,
             RoomId = room.Id,
             RoomName = room.Name,
             SingleRate = room.SingleRate,

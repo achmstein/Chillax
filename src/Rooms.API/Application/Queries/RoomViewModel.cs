@@ -88,6 +88,7 @@ public record SessionPreviewViewModel
 /// </summary>
 public record RoomScanViewModel
 {
+    public int BranchId { get; init; }
     public int RoomId { get; init; }
     public LocalizedText RoomName { get; init; } = new();
     public decimal SingleRate { get; init; }

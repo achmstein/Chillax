@@ -187,6 +187,7 @@ class SessionPreview {
 
 /// Room scan result (from QR code scan)
 class RoomScanResult {
+  final int branchId;
   final int roomId;
   final LocalizedText roomName;
   final double singleRate;
@@ -197,6 +198,7 @@ class RoomScanResult {
   final bool isAlreadyMember;
 
   RoomScanResult({
+    required this.branchId,
     required this.roomId,
     required this.roomName,
     required this.singleRate,
@@ -209,6 +211,7 @@ class RoomScanResult {
 
   factory RoomScanResult.fromJson(Map<String, dynamic> json) {
     return RoomScanResult(
+      branchId: json['branchId'] as int,
       roomId: json['roomId'] as int,
       roomName: Room._parseLocalizedText(json['roomName']),
       singleRate: (json['singleRate'] as num?)?.toDouble() ?? 0.0,

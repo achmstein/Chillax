@@ -244,7 +244,7 @@ class _CategoryChip extends StatelessWidget {
     return FTappable(
       onPress: onTap,
       child: Container(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? theme.colors.primary : theme.colors.secondary,
           borderRadius: BorderRadius.circular(20),
