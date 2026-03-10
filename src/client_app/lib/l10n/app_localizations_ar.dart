@@ -911,14 +911,5 @@ class AppLocalizationsAr extends AppLocalizations {
   String get roomNotAvailable => 'الاوضة مش متاحة';
 
   @override
-  String get completeYourProfile => 'كمّل بياناتك';
-
-  @override
-  String get completeProfileDescription => 'دخل اسمك ورقم موبايلك عشان تكمل';
-
-  @override
   String get invalidPhone => 'دخل رقم موبايل صحيح (01xxxxxxxxx).';
-
-  @override
-  String get profileCompletionFailed => 'مقدرناش نحفظ البيانات. جرب تاني.';
 }

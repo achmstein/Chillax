@@ -18,7 +18,6 @@ enum SocialProvider { google, apple }
 class AuthState {
   final bool isInitializing;
   final bool isAuthenticated;
-  final bool needsProfileCompletion;
   final bool isSocialLogin;
   final String? accessToken;
   final String? refreshToken;
@@ -30,7 +29,6 @@ class AuthState {
   const AuthState({
     this.isInitializing = true,
     this.isAuthenticated = false,
-    this.needsProfileCompletion = false,
     this.isSocialLogin = false,
     this.accessToken,
     this.refreshToken,
@@ -43,7 +41,6 @@ class AuthState {
   AuthState copyWith({
     bool? isInitializing,
     bool? isAuthenticated,
-    bool? needsProfileCompletion,
     bool? isSocialLogin,
     String? accessToken,
     String? refreshToken,
@@ -55,7 +52,6 @@ class AuthState {
     return AuthState(
       isInitializing: isInitializing ?? this.isInitializing,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      needsProfileCompletion: needsProfileCompletion ?? this.needsProfileCompletion,
       isSocialLogin: isSocialLogin ?? this.isSocialLogin,
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
@@ -80,10 +76,12 @@ class AuthService extends Notifier<AuthState> {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _googleSignInInitialized = false;
 
+  /// Temporarily stores Apple-provided name (only available on first sign-in)
+  String? _pendingAppleName;
+
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _idTokenKey = 'id_token';
-  static const _needsProfileCompletionKey = 'needs_profile_completion';
   static const _isSocialLoginKey = 'is_social_login';
 
   /// Token endpoint URL
@@ -116,22 +114,12 @@ class AuthService extends Notifier<AuthState> {
         final refreshed = await this.refreshToken();
         debugPrint('Auth init - token refresh result: $refreshed');
         if (refreshed) {
-          // Read persisted flags for instant UI
-          final needsCompletion = await _storage.read(key: _needsProfileCompletionKey);
           final isSocial = await _storage.read(key: _isSocialLoginKey);
-
           state = state.copyWith(
             isInitializing: false,
             isAuthenticated: true,
-            needsProfileCompletion: needsCompletion == 'true',
             isSocialLogin: isSocial == 'true',
           );
-
-          // Re-verify against server in background (clears flag if profile was completed elsewhere)
-          if (needsCompletion == 'true') {
-            checkProfileCompleteness();
-          }
-
           return;
         }
       }
@@ -256,6 +244,20 @@ class AuthService extends Notifier<AuthState> {
         socialToken = credential.identityToken;
         providerAlias = 'apple';
         tokenType = 'urn:ietf:params:oauth:token-type:id_token';
+
+        // Apple provides name only on first sign-in — capture it now
+        final givenName = credential.givenName;
+        final familyName = credential.familyName;
+        if (givenName != null || familyName != null) {
+          final appleName = [givenName, familyName]
+              .where((p) => p != null && p.isNotEmpty)
+              .join(' ');
+          if (appleName.isNotEmpty) {
+            debugPrint('Apple provided name: $appleName');
+            _pendingAppleName = appleName;
+          }
+        }
+
         debugPrint('Apple sign in successful, got identity token');
       }
 
@@ -305,8 +307,23 @@ class AuthService extends Notifier<AuthState> {
         await _storage.write(key: _isSocialLoginKey, value: 'true');
         state = state.copyWith(isSocialLogin: true);
 
-        // Check if social login user needs to complete their profile
-        await checkProfileCompleteness();
+        // If Apple provided a name on first sign-in, send it to backend immediately
+        if (_pendingAppleName != null) {
+          try {
+            await _dio.post(
+              '${AppConfig.bffBaseUrl}/api/identity/update-profile',
+              data: {'name': _pendingAppleName},
+              options: Options(
+                contentType: Headers.jsonContentType,
+                headers: {'Authorization': 'Bearer ${state.accessToken}'},
+              ),
+            );
+            debugPrint('Apple name sent to backend: $_pendingAppleName');
+          } catch (e) {
+            debugPrint('Failed to send Apple name to backend: $e');
+          }
+          _pendingAppleName = null;
+        }
 
         return true;
       }
@@ -317,76 +334,6 @@ class AuthService extends Notifier<AuthState> {
       return false;
     } catch (e) {
       debugPrint('Token exchange error: $e');
-      return false;
-    }
-  }
-
-  /// Check if the user's profile is complete (has name + phone).
-  /// Called after social login. If the check fails, assumes incomplete
-  /// so the user can never bypass profile completion.
-  Future<void> checkProfileCompleteness() async {
-    try {
-      final response = await _dio.get(
-        '${AppConfig.bffBaseUrl}/api/identity/my-profile',
-        options: Options(
-          headers: {'Authorization': 'Bearer ${state.accessToken}'},
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final isComplete = response.data['isProfileComplete'] == true;
-        if (!isComplete) {
-          await _storage.write(key: _needsProfileCompletionKey, value: 'true');
-          state = state.copyWith(needsProfileCompletion: true);
-          debugPrint('Profile incomplete — user needs to complete profile');
-        } else {
-          await _storage.delete(key: _needsProfileCompletionKey);
-          state = state.copyWith(needsProfileCompletion: false);
-        }
-      } else {
-        // Non-200: assume incomplete to be safe
-        await _storage.write(key: _needsProfileCompletionKey, value: 'true');
-        state = state.copyWith(needsProfileCompletion: true);
-      }
-    } catch (e) {
-      // Network error: assume incomplete — will re-check on next app launch
-      debugPrint('Profile completeness check failed, assuming incomplete: $e');
-      await _storage.write(key: _needsProfileCompletionKey, value: 'true');
-      state = state.copyWith(needsProfileCompletion: true);
-    }
-  }
-
-  /// Submit name + phone to complete the user's profile.
-  /// Returns true on success, false on failure.
-  Future<bool> completeProfile(String name, String phoneNumber) async {
-    try {
-      final response = await _dio.post(
-        '${AppConfig.bffBaseUrl}/api/identity/complete-profile',
-        data: {'name': name, 'phoneNumber': phoneNumber},
-        options: Options(
-          contentType: Headers.jsonContentType,
-          headers: {'Authorization': 'Bearer ${state.accessToken}'},
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        await _storage.delete(key: _needsProfileCompletionKey);
-        state = state.copyWith(needsProfileCompletion: false, name: name);
-        return true;
-      }
-      return false;
-    } on DioException catch (e) {
-      // If token expired, try refreshing and retry once
-      if (e.response?.statusCode == 401) {
-        final refreshed = await refreshToken();
-        if (refreshed) {
-          return completeProfile(name, phoneNumber);
-        }
-      }
-      debugPrint('Complete profile error: ${e.response?.statusCode} - ${e.response?.data}');
-      return false;
-    } catch (e) {
-      debugPrint('Complete profile error: $e');
       return false;
     }
   }
@@ -578,7 +525,6 @@ class AuthService extends Notifier<AuthState> {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _idTokenKey);
-    await _storage.delete(key: _needsProfileCompletionKey);
     await _storage.delete(key: _isSocialLoginKey);
 
     state = const AuthState(isInitializing: false);

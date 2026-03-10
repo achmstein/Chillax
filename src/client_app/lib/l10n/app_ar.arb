@@ -324,8 +324,5 @@
   "invalidQrCode": "كود مش صحيح",
   "roomNotAvailable": "الاوضة مش متاحة",
 
-  "completeYourProfile": "كمّل بياناتك",
-  "completeProfileDescription": "دخل اسمك ورقم موبايلك عشان تكمل",
-  "invalidPhone": "دخل رقم موبايل صحيح (01xxxxxxxxx).",
-  "profileCompletionFailed": "مقدرناش نحفظ البيانات. جرب تاني."
+  "invalidPhone": "دخل رقم موبايل صحيح (01xxxxxxxxx)."
 }

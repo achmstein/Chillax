@@ -15,7 +15,6 @@ import '../../features/profile/screens/transactions_screen.dart';
 import '../../features/profile/screens/favorites_screen.dart';
 import '../../features/profile/screens/loyalty_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
-import '../../features/auth/screens/complete_profile_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../widgets/main_scaffold.dart';
@@ -111,13 +110,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final authState = ref.read(authServiceProvider);
       final isInitializing = authState.isInitializing;
       final isAuthenticated = authState.isAuthenticated;
-      final needsProfileCompletion = authState.needsProfileCompletion;
       final currentLocation = state.matchedLocation;
 
       final isOnSplash = currentLocation == '/splash';
       final isLoggingIn = currentLocation == '/login';
       final isRegistering = currentLocation == '/register';
-      final isCompletingProfile = currentLocation == '/complete-profile';
 
       // While initializing, stay on or go to splash
       if (isInitializing) {
@@ -126,8 +123,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // After initialization, redirect from splash based on auth status
       if (isOnSplash) {
-        if (!isAuthenticated) return '/login';
-        return needsProfileCompletion ? '/complete-profile' : '/menu';
+        return isAuthenticated ? '/menu' : '/login';
       }
 
       // Redirect to login if not authenticated
@@ -135,13 +131,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      // Authenticated + needs profile completion → gate to complete-profile
-      if (isAuthenticated && needsProfileCompletion && !isCompletingProfile) {
-        return '/complete-profile';
-      }
-
-      // Redirect to menu if authenticated and on login/register/complete-profile page
-      if (isAuthenticated && !needsProfileCompletion && (isLoggingIn || isRegistering || isCompletingProfile)) {
+      // Redirect to menu if authenticated and on login/register page
+      if (isAuthenticated && (isLoggingIn || isRegistering)) {
         return '/menu';
       }
 
@@ -164,12 +155,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
-      ),
-
-      // Complete profile route (after social sign-in)
-      GoRoute(
-        path: '/complete-profile',
-        builder: (context, state) => const CompleteProfileScreen(),
       ),
 
       // Cart route (separate from shell for push navigation)

@@ -457,8 +457,5 @@
   "invalidQrCode": "Invalid QR code",
   "roomNotAvailable": "Room not available",
 
-  "completeYourProfile": "Complete Your Profile",
-  "completeProfileDescription": "Please enter your name and phone number to continue",
-  "invalidPhone": "Please enter a valid phone number (01xxxxxxxxx).",
-  "profileCompletionFailed": "Failed to save profile. Please try again."
+  "invalidPhone": "Please enter a valid phone number (01xxxxxxxxx)."
 }
