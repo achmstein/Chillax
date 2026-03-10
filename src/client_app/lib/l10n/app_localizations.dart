@@ -1790,6 +1790,17 @@ abstract class AppLocalizations {
   /// **'Please enter a valid phone number (01xxxxxxxxx).'**
   String get invalidPhone;
 
+  /// No description provided for @profileRequiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll save your info so you won\'t need to enter it again'**
+  String get profileRequiredMessage;
+
+  /// No description provided for @completeYourInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Your Info'**
+  String get completeYourInfo;
 }
 
 class _AppLocalizationsDelegate

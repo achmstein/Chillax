@@ -210,13 +210,13 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
                   ),
                   const SizedBox(height: 8),
                   if (_isLoadingDetails)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Center(
                         child: SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
                         ),
                       ),
                     )

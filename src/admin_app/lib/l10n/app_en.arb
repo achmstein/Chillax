@@ -613,5 +613,6 @@
   "failedToToggleAdmin": "Failed to update admin status",
   "assignedBranches": "Assigned Branches",
   "noBranchesAssigned": "No branches assigned",
-  "assignBranch": "Assign Branch"
+  "assignBranch": "Assign Branch",
+  "copiedToClipboard": "Copied to clipboard"
 }

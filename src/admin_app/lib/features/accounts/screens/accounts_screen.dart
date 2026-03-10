@@ -350,9 +350,9 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
 
                       // Search results
                       if (state.isSearching)
-                        const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(child: CircularProgressIndicator()),
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator(color: theme.colors.primary)),
                         )
                       else if (state.searchResults.isNotEmpty)
                         Container(
@@ -504,10 +504,10 @@ class _AddChargeSheetState extends ConsumerState<_AddChargeSheet> {
                           ? _submitCharge
                           : null,
                       child: _isSubmitting
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
                             )
                           : AppText(l10n.addCharge),
                     ),

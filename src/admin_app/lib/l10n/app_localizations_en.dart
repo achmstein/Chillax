@@ -1394,4 +1394,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assignBranch => 'Assign Branch';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
 }

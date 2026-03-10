@@ -552,6 +552,22 @@
       "realmRoles": [ "Admin", "Owner", "Customer", "offline_access" ]
     },
     {
+      "username": "tester",
+      "email": "tester@chillax.site",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Tester123$",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [ "Customer", "offline_access" ]
+    },
+    {
       "username": "service-account-identity-api-service",
       "enabled": true,
       "serviceAccountClientId": "identity-api-service",

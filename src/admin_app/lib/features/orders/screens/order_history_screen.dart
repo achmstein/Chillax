@@ -106,13 +106,13 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
                       ),
                       itemBuilder: (context, index) {
                         if (index == state.orders.length) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
                             child: Center(
                               child: SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
                               ),
                             ),
                           );

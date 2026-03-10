@@ -1388,4 +1388,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get assignBranch => 'تعيين فرع';
+
+  @override
+  String get copiedToClipboard => 'تم النسخ';
 }

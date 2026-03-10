@@ -78,7 +78,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               _buildHeader(context, theme, null, l10n),
               Expanded(
                 child: state.isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator(color: theme.colors.primary))
                     : Center(
                         child: AppText(
                           l10n.customerNotFound,
@@ -747,7 +747,7 @@ class _OrderHistorySection extends StatelessWidget {
         // List
         Expanded(
           child: isLoading && orders.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator(color: theme.colors.primary))
               : orders.isEmpty
                   ? Center(
                       child: Column(

@@ -209,10 +209,10 @@ class _RoomFormSheetState extends ConsumerState<RoomFormSheet> {
                     child: FButton(
                       onPress: _isSubmitting ? null : _submit,
                       child: _isSubmitting
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
                             )
                           : AppText(widget.isEditing ? l10n.update : l10n.create),
                     ),

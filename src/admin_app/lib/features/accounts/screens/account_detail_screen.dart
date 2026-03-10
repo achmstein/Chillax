@@ -44,7 +44,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
           child: Column(
             children: [
               _buildHeader(context, theme, null, l10n),
-              const Expanded(child: Center(child: CircularProgressIndicator())),
+              Expanded(child: Center(child: CircularProgressIndicator(color: theme.colors.primary))),
             ],
           ),
         ),
@@ -266,7 +266,7 @@ class _TransactionHistorySection extends StatelessWidget {
         // List
         Expanded(
           child: isLoading && transactions.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator(color: theme.colors.primary))
               : transactions.isEmpty
                   ? Center(
                       child: AppText(
@@ -532,10 +532,10 @@ class _AmountSheetState extends ConsumerState<_AmountSheet> {
                           : FButtonVariant.destructive,
                       onPress: _isSubmitting ? null : _submit,
                       child: _isSubmitting
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
                             )
                           : AppText(widget.isPayment ? l10n.record : l10n.addCharge),
                     ),

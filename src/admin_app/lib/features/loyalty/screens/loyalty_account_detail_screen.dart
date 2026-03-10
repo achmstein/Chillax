@@ -130,7 +130,7 @@ class _LoyaltyAccountDetailPageWrapperState extends ConsumerState<LoyaltyAccount
           child: Column(
             children: [
               _buildHeader(context, theme, null, l10n),
-              const Expanded(child: Center(child: CircularProgressIndicator())),
+              Expanded(child: Center(child: CircularProgressIndicator(color: theme.colors.primary))),
             ],
           ),
         ),
@@ -432,7 +432,7 @@ class _TransactionsSection extends StatelessWidget {
         // List
         Expanded(
           child: isLoading && transactions.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator(color: theme.colors.primary))
               : transactions.isEmpty
                   ? Center(
                       child: Column(
@@ -726,10 +726,10 @@ class _PointsSheetState extends ConsumerState<_PointsSheet> {
                     child: FButton(
                       onPress: _isSubmitting ? null : _submit,
                       child: _isSubmitting
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
                             )
                           : AppText(widget.isAdjustment ? l10n.adjust : l10n.addPoints),
                     ),

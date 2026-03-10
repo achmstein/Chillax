@@ -912,4 +912,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invalidPhone => 'دخل رقم موبايل صحيح (01xxxxxxxxx).';
+
+  @override
+  String get profileRequiredMessage => 'هنحفظ بياناتك ومش هنسألك تاني';
+
+  @override
+  String get completeYourInfo => 'كمّل بياناتك';
 }

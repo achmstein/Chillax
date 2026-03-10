@@ -8,6 +8,7 @@ import '../../../core/models/localized_text.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/profile_gate.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/providers/branch_provider.dart';
@@ -109,9 +110,10 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
     final branchId = ref.watch(selectedBranchIdProvider);
     if (branchId == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator(color: colors.primary));
     }
     final roomsAsync = ref.watch(roomsProvider(branchId));
     final sessionsAsync = ref.watch(mySessionsProvider);
@@ -143,7 +145,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           Expanded(
             child: sessionsAsync.when(
               skipLoadingOnRefresh: true,
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => Center(child: CircularProgressIndicator(color: colors.primary)),
               error: (_, _) => _buildRoomsList(context, roomsAsync, null, null),
               data: (sessions) {
                 final activeSession = sessions
@@ -180,7 +182,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     // keep showing the cached rooms instead of flashing an error
     return roomsAsync.when(
       skipLoadingOnRefresh: true,
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Center(child: CircularProgressIndicator(color: context.theme.colors.primary)),
       error: (error, _) {
         // Previous data still available — show it, polling will refresh
         if (roomsAsync.hasValue) {
@@ -917,10 +919,10 @@ class NotifyMeBanner extends ConsumerWidget {
           ),
           const SizedBox(width: 12),
           subscriptionAsync.when(
-            loading: () => const SizedBox(
+            loading: () => SizedBox(
               width: 24,
               height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(strokeWidth: 2, color: context.theme.colors.primary),
             ),
             error: (_, st) => IconButton(
               onPressed: () => ref.invalidate(roomAvailabilitySubscriptionProvider),
@@ -1307,6 +1309,10 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
   }
 
   Future<void> _handleReserve() async {
+    // Ensure user has name + phone before reserving
+    if (!await ensureProfileComplete(context, ref)) return;
+    if (!mounted) return;
+
     final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
 

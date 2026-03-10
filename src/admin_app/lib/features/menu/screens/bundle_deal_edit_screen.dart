@@ -127,10 +127,10 @@ class _BundleDealEditScreenState extends ConsumerState<BundleDealEditScreen> {
                   IconButton(
                     onPressed: _isSubmitting ? null : _save,
                     icon: _isSubmitting
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
                           )
                         : const Icon(Icons.check),
                   ),

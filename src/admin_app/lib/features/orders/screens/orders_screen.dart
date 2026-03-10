@@ -321,12 +321,12 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
     return Padding(
       padding: const EdgeInsets.only(top: 12, left: 56),
       child: orderDetailsAsync.when(
-        loading: () => const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
+        loading: () => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: SizedBox(
             width: 16,
             height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
           ),
         ),
         error: (error, _) => AppText(

@@ -77,7 +77,7 @@ class _AdminDetailScreenState extends ConsumerState<AdminDetailScreen> {
               _buildHeader(context, theme, null, l10n, false),
               Expanded(
                 child: state.isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator(color: theme.colors.primary))
                     : Center(
                         child: AppText(
                           l10n.adminNotFound,
@@ -698,10 +698,10 @@ class _BranchesSection extends ConsumerWidget {
         ),
 
         if (isLoading && branches.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(32),
-              child: CircularProgressIndicator(),
+              padding: const EdgeInsets.all(32),
+              child: CircularProgressIndicator(color: theme.colors.primary),
             ),
           )
         else if (branches.isEmpty)

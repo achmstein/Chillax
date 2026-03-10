@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/models/localized_text.dart';
+import '../../../core/widgets/profile_gate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
@@ -15,6 +16,7 @@ import '../../../core/providers/branch_provider.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../models/bundle_deal.dart';
 import '../models/menu_item.dart';
+import '../models/user_preference.dart';
 import '../services/menu_service.dart';
 import '../providers/favorites_provider.dart';
 import '../../cart/models/cart_item.dart';
@@ -169,7 +171,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     final locale = ref.watch(localeProvider);
     final branchId = ref.watch(selectedBranchIdProvider);
     if (branchId == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator(color: context.theme.colors.primary));
     }
     final groupedItemsAsync = ref.watch(groupedMenuItemsProvider((locale, branchId)));
     final bundlesAsync = ref.watch(activeBundlesProvider(branchId));
@@ -595,16 +597,94 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
     }
   }
 
+  /// Resolve customization option names for display (defaults + user preference overlay).
+  List<String> _resolveCustomizationNames(UserItemPreference? preference, Locale locale) {
+    final item = widget.item;
+    if (item.customizations.isEmpty) return [];
+
+    final selectedOptions = <int, List<int>>{};
+
+    // Apply defaults first
+    for (final customization in item.customizations) {
+      final defaults = customization.options
+          .where((o) => o.isDefault)
+          .map((o) => o.id)
+          .toList();
+      if (defaults.isNotEmpty) {
+        selectedOptions[customization.id] = defaults;
+      } else if (customization.isRequired && customization.options.isNotEmpty) {
+        selectedOptions[customization.id] = [customization.options.first.id];
+      }
+    }
+
+    // Overlay saved preferences
+    if (preference != null) {
+      final savedByCustomization = <int, List<int>>{};
+      for (final option in preference.selectedOptions) {
+        savedByCustomization
+            .putIfAbsent(option.customizationId, () => [])
+            .add(option.optionId);
+      }
+      for (final customization in item.customizations) {
+        final savedOpts = savedByCustomization[customization.id];
+        if (savedOpts != null && savedOpts.isNotEmpty) {
+          final validOptions = savedOpts
+              .where((optionId) =>
+                  customization.options.any((o) => o.id == optionId))
+              .toList();
+          if (validOptions.isNotEmpty) {
+            selectedOptions[customization.id] = validOptions;
+          }
+        }
+      }
+    }
+
+    // Resolve to display names
+    final names = <String>[];
+    for (final customization in item.customizations) {
+      final optionIds = selectedOptions[customization.id] ?? [];
+      for (final optionId in optionIds) {
+        final option = customization.options.firstWhere((o) => o.id == optionId);
+        names.add(option.name.getText(locale));
+      }
+    }
+    return names;
+  }
+
   Future<void> _showFastOrderConfirmation() async {
     final l10n = AppLocalizations.of(context)!;
     final locale = ref.read(localeProvider);
+    final menuService = ref.read(menuRepositoryProvider);
+    final colors = context.theme.colors;
+
+    // Fetch preference before showing dialog so we can display it
+    final preference = await menuService.getUserPreference(widget.item.id);
+    if (!mounted) return;
+
+    final customizationNames = _resolveCustomizationNames(preference, locale);
 
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
       builder: (context) => FDialog(
         direction: Axis.horizontal,
         title: AppText(l10n.fastOrder),
-        body: AppText(l10n.fastOrderConfirmation(widget.item.name.getText(locale))),
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppText(l10n.fastOrderConfirmation(widget.item.name.getText(locale))),
+            if (customizationNames.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              AppText(
+                customizationNames.join(', '),
+                style: TextStyle(
+                  color: colors.mutedForeground,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ],
+        ),
         actions: [
           FButton(
             variant: FButtonVariant.outline,
@@ -620,16 +700,19 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
     );
 
     if (confirmed == true && mounted) {
-      await _submitFastOrder();
+      await _submitFastOrder(preference);
     }
   }
 
-  Future<void> _submitFastOrder() async {
+  Future<void> _submitFastOrder(UserItemPreference? preference) async {
     if (!mounted) return;
-    final l10n = AppLocalizations.of(context)!;
 
-    final menuService = ref.read(menuRepositoryProvider);
-    final authState = ref.read(authServiceProvider);
+    // Ensure user has name + phone before placing order
+    if (!await ensureProfileComplete(context, ref)) return;
+    if (!mounted) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final currentAuthState = ref.read(authServiceProvider);
     final orderService = ref.read(orderRepositoryProvider);
 
     // Try to get active session's room name (optional)
@@ -645,14 +728,11 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
       }
     }
 
-    final preference = await menuService.getUserPreference(widget.item.id);
-    if (!mounted) return;
-
     try {
       await orderService.submitFastOrder(
         item: widget.item,
-        userId: authState.userId ?? '',
-        userName: authState.name ?? 'Guest',
+        userId: currentAuthState.userId ?? '',
+        userName: currentAuthState.name ?? 'Guest',
         roomName: roomName,
         preference: preference,
       );

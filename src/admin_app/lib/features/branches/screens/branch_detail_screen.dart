@@ -212,7 +212,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                   ],
                 ),
               ),
-              const Expanded(child: Center(child: CircularProgressIndicator())),
+              Expanded(child: Center(child: CircularProgressIndicator(color: theme.colors.primary))),
             ],
           ),
         ),
@@ -318,10 +318,10 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                     const SizedBox(height: 8),
 
                     if (_isLoadingAdmins)
-                      const Center(
+                      Center(
                         child: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: CircularProgressIndicator(),
+                          padding: const EdgeInsets.all(24),
+                          child: CircularProgressIndicator(color: theme.colors.primary),
                         ),
                       )
                     else if (_assignedAdmins == null || _assignedAdmins!.isEmpty)

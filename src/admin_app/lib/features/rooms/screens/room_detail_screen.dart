@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -63,7 +64,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
           child: Column(
             children: [
               _buildHeader(context, theme, null, null),
-              const Expanded(child: Center(child: CircularProgressIndicator())),
+              Expanded(child: Center(child: CircularProgressIndicator(color: theme.colors.primary))),
             ],
           ),
         ),
@@ -135,6 +136,13 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
           ),
           const Spacer(),
           if (room != null) ...[
+            IconButton(
+              icon: const Icon(Icons.qr_code, size: 20),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: 'https://chillax.site/room/${room.id}'));
+              },
+              tooltip: 'Copy QR URL',
+            ),
             IconButton(
               icon: const Icon(Icons.edit_outlined, size: 20),
               onPressed: () => _showEditSheet(context, room),
@@ -996,7 +1004,7 @@ class _HistorySection extends StatelessWidget {
         // List
         Expanded(
           child: isLoading && sessions.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator(color: theme.colors.primary))
               : sessions.isEmpty
                   ? Center(
                       child: AppText(
@@ -1016,10 +1024,10 @@ class _HistorySection extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Center(
                               child: isLoading
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 20,
                                       height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: theme.colors.primary),
                                     )
                                   : GestureDetector(
                                       onTap: onLoadMore,
@@ -1522,9 +1530,9 @@ class _AssignCustomerSheetState extends ConsumerState<_AssignCustomerSheet> {
 
               // Results
               if (_isSearching)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: CircularProgressIndicator()),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator(color: theme.colors.primary)),
                 )
               else if (_results.isNotEmpty)
                 ConstrainedBox(

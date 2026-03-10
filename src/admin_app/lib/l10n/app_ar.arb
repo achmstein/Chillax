@@ -473,5 +473,6 @@
   "failedToToggleAdmin": "فشل تحديث حالة المدير",
   "assignedBranches": "الفروع المعينة",
   "noBranchesAssigned": "مفيش فروع معينة",
-  "assignBranch": "تعيين فرع"
+  "assignBranch": "تعيين فرع",
+  "copiedToClipboard": "تم النسخ"
 }

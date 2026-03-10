@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/profile_gate.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/cart_item.dart';
 import '../services/cart_service.dart';
@@ -551,6 +552,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   void _handleCheckout(Cart cart) async {
+    // Ensure user has name + phone before placing order
+    if (!await ensureProfileComplete(context, ref)) return;
+    if (!mounted) return;
+
     final l10n = AppLocalizations.of(context)!;
     final note = _noteController.text.isNotEmpty ? _noteController.text : null;
     final redemption = ref.read(loyaltyRedemptionProvider);

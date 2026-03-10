@@ -2719,6 +2719,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assign Branch'**
   String get assignBranch;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
 }
 
 class _AppLocalizationsDelegate

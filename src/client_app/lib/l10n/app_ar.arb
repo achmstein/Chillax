@@ -324,5 +324,8 @@
   "invalidQrCode": "كود مش صحيح",
   "roomNotAvailable": "الاوضة مش متاحة",
 
-  "invalidPhone": "دخل رقم موبايل صحيح (01xxxxxxxxx)."
+  "invalidPhone": "دخل رقم موبايل صحيح (01xxxxxxxxx).",
+
+  "profileRequiredMessage": "هنحفظ بياناتك ومش هنسألك تاني",
+  "completeYourInfo": "كمّل بياناتك"
 }

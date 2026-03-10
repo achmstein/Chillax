@@ -926,4 +926,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invalidPhone => 'Please enter a valid phone number (01xxxxxxxxx).';
+
+  @override
+  String get profileRequiredMessage =>
+      'We\'ll save your info so you won\'t need to enter it again';
+
+  @override
+  String get completeYourInfo => 'Complete Your Info';
 }

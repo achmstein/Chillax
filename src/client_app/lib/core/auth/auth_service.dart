@@ -25,6 +25,7 @@ class AuthState {
   final String? userId;
   final String? email;
   final String? name;
+  final String? phoneNumber;
 
   const AuthState({
     this.isInitializing = true,
@@ -36,7 +37,17 @@ class AuthState {
     this.userId,
     this.email,
     this.name,
+    this.phoneNumber,
   });
+
+  /// Whether the user has a valid name (not null, not empty, not an email)
+  bool get hasName => name != null && name!.isNotEmpty && !name!.contains('@');
+
+  /// Whether the user has a phone number
+  bool get hasPhone => phoneNumber != null && phoneNumber!.isNotEmpty;
+
+  /// Whether the profile is complete (has name + phone)
+  bool get isProfileComplete => hasName && hasPhone;
 
   AuthState copyWith({
     bool? isInitializing,
@@ -48,6 +59,7 @@ class AuthState {
     String? userId,
     String? email,
     String? name,
+    String? phoneNumber,
   }) {
     return AuthState(
       isInitializing: isInitializing ?? this.isInitializing,
@@ -59,6 +71,7 @@ class AuthState {
       userId: userId ?? this.userId,
       email: email ?? this.email,
       name: name ?? this.name,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
     );
   }
 }
@@ -120,6 +133,10 @@ class AuthService extends Notifier<AuthState> {
             isAuthenticated: true,
             isSocialLogin: isSocial == 'true',
           );
+
+          // Load profile (name + phone) in background
+          _loadProfile();
+
           return;
         }
       }
@@ -137,6 +154,35 @@ class AuthService extends Notifier<AuthState> {
         isAuthenticated: false,
       );
     }
+  }
+
+  /// Load the user's full profile (name + phone) from the backend.
+  /// Called once after authentication — result is cached in state.
+  void _loadProfile() {
+    _dio.get(
+      '${AppConfig.bffBaseUrl}/api/identity/my-profile',
+      options: Options(
+        headers: {'Authorization': 'Bearer ${state.accessToken}'},
+      ),
+    ).then((response) {
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final name = (data['name'] as String?)?.trim();
+        final phone = data['phoneNumber'] as String?;
+        state = state.copyWith(
+          name: (name != null && name.isNotEmpty) ? name : state.name,
+          phoneNumber: phone,
+        );
+        debugPrint('Profile loaded - name: $name, phone: $phone');
+      }
+    }).catchError((e) {
+      debugPrint('Failed to load profile: $e');
+    });
+  }
+
+  /// Update the cached profile in auth state (called after profile_gate saves).
+  void setProfile(String name, String phoneNumber) {
+    state = state.copyWith(name: name, phoneNumber: phoneNumber);
   }
 
   /// Sign in with username and password using Resource Owner Password Credentials grant
@@ -165,6 +211,7 @@ class AuthService extends Notifier<AuthState> {
           refreshToken: data['refresh_token'],
           idToken: data['id_token'],
         );
+        _loadProfile();
         return true;
       }
       return false;
@@ -324,6 +371,9 @@ class AuthService extends Notifier<AuthState> {
           }
           _pendingAppleName = null;
         }
+
+        // Load full profile (name + phone) from backend
+        _loadProfile();
 
         return true;
       }

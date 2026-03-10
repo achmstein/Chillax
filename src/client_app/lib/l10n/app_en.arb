@@ -457,5 +457,8 @@
   "invalidQrCode": "Invalid QR code",
   "roomNotAvailable": "Room not available",
 
-  "invalidPhone": "Please enter a valid phone number (01xxxxxxxxx)."
+  "invalidPhone": "Please enter a valid phone number (01xxxxxxxxx).",
+
+  "profileRequiredMessage": "We'll save your info so you won't need to enter it again",
+  "completeYourInfo": "Complete Your Info"
 }
