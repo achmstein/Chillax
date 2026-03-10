@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import '../auth/auth_service.dart';
-import '../widgets/app_text.dart';
-import '../../l10n/app_localizations.dart';
 import '../../features/menu/screens/menu_screen.dart';
 import '../../features/cart/screens/cart_screen.dart';
 import '../../features/orders/screens/orders_screen.dart';
@@ -23,66 +21,29 @@ import '../widgets/main_scaffold.dart';
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
+  static const _bgColor = Color(0xFF09090B);
+
   @override
   Widget build(BuildContext context) {
-    final colors = context.theme.colors;
-    final l10n = AppLocalizations.of(context);
-
     return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
+      backgroundColor: _bgColor,
+      body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Main content - centered cup icon
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Cup icon as main element
-                    Image.asset(
-                      'assets/images/cup.png',
-                      width: 160,
-                      height: 160,
-                      color: colors.foreground,
-                      filterQuality: FilterQuality.high,
-                    ),
-                    const SizedBox(height: 32),
-                    // Loading spinner
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: colors.primary,
-                        strokeWidth: 2.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            Image.asset(
+              'assets/images/logo.png',
+              width: 150,
+              height: 150,
+              color: Colors.white,
             ),
-            // Bottom branding
-            Padding(
-              padding: const EdgeInsets.only(bottom: 48),
-              child: Column(
-                children: [
-                  // Full logo
-                  Image.asset(
-                    'assets/images/logo.png',
-                    width: 140,
-                    filterQuality: FilterQuality.high,
-                    color: colors.foreground,
-                  ),
-                  const SizedBox(height: 4),
-                  AppText(
-                    l10n?.cafeAndGaming ?? 'Cafe & Gaming',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colors.mutedForeground,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 32),
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2.5,
               ),
             ),
           ],

@@ -298,7 +298,7 @@
   "mostPopular": "الأكثر طلباً",
 
   "fastOrder": "طلب سريع",
-  "fastOrderConfirmation": "طلب سريع {itemName} بالاختيارات بتاعتك؟",
+  "fastOrderConfirmation": "طلب سريع {itemName}؟",
   "fastOrderPlaced": "تم الطلب!",
   "fastOrderNoSession": "ادخل جلسة الأول عشان تطلب سريع",
   "confirm": "تأكيد",

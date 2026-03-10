@@ -672,7 +672,7 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppText(l10n.fastOrderConfirmation(widget.item.name.getText(locale))),
+            AppText(widget.item.name.getText(locale)),
             if (customizationNames.isNotEmpty) ...[
               const SizedBox(height: 8),
               AppText(

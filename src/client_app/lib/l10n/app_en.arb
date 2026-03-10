@@ -426,7 +426,7 @@
   "mostPopular": "Most Popular",
 
   "fastOrder": "Fast Order",
-  "fastOrderConfirmation": "Quick order {itemName} with your preferences?",
+  "fastOrderConfirmation": "Quick order {itemName}?",
   "@fastOrderConfirmation": {
     "placeholders": {
       "itemName": {"type": "String"}

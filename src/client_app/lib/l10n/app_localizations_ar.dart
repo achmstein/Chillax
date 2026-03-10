@@ -846,7 +846,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String fastOrderConfirmation(String itemName) {
-    return 'طلب سريع $itemName بالاختيارات بتاعتك؟';
+    return 'طلب سريع $itemName؟';
   }
 
   @override

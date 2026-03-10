@@ -1661,7 +1661,7 @@ abstract class AppLocalizations {
   /// No description provided for @fastOrderConfirmation.
   ///
   /// In en, this message translates to:
-  /// **'Quick order {itemName} with your preferences?'**
+  /// **'Quick order {itemName}?'**
   String fastOrderConfirmation(String itemName);
 
   /// No description provided for @fastOrderPlaced.

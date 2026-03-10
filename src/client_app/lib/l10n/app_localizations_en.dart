@@ -860,7 +860,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fastOrderConfirmation(String itemName) {
-    return 'Quick order $itemName with your preferences?';
+    return 'Quick order $itemName?';
   }
 
   @override

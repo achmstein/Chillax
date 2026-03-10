@@ -32,9 +32,12 @@ import '../../features/auth/screens/login_screen.dart';
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
+  static const _bgColor = Color(0xFF18181B);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _bgColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -43,10 +46,16 @@ class SplashScreen extends StatelessWidget {
               'assets/images/logo.png',
               width: 150,
               height: 150,
+              color: Colors.white,
             ),
             const SizedBox(height: 32),
-            CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.primary,
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2.5,
+              ),
             ),
           ],
         ),
