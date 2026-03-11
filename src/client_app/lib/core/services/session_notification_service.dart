@@ -8,45 +8,113 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../auth/auth_service.dart';
 import '../config/app_config.dart';
-import '../models/localized_text.dart';
 import '../providers/branch_provider.dart';
+import '../providers/locale_provider.dart';
+import '../../features/menu/models/menu_item.dart';
+import '../../features/menu/services/menu_service.dart';
+import '../../features/orders/services/order_service.dart';
 import '../../features/rooms/models/room.dart';
+import '../../features/rooms/services/room_service.dart';
 
-/// Method channel for native notification management
 const _channel = MethodChannel('com.chillax.client/session_notification');
 
-/// Handles the persistent notification shown during active sessions,
-/// similar to Spotify's media controls in the notification bar.
+class _DrinkInfo {
+  final int id;
+  final String name;
+  final MenuItem item;
+  _DrinkInfo({required this.id, required this.name, required this.item});
+}
+
+/// Manages the persistent native notification shown during active sessions.
+///
+/// Architecture:
+/// - Owns the full lifecycle: listens for session changes, shows/dismisses.
+/// - Resolves favorite drinks directly from the API (no provider dependency).
+/// - Action handler registered in constructor (no timing issues).
+/// - Waiter/Controller actions handled natively via HTTP (no Flutter dependency).
+/// - Drink actions forwarded to Dart via method channel.
 class SessionNotificationService {
   final Ref _ref;
   Timer? _updateTimer;
   RoomSession? _activeSession;
-  bool _initialized = false;
+  ProviderSubscription? _sessionSub;
 
-  SessionNotificationService(this._ref);
+  MenuItem? _drink1Item;
+  MenuItem? _drink2Item;
 
-  /// Initialize and set up the action handler
-  Future<void> initialize() async {
-    if (_initialized) return;
+  /// Cached drinks so we don't re-fetch on every periodic update
+  List<_DrinkInfo>? _cachedDrinks;
+  int? _cachedSessionId;
 
+  SessionNotificationService(this._ref) {
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'onAction') {
-        final actionId = call.arguments as String?;
-        _handleAction(actionId);
+        _handleAction(call.arguments as String?);
       }
     });
-
-    _initialized = true;
   }
 
-  /// Show or update the session notification
-  Future<void> showSessionNotification(RoomSession session, String locale) async {
+  /// Start listening for session changes. Call once after auth is ready.
+  void startListening() {
+    // Avoid duplicate subscriptions
+    _sessionSub?.close();
+
+    _sessionSub = _ref.listen<AsyncValue<List<RoomSession>>>(
+      mySessionsProvider,
+      (previous, next) => _onSessionsChanged(next),
+      fireImmediately: true,
+    );
+
+    // Ensure fresh data — the provider's initial load may have failed
+    // (e.g., 401 before auth was ready). This triggers a silent refresh
+    // that updates the state and fires the listener above.
+    _ref.read(mySessionsProvider.notifier).refresh();
+  }
+
+  /// Stop listening (e.g., on logout).
+  void stopListening() {
+    _sessionSub?.close();
+    _sessionSub = null;
+    dismissNotification();
+  }
+
+  void _onSessionsChanged(AsyncValue<List<RoomSession>> state) {
+    state.whenData((sessions) {
+      final active = sessions
+          .where((s) => s.status == SessionStatus.active)
+          .firstOrNull;
+
+      if (active != null) {
+        final lang = _ref.read(localeProvider).languageCode;
+        _showForSession(active, lang);
+      } else {
+        dismissNotification();
+      }
+    });
+  }
+
+  /// Show or update the notification for an active session.
+  Future<void> _showForSession(RoomSession session, String locale) async {
     _activeSession = session;
 
     await _saveSessionInfo(session);
 
     final isArabic = locale == 'ar';
-    final roomName = isArabic ? (session.roomName.ar ?? session.roomName.en) : session.roomName.en;
+    final roomName = isArabic
+        ? (session.roomName.ar ?? session.roomName.en)
+        : session.roomName.en;
+
+    // Resolve drinks once per session — retry if previous attempt returned empty
+    if (_cachedSessionId != session.id || (_cachedDrinks?.isEmpty ?? true)) {
+      _cachedDrinks = await _resolveFavoriteDrinks(locale);
+      if (_cachedDrinks!.isNotEmpty) {
+        _cachedSessionId = session.id;
+      }
+    }
+
+    final drinks = _cachedDrinks ?? [];
+    _drink1Item = drinks.isNotEmpty ? drinks[0].item : null;
+    _drink2Item = drinks.length > 1 ? drinks[1].item : null;
 
     try {
       await _channel.invokeMethod('show', {
@@ -54,20 +122,26 @@ class SessionNotificationService {
         'duration': session.formattedDuration,
         'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
         'locale': locale,
-        'playerMode': session.currentPlayerMode ?? 'Single',
+        if (drinks.isNotEmpty) 'drink1Id': drinks[0].id,
+        if (drinks.isNotEmpty) 'drink1Name': drinks[0].name,
+        if (drinks.length > 1) 'drink2Id': drinks[1].id,
+        if (drinks.length > 1) 'drink2Name': drinks[1].name,
       });
     } catch (e) {
       debugPrint('Failed to show session notification: $e');
     }
 
-    _startPeriodicUpdate(session, locale);
+    _startPeriodicUpdate(locale);
   }
 
-  /// Dismiss the session notification
   Future<void> dismissNotification() async {
     _updateTimer?.cancel();
     _updateTimer = null;
     _activeSession = null;
+    _drink1Item = null;
+    _drink2Item = null;
+    _cachedDrinks = null;
+    _cachedSessionId = null;
 
     try {
       await _channel.invokeMethod('dismiss');
@@ -78,21 +152,74 @@ class SessionNotificationService {
     await _clearSessionInfo();
   }
 
-  /// Start periodic timer to update the notification duration text
-  void _startPeriodicUpdate(RoomSession session, String locale) {
+  /// Resolve up to 2 drinks: favorites first, then popular items as fallback.
+  Future<List<_DrinkInfo>> _resolveFavoriteDrinks(String locale) async {
+    try {
+      final menuRepo = _ref.read(menuRepositoryProvider);
+      final isArabic = locale == 'ar';
+
+      final items = await menuRepo.getMenuItems();
+      if (items.isEmpty) return [];
+
+      // Try favorites first
+      final favoriteIds = await menuRepo.getFavorites();
+      final drinks = <_DrinkInfo>[];
+
+      for (final itemId in favoriteIds) {
+        if (drinks.length >= 2) break;
+        final item =
+            items.where((i) => i.id == itemId && i.isAvailable).firstOrNull;
+        if (item == null) continue;
+        final name = isArabic ? (item.name.ar ?? item.name.en) : item.name.en;
+        drinks.add(_DrinkInfo(id: item.id, name: name, item: item));
+      }
+
+      // Fall back to popular items if not enough favorites
+      if (drinks.length < 2) {
+        final popularItems = items
+            .where((i) => i.isPopular && i.isAvailable &&
+                !drinks.any((d) => d.id == i.id))
+            .toList();
+        for (final item in popularItems) {
+          if (drinks.length >= 2) break;
+          final name =
+              isArabic ? (item.name.ar ?? item.name.en) : item.name.en;
+          drinks.add(_DrinkInfo(id: item.id, name: name, item: item));
+        }
+      }
+
+      return drinks;
+    } catch (e) {
+      debugPrint('Failed to resolve favorite drinks: $e');
+      return [];
+    }
+  }
+
+  void _startPeriodicUpdate(String locale) {
     _updateTimer?.cancel();
     _updateTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (_activeSession != null) {
-        showSessionNotification(_activeSession!, locale);
+        _showForSession(_activeSession!, locale);
       }
     });
   }
 
-  /// Handle action from foreground - uses Riverpod container
+  // ── Action handling ──────────────────────────────────────────────────
+
   void _handleAction(String? actionId) async {
     if (actionId == null || _activeSession == null) return;
 
-    final requestType = _actionToRequestType(actionId);
+    if (actionId == 'order_drink_1' || actionId == 'order_drink_2') {
+      await _handleDrinkOrder(actionId);
+      return;
+    }
+
+    // Handle service requests (waiter, controller)
+    final requestType = switch (actionId) {
+      'call_waiter' => 1,
+      'controller' => 2,
+      _ => null,
+    };
     if (requestType == null) return;
 
     try {
@@ -101,69 +228,59 @@ class SessionNotificationService {
       if (accessToken == null) return;
 
       final branchId = _ref.read(selectedBranchIdProvider);
-      await _sendServiceRequest(
-        accessToken: accessToken,
-        sessionId: _activeSession!.id,
-        roomId: _activeSession!.roomId,
-        roomName: _activeSession!.roomName,
-        requestType: requestType,
-        branchId: branchId,
-      );
+      final dio = Dio(BaseOptions(
+        baseUrl: AppConfig.notificationsApiUrl,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+          if (branchId != null) 'X-Branch-Id': '$branchId',
+        },
+        queryParameters: {'api-version': '1.0'},
+      ));
+
+      await dio.post('service-requests', data: {
+        'sessionId': _activeSession!.id,
+        'roomId': _activeSession!.roomId,
+        'roomName': _activeSession!.roomName.toJson(),
+        'requestType': requestType,
+      });
     } catch (e) {
-      debugPrint('Failed to handle notification action: $e');
+      debugPrint('Failed to send service request: $e');
     }
   }
 
-  /// Map action ID to service request type value
-  static int? _actionToRequestType(String actionId) {
-    switch (actionId) {
-      case 'call_waiter':
-        return 1;
-      case 'controller':
-        return 2;
-      case 'get_bill':
-        return 3;
-      case 'switch_to_multi':
-        return 4;
-      case 'switch_to_single':
-        return 5;
-      default:
-        return null;
+  Future<void> _handleDrinkOrder(String actionId) async {
+    final item = actionId == 'order_drink_1' ? _drink1Item : _drink2Item;
+    if (item == null) return;
+
+    try {
+      final authState = _ref.read(authServiceProvider);
+      if (!authState.isAuthenticated) return;
+
+      final menuRepo = _ref.read(menuRepositoryProvider);
+      final preference = await menuRepo.getUserPreference(item.id);
+
+      final orderRepo = _ref.read(orderRepositoryProvider);
+      await orderRepo.submitFastOrder(
+        item: item,
+        userId: authState.userId ?? '',
+        userName: authState.name ?? '',
+        roomName: _activeSession!.roomName.toJson(),
+        preference: preference,
+      );
+
+      _ref.read(ordersProvider.notifier).refresh();
+    } catch (e) {
+      debugPrint('Failed to submit drink order from notification: $e');
     }
   }
 
-  /// Send a service request directly via API
-  static Future<void> _sendServiceRequest({
-    required String accessToken,
-    required int sessionId,
-    required int roomId,
-    required LocalizedText roomName,
-    required int requestType,
-    int? branchId,
-  }) async {
-    final dio = Dio(BaseOptions(
-      baseUrl: AppConfig.notificationsApiUrl,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        if (branchId != null) 'X-Branch-Id': '$branchId',
-      },
-      queryParameters: {'api-version': '1.0'},
-    ));
+  // ── SharedPreferences for native fallback ────────────────────────────
 
-    await dio.post('service-requests', data: {
-      'sessionId': sessionId,
-      'roomId': roomId,
-      'roomName': roomName.toJson(),
-      'requestType': requestType,
-    });
-  }
-
-  /// Save session info to shared preferences for background action handling
   Future<void> _saveSessionInfo(RoomSession session) async {
     final prefs = await SharedPreferences.getInstance();
-    final accessToken = await _ref.read(authServiceProvider.notifier).getAccessToken();
+    final accessToken =
+        await _ref.read(authServiceProvider.notifier).getAccessToken();
     final branchId = _ref.read(selectedBranchIdProvider);
 
     await prefs.setInt('active_session_id', session.id);
@@ -180,7 +297,6 @@ class SessionNotificationService {
     }
   }
 
-  /// Clear session info from shared preferences
   Future<void> _clearSessionInfo() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('active_session_id');
@@ -191,15 +307,15 @@ class SessionNotificationService {
     await prefs.remove('active_session_branch_id');
   }
 
-  /// Dispose resources
   void dispose() {
+    _sessionSub?.close();
     _updateTimer?.cancel();
     _updateTimer = null;
   }
 }
 
-/// Provider for session notification service
-final sessionNotificationServiceProvider = Provider<SessionNotificationService>((ref) {
+final sessionNotificationServiceProvider =
+    Provider<SessionNotificationService>((ref) {
   final service = SessionNotificationService(ref);
   ref.onDispose(() => service.dispose());
   return service;

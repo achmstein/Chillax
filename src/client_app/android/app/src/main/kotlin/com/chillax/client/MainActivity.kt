@@ -35,13 +35,22 @@ class MainActivity : FlutterActivity() {
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "show" -> {
-                    val roomName = call.argument<String>("roomName") ?: ""
-                    val duration = call.argument<String>("duration") ?: ""
-                    val startTimeMs = call.argument<Long>("startTimeMs")
-                    val locale = call.argument<String>("locale") ?: "en"
-                    val playerMode = call.argument<String>("playerMode") ?: "Single"
-                    notificationHelper?.show(roomName, duration, startTimeMs, locale, playerMode)
-                    result.success(null)
+                    try {
+                        val args = call.arguments as? Map<*, *>
+                        val roomName = call.argument<String>("roomName") ?: ""
+                        val duration = call.argument<String>("duration") ?: ""
+                        val startTimeMs = (args?.get("startTimeMs") as? Number)?.toLong()
+                        val locale = call.argument<String>("locale") ?: "en"
+                        val drink1Id = (args?.get("drink1Id") as? Number)?.toInt()
+                        val drink1Name = call.argument<String>("drink1Name")
+                        val drink2Id = (args?.get("drink2Id") as? Number)?.toInt()
+                        val drink2Name = call.argument<String>("drink2Name")
+                        notificationHelper?.show(roomName, duration, startTimeMs, locale,
+                            drink1Id, drink1Name, drink2Id, drink2Name)
+                        result.success(null)
+                    } catch (e: Exception) {
+                        result.error("SHOW_ERROR", e.message, null)
+                    }
                 }
                 "dismiss" -> {
                     notificationHelper?.dismiss()

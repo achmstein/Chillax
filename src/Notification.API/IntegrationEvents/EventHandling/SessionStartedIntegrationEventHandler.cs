@@ -71,7 +71,8 @@ public class SessionStartedIntegrationEventHandler(
                 { "roomNameEn", @event.RoomName.GetText("en") },
                 { "roomNameAr", @event.RoomName.GetText("ar") ?? @event.RoomName.GetText("en") },
                 { "startTimeMs", startTimeMs },
-                { "locale", lang }
+                { "locale", lang },
+                { "playerMode", @event.PlayerMode ?? "Single" }
             };
 
             var successCount = await fcmService.SendBatchDataMessagesAsync(tokens, data);

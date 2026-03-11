@@ -33,7 +33,8 @@ public class SessionMemberJoinedDomainEventHandler : INotificationHandler<Sessio
             reservation.RoomId,
             roomName,
             notification.MemberUserId,
-            reservation.ActualStartTime);
+            reservation.ActualStartTime,
+            reservation.CurrentPlayerMode?.ToString());
 
         await _eventBus.PublishAsync(memberJoinedEvent);
     }

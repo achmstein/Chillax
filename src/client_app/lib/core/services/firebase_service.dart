@@ -6,12 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/localized_text.dart';
 import '../router/app_router.dart';
 import '../../features/notifications/services/notification_service.dart';
-import '../../features/rooms/models/room.dart';
 import '../../features/rooms/services/room_service.dart';
-import 'session_notification_service.dart';
+
 
 /// Method channel for native notification (used in background handler)
 const _nativeChannel = MethodChannel('com.chillax.client/session_notification');
@@ -166,39 +164,19 @@ class FirebaseService {
   void _handleSessionStarted(Map<String, dynamic> data) {
     if (_ref == null) return;
 
-    // Refresh sessions to pick up the new active session
-    _ref!.read(mySessionsProvider.notifier).refresh();
+    // Vibrate to alert the user
+    HapticFeedback.vibrate();
 
-    // Show notification immediately
-    _ref!.read(sessionNotificationServiceProvider).showSessionNotification(
-      _buildSessionFromData(data),
-      data['locale'] ?? 'en',
-    );
+    // Refresh sessions — the session notification listener will
+    // automatically show the notification when it sees the active session.
+    _ref!.read(mySessionsProvider.notifier).refresh();
   }
 
   void _handleSessionEnded() {
     if (_ref == null) return;
 
+    // Refresh sessions — the listener will auto-dismiss when no active session.
     _ref!.read(mySessionsProvider.notifier).refresh();
-    _ref!.read(sessionNotificationServiceProvider).dismissNotification();
-  }
-
-  /// Build a minimal RoomSession from FCM data for the notification
-  RoomSession _buildSessionFromData(Map<String, dynamic> data) {
-    return RoomSession(
-      id: int.tryParse(data['sessionId']?.toString() ?? '') ?? 0,
-      roomId: int.tryParse(data['roomId']?.toString() ?? '') ?? 0,
-      roomName: LocalizedText(
-        en: data['roomNameEn'] ?? data['roomName'] ?? '',
-        ar: data['roomNameAr'],
-      ),
-      singleRate: 0,
-      createdAt: DateTime.now(),
-      actualStartTime: data['startTimeMs'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(int.parse(data['startTimeMs'].toString()))
-          : DateTime.now(),
-      status: SessionStatus.active,
-    );
   }
 
   void _handleMessageOpenedApp(RemoteMessage message) {

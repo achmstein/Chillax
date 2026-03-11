@@ -24,6 +24,24 @@ import UserNotifications
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
+  // MARK: - Remote notifications (FCM data messages)
+
+  override func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+  ) {
+    let type = userInfo["type"] as? String
+
+    if type == "session_ended" {
+      SessionNotificationHelper.shared.dismiss()
+    }
+
+    // Let Flutter's firebase_messaging plugin handle everything else
+    super.application(application, didReceiveRemoteNotification: userInfo,
+                      fetchCompletionHandler: completionHandler)
+  }
+
   // MARK: - UNUserNotificationCenterDelegate
 
   /// Show notifications even when app is in the foreground

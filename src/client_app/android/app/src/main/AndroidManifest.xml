@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
     <application
         android:label="Chillax"
         android:name="${applicationName}"
@@ -47,6 +48,14 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
+        <!-- Native FCM handler for session_ended (dismisses notification immediately) -->
+        <service
+            android:name=".SessionFcmService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
         <!-- Session foreground service -->
         <service
             android:name=".SessionForegroundService"
@@ -63,8 +72,8 @@
             <intent-filter>
                 <action android:name="com.chillax.client.ACTION_CALL_WAITER"/>
                 <action android:name="com.chillax.client.ACTION_CONTROLLER"/>
-                <action android:name="com.chillax.client.ACTION_GET_BILL"/>
-                <action android:name="com.chillax.client.ACTION_SWITCH_MODE"/>
+                <action android:name="com.chillax.client.ACTION_ORDER_DRINK_1"/>
+                <action android:name="com.chillax.client.ACTION_ORDER_DRINK_2"/>
             </intent-filter>
         </receiver>
         <!-- Don't delete the meta-data below.

@@ -12,4 +12,5 @@ public record SessionMemberJoinedIntegrationEvent(
     int RoomId,
     LocalizedText RoomName,
     string MemberUserId,
-    DateTime? ActualStartTime) : IntegrationEvent;
+    DateTime? ActualStartTime,
+    string? PlayerMode) : IntegrationEvent;

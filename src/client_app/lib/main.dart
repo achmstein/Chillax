@@ -20,7 +20,6 @@ import 'core/theme/theme_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/notifications/services/notification_service.dart';
 import 'features/orders/services/order_service.dart';
-import 'features/rooms/models/room.dart';
 import 'features/rooms/services/room_service.dart';
 import 'features/settings/providers/settings_provider.dart';
 
@@ -87,6 +86,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _wasAuthenticated) {
       ref.read(signalRServiceProvider).reconnectIfNeeded();
+      ref.read(mySessionsProvider.notifier).refresh();
       _reregisterNotificationsIfEnabled();
     }
   }
@@ -106,6 +106,9 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
       if (authState.isAuthenticated) {
         _connectSignalR();
         _wasAuthenticated = true;
+        // Start session notification listener — it will eagerly fetch
+        // sessions and show the notification if one is already active.
+        ref.read(sessionNotificationServiceProvider).startListening();
       }
     } catch (e, stack) {
       debugPrint('App initialization error: $e\n$stack');
@@ -115,13 +118,6 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
 
     // Initialize Firebase messaging in background (never blocks UI)
     _initializeFirebaseMessaging();
-
-    // Initialize session notification service
-    try {
-      await ref.read(sessionNotificationServiceProvider).initialize();
-    } catch (e) {
-      debugPrint('Session notification init failed: $e');
-    }
 
     // Listen for navigation from native (e.g. notification tap)
     const navigationChannel = MethodChannel('com.chillax.client/navigation');
@@ -156,39 +152,20 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
   }
 
   void _registerForNotifications() {
-    final lang = ref.read(localeProvider)?.languageCode ?? 'en';
+    final lang = ref.read(localeProvider).languageCode;
     final notificationRepo = ref.read(notificationRepositoryProvider);
 
     notificationRepo.registerForOrderNotifications(preferredLanguage: lang);
     notificationRepo.registerForSessionNotifications(preferredLanguage: lang);
 
     ref.read(firebaseServiceProvider).onTokenRefresh((_) {
-      final lang = ref.read(localeProvider)?.languageCode ?? 'en';
+      final lang = ref.read(localeProvider).languageCode;
       ref.read(notificationRepositoryProvider).registerForOrderNotifications(
         preferredLanguage: lang,
       );
       ref.read(notificationRepositoryProvider).registerForSessionNotifications(
         preferredLanguage: lang,
       );
-    });
-  }
-
-  void _listenForSessionChanges() {
-    ref.listen<AsyncValue<List<RoomSession>>>(mySessionsProvider, (previous, next) {
-      final notificationService = ref.read(sessionNotificationServiceProvider);
-      final lang = ref.read(localeProvider)?.languageCode ?? 'en';
-
-      next.whenData((sessions) {
-        final activeSession = sessions
-            .where((s) => s.status == SessionStatus.active)
-            .toList();
-
-        if (activeSession.isNotEmpty) {
-          notificationService.showSessionNotification(activeSession.first, lang);
-        } else {
-          notificationService.dismissNotification();
-        }
-      });
     });
   }
 
@@ -227,16 +204,14 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
       } catch (_) {}
       _connectSignalR();
       _registerForNotifications();
+      ref.read(sessionNotificationServiceProvider).startListening();
     } else if (!authState.isAuthenticated && _wasAuthenticated) {
       _wasAuthenticated = false;
       _cancelSignalRSubscriptions();
       ref.read(notificationRepositoryProvider).unregisterFromOrderNotifications();
       ref.read(notificationRepositoryProvider).unregisterFromSessionNotifications();
-      ref.read(sessionNotificationServiceProvider).dismissNotification();
+      ref.read(sessionNotificationServiceProvider).stopListening();
     }
-
-    // Listen for session changes and manage notification
-    _listenForSessionChanges();
 
     return MaterialApp.router(
       title: 'Chillax',

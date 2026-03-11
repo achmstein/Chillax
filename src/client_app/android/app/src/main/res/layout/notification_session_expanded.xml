@@ -85,27 +85,57 @@
                 android:layout_marginTop="4dp" />
         </LinearLayout>
 
+        <!-- Drink 1 (hidden when no favorite) -->
         <LinearLayout
-            android:id="@+id/btn_switch_mode"
+            android:id="@+id/btn_drink_1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="8dp">
+            android:padding="8dp"
+            android:visibility="gone">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_action_switch_mode"
+                android:src="@drawable/ic_action_drink_1"
                 android:importantForAccessibility="no" />
 
             <TextView
-                android:id="@+id/label_switch_mode"
+                android:id="@+id/label_drink_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="11sp"
                 android:textColor="#CCFFFFFF"
+                android:singleLine="true"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Drink 2 (hidden when no favorite) -->
+        <LinearLayout
+            android:id="@+id/btn_drink_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_action_drink_2"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/label_drink_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11sp"
+                android:textColor="#CCFFFFFF"
+                android:singleLine="true"
                 android:layout_marginTop="4dp" />
         </LinearLayout>
 
