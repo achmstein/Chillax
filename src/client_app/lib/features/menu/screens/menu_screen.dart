@@ -7,7 +7,6 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/models/localized_text.dart';
 import '../../../core/widgets/profile_gate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
@@ -25,35 +24,6 @@ import '../../orders/services/order_service.dart';
 import '../../rooms/models/room.dart';
 import '../../rooms/services/room_service.dart';
 import '../widgets/item_customization_sheet.dart';
-
-/// Provider for grouped menu items by category with localized names
-/// Keyed by (Locale, branchId) for clean state per branch
-final groupedMenuItemsProvider = FutureProvider.family<Map<MenuCategory, List<MenuItem>>, (Locale, int)>((ref, _) async {
-  final service = ref.watch(menuRepositoryProvider);
-  final categories = await service.getCategories();
-  final items = await service.getMenuItems();
-
-  final grouped = <MenuCategory, List<MenuItem>>{};
-
-  // Add "Most Popular" section at the top if there are popular items
-  final popularItems = items.where((item) => item.isPopular).toList();
-  if (popularItems.isNotEmpty) {
-    final popularCategory = MenuCategory(
-      id: -1,
-      name: LocalizedText(en: 'Most Popular', ar: 'الأكثر طلباً'),
-      displayOrder: -1,
-    );
-    grouped[popularCategory] = popularItems;
-  }
-
-  for (final category in categories) {
-    final categoryItems = items.where((item) => item.catalogTypeId == category.id).toList();
-    if (categoryItems.isNotEmpty) {
-      grouped[category] = categoryItems;
-    }
-  }
-  return grouped;
-});
 
 /// Menu screen showing food and drinks grouped by category
 class MenuScreen extends ConsumerStatefulWidget {
@@ -75,7 +45,6 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   List<String> _categoryNames = [];
   bool _isProgrammaticScroll = false;
   bool _hasDealsSection = false;
-  bool _hasOffersSection = false;
 
   @override
   void initState() {
@@ -226,18 +195,27 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                   .where((item) => item.isOnOffer)
                   .toList();
 
-              // Store category names for scroll tracking
-              _hasDealsSection = bundles.isNotEmpty && _searchQuery.isEmpty;
-              _hasOffersSection = offerItems.isNotEmpty && _searchQuery.isEmpty;
-              _categoryNames = [
-                if (_hasOffersSection) '${l10n.specialOffers} 🔥',
+              // Compute layout state from data
+              final hasDeals = bundles.isNotEmpty && _searchQuery.isEmpty;
+              final hasOffers = offerItems.isNotEmpty && _searchQuery.isEmpty;
+              final categoryNames = [
+                if (hasOffers) '${l10n.specialOffers} 🔥',
                 ...filteredItems.keys.map((c) => c.name.getText(locale)),
               ];
-              final topSectionsOffset = (_hasDealsSection ? 1 : 0) + (_hasOffersSection ? 1 : 0);
+              final topSectionsOffset = (hasDeals ? 1 : 0) + (hasOffers ? 1 : 0);
 
-              // Set initial selected category
-              if (_selectedCategoryNotifier.value == null && _categoryNames.isNotEmpty) {
-                _selectedCategoryNotifier.value = _categoryNames.first;
+              // Sync to fields used by scroll callbacks
+              _hasDealsSection = hasDeals;
+              _categoryNames = categoryNames;
+
+              // Set initial selected category (post-frame to avoid notifier
+              // listeners firing during build)
+              if (_selectedCategoryNotifier.value == null && categoryNames.isNotEmpty) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _selectedCategoryNotifier.value == null) {
+                    _selectedCategoryNotifier.value = categoryNames.first;
+                  }
+                });
               }
 
               return Column(
@@ -256,7 +234,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                   // Sticky category menu — listens to notifier internally,
                   // only its chips rebuild on selection change.
                   _CategoryMenu(
-                    categories: _categoryNames,
+                    categories: categoryNames,
                     selectedCategoryNotifier: _selectedCategoryNotifier,
                     onCategoryTap: _scrollToCategory,
                   ),
@@ -268,7 +246,9 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                       backgroundColor: colors.background,
                       onRefresh: () async {
                         ref.invalidate(activeBundlesProvider(branchId));
-                        ref.refresh(groupedMenuItemsProvider((locale, branchId)));
+                        ref.invalidate(groupedMenuItemsProvider((locale, branchId)));
+                        // Wait for the new data to load
+                        await ref.read(groupedMenuItemsProvider((locale, branchId)).future);
                       },
                       child: ScrollablePositionedList.builder(
                         itemScrollController: _itemScrollController,
@@ -277,14 +257,14 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                         itemCount: filteredItems.length + topSectionsOffset,
                         itemBuilder: (context, index) {
                           // Deals section at index 0
-                          if (_hasDealsSection && index == 0) {
+                          if (hasDeals && index == 0) {
                             return _DealsSection(
                               bundles: bundles,
                               locale: locale,
                             );
                           }
                           // Offers section right after deals
-                          if (_hasOffersSection && index == (_hasDealsSection ? 1 : 0)) {
+                          if (hasOffers && index == (hasDeals ? 1 : 0)) {
                             return _OffersSection(
                               items: offerItems,
                               locale: locale,
@@ -402,11 +382,25 @@ class _CategoryMenu extends StatefulWidget {
 
 class _CategoryMenuState extends State<_CategoryMenu> {
   final ScrollController _scrollController = ScrollController();
+  final List<GlobalKey> _chipKeys = [];
 
   @override
   void initState() {
     super.initState();
+    _syncKeys();
     widget.selectedCategoryNotifier.addListener(_onSelectionChanged);
+  }
+
+  @override
+  void didUpdateWidget(_CategoryMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncKeys();
+  }
+
+  void _syncKeys() {
+    while (_chipKeys.length < widget.categories.length) {
+      _chipKeys.add(GlobalKey());
+    }
   }
 
   @override
@@ -427,15 +421,17 @@ class _CategoryMenuState extends State<_CategoryMenu> {
     if (selected == null) return;
     final index = widget.categories.indexOf(selected);
     if (index == -1 || !_scrollController.hasClients) return;
+    if (index >= _chipKeys.length) return;
 
-    const chipWidth = 80.0;
-    final targetOffset = (index * chipWidth) - 100;
-
-    _scrollController.animateTo(
-      targetOffset.clamp(0, _scrollController.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
-    );
+    final keyContext = _chipKeys[index].currentContext;
+    if (keyContext != null) {
+      Scrollable.ensureVisible(
+        keyContext,
+        alignment: 0.3,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -459,6 +455,7 @@ class _CategoryMenuState extends State<_CategoryMenu> {
           final category = widget.categories[index];
           final isSelected = category == selected;
           return GestureDetector(
+            key: index < _chipKeys.length ? _chipKeys[index] : null,
             onTap: () => widget.onCategoryTap(category),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -494,7 +491,6 @@ class _CategorySection extends StatelessWidget {
   final Locale locale;
 
   const _CategorySection({
-    super.key,
     required this.categoryName,
     required this.items,
     required this.locale,
@@ -644,8 +640,10 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
     for (final customization in item.customizations) {
       final optionIds = selectedOptions[customization.id] ?? [];
       for (final optionId in optionIds) {
-        final option = customization.options.firstWhere((o) => o.id == optionId);
-        names.add(option.name.getText(locale));
+        final option = customization.options
+            .where((o) => o.id == optionId)
+            .firstOrNull;
+        if (option != null) names.add(option.name.getText(locale));
       }
     }
     return names;
@@ -1067,7 +1065,6 @@ class _DealsSectionState extends ConsumerState<_DealsSection> {
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
-    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

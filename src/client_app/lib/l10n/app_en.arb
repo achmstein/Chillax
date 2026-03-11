@@ -117,7 +117,6 @@
 
   "joinedSession": "Joined session!",
   "failedToLoadRooms": "Failed to load rooms",
-  "sessionActive": "Session Active",
   "needSomething": "Need something?",
   "callWaiter": "Waiter",
   "controller": "Controller",
@@ -344,7 +343,6 @@
   "tierGold": "GOLD",
   "tierPlatinum": "PLATINUM",
 
-  "joinedSessionSuccessfully": "Joined session successfully!",
   "noFavoritesYet": "No favorites yet",
   "noFavoritesDescription": "Items you love will appear here",
 
@@ -433,7 +431,6 @@
     }
   },
   "fastOrderPlaced": "Order placed!",
-  "fastOrderNoSession": "Join a session first to place a fast order",
   "confirm": "Confirm",
 
   "offer": "Offer",
@@ -451,7 +448,6 @@
   "scanQr": "Scan QR",
   "scanToJoin": "Scan to Join",
   "pointCameraAtQr": "Point camera at room QR code",
-  "noActiveSession": "No active session",
   "alreadyInSession": "You're already in this session",
   "reserveThisRoom": "Reserve",
   "invalidQrCode": "Invalid QR code",

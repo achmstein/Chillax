@@ -258,13 +258,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToLoadDetails => 'التفاصيل مش بتحمل';
 
   @override
-  String get joinedSession => 'دخلت الجلسة!';
+  String get joinedSession => 'دخلت الاوضة!';
 
   @override
   String get failedToLoadRooms => 'الاوض مش بتحمل';
-
-  @override
-  String get sessionActive => 'الجلسة شغالة';
 
   @override
   String get needSomething => 'عايز حاجة؟';
@@ -581,10 +578,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get amountDue => 'مبلغ مستحق';
+  String get amountDue => 'فلوس عليك';
 
   @override
-  String get creditBalance => 'رصيد دائن';
+  String get creditBalance => 'فلوس ليك';
 
   @override
   String get pleasePayAtCounter => 'ادفع في الكاشير';
@@ -696,9 +693,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tierPlatinum => 'بلاتيني';
 
   @override
-  String get joinedSessionSuccessfully => 'دخلت الجلسة!';
-
-  @override
   String get noFavoritesYet => 'مفيش مفضلة لسه';
 
   @override
@@ -771,7 +765,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customizable => 'قابل للتخصيص';
 
   @override
-  String get failedToJoinSession => 'الدخول للجلسة فشل';
+  String get failedToJoinSession => 'الدخول للاوضه فشل';
 
   @override
   String memberCountFormat(int count) {
@@ -853,9 +847,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fastOrderPlaced => 'تم الطلب!';
 
   @override
-  String get fastOrderNoSession => 'ادخل جلسة الأول عشان تطلب سريع';
-
-  @override
   String get confirm => 'تأكيد';
 
   @override
@@ -896,10 +887,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pointCameraAtQr => 'وجه الكاميرا على كود الاوضة';
 
   @override
-  String get noActiveSession => 'مفيش جلسة شغالة';
-
-  @override
-  String get alreadyInSession => 'انت في الجلسة دي اصلا';
+  String get alreadyInSession => 'انت في الاوضه دي اصلا';
 
   @override
   String get reserveThisRoom => 'احجزها';

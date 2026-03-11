@@ -75,6 +75,8 @@
 			<key>NSAllowsLocalNetworking</key>
 			<true/>
 		</dict>
+		<key>NSCameraUsageDescription</key>
+		<string>Chillax needs camera access to scan QR codes.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>

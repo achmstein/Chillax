@@ -95,10 +95,9 @@
   "rateThisOrder": "قيّم الطلب ده",
   "failedToLoadDetails": "التفاصيل مش بتحمل",
 
-  "joinedSession": "دخلت الجلسة!",
+  "joinedSession": "دخلت الاوضة!",
   "failedToLoadRooms": "الاوض مش بتحمل",
-  "sessionActive": "الجلسة شغالة",
-  "needSomething": "عايز حاجة؟",
+    "needSomething": "عايز حاجة؟",
   "callWaiter": "الويتر",
   "controller": "دراع",
   "getBill": "الشيك",
@@ -201,8 +200,8 @@
   "today": "النهاردة",
   "yesterday": "إمبارح",
   "daysAgo": "من {days} يوم",
-  "amountDue": "مبلغ مستحق",
-  "creditBalance": "رصيد دائن",
+  "amountDue": "فلوس عليك",
+  "creditBalance": "فلوس ليك",
   "pleasePayAtCounter": "ادفع في الكاشير",
   "willBeAppliedToNextPurchase": "هيتخصم من طلبك الجاي",
   "noOutstandingBalance": "مفيش رصيد",
@@ -237,8 +236,7 @@
   "supportEmail": "support@chillax.com",
   "supportPhone": "0100 469 8 469",
 
-  "joinedSessionSuccessfully": "دخلت الجلسة!",
-  "noFavoritesYet": "مفيش مفضلة لسه",
+    "noFavoritesYet": "مفيش مفضلة لسه",
   "noFavoritesDescription": "الحاجات اللي بتحبها هتظهر هنا",
 
   "createStrongPassword": "اعمل باسورد قوي",
@@ -270,7 +268,7 @@
 
   "customizable": "قابل للتخصيص",
 
-  "failedToJoinSession": "الدخول للجلسة فشل",
+  "failedToJoinSession": "الدخول للاوضه فشل",
   "memberCountFormat": "{count} أعضاء",
   "pleaseWaitBeforeRequest": "استنى شوية قبل ما تطلب تاني",
   "failedToSendRequest": "الطلب مش بيتبعت",
@@ -300,8 +298,7 @@
   "fastOrder": "طلب سريع",
   "fastOrderConfirmation": "طلب سريع {itemName}؟",
   "fastOrderPlaced": "تم الطلب!",
-  "fastOrderNoSession": "ادخل جلسة الأول عشان تطلب سريع",
-  "confirm": "تأكيد",
+    "confirm": "تأكيد",
 
   "offer": "عرض",
   "deals": "الديلز",
@@ -318,8 +315,7 @@
   "scanQr": "امسح الكود",
   "scanToJoin": "سكان QR",
   "pointCameraAtQr": "وجه الكاميرا على كود الاوضة",
-  "noActiveSession": "مفيش جلسة شغالة",
-  "alreadyInSession": "انت في الجلسة دي اصلا",
+    "alreadyInSession": "انت في الاوضه دي اصلا",
   "reserveThisRoom": "احجزها",
   "invalidQrCode": "كود مش صحيح",
   "roomNotAvailable": "الاوضة مش متاحة",

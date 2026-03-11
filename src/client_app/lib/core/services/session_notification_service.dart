@@ -97,24 +97,18 @@ class SessionNotificationService {
   Future<void> _showForSession(RoomSession session, String locale) async {
     _activeSession = session;
 
-    await _saveSessionInfo(session);
+    // Save session info in parallel, don't block notification display
+    _saveSessionInfo(session);
 
     final isArabic = locale == 'ar';
     final roomName = isArabic
         ? (session.roomName.ar ?? session.roomName.en)
         : session.roomName.en;
 
-    // Resolve drinks once per session — retry if previous attempt returned empty
-    if (_cachedSessionId != session.id || (_cachedDrinks?.isEmpty ?? true)) {
-      _cachedDrinks = await _resolveFavoriteDrinks(locale);
-      if (_cachedDrinks!.isNotEmpty) {
-        _cachedSessionId = session.id;
-      }
-    }
-
+    // Show notification immediately with just room name + timer
+    final needsDrinks = _cachedSessionId != session.id ||
+        (_cachedDrinks?.isEmpty ?? true);
     final drinks = _cachedDrinks ?? [];
-    _drink1Item = drinks.isNotEmpty ? drinks[0].item : null;
-    _drink2Item = drinks.length > 1 ? drinks[1].item : null;
 
     try {
       await _channel.invokeMethod('show', {
@@ -132,6 +126,36 @@ class SessionNotificationService {
     }
 
     _startPeriodicUpdate(locale);
+
+    // Resolve drinks in the background, then update notification with them
+    if (needsDrinks) {
+      _cachedDrinks = await _resolveFavoriteDrinks(locale);
+      if (_cachedDrinks!.isNotEmpty) {
+        _cachedSessionId = session.id;
+      }
+      final resolved = _cachedDrinks ?? [];
+      _drink1Item = resolved.isNotEmpty ? resolved[0].item : null;
+      _drink2Item = resolved.length > 1 ? resolved[1].item : null;
+
+      // Update notification with drink buttons
+      if (resolved.isNotEmpty && _activeSession != null) {
+        try {
+          await _channel.invokeMethod('show', {
+            'roomName': roomName,
+            'duration': session.formattedDuration,
+            'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
+            'locale': locale,
+            'drink1Id': resolved[0].id,
+            'drink1Name': resolved[0].name,
+            if (resolved.length > 1) 'drink2Id': resolved[1].id,
+            if (resolved.length > 1) 'drink2Name': resolved[1].name,
+          });
+        } catch (_) {}
+      }
+    } else {
+      _drink1Item = drinks.isNotEmpty ? drinks[0].item : null;
+      _drink2Item = drinks.length > 1 ? drinks[1].item : null;
+    }
   }
 
   Future<void> dismissNotification() async {

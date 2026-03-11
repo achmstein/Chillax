@@ -18,6 +18,7 @@ import 'core/services/session_notification_service.dart';
 import 'core/services/signalr_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'features/menu/providers/favorites_provider.dart';
 import 'features/notifications/services/notification_service.dart';
 import 'features/orders/services/order_service.dart';
 import 'features/rooms/services/room_service.dart';
@@ -87,6 +88,8 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
     if (state == AppLifecycleState.resumed && _wasAuthenticated) {
       ref.read(signalRServiceProvider).reconnectIfNeeded();
       ref.read(mySessionsProvider.notifier).refresh();
+      final branchId = ref.read(selectedBranchIdProvider);
+      if (branchId != null) ref.invalidate(roomsProvider(branchId));
       _reregisterNotificationsIfEnabled();
     }
   }
@@ -211,6 +214,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
       ref.read(notificationRepositoryProvider).unregisterFromOrderNotifications();
       ref.read(notificationRepositoryProvider).unregisterFromSessionNotifications();
       ref.read(sessionNotificationServiceProvider).stopListening();
+      ref.invalidate(favoritesProvider);
     }
 
     return MaterialApp.router(

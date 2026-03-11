@@ -203,14 +203,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addRoomToGetStarted => 'ضيف غرفة عشان تبدأ';
 
   @override
-  String get endSession => 'إنهاء الجلسة؟';
+  String get endSession => 'إنهاء الوقت؟';
 
   @override
   String get endSessionConfirmation =>
-      'متأكد إنك عايز تنهي الجلسة دي؟ هيتحاسب العميل على الوقت اللي استخدمه.';
+      'متأكد انك عايز تنهي وقت الاوضه دي؟';
 
   @override
-  String get endSessionButton => 'إنهاء الجلسة';
+  String get endSessionButton => 'إنهاء الوقت';
 
   @override
   String get statusActive => 'نشط';
@@ -430,7 +430,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get descriptionOptional => 'الوصف';
 
   @override
-  String get chargeDescriptionHint => 'مثلاً: باقي من جلسة - غرفة 3';
+  String get chargeDescriptionHint => 'مثلاً: باقي من حساب - اوضه 3';
 
   @override
   String get pleaseEnterValidAmount => 'من فضلك اكتب مبلغ صحيح';
@@ -573,7 +573,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get startSession => 'ابدأ جلسة';
+  String get startSession => 'إبدا الوقت';
 
   @override
   String get reserve => 'حجز';
@@ -686,7 +686,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cashPaymentHint => 'مثلاً: دفع كاش';
 
   @override
-  String get sessionBalanceHint => 'مثلاً: رصيد الجلسة';
+  String get sessionBalanceHint => 'مثلاً: رصيد الاوضه';
 
   @override
   String get chargeAdded => 'تم إضافة الرصيد';
@@ -1211,9 +1211,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get selectPlayerMode => 'اختار وضع اللعب';
-
-  @override
-  String get sessionDetails => 'تفاصيل الجلسة';
 
   @override
   String get totalDuration => 'المدة الكلية';

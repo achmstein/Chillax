@@ -1,4 +1,6 @@
+import 'dart:ui' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/models/localized_text.dart';
 import '../../../core/network/api_client.dart';
 import '../models/bundle_deal.dart';
 import '../models/menu_item.dart';
@@ -191,4 +193,33 @@ final userPreferenceProvider = FutureProvider.family<UserItemPreference?, int>(
 final activeBundlesProvider = FutureProvider.family<List<BundleDeal>, int>((ref, branchId) async {
   final service = ref.watch(menuRepositoryProvider);
   return service.getActiveBundles();
+});
+
+/// Provider for grouped menu items by category with localized names.
+/// Keyed by (Locale, branchId) for clean state per branch.
+final groupedMenuItemsProvider = FutureProvider.family<Map<MenuCategory, List<MenuItem>>, (Locale, int)>((ref, _) async {
+  final service = ref.watch(menuRepositoryProvider);
+  final categories = await service.getCategories();
+  final items = await service.getMenuItems();
+
+  final grouped = <MenuCategory, List<MenuItem>>{};
+
+  // Add "Most Popular" section at the top if there are popular items
+  final popularItems = items.where((item) => item.isPopular).toList();
+  if (popularItems.isNotEmpty) {
+    final popularCategory = MenuCategory(
+      id: -1,
+      name: LocalizedText(en: 'Most Popular', ar: 'الأكثر طلباً'),
+      displayOrder: -1,
+    );
+    grouped[popularCategory] = popularItems;
+  }
+
+  for (final category in categories) {
+    final categoryItems = items.where((item) => item.catalogTypeId == category.id).toList();
+    if (categoryItems.isNotEmpty) {
+      grouped[category] = categoryItems;
+    }
+  }
+  return grouped;
 });

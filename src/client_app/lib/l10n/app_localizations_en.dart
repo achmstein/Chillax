@@ -268,9 +268,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToLoadRooms => 'Failed to load rooms';
 
   @override
-  String get sessionActive => 'Session Active';
-
-  @override
   String get needSomething => 'Need something?';
 
   @override
@@ -707,9 +704,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tierPlatinum => 'PLATINUM';
 
   @override
-  String get joinedSessionSuccessfully => 'Joined session successfully!';
-
-  @override
   String get noFavoritesYet => 'No favorites yet';
 
   @override
@@ -867,9 +861,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fastOrderPlaced => 'Order placed!';
 
   @override
-  String get fastOrderNoSession => 'Join a session first to place a fast order';
-
-  @override
   String get confirm => 'Confirm';
 
   @override
@@ -908,9 +899,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pointCameraAtQr => 'Point camera at room QR code';
-
-  @override
-  String get noActiveSession => 'No active session';
 
   @override
   String get alreadyInSession => 'You\'re already in this session';

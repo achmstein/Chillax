@@ -590,12 +590,6 @@ abstract class AppLocalizations {
   /// **'Failed to load rooms'**
   String get failedToLoadRooms;
 
-  /// No description provided for @sessionActive.
-  ///
-  /// In en, this message translates to:
-  /// **'Session Active'**
-  String get sessionActive;
-
   /// No description provided for @needSomething.
   ///
   /// In en, this message translates to:
@@ -1382,12 +1376,6 @@ abstract class AppLocalizations {
   /// **'PLATINUM'**
   String get tierPlatinum;
 
-  /// No description provided for @joinedSessionSuccessfully.
-  ///
-  /// In en, this message translates to:
-  /// **'Joined session successfully!'**
-  String get joinedSessionSuccessfully;
-
   /// No description provided for @noFavoritesYet.
   ///
   /// In en, this message translates to:
@@ -1670,12 +1658,6 @@ abstract class AppLocalizations {
   /// **'Order placed!'**
   String get fastOrderPlaced;
 
-  /// No description provided for @fastOrderNoSession.
-  ///
-  /// In en, this message translates to:
-  /// **'Join a session first to place a fast order'**
-  String get fastOrderNoSession;
-
   /// No description provided for @confirm.
   ///
   /// In en, this message translates to:
@@ -1753,12 +1735,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Point camera at room QR code'**
   String get pointCameraAtQr;
-
-  /// No description provided for @noActiveSession.
-  ///
-  /// In en, this message translates to:
-  /// **'No active session'**
-  String get noActiveSession;
 
   /// No description provided for @alreadyInSession.
   ///

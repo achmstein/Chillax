@@ -548,7 +548,6 @@
   "playerModeMulti": "Multi",
   "hoursShort": "hour",
   "selectPlayerMode": "Select Player Mode",
-  "sessionDetails": "Session Details",
   "totalDuration": "Total Duration",
   "changePlayerMode": "Change Player Mode?",
   "changePlayerModeConfirmation": "Switch to {mode}? The rate will change accordingly.",

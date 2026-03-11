@@ -2378,12 +2378,6 @@ abstract class AppLocalizations {
   /// **'Select Player Mode'**
   String get selectPlayerMode;
 
-  /// No description provided for @sessionDetails.
-  ///
-  /// In en, this message translates to:
-  /// **'Session Details'**
-  String get sessionDetails;
-
   /// No description provided for @totalDuration.
   ///
   /// In en, this message translates to:

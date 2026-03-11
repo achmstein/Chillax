@@ -1219,9 +1219,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectPlayerMode => 'Select Player Mode';
 
   @override
-  String get sessionDetails => 'Session Details';
-
-  @override
   String get totalDuration => 'Total Duration';
 
   @override
