@@ -39,4 +39,4 @@ jobs:
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-        run: bundle exec fastlane match appstore --api_key_path "$API_KEY_PATH"
+        run: bundle exec fastlane match appstore --api_key_path "$API_KEY_PATH" --app_identifier "com.chillax.client,com.chillax.client.ChillaxLiveActivity"

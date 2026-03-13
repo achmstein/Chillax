@@ -16,6 +16,11 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		C4A1B2D3E4F5061700000002 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C4A1B2D3E4F5061700000001 /* GoogleService-Info.plist */; };
+		D1A2B3C4E5F60A1800000007 /* SessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60A1800000001 /* SessionActivityAttributes.swift */; };
+		D1A2B3C4E5F60A1800000008 /* ChillaxLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60A1800000002 /* ChillaxLiveActivityBundle.swift */; };
+		D1A2B3C4E5F60A1800000009 /* SessionLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60A1800000003 /* SessionLiveActivity.swift */; };
+		D1A2B3C4E5F60A180000000A /* SessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60A1800000004 /* SessionActivityAttributes.swift */; };
+		D1A2B3C4E5F60A180000000B /* ChillaxLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60A1800000006 /* ChillaxLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,6 +30,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		D1A2B3C4E5F60A1800000012 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D1A2B3C4E5F60A180000000D;
+			remoteInfo = ChillaxLiveActivity;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -37,6 +49,17 @@
 			files = (
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A2B3C4E5F60A1800000011 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D1A2B3C4E5F60A180000000B /* ChillaxLiveActivity.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -59,10 +82,23 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C4A1B2D3E4F5061700000001 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		D1A2B3C4E5F60A1800000001 /* SessionActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionActivityAttributes.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60A1800000002 /* ChillaxLiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChillaxLiveActivityBundle.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60A1800000003 /* SessionLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLiveActivity.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60A1800000004 /* SessionActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionActivityAttributes.swift; sourceTree = "<group>"; };
+		D1A2B3C4E5F60A1800000005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D1A2B3C4E5F60A1800000006 /* ChillaxLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ChillaxLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		97C146EB1CF9000F007C117D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A2B3C4E5F60A180000000F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -98,6 +134,7 @@
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
+				D1A2B3C4E5F60A180000000C /* ChillaxLiveActivity */,
 			);
 			sourceTree = "<group>";
 		};
@@ -106,6 +143,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				D1A2B3C4E5F60A1800000006 /* ChillaxLiveActivity.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -122,9 +160,21 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				A1B2C3D4E5F6071800000002 /* SessionNotificationHelper.swift */,
+				D1A2B3C4E5F60A1800000001 /* SessionActivityAttributes.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
+			sourceTree = "<group>";
+		};
+		D1A2B3C4E5F60A180000000C /* ChillaxLiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				D1A2B3C4E5F60A1800000002 /* ChillaxLiveActivityBundle.swift */,
+				D1A2B3C4E5F60A1800000003 /* SessionLiveActivity.swift */,
+				D1A2B3C4E5F60A1800000004 /* SessionActivityAttributes.swift */,
+				D1A2B3C4E5F60A1800000005 /* Info.plist */,
+			);
+			path = ChillaxLiveActivity;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -157,15 +207,34 @@
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
+				D1A2B3C4E5F60A1800000011 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D1A2B3C4E5F60A1800000013 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D1A2B3C4E5F60A180000000D /* ChillaxLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D1A2B3C4E5F60A1800000017 /* Build configuration list for PBXNativeTarget "ChillaxLiveActivity" */;
+			buildPhases = (
+				D1A2B3C4E5F60A180000000E /* Sources */,
+				D1A2B3C4E5F60A180000000F /* Frameworks */,
+				D1A2B3C4E5F60A1800000010 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ChillaxLiveActivity;
+			productName = ChillaxLiveActivity;
+			productReference = D1A2B3C4E5F60A1800000006 /* ChillaxLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -185,6 +254,9 @@
 						CreatedOnToolsVersion = 7.3.1;
 						LastSwiftMigration = 1100;
 					};
+					D1A2B3C4E5F60A180000000D = {
+						CreatedOnToolsVersion = 15.0;
+					};
 				};
 			};
 			buildConfigurationList = 97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */;
@@ -202,6 +274,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				D1A2B3C4E5F60A180000000D /* ChillaxLiveActivity */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +296,13 @@
 				C4A1B2D3E4F5061700000002 /* GoogleService-Info.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A2B3C4E5F60A1800000010 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,6 +358,17 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				A1B2C3D4E5F6071800000001 /* SessionNotificationHelper.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				D1A2B3C4E5F60A1800000007 /* SessionActivityAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A2B3C4E5F60A180000000E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D1A2B3C4E5F60A1800000008 /* ChillaxLiveActivityBundle.swift in Sources */,
+				D1A2B3C4E5F60A1800000009 /* SessionLiveActivity.swift in Sources */,
+				D1A2B3C4E5F60A180000000A /* SessionActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,6 +379,11 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		D1A2B3C4E5F60A1800000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D1A2B3C4E5F60A180000000D /* ChillaxLiveActivity */;
+			targetProxy = D1A2B3C4E5F60A1800000012 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -596,6 +692,88 @@
 			};
 			name = Release;
 		};
+		D1A2B3C4E5F60A1800000014 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NT4VMTB8MK;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChillaxLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ChillaxLiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chillax.client.ChillaxLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		D1A2B3C4E5F60A1800000015 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NT4VMTB8MK;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChillaxLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ChillaxLiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chillax.client.ChillaxLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		D1A2B3C4E5F60A1800000016 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NT4VMTB8MK;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChillaxLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ChillaxLiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chillax.client.ChillaxLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -625,6 +803,16 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D1A2B3C4E5F60A1800000017 /* Build configuration list for PBXNativeTarget "ChillaxLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D1A2B3C4E5F60A1800000014 /* Debug */,
+				D1A2B3C4E5F60A1800000015 /* Release */,
+				D1A2B3C4E5F60A1800000016 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

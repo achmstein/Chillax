@@ -65,18 +65,13 @@ class SessionNotificationHelper(
         lastDrink2Id = drink2Id
         lastDrink2Name = drink2Name
 
-        if (!serviceStarted) {
-            try {
-                SessionForegroundService.start(context, roomName, duration, startTimeMs, locale,
-                    drink1Id, drink1Name, drink2Id, drink2Name)
-                serviceStarted = true
-            } catch (_: Exception) {
-            }
-        } else {
-            val notification = buildNotification(roomName, duration, startTimeMs, locale,
+        // Always route through the foreground service so the notification
+        // stays bound to it and cannot be dismissed by the user.
+        try {
+            SessionForegroundService.start(context, roomName, duration, startTimeMs, locale,
                 drink1Id, drink1Name, drink2Id, drink2Name)
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(NOTIFICATION_ID, notification)
+            serviceStarted = true
+        } catch (_: Exception) {
         }
     }
 

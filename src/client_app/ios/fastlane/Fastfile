@@ -6,7 +6,7 @@ platform :ios do
 
     match(
       type: "appstore",
-      app_identifier: "com.chillax.client",
+      app_identifier: ["com.chillax.client", "com.chillax.client.ChillaxLiveActivity"],
       readonly: is_ci,
     )
 
@@ -17,6 +17,16 @@ platform :ios do
       bundle_identifier: "com.chillax.client",
       code_sign_identity: "Apple Distribution",
       profile_name: ENV["sigh_com.chillax.client_appstore_profile-name"],
+    )
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "Runner.xcodeproj",
+      team_id: "NT4VMTB8MK",
+      bundle_identifier: "com.chillax.client.ChillaxLiveActivity",
+      code_sign_identity: "Apple Distribution",
+      profile_name: ENV["sigh_com.chillax.client.ChillaxLiveActivity_appstore_profile-name"],
+      targets: ["ChillaxLiveActivity"],
     )
 
     build_app(

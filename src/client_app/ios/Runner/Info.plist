@@ -79,5 +79,7 @@
 		<string>Chillax needs camera access to scan QR codes.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSSupportsLiveActivities</key>
+		<true/>
 	</dict>
 </plist>

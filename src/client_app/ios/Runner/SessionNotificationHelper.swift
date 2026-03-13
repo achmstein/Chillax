@@ -1,3 +1,4 @@
+import ActivityKit
 import Foundation
 import UserNotifications
 import Flutter
@@ -9,7 +10,7 @@ class SessionNotificationHelper: NSObject {
     static let navigationChannelName = "com.chillax.client/navigation"
     static let notificationId = "session_notification"
 
-    // Notification category & action identifiers
+    // Notification category & action identifiers (legacy fallback)
     static let categoryId = "SESSION_CONTROLS"
     static let actionCallWaiter = "ACTION_CALL_WAITER"
     static let actionController = "ACTION_CONTROLLER"
@@ -32,11 +33,20 @@ class SessionNotificationHelper: NSObject {
     private var cooldowns: [String: Date] = [:]
     private var cooldownTimer: Timer?
 
+    // Live Activity storage (typed access via computed property)
+    private var _liveActivityStorage: Any?
+
+    @available(iOS 16.1, *)
+    private var currentActivity: Activity<SessionActivityAttributes>? {
+        get { _liveActivityStorage as? Activity<SessionActivityAttributes> }
+        set { _liveActivityStorage = newValue }
+    }
+
     private override init() {
         super.init()
     }
 
-    /// Register notification categories with interactive actions
+    /// Register notification categories with interactive actions (legacy fallback)
     func registerCategories() {
         updateCategoryActions(locale: "en", drink1Name: nil, drink2Name: nil)
     }
@@ -47,48 +57,44 @@ class SessionNotificationHelper: NSObject {
 
         var actions: [UNNotificationAction] = []
 
-        let waiterAction = UNNotificationAction(
+        actions.append(UNNotificationAction(
             identifier: SessionNotificationHelper.actionCallWaiter,
             title: getActionTitle(
                 action: SessionNotificationHelper.actionCallWaiter,
                 defaultLabel: isArabic ? "الويتر" : "Waiter"
             ),
             options: []
-        )
-        actions.append(waiterAction)
+        ))
 
-        let controllerAction = UNNotificationAction(
+        actions.append(UNNotificationAction(
             identifier: SessionNotificationHelper.actionController,
             title: getActionTitle(
                 action: SessionNotificationHelper.actionController,
                 defaultLabel: isArabic ? "دراع" : "Controller"
             ),
             options: []
-        )
-        actions.append(controllerAction)
+        ))
 
         if let name = drink1Name {
-            let drink1Action = UNNotificationAction(
+            actions.append(UNNotificationAction(
                 identifier: SessionNotificationHelper.actionOrderDrink1,
                 title: getActionTitle(
                     action: SessionNotificationHelper.actionOrderDrink1,
                     defaultLabel: name
                 ),
                 options: []
-            )
-            actions.append(drink1Action)
+            ))
         }
 
         if let name = drink2Name {
-            let drink2Action = UNNotificationAction(
+            actions.append(UNNotificationAction(
                 identifier: SessionNotificationHelper.actionOrderDrink2,
                 title: getActionTitle(
                     action: SessionNotificationHelper.actionOrderDrink2,
                     defaultLabel: name
                 ),
                 options: []
-            )
-            actions.append(drink2Action)
+            ))
         }
 
         let category = UNNotificationCategory(
@@ -145,7 +151,10 @@ class SessionNotificationHelper: NSObject {
         }
     }
 
-    /// Show or update the session notification
+    // MARK: - Show / Update
+
+    /// Show or update the session notification.
+    /// Uses Live Activities on iOS 16.1+, falls back to regular notification on older versions.
     func show(roomName: String, duration: String, startTimeMs: Int64?, locale: String,
               drink1Name: String? = nil, drink2Name: String? = nil) {
         lastRoomName = roomName
@@ -155,26 +164,104 @@ class SessionNotificationHelper: NSObject {
         lastDrink1Name = drink1Name
         lastDrink2Name = drink2Name
 
-        // Update category actions to reflect current drinks and locale
-        updateCategoryActions(locale: locale, drink1Name: drink1Name, drink2Name: drink2Name)
+        if #available(iOS 16.1, *) {
+            showLiveActivity(roomName: roomName, startTimeMs: startTimeMs, locale: locale,
+                             drink1Name: drink1Name, drink2Name: drink2Name)
+        } else {
+            showLegacyNotification(roomName: roomName, locale: locale)
+        }
+    }
+
+    /// Dismiss the session notification
+    func dismiss() {
+        cooldowns.removeAll()
+        cooldownTimer?.invalidate()
+        cooldownTimer = nil
+
+        if #available(iOS 16.1, *) {
+            dismissLiveActivity()
+        }
+
+        lastRoomName = ""
+        lastDrink1Name = nil
+        lastDrink2Name = nil
+
+        // Also dismiss any legacy notification
+        UNUserNotificationCenter.current().removeDeliveredNotifications(
+            withIdentifiers: [SessionNotificationHelper.notificationId]
+        )
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: [SessionNotificationHelper.notificationId]
+        )
+    }
+
+    // MARK: - Live Activity (iOS 16.1+)
+
+    @available(iOS 16.1, *)
+    private func showLiveActivity(roomName: String, startTimeMs: Int64?, locale: String,
+                                  drink1Name: String?, drink2Name: String?) {
+        let startDate: Date
+        if let ms = startTimeMs {
+            startDate = Date(timeIntervalSince1970: Double(ms) / 1000.0)
+        } else {
+            startDate = Date()
+        }
+
+        let state = SessionActivityAttributes.ContentState(
+            startTime: startDate,
+            drink1Name: drink1Name,
+            drink2Name: drink2Name
+        )
+
+        if let activity = currentActivity,
+           activity.activityState == .active {
+            // Update existing activity
+            Task {
+                await activity.update(ActivityContent(state: state, staleDate: nil))
+            }
+        } else {
+            // Start new activity
+            let attributes = SessionActivityAttributes(roomName: roomName, locale: locale)
+            let content = ActivityContent(state: state, staleDate: nil)
+
+            do {
+                currentActivity = try Activity.request(
+                    attributes: attributes,
+                    content: content,
+                    pushType: nil
+                )
+            } catch {
+                print("Failed to start Live Activity: \(error)")
+                // Fall back to legacy notification
+                showLegacyNotification(roomName: roomName, locale: locale)
+            }
+        }
+    }
+
+    @available(iOS 16.1, *)
+    private func dismissLiveActivity() {
+        guard let activity = currentActivity else { return }
+        let state = activity.content.state
+        Task {
+            await activity.end(ActivityContent(state: state, staleDate: nil),
+                               dismissalPolicy: .immediate)
+        }
+        currentActivity = nil
+    }
+
+    // MARK: - Legacy Notification (iOS < 16.1)
+
+    private func showLegacyNotification(roomName: String, locale: String) {
+        updateCategoryActions(locale: locale, drink1Name: lastDrink1Name, drink2Name: lastDrink2Name)
 
         let content = UNMutableNotificationContent()
         content.title = "Chillax"
         content.categoryIdentifier = SessionNotificationHelper.categoryId
-        content.sound = nil // Silent — ongoing session notification
+        content.sound = nil
 
-        // Show room name with elapsed time
-        if let startMs = startTimeMs {
-            let startDate = Date(timeIntervalSince1970: Double(startMs) / 1000.0)
-            let elapsed = Date().timeIntervalSince(startDate)
-            let hours = Int(elapsed) / 3600
-            let minutes = (Int(elapsed) % 3600) / 60
-            let seconds = Int(elapsed) % 60
-            let timer = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-            content.body = "\(roomName) · \(timer)"
-        } else {
-            content.body = roomName
-        }
+        let isArabic = locale == "ar"
+        let sessionLabel = isArabic ? "الاوضه شغالة" : "Session active"
+        content.body = "\(roomName) · \(sessionLabel)"
 
         let request = UNNotificationRequest(
             identifier: SessionNotificationHelper.notificationId,
@@ -187,63 +274,55 @@ class SessionNotificationHelper: NSObject {
                 print("Failed to show session notification: \(error)")
             }
         }
-
-        startPeriodicUpdate()
     }
 
-    /// Dismiss the session notification
-    func dismiss() {
-        stopPeriodicUpdate()
-        cooldowns.removeAll()
+    // MARK: - Action Handling
 
-        UNUserNotificationCenter.current().removeDeliveredNotifications(
-            withIdentifiers: [SessionNotificationHelper.notificationId]
-        )
-        UNUserNotificationCenter.current().removePendingNotificationRequests(
-            withIdentifiers: [SessionNotificationHelper.notificationId]
-        )
-    }
-
-    /// Handle a notification action response
+    /// Handle a notification action response (legacy notifications)
     func handleAction(identifier: String) {
+        let dartActionId = mapToDartAction(identifier)
+        guard let actionId = dartActionId else { return }
+        performAction(internalId: identifier, dartActionId: actionId)
+    }
+
+    /// Handle a deep link action from Live Activity buttons
+    func handleDeepLinkAction(_ dartActionId: String) {
+        let internalId: String
+        switch dartActionId {
+        case "call_waiter": internalId = SessionNotificationHelper.actionCallWaiter
+        case "controller": internalId = SessionNotificationHelper.actionController
+        case "order_drink_1": internalId = SessionNotificationHelper.actionOrderDrink1
+        case "order_drink_2": internalId = SessionNotificationHelper.actionOrderDrink2
+        default: return
+        }
+        performAction(internalId: internalId, dartActionId: dartActionId)
+    }
+
+    private func performAction(internalId: String, dartActionId: String) {
         let now = Date()
 
         // Check cooldown
-        if let expiry = cooldowns[identifier], now < expiry {
-            return
-        }
+        if let expiry = cooldowns[internalId], now < expiry { return }
+        cooldowns[internalId] = now.addingTimeInterval(SessionNotificationHelper.cooldownSeconds)
 
-        // Start cooldown
-        cooldowns[identifier] = now.addingTimeInterval(SessionNotificationHelper.cooldownSeconds)
-
-        // Map to Dart action ID
-        let actionId: String
-        switch identifier {
-        case SessionNotificationHelper.actionCallWaiter:
-            actionId = "call_waiter"
-        case SessionNotificationHelper.actionController:
-            actionId = "controller"
-        case SessionNotificationHelper.actionOrderDrink1:
-            actionId = "order_drink_1"
-        case SessionNotificationHelper.actionOrderDrink2:
-            actionId = "order_drink_2"
-        default:
-            return
-        }
-
-        // Forward to Flutter — Dart handles all actions (service requests via Dio, drinks via order API)
-        // Falls back to native HTTP only when Flutter engine is dead (see sendDirectRequest)
+        // Forward to Flutter
         if sessionChannel != nil {
             DispatchQueue.main.async { [weak self] in
-                self?.sessionChannel?.invokeMethod("onAction", arguments: actionId)
+                self?.sessionChannel?.invokeMethod("onAction", arguments: dartActionId)
             }
-        } else if actionId == "call_waiter" || actionId == "controller" {
-            sendDirectRequest(actionId: actionId)
+        } else if dartActionId == "call_waiter" || dartActionId == "controller" {
+            sendDirectRequest(actionId: dartActionId)
         }
+    }
 
-        // Refresh notification to show cooldown feedback
-        refresh()
-        scheduleCooldownUpdates()
+    private func mapToDartAction(_ identifier: String) -> String? {
+        switch identifier {
+        case SessionNotificationHelper.actionCallWaiter: return "call_waiter"
+        case SessionNotificationHelper.actionController: return "controller"
+        case SessionNotificationHelper.actionOrderDrink1: return "order_drink_1"
+        case SessionNotificationHelper.actionOrderDrink2: return "order_drink_2"
+        default: return nil
+        }
     }
 
     /// Send a service request directly via HTTP when Flutter engine isn't available
@@ -303,41 +382,7 @@ class SessionNotificationHelper: NSObject {
         }
     }
 
-    // MARK: - Private
-
-    private func refresh() {
-        show(roomName: lastRoomName, duration: lastDuration, startTimeMs: lastStartTimeMs, locale: lastLocale,
-             drink1Name: lastDrink1Name, drink2Name: lastDrink2Name)
-    }
-
-    private func startPeriodicUpdate() {
-        stopPeriodicUpdate()
-        cooldownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
-            self?.refresh()
-        }
-    }
-
-    private func stopPeriodicUpdate() {
-        cooldownTimer?.invalidate()
-        cooldownTimer = nil
-    }
-
-    private func scheduleCooldownUpdates() {
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
-            guard let self = self else {
-                timer.invalidate()
-                return
-            }
-            let now = Date()
-            let hasActiveCooldown = self.cooldowns.values.contains { now < $0 }
-            if hasActiveCooldown {
-                self.refresh()
-            } else {
-                timer.invalidate()
-                self.refresh()
-            }
-        }
-    }
+    // MARK: - Private Helpers
 
     private func getActionTitle(action: String, defaultLabel: String) -> String {
         let now = Date()

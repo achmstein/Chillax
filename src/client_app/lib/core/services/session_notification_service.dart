@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -221,6 +222,10 @@ class SessionNotificationService {
 
   void _startPeriodicUpdate(String locale) {
     _updateTimer?.cancel();
+    // On iOS, periodic re-posts cause a banner flash (appear/disappear)
+    // since iOS doesn't support persistent ongoing notifications.
+    // Only Android needs periodic updates for the live timer.
+    if (!kIsWeb && Platform.isIOS) return;
     _updateTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (_activeSession != null) {
         _showForSession(_activeSession!, locale);

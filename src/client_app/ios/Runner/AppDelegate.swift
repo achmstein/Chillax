@@ -13,7 +13,7 @@ import UserNotifications
     // Set up notification delegate for interactive actions
     UNUserNotificationCenter.current().delegate = self
 
-    // Register notification categories (action buttons)
+    // Register notification categories (action buttons for legacy fallback)
     SessionNotificationHelper.shared.registerCategories()
 
     // Set up method channels
@@ -22,6 +22,22 @@ import UserNotifications
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // MARK: - Deep Link Handling (Live Activity action buttons)
+
+  override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    // Handle Live Activity action deep links: com.chillax.client://action/<actionId>
+    if url.scheme == "com.chillax.client" && url.host == "action" {
+      let actionId = url.lastPathComponent
+      SessionNotificationHelper.shared.handleDeepLinkAction(actionId)
+      return true
+    }
+    return super.application(app, open: url, options: options)
   }
 
   // MARK: - Remote notifications (FCM data messages)
@@ -53,7 +69,7 @@ import UserNotifications
     completionHandler([.banner, .sound, .badge])
   }
 
-  /// Handle notification action button taps
+  /// Handle notification action button taps (legacy notifications)
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
