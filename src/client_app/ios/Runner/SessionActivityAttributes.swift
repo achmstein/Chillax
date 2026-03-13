@@ -1,7 +1,7 @@
 import ActivityKit
 import Foundation
 
-@available(iOS 16.1, *)
+@available(iOS 16.2, *)
 struct SessionActivityAttributes: ActivityAttributes {
     /// Static data — doesn't change during the activity
     let roomName: String

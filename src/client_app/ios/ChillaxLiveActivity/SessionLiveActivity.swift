@@ -2,7 +2,7 @@ import ActivityKit
 import SwiftUI
 import WidgetKit
 
-@available(iOS 16.1, *)
+@available(iOS 16.2, *)
 struct SessionLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: SessionActivityAttributes.self) { context in
@@ -57,7 +57,7 @@ struct SessionLiveActivity: Widget {
 
 // MARK: - Lock Screen View
 
-@available(iOS 16.1, *)
+@available(iOS 16.2, *)
 private struct SessionLockScreenView: View {
     let context: ActivityViewContext<SessionActivityAttributes>
 
@@ -93,7 +93,7 @@ private struct SessionLockScreenView: View {
 
 // MARK: - Action Buttons
 
-@available(iOS 16.1, *)
+@available(iOS 16.2, *)
 private struct SessionActionsView: View {
     let locale: String
     let drink1Name: String?

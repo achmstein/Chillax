@@ -36,7 +36,7 @@ class SessionNotificationHelper: NSObject {
     // Live Activity storage (typed access via computed property)
     private var _liveActivityStorage: Any?
 
-    @available(iOS 16.1, *)
+    @available(iOS 16.2, *)
     private var currentActivity: Activity<SessionActivityAttributes>? {
         get { _liveActivityStorage as? Activity<SessionActivityAttributes> }
         set { _liveActivityStorage = newValue }
@@ -154,7 +154,7 @@ class SessionNotificationHelper: NSObject {
     // MARK: - Show / Update
 
     /// Show or update the session notification.
-    /// Uses Live Activities on iOS 16.1+, falls back to regular notification on older versions.
+    /// Uses Live Activities on iOS 16.2+, falls back to regular notification on older versions.
     func show(roomName: String, duration: String, startTimeMs: Int64?, locale: String,
               drink1Name: String? = nil, drink2Name: String? = nil) {
         lastRoomName = roomName
@@ -164,7 +164,7 @@ class SessionNotificationHelper: NSObject {
         lastDrink1Name = drink1Name
         lastDrink2Name = drink2Name
 
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
             showLiveActivity(roomName: roomName, startTimeMs: startTimeMs, locale: locale,
                              drink1Name: drink1Name, drink2Name: drink2Name)
         } else {
@@ -178,7 +178,7 @@ class SessionNotificationHelper: NSObject {
         cooldownTimer?.invalidate()
         cooldownTimer = nil
 
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
             dismissLiveActivity()
         }
 
@@ -195,9 +195,9 @@ class SessionNotificationHelper: NSObject {
         )
     }
 
-    // MARK: - Live Activity (iOS 16.1+)
+    // MARK: - Live Activity (iOS 16.2+)
 
-    @available(iOS 16.1, *)
+    @available(iOS 16.2, *)
     private func showLiveActivity(roomName: String, startTimeMs: Int64?, locale: String,
                                   drink1Name: String?, drink2Name: String?) {
         let startDate: Date
@@ -238,7 +238,7 @@ class SessionNotificationHelper: NSObject {
         }
     }
 
-    @available(iOS 16.1, *)
+    @available(iOS 16.2, *)
     private func dismissLiveActivity() {
         guard let activity = currentActivity else { return }
         let state = activity.content.state
@@ -249,7 +249,7 @@ class SessionNotificationHelper: NSObject {
         currentActivity = nil
     }
 
-    // MARK: - Legacy Notification (iOS < 16.1)
+    // MARK: - Legacy Notification (iOS < 16.2)
 
     private func showLegacyNotification(roomName: String, locale: String) {
         updateCategoryActions(locale: locale, drink1Name: lastDrink1Name, drink2Name: lastDrink2Name)
