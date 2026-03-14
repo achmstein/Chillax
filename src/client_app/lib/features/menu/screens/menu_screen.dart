@@ -24,6 +24,7 @@ import '../../orders/services/order_service.dart';
 import '../../rooms/models/room.dart';
 import '../../rooms/services/room_service.dart';
 import '../widgets/item_customization_sheet.dart';
+import '../../../core/services/sound_service.dart';
 
 /// Menu screen showing food and drinks grouped by category
 class MenuScreen extends ConsumerStatefulWidget {
@@ -737,6 +738,7 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
       if (!mounted) return;
 
       ref.read(ordersProvider.notifier).refresh();
+      SoundService.instance.playSuccess();
 
       showFToast(
         context: context,

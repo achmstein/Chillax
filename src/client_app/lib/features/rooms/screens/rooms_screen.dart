@@ -19,6 +19,7 @@ import '../../service_request/services/service_request_service.dart';
 import '../models/room.dart';
 import '../../../core/services/signalr_service.dart';
 import '../services/room_service.dart';
+import '../../../core/services/sound_service.dart';
 
 /// Rooms screen for viewing and reserving PlayStation rooms
 class RoomsScreen extends ConsumerStatefulWidget {
@@ -1327,6 +1328,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
       final branchId = ref.read(selectedBranchIdProvider);
       if (branchId != null) ref.invalidate(roomsProvider(branchId));
       ref.read(mySessionsProvider.notifier).refresh();
+      SoundService.instance.playSuccess();
       showFToast(
         context: context,
         title: Text(l10n.roomReservedSuccess),

@@ -21,6 +21,7 @@
 		D1A2B3C4E5F60A1800000009 /* SessionLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60A1800000003 /* SessionLiveActivity.swift */; };
 		D1A2B3C4E5F60A180000000A /* SessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60A1800000004 /* SessionActivityAttributes.swift */; };
 		D1A2B3C4E5F60A180000000B /* ChillaxLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = D1A2B3C4E5F60A1800000006 /* ChillaxLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E1A2B3C4E5F60A1800000001 /* SessionActionIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A2B3C4E5F60A1800000002 /* SessionActionIntent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +89,7 @@
 		D1A2B3C4E5F60A1800000004 /* SessionActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionActivityAttributes.swift; sourceTree = "<group>"; };
 		D1A2B3C4E5F60A1800000005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D1A2B3C4E5F60A1800000006 /* ChillaxLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ChillaxLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1A2B3C4E5F60A1800000002 /* SessionActionIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionActionIntent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +174,7 @@
 				D1A2B3C4E5F60A1800000002 /* ChillaxLiveActivityBundle.swift */,
 				D1A2B3C4E5F60A1800000003 /* SessionLiveActivity.swift */,
 				D1A2B3C4E5F60A1800000004 /* SessionActivityAttributes.swift */,
+				E1A2B3C4E5F60A1800000002 /* SessionActionIntent.swift */,
 				D1A2B3C4E5F60A1800000005 /* Info.plist */,
 			);
 			path = ChillaxLiveActivity;
@@ -369,6 +372,7 @@
 				D1A2B3C4E5F60A1800000008 /* ChillaxLiveActivityBundle.swift in Sources */,
 				D1A2B3C4E5F60A1800000009 /* SessionLiveActivity.swift in Sources */,
 				D1A2B3C4E5F60A180000000A /* SessionActivityAttributes.swift in Sources */,
+				E1A2B3C4E5F60A1800000001 /* SessionActionIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

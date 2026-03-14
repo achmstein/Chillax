@@ -251,9 +251,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/orders',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: OrdersScreen(),
-            ),
+            pageBuilder: (context, state) {
+              final tab = state.uri.queryParameters['tab'];
+              return NoTransitionPage(
+                child: OrdersScreen(initialTab: tab),
+              );
+            },
           ),
           GoRoute(
             path: '/rooms',

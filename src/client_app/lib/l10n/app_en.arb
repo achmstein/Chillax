@@ -100,6 +100,24 @@
     }
   },
 
+  "todaysOrders": "Today's Orders",
+  "noOrdersToday": "No orders today",
+  "orderFromMenuToStart": "Order from the menu to get started",
+  "todayOrdersCount": "{count, plural, =1{1 order} other{{count} orders}}",
+  "@todayOrdersCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "totalSpent": "Total: {amount}",
+  "@totalSpent": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "orderStatusPending": "Pending",
+  "orderStatusConfirmed": "Confirmed",
+  "orderStatusCancelled": "Cancelled",
   "failedToLoadOrders": "Failed to load orders",
   "pullDownToRetry": "Pull down to retry",
   "noOrdersYet": "No orders yet",

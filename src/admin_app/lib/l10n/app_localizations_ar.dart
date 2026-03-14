@@ -206,8 +206,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get endSession => 'إنهاء الوقت؟';
 
   @override
-  String get endSessionConfirmation =>
-      'متأكد انك عايز تنهي وقت الاوضه دي؟';
+  String get endSessionConfirmation => 'متأكد انك عايز تنهي وقت الاوضه دي؟';
 
   @override
   String get endSessionButton => 'إنهاء الوقت';

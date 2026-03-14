@@ -1,4 +1,5 @@
 import ActivityKit
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -30,9 +31,7 @@ struct SessionLiveActivity: Widget {
                         .foregroundColor(.white)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    SessionActionsView(locale: context.attributes.locale,
-                                       drink1Name: context.state.drink1Name,
-                                       drink2Name: context.state.drink2Name)
+                    SessionActionsView(context: context)
                 }
             } compactLeading: {
                 HStack(spacing: 4) {
@@ -83,9 +82,7 @@ private struct SessionLockScreenView: View {
             }
 
             // Action buttons
-            SessionActionsView(locale: context.attributes.locale,
-                               drink1Name: context.state.drink1Name,
-                               drink2Name: context.state.drink2Name)
+            SessionActionsView(context: context)
         }
         .padding(16)
     }
@@ -95,59 +92,114 @@ private struct SessionLockScreenView: View {
 
 @available(iOS 16.2, *)
 private struct SessionActionsView: View {
-    let locale: String
-    let drink1Name: String?
-    let drink2Name: String?
+    let context: ActivityViewContext<SessionActivityAttributes>
 
+    private var locale: String { context.attributes.locale }
     private var isArabic: Bool { locale == "ar" }
+    private var state: SessionActivityAttributes.ContentState { context.state }
 
     var body: some View {
         HStack(spacing: 8) {
-            actionLink(
-                url: "com.chillax.client://action/call_waiter",
+            actionButton(
+                actionId: "call_waiter",
                 label: isArabic ? "الويتر" : "Waiter",
-                icon: "bell.fill"
+                icon: "bell.fill",
+                isServiceRequest: true
             )
 
-            actionLink(
-                url: "com.chillax.client://action/controller",
+            actionButton(
+                actionId: "controller",
                 label: isArabic ? "دراع" : "Controller",
-                icon: "gamecontroller.fill"
+                icon: "gamecontroller.fill",
+                isServiceRequest: true
             )
 
-            if let drink1 = drink1Name {
-                actionLink(
-                    url: "com.chillax.client://action/order_drink_1",
+            if let drink1 = state.drink1Name {
+                drinkButton(
+                    actionId: "order_drink_1",
                     label: drink1,
-                    icon: "cup.and.saucer.fill"
+                    icon: "cup.and.saucer.fill",
+                    orderPayload: state.drink1OrderPayload
                 )
             }
 
-            if let drink2 = drink2Name {
-                actionLink(
-                    url: "com.chillax.client://action/order_drink_2",
+            if let drink2 = state.drink2Name {
+                drinkButton(
+                    actionId: "order_drink_2",
                     label: drink2,
-                    icon: "mug.fill"
+                    icon: "mug.fill",
+                    orderPayload: state.drink2OrderPayload
                 )
             }
         }
         .environment(\.layoutDirection, isArabic ? .rightToLeft : .leftToRight)
     }
 
-    private func actionLink(url: String, label: String, icon: String) -> some View {
-        Link(destination: URL(string: url)!) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.caption2)
-                Text(label)
-                    .font(.caption)
-                    .lineLimit(1)
+    @ViewBuilder
+    private func actionButton(actionId: String, label: String, icon: String, isServiceRequest: Bool) -> some View {
+        if #available(iOS 17, *), isServiceRequest,
+           let accessToken = state.accessToken,
+           let apiBaseUrl = state.apiBaseUrl,
+           let sessionId = state.sessionId,
+           let roomId = state.roomId {
+            // iOS 17+: background intent — no app launch
+            Button(intent: SessionActionIntent(
+                actionId: actionId,
+                accessToken: accessToken,
+                apiBaseUrl: apiBaseUrl,
+                sessionId: sessionId,
+                roomId: roomId,
+                branchId: state.branchId ?? 0,
+                roomNameEn: state.roomNameEn ?? "",
+                roomNameAr: state.roomNameAr
+            )) {
+                actionLabel(label: label, icon: icon)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color.white.opacity(0.15))
-            .cornerRadius(8)
-            .foregroundColor(.white)
+            .buttonStyle(.plain)
+        } else {
+            // iOS 16.x or drink orders: deep link — opens app
+            Link(destination: URL(string: "com.chillax.client://action/\(actionId)")!) {
+                actionLabel(label: label, icon: icon)
+            }
         }
+    }
+
+    @ViewBuilder
+    private func drinkButton(actionId: String, label: String, icon: String, orderPayload: String?) -> some View {
+        if #available(iOS 17, *),
+           let accessToken = state.accessToken,
+           let ordersApiUrl = state.ordersApiUrl,
+           let payload = orderPayload {
+            // iOS 17+: background intent — no app launch
+            Button(intent: SessionDrinkOrderIntent(
+                accessToken: accessToken,
+                ordersApiUrl: ordersApiUrl,
+                orderPayload: payload,
+                branchId: state.branchId ?? 0
+            )) {
+                actionLabel(label: label, icon: icon)
+            }
+            .buttonStyle(.plain)
+        } else {
+            // Fallback: deep link — opens app
+            Link(destination: URL(string: "com.chillax.client://action/\(actionId)")!) {
+                actionLabel(label: label, icon: icon)
+            }
+        }
+    }
+
+    private func actionLabel(label: String, icon: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption2)
+            Text(label)
+                .font(.caption)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.15))
+        .cornerRadius(8)
+        .foregroundColor(.white)
     }
 }

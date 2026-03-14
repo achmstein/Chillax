@@ -12,5 +12,17 @@ struct SessionActivityAttributes: ActivityAttributes {
         var startTime: Date
         var drink1Name: String?
         var drink2Name: String?
+
+        // Session context for background action intents (iOS 17+)
+        var accessToken: String?
+        var apiBaseUrl: String?
+        var sessionId: Int?
+        var roomId: Int?
+        var branchId: Int?
+        var roomNameEn: String?
+        var roomNameAr: String?
+        var ordersApiUrl: String?
+        var drink1OrderPayload: String?
+        var drink2OrderPayload: String?
     }
 }

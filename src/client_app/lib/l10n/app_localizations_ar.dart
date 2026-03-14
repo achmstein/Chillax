@@ -229,6 +229,40 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get todaysOrders => 'طلبات النهاردة';
+
+  @override
+  String get noOrdersToday => 'مفيش طلبات النهاردة';
+
+  @override
+  String get orderFromMenuToStart => 'اطلب من المنيو عشان تبدأ';
+
+  @override
+  String todayOrdersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلبات',
+      one: 'طلب واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String totalSpent(String amount) {
+    return 'الإجمالي: $amount';
+  }
+
+  @override
+  String get orderStatusPending => 'قيد الانتظار';
+
+  @override
+  String get orderStatusConfirmed => 'تم التأكيد';
+
+  @override
+  String get orderStatusCancelled => 'ملغي';
+
+  @override
   String get failedToLoadOrders => 'الطلبات مش بتحمل';
 
   @override

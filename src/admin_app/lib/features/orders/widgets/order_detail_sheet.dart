@@ -111,7 +111,7 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Status
-                  _buildStatusBadge(order.status, l10n),
+                  _buildStatusDot(widget.order.status),
 
                   // Rating
                   if (order.rating != null) ...[
@@ -331,8 +331,8 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
             ),
           ),
 
-          // Actions
-          if (order.status == OrderStatus.submitted) ...[
+          // Actions — use widget.order.status (from list) which is always current
+          if (widget.order.status == OrderStatus.submitted) ...[
             Padding(
               padding: EdgeInsets.only(
                 left: 16,
@@ -365,25 +365,19 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
     );
   }
 
-  Widget _buildStatusBadge(OrderStatus status, AppLocalizations l10n) {
-    switch (status) {
-      case OrderStatus.awaitingValidation:
-        return FBadge(variant: FBadgeVariant.secondary,
-          child: AppText(l10n.validating),
-        );
-      case OrderStatus.submitted:
-        return FBadge(variant: FBadgeVariant.destructive,
-          child: AppText(l10n.pending),
-        );
-      case OrderStatus.confirmed:
-        return FBadge(
-          child: AppText(l10n.confirmed),
-        );
-      case OrderStatus.cancelled:
-        return FBadge(variant: FBadgeVariant.outline,
-          child: AppText(l10n.cancelled),
-        );
-    }
+  Widget _buildStatusDot(OrderStatus status) {
+    final color = switch (status) {
+      OrderStatus.awaitingValidation => Colors.orange,
+      OrderStatus.submitted => Colors.orange,
+      OrderStatus.confirmed => Colors.green,
+      OrderStatus.cancelled => Colors.red,
+    };
+
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
   }
 
   Widget _buildInfoRow(FThemeData theme, String label, String value) {
@@ -442,6 +436,21 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
                     color: theme.colors.mutedForeground,
                   ),
                 ),
+                if (item.customizationsDescription != null)
+                  AppText(
+                    item.customizationsDescription!.localized(context),
+                    style: theme.typography.xs.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                  ),
+                if (item.specialInstructions != null)
+                  AppText(
+                    '"${item.specialInstructions}"',
+                    style: theme.typography.xs.copyWith(
+                      color: theme.colors.mutedForeground,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -458,6 +467,7 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
 
   Future<void> _confirmOrder(BuildContext context, WidgetRef ref) async {
     await ref.read(ordersProvider.notifier).confirmOrder(widget.order.id);
+    ref.read(orderHistoryProvider.notifier).loadOrderHistory();
     if (context.mounted) {
       Navigator.of(context).pop();
     }
@@ -487,6 +497,7 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
 
     if (confirmed == true) {
       await ref.read(ordersProvider.notifier).cancelOrder(widget.order.id);
+      ref.read(orderHistoryProvider.notifier).loadOrderHistory();
       if (context.mounted) {
         Navigator.of(context).pop();
       }

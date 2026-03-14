@@ -4,7 +4,7 @@ public interface IOrderQueries
 {
     Task<Order> GetOrderAsync(int id);
 
-    Task<PaginatedResult<OrderSummary>> GetOrdersFromUserAsync(string userId, int pageIndex, int pageSize);
+    Task<PaginatedResult<OrderSummary>> GetOrdersFromUserAsync(string userId, int pageIndex, int pageSize, DateTime? fromDate = null, DateTime? toDate = null);
 
     /// <summary>
     /// Get all pending orders (Submitted status) for admin review, filtered by branch

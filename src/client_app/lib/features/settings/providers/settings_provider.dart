@@ -121,7 +121,9 @@ class SettingsNotifier extends Notifier<SettingsState> {
 
     try {
       await _service.updateProfile(newName, phoneNumber);
-      // Refresh auth state to pick up the new name from refreshed token
+      // Update cached auth state so profile gate sees the new values immediately
+      ref.read(authServiceProvider.notifier).setProfile(newName, phoneNumber);
+      // Also refresh token to pick up any JWT claim changes
       await ref.read(authServiceProvider.notifier).refreshToken();
       state = state.copyWith(isSaving: false);
       return true;

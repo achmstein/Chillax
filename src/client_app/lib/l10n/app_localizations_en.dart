@@ -232,6 +232,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get todaysOrders => 'Today\'s Orders';
+
+  @override
+  String get noOrdersToday => 'No orders today';
+
+  @override
+  String get orderFromMenuToStart => 'Order from the menu to get started';
+
+  @override
+  String todayOrdersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orders',
+      one: '1 order',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String totalSpent(String amount) {
+    return 'Total: $amount';
+  }
+
+  @override
+  String get orderStatusPending => 'Pending';
+
+  @override
+  String get orderStatusConfirmed => 'Confirmed';
+
+  @override
+  String get orderStatusCancelled => 'Cancelled';
+
+  @override
   String get failedToLoadOrders => 'Failed to load orders';
 
   @override

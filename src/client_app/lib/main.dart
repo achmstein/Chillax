@@ -187,7 +187,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
     _signalRSubscriptions.add(
       signalR.onOrderStatusChanged.listen((_) {
         ref.read(ordersProvider.notifier).refresh();
-      }),
+      }), 
     );
   }
 
@@ -231,6 +231,11 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
         ),
         useMaterial3: true,
         fontFamily: getFontFamily(locale),
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+        tabBarTheme: const TabBarThemeData(
+          overlayColor: WidgetStatePropertyAll(Colors.transparent),
+        ),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -239,6 +244,11 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
         ),
         useMaterial3: true,
         fontFamily: getFontFamily(locale),
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+        tabBarTheme: const TabBarThemeData(
+          overlayColor: WidgetStatePropertyAll(Colors.transparent),
+        ),
       ),
       themeMode: themeState.themeMode == AppThemeMode.light
           ? ThemeMode.light

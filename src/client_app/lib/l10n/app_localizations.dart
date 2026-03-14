@@ -524,6 +524,54 @@ abstract class AppLocalizations {
   /// **'Note: {notes}'**
   String noteWithText(String notes);
 
+  /// No description provided for @todaysOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Orders'**
+  String get todaysOrders;
+
+  /// No description provided for @noOrdersToday.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders today'**
+  String get noOrdersToday;
+
+  /// No description provided for @orderFromMenuToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Order from the menu to get started'**
+  String get orderFromMenuToStart;
+
+  /// No description provided for @todayOrdersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 order} other{{count} orders}}'**
+  String todayOrdersCount(int count);
+
+  /// No description provided for @totalSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {amount}'**
+  String totalSpent(String amount);
+
+  /// No description provided for @orderStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get orderStatusPending;
+
+  /// No description provided for @orderStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get orderStatusConfirmed;
+
+  /// No description provided for @orderStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get orderStatusCancelled;
+
   /// No description provided for @failedToLoadOrders.
   ///
   /// In en, this message translates to:

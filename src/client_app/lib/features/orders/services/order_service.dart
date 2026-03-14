@@ -13,7 +13,7 @@ const _uuid = Uuid();
 
 /// Abstract order repository interface
 abstract class OrderRepository {
-  Future<PaginatedOrders> getOrders({int pageIndex = 0, int pageSize = 10});
+  Future<PaginatedOrders> getOrders({int pageIndex = 0, int pageSize = 10, DateTime? fromDate, DateTime? toDate});
   Future<Order> getOrder(int id);
   Future<void> createOrder({
     required List<CartItem> items,
@@ -47,12 +47,14 @@ class ApiOrderRepository implements OrderRepository {
 
   /// Get user's orders with pagination
   @override
-  Future<PaginatedOrders> getOrders({int pageIndex = 0, int pageSize = 10}) async {
+  Future<PaginatedOrders> getOrders({int pageIndex = 0, int pageSize = 10, DateTime? fromDate, DateTime? toDate}) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
       '',
       queryParameters: {
         'pageIndex': pageIndex,
         'pageSize': pageSize,
+        if (fromDate != null) 'fromDate': fromDate.toUtc().toIso8601String(),
+        if (toDate != null) 'toDate': toDate.toUtc().toIso8601String(),
       },
     );
 
@@ -223,6 +225,7 @@ class OrdersState {
   final bool hasMore;
   final int currentPage;
   final String? error;
+  final bool showingToday;
 
   const OrdersState({
     this.orders = const [],
@@ -231,6 +234,7 @@ class OrdersState {
     this.hasMore = true,
     this.currentPage = 0,
     this.error,
+    this.showingToday = true,
   });
 
   OrdersState copyWith({
@@ -240,6 +244,7 @@ class OrdersState {
     bool? hasMore,
     int? currentPage,
     String? error,
+    bool? showingToday,
   }) {
     return OrdersState(
       orders: orders ?? this.orders,
@@ -248,6 +253,7 @@ class OrdersState {
       hasMore: hasMore ?? this.hasMore,
       currentPage: currentPage ?? this.currentPage,
       error: error,
+      showingToday: showingToday ?? this.showingToday,
     );
   }
 }
@@ -255,6 +261,20 @@ class OrdersState {
 /// Orders notifier with pagination support
 class OrdersNotifier extends Notifier<OrdersState> {
   static const _pageSize = 10;
+
+  /// Get the current business session start time.
+  /// Business hours: 5 PM to 5 AM (or later on holidays).
+  /// If now >= 5 PM → session started today at 5 PM.
+  /// If now < 5 PM → session started yesterday at 5 PM.
+  static DateTime getSessionStart() {
+    final now = DateTime.now();
+    if (now.hour >= 17) {
+      return DateTime(now.year, now.month, now.day, 17);
+    } else {
+      final yesterday = now.subtract(const Duration(days: 1));
+      return DateTime(yesterday.year, yesterday.month, yesterday.day, 17);
+    }
+  }
 
   @override
   OrdersState build() {
@@ -267,9 +287,18 @@ class OrdersNotifier extends Notifier<OrdersState> {
   Future<void> loadOrders() async {
     state = state.copyWith(isLoading: true, error: null);
 
+    // Invalidate cached order details so they re-fetch with current status
+    for (final order in state.orders) {
+      ref.invalidate(orderProvider(order.id));
+    }
+
     try {
       final service = ref.read(orderRepositoryProvider);
-      final result = await service.getOrders(pageIndex: 0, pageSize: _pageSize);
+      final result = await service.getOrders(
+        pageIndex: 0,
+        pageSize: _pageSize,
+        fromDate: state.showingToday ? getSessionStart() : null,
+      );
 
       state = state.copyWith(
         orders: result.items,
@@ -294,7 +323,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
     try {
       final service = ref.read(orderRepositoryProvider);
       final nextPage = state.currentPage + 1;
-      final result = await service.getOrders(pageIndex: nextPage, pageSize: _pageSize);
+      final result = await service.getOrders(
+        pageIndex: nextPage,
+        pageSize: _pageSize,
+        fromDate: state.showingToday ? getSessionStart() : null,
+      );
 
       state = state.copyWith(
         orders: [...state.orders, ...result.items],
@@ -308,6 +341,16 @@ class OrdersNotifier extends Notifier<OrdersState> {
         error: e.toString(),
       );
     }
+  }
+
+  /// Toggle between today's orders and full history
+  void toggleView() {
+    state = state.copyWith(
+      showingToday: !state.showingToday,
+      orders: [],
+      isLoading: true,
+    );
+    loadOrders();
   }
 
   /// Refresh orders

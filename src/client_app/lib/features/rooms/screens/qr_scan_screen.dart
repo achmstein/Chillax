@@ -9,6 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
+import '../../../core/services/sound_service.dart';
 
 class QrScanScreen extends ConsumerStatefulWidget {
   const QrScanScreen({super.key});
@@ -256,6 +257,7 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
       Navigator.of(sheetContext).pop(); // close bottom sheet
       Navigator.of(context).pop(); // close QR screen
 
+      SoundService.instance.playSuccess();
       showFToast(
         context: context,
         title: Text(l10n.roomReservedSuccessQr),

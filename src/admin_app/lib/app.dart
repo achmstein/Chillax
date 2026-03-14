@@ -187,6 +187,11 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
         ),
         useMaterial3: true,
         fontFamily: getFontFamily(locale),
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+        tabBarTheme: const TabBarThemeData(
+          overlayColor: WidgetStatePropertyAll(Colors.transparent),
+        ),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -195,6 +200,11 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
         ),
         useMaterial3: true,
         fontFamily: getFontFamily(locale),
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+        tabBarTheme: const TabBarThemeData(
+          overlayColor: WidgetStatePropertyAll(Colors.transparent),
+        ),
       ),
       routerConfig: router,
       builder: (context, child) {

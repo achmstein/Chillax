@@ -15,6 +15,7 @@ import '../../orders/services/order_service.dart';
 import '../../profile/providers/loyalty_provider.dart';
 import '../../rooms/models/room.dart';
 import '../../rooms/services/room_service.dart';
+import '../../../core/services/sound_service.dart';
 
 /// Shopping cart screen - minimalistic
 class CartScreen extends ConsumerStatefulWidget {
@@ -589,6 +590,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ref.read(loyaltyProvider.notifier).refresh();
 
       // Navigate to orders page and show success toast
+      SoundService.instance.playSuccess();
       context.go('/orders');
       showFToast(
         context: context,

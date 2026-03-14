@@ -139,6 +139,23 @@ class AuthService extends Notifier<AuthState> {
 
           return;
         }
+
+        // Refresh failed — check if tokens were cleared (server rejected them)
+        // or if it was just a network error (tokens still in storage)
+        final tokensStillExist = await _storage.read(key: _accessTokenKey) != null;
+        if (tokensStillExist) {
+          // Network error — keep user authenticated with existing tokens
+          debugPrint('Auth init - refresh failed (network), staying authenticated');
+          final isSocial = await _storage.read(key: _isSocialLoginKey);
+          state = state.copyWith(
+            isInitializing: false,
+            isAuthenticated: true,
+            isSocialLogin: isSocial == 'true',
+          );
+
+          _loadProfile();
+          return;
+        }
       }
 
       // No valid tokens found

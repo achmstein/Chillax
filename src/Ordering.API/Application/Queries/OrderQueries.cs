@@ -47,10 +47,16 @@ public class OrderQueries(OrderingContext context) : IOrderQueries
         };
     }
 
-    public async Task<PaginatedResult<OrderSummary>> GetOrdersFromUserAsync(string userId, int pageIndex, int pageSize)
+    public async Task<PaginatedResult<OrderSummary>> GetOrdersFromUserAsync(string userId, int pageIndex, int pageSize, DateTime? fromDate = null, DateTime? toDate = null)
     {
         var query = context.Orders
             .Where(o => o.Buyer != null && o.Buyer.IdentityGuid == userId);
+
+        if (fromDate.HasValue)
+            query = query.Where(o => o.OrderDate >= fromDate.Value);
+
+        if (toDate.HasValue)
+            query = query.Where(o => o.OrderDate <= toDate.Value);
 
         var totalCount = await query.CountAsync();
 

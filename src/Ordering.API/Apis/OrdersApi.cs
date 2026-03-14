@@ -214,10 +214,12 @@ public static class OrdersApi
     public static async Task<Ok<PaginatedResult<OrderSummary>>> GetOrdersByUserAsync(
         int pageIndex = 0,
         int pageSize = 10,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
         [AsParameters] OrderServices services = default!)
     {
         var userId = services.IdentityService.GetUserIdentity();
-        var orders = await services.Queries.GetOrdersFromUserAsync(userId, pageIndex, pageSize);
+        var orders = await services.Queries.GetOrdersFromUserAsync(userId, pageIndex, pageSize, fromDate, toDate);
         return TypedResults.Ok(orders);
     }
 

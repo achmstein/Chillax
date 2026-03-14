@@ -12,9 +12,10 @@ import '../services/order_service.dart';
 import '../widgets/rating_dialog.dart';
 import '../widgets/rating_widget.dart';
 
-/// Orders history screen with infinite scroll
 class OrdersScreen extends ConsumerStatefulWidget {
-  const OrdersScreen({super.key});
+  final String? initialTab;
+
+  const OrdersScreen({super.key, this.initialTab});
 
   @override
   ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
@@ -28,8 +29,14 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
-    // Auto-refresh if there are pending orders
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // If navigated with ?tab=history, switch to history
+      if (widget.initialTab == 'history') {
+        final notifier = ref.read(ordersProvider.notifier);
+        if (ref.read(ordersProvider).showingToday) {
+          notifier.toggleView();
+        }
+      }
       _refreshIfPendingOrders();
     });
   }
@@ -44,18 +51,12 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Refresh when app resumes if there are pending orders
-    if (state == AppLifecycleState.resumed) {
-      _refreshIfPendingOrders();
-    }
+    if (state == AppLifecycleState.resumed) _refreshIfPendingOrders();
   }
 
   void _refreshIfPendingOrders() {
-    final ordersState = ref.read(ordersProvider);
-    final hasPendingOrders = ordersState.orders.any(
-      (order) => order.status == OrderStatus.submitted,
-    );
-    if (hasPendingOrders) {
+    final s = ref.read(ordersProvider);
+    if (s.orders.any((o) => o.status == OrderStatus.submitted)) {
       ref.read(ordersProvider.notifier).refresh();
     }
   }
@@ -69,490 +70,431 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
 
   @override
   Widget build(BuildContext context) {
-    final ordersState = ref.watch(ordersProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
-        // Header
-        FHeader(
-          title: AppText(l10n.orders, style: TextStyle(fontSize: 18)),
-        ),
-
-        // Body
+        FHeader(title: AppText(l10n.orders, style: TextStyle(fontSize: 18))),
         Expanded(
-          child: _buildBody(ordersState),
+          child: FTabs(
+            control: FTabControl.managed(
+              initial: widget.initialTab == 'history' ? 1 : 0,
+            ),
+            onPress: (index) {
+              final current = ref.read(ordersProvider).showingToday;
+              if ((index == 0) != current) {
+                ref.read(ordersProvider.notifier).toggleView();
+              }
+            },
+            children: [
+              FTabEntry(
+                label: Text(l10n.todaysOrders),
+                child: Expanded(child: _buildTabContent(true)),
+              ),
+              FTabEntry(
+                label: Text(l10n.orderHistory),
+                child: Expanded(child: _buildTabContent(false)),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildBody(OrdersState state) {
+  Widget _buildTabContent(bool isToday) {
+    final ordersState = ref.watch(ordersProvider);
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
 
-    // Initial loading
-    if (state.isLoading && state.orders.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(color: colors.primary),
-      );
+    if (ordersState.isLoading && ordersState.orders.isEmpty) {
+      return Center(child: CircularProgressIndicator(color: colors.primary));
     }
 
-    // Error state
-    if (state.error != null && state.orders.isEmpty) {
-      return RefreshIndicator(
-        color: colors.primary,
-        backgroundColor: colors.background,
-        onRefresh: () => ref.read(ordersProvider.notifier).refresh(),
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.6,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
-                    const SizedBox(height: 16),
-                    AppText(l10n.failedToLoadOrders, style: TextStyle(color: colors.foreground)),
-                    const SizedBox(height: 8),
-                    AppText(
-                      l10n.pullDownToRetry,
-                      style: TextStyle(color: colors.mutedForeground),
-                    ),
-                  ],
-                ),
+    if (ordersState.error != null && ordersState.orders.isEmpty) {
+      return _buildErrorState(colors, l10n);
+    }
+
+    if (ordersState.orders.isEmpty) {
+      return _buildEmptyState(colors, isToday, l10n);
+    }
+
+    if (isToday) return _buildTodayView(ordersState);
+    return _buildHistoryView(ordersState);
+  }
+
+  Widget _buildErrorState(dynamic colors, AppLocalizations l10n) {
+    return RefreshIndicator(
+      color: colors.primary,
+      backgroundColor: colors.background,
+      onRefresh: () => ref.read(ordersProvider.notifier).refresh(),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
+                  const SizedBox(height: 16),
+                  AppText(l10n.failedToLoadOrders, style: TextStyle(color: colors.foreground)),
+                  const SizedBox(height: 8),
+                  AppText(l10n.pullDownToRetry, style: TextStyle(color: colors.mutedForeground)),
+                ],
               ),
             ),
-          ],
-        ),
-      );
-    }
+          ),
+        ],
+      ),
+    );
+  }
 
-    // Empty state
-    if (state.orders.isEmpty) {
-      return RefreshIndicator(
-        color: colors.primary,
-        backgroundColor: colors.background,
-        onRefresh: () => ref.read(ordersProvider.notifier).refresh(),
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.6,
-              child: _buildEmptyState(colors),
+  Widget _buildEmptyState(dynamic colors, bool isToday, AppLocalizations l10n) {
+    return RefreshIndicator(
+      color: colors.primary,
+      backgroundColor: colors.background,
+      onRefresh: () => ref.read(ordersProvider.notifier).refresh(),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(FIcons.receipt, size: 80, color: colors.mutedForeground),
+                  const SizedBox(height: 16),
+                  AppText(
+                    isToday ? l10n.noOrdersToday : l10n.noOrdersYet,
+                    style: TextStyle(fontSize: 18, color: colors.foreground),
+                  ),
+                  const SizedBox(height: 8),
+                  AppText(
+                    isToday ? l10n.orderFromMenuToStart : l10n.orderHistoryWillAppearHere,
+                    style: TextStyle(color: colors.mutedForeground),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      );
-    }
+          ),
+        ],
+      ),
+    );
+  }
 
-    // Orders list with infinite scroll
+  // ── Today ──
+
+  Widget _buildTodayView(OrdersState state) {
+    final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
+    final totalSpent = state.orders.fold<double>(0, (s, o) => s + o.total - o.loyaltyDiscount);
+
     return RefreshIndicator(
       color: colors.primary,
       backgroundColor: colors.background,
       onRefresh: () => ref.read(ordersProvider.notifier).refresh(),
       child: ListView.separated(
-        controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 16),
-        itemCount: state.orders.length + (state.hasMore ? 1 : 0),
-        separatorBuilder: (context, _) => Divider(height: 1, color: context.theme.colors.border),
+        itemCount: state.orders.length + 1,
+        separatorBuilder: (_, __) => Divider(height: 1, color: colors.border),
         itemBuilder: (context, index) {
-          // Loading indicator at the bottom
-          if (index == state.orders.length) {
+          if (index == 0) {
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colors.primary,
-                  ),
-                ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  AppText(l10n.todayOrdersCount(state.orders.length),
+                      style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
+                  const Spacer(),
+                  AppText(l10n.totalSpent(l10n.priceFormat(totalSpent.toStringAsFixed(2))),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.foreground)),
+                ],
               ),
             );
           }
-          return OrderTile(order: state.orders[index]);
+          return _OrderTile(order: state.orders[index - 1]);
         },
       ),
     );
   }
 
-  Widget _buildEmptyState(dynamic colors) {
+  // ── History: grouped by shift ──
+
+  Widget _buildHistoryView(OrdersState state) {
+    final colors = context.theme.colors;
+    final locale = ref.watch(localeProvider);
     final l10n = AppLocalizations.of(context)!;
-    return Center(
+    final groups = _groupByShift(state.orders, locale, l10n);
+
+    return RefreshIndicator(
+      color: colors.primary,
+      backgroundColor: colors.background,
+      onRefresh: () => ref.read(ordersProvider.notifier).refresh(),
+      child: CustomScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          for (final group in groups) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: AppText(group.label,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.mutedForeground)),
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => Column(
+                  children: [
+                    _OrderTile(order: group.orders[index]),
+                    if (index < group.orders.length - 1)
+                      Divider(height: 1, color: colors.border, indent: 16, endIndent: 16),
+                  ],
+                ),
+                childCount: group.orders.length,
+              ),
+            ),
+          ],
+          if (state.hasMore)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: SizedBox(width: 24, height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: colors.primary)),
+                ),
+              ),
+            ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+        ],
+      ),
+    );
+  }
+
+  List<_ShiftGroup> _groupByShift(List<Order> orders, Locale locale, AppLocalizations l10n) {
+    final groups = <String, _ShiftGroup>{};
+    final now = DateTime.now();
+    final dateFormat = DateFormat('EEEE, MMM d', locale.languageCode);
+
+    for (final order in orders) {
+      final shiftDate = order.date.hour < 17
+          ? DateTime(order.date.year, order.date.month, order.date.day - 1)
+          : DateTime(order.date.year, order.date.month, order.date.day);
+
+      final key = '${shiftDate.year}-${shiftDate.month}-${shiftDate.day}';
+
+      if (!groups.containsKey(key)) {
+        final todayShift = now.hour >= 17
+            ? DateTime(now.year, now.month, now.day)
+            : DateTime(now.year, now.month, now.day - 1);
+        final yesterdayShift = todayShift.subtract(const Duration(days: 1));
+
+        String label;
+        if (_sameDay(shiftDate, todayShift)) {
+          label = l10n.today;
+        } else if (_sameDay(shiftDate, yesterdayShift)) {
+          label = l10n.yesterday;
+        } else {
+          label = dateFormat.format(shiftDate);
+        }
+        groups[key] = _ShiftGroup(label: label, orders: []);
+      }
+      groups[key]!.orders.add(order);
+    }
+    return groups.values.toList();
+  }
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+class _ShiftGroup {
+  final String label;
+  final List<Order> orders;
+  _ShiftGroup({required this.label, required this.orders});
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Shared Order Tile — used in both today and history views
+// ════════════════════════════════════════════════════════════════════
+
+class _OrderTile extends ConsumerWidget {
+  final Order order;
+
+  const _OrderTile({required this.order});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.theme.colors;
+    final locale = ref.watch(localeProvider);
+    final timeFormat = DateFormat('h:mm a', locale.languageCode);
+    final l10n = AppLocalizations.of(context)!;
+    final orderDetailsAsync = ref.watch(orderProvider(order.id));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            FIcons.receipt,
-            size: 80,
-            color: colors.mutedForeground,
+          // Header: status dot + time + room + price
+          Row(
+            children: [
+              _StatusDot(status: order.status),
+              const SizedBox(width: 8),
+              AppText(
+                timeFormat.format(order.date),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colors.foreground),
+              ),
+              if (order.roomName != null) ...[
+                const SizedBox(width: 6),
+                AppText(
+                  '• ${order.roomName!.localized(context)}',
+                  style: TextStyle(fontSize: 13, color: colors.mutedForeground),
+                ),
+              ],
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  AppText(
+                    l10n.priceFormat((order.total - order.loyaltyDiscount).toStringAsFixed(2)),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colors.foreground),
+                  ),
+                  if (order.loyaltyDiscount > 0)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.stars, size: 12, color: Colors.green.shade600),
+                        const SizedBox(width: 2),
+                        AppText(
+                          l10n.discountFormat(order.loyaltyDiscount.toStringAsFixed(2)),
+                          style: TextStyle(fontSize: 12, color: Colors.green.shade600),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          AppText(
-            l10n.noOrdersYet,
-            style: TextStyle(
-              fontSize: 18,
-              color: colors.foreground,
-            ),
-          ),
+
           const SizedBox(height: 8),
-          AppText(
-            l10n.orderHistoryWillAppearHere,
-            style: TextStyle(
-              color: colors.mutedForeground,
+
+          // Items — auto-fetched
+          orderDetailsAsync.when(
+            loading: () => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: SizedBox(width: 18, height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: colors.primary)),
             ),
+            error: (_, __) => AppText(
+              l10n.failedToLoadDetails,
+              style: TextStyle(color: AppTheme.errorColor, fontSize: 13),
+            ),
+            data: (details) => _buildDetails(context, ref, details, colors, locale, l10n),
           ),
         ],
       ),
     );
   }
-}
 
-/// Order tile - minimalistic expandable with lazy loading of details
-class OrderTile extends ConsumerStatefulWidget {
-  final Order order;
-
-  const OrderTile({super.key, required this.order});
-
-  @override
-  ConsumerState<OrderTile> createState() => _OrderTileState();
-}
-
-class _OrderTileState extends ConsumerState<OrderTile>
-    with SingleTickerProviderStateMixin {
-  bool _expanded = false;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    _pulseAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    if (widget.order.status == OrderStatus.submitted) {
-      _pulseController.repeat(reverse: true);
-    }
-  }
-
-  @override
-  void didUpdateWidget(OrderTile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.order.status == OrderStatus.submitted) {
-      if (!_pulseController.isAnimating) {
-        _pulseController.repeat(reverse: true);
-      }
-    } else {
-      _pulseController.stop();
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.theme.colors;
-    final locale = ref.watch(localeProvider);
-    final dateFormat = DateFormat('MMM d, yyyy h:mm a', locale.languageCode);
-    final l10n = AppLocalizations.of(context)!;
-
+  Widget _buildDetails(
+    BuildContext context, WidgetRef ref, Order details,
+    dynamic colors, Locale locale, AppLocalizations l10n,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header - tappable to expand
-        FTappable(
-          onPress: () => setState(() => _expanded = !_expanded),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        ...details.items.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Row(
-                        children: [
-                          _buildStatusDot(widget.order.status),
-                          const SizedBox(width: 8),
-                          AppText(
-                            l10n.orderNumber(widget.order.id.toString()),
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colors.foreground),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          AppText(
-                            dateFormat.format(widget.order.date),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colors.mutedForeground,
-                            ),
-                          ),
-                          if (widget.order.roomName != null) ...[
-                            const SizedBox(width: 8),
-                            AppText(
-                              '• ${widget.order.roomName!.localized(context)}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: colors.mutedForeground,
-                              ),
-                            ),
-                          ],
-                        ],
+                      AppText('${item.units}',
+                          style: TextStyle(fontSize: 14, color: colors.mutedForeground)),
+                      AppText('x ',
+                          style: TextStyle(fontSize: 14, color: colors.mutedForeground)),
+                      Expanded(
+                        child: AppText(item.productName.getText(locale),
+                            style: TextStyle(fontSize: 14, color: colors.foreground)),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    AppText(
-                      l10n.priceFormat((widget.order.total - widget.order.loyaltyDiscount).toStringAsFixed(2)),
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colors.foreground),
+                  if (item.customizationsDescription != null)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 24),
+                      child: AppText(item.customizationsDescription!.getText(locale),
+                          style: TextStyle(fontSize: 12, color: colors.mutedForeground)),
                     ),
-                    if (widget.order.loyaltyDiscount > 0)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.stars, size: 12, color: Colors.green.shade600),
-                          const SizedBox(width: 2),
-                          AppText(
-                            l10n.discountFormat(widget.order.loyaltyDiscount.toStringAsFixed(2)),
-                            style: TextStyle(fontSize: 12, color: Colors.green.shade600),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  _expanded ? FIcons.chevronUp : FIcons.chevronDown,
-                  size: 16,
-                  color: colors.mutedForeground,
-                ),
+                ],
+              ),
+            )),
+        if (details.customerNote != null) ...[
+          const SizedBox(height: 4),
+          AppText(l10n.noteWithText(details.customerNote!),
+              style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
+        ],
+        if (details.hasRating) ...[
+          const SizedBox(height: 8),
+          Row(children: [
+            AppText(l10n.yourRating, style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
+            RatingDisplay(rating: details.rating!, color: colors.mutedForeground),
+          ]),
+          if (details.rating!.comment != null && details.rating!.comment!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            AppText(
+              '"${details.rating!.comment}"',
+              style: TextStyle(fontSize: 13, color: colors.mutedForeground),
+            ),
+          ],
+        ] else if (details.canBeRated) ...[
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: () => showRatingDialog(context: context, ref: ref, orderId: details.id),
+            child: Row(
+              children: [
+                Icon(Icons.star_border, size: 16, color: colors.mutedForeground),
+                const SizedBox(width: 4),
+                AppText(l10n.rateThisOrder,
+                    style: TextStyle(fontSize: 13, color: colors.mutedForeground)),
               ],
             ),
           ),
-        ),
-
-        // Expanded content - fetch details when expanded
-        if (_expanded) ...[
-          _buildExpandedContent(),
         ],
       ],
     );
   }
+}
 
-  Widget _buildExpandedContent() {
-    final colors = context.theme.colors;
-    final orderDetailsAsync = ref.watch(orderProvider(widget.order.id));
-    final l10n = AppLocalizations.of(context)!;
-    final locale = ref.watch(localeProvider);
+// ════════════════════════════════════════════════════════════════════
+// Status Dot
+// ════════════════════════════════════════════════════════════════════
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-      child: orderDetailsAsync.when(
-        loading: () => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Center(
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: colors.primary,
-              ),
-            ),
-          ),
-        ),
-        error: (error, _) => AppText(
-          l10n.failedToLoadDetails,
-          style: TextStyle(color: AppTheme.errorColor, fontSize: 13),
-        ),
-        data: (orderDetails) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order items
-            if (orderDetails.items.isNotEmpty) ...[
-              ...orderDetails.items.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            AppText(
-                              '${item.units}',
-                              style: TextStyle(fontSize: 14, color: colors.mutedForeground),
-                            ),
-                            AppText(
-                              'x ',
-                              style: TextStyle(fontSize: 14, color: colors.mutedForeground),
-                            ),
-                            Expanded(child: AppText(item.productName.getText(locale), style: TextStyle(fontSize: 14, color: colors.foreground))),
-                            AppText(
-                              l10n.priceFormat(item.totalPrice.toStringAsFixed(2)),
-                              style: TextStyle(fontSize: 14, color: colors.mutedForeground),
-                            ),
-                          ],
-                        ),
-                        // Customizations
-                        if (item.customizationsDescription != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 24, top: 2),
-                            child: AppText(
-                              item.customizationsDescription!.getText(locale),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: colors.mutedForeground,
-                              ),
-                            ),
-                          ),
-                        ],
-                        // Special instructions
-                        if (item.specialInstructions != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 24, top: 2),
-                            child: AppText(
-                              '"${item.specialInstructions}"',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: colors.mutedForeground,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  )),
-            ] else ...[
-              AppText(
-                l10n.noItems,
-                style: TextStyle(color: colors.mutedForeground, fontSize: 13),
-              ),
-            ],
+class _StatusDot extends StatelessWidget {
+  final OrderStatus status;
 
-            // Customer note
-            if (orderDetails.customerNote != null) ...[
-              const SizedBox(height: 8),
-              AppText(
-                l10n.noteWithText(orderDetails.customerNote!),
-                style: TextStyle(
-                  color: colors.mutedForeground,
-                  fontSize: 13,
-                ),
-              ),
-            ],
+  const _StatusDot({required this.status});
 
-            // Rating section
-            if (orderDetails.hasRating) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  AppText(
-                    l10n.yourRating,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colors.mutedForeground,
-                    ),
-                  ),
-                  RatingDisplay(rating: orderDetails.rating!, color: colors.mutedForeground),
-                ],
-              ),
-              if (orderDetails.rating!.comment != null && orderDetails.rating!.comment!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                AppText(
-                  '"${orderDetails.rating!.comment}"',
-                  style: TextStyle(
-                    color: colors.mutedForeground,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ] else if (orderDetails.canBeRated) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    showRatingDialog(
-                      context: context,
-                      ref: ref,
-                      orderId: orderDetails.id,
-                    );
-                  },
-                  icon: const Icon(Icons.star_border, size: 18),
-                  label: Text(l10n.rateThisOrder),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colors.primary,
-                    side: BorderSide(color: colors.primary),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusDot(OrderStatus status) {
+  @override
+  Widget build(BuildContext context) {
     final color = switch (status) {
-      OrderStatus.awaitingValidation => Colors.blue,
+      OrderStatus.awaitingValidation => Colors.orange,
       OrderStatus.submitted => Colors.orange,
       OrderStatus.confirmed => AppTheme.successColor,
       OrderStatus.cancelled => AppTheme.errorColor,
     };
 
-    // Pulse animation for submitted orders
-    if (status == OrderStatus.submitted) {
-      return AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-          return Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: _pulseAnimation.value),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: _pulseAnimation.value * 0.5),
-                  blurRadius: 4,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    }
-
     return Container(
       width: 10,
       height: 10,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

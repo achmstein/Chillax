@@ -140,7 +140,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       prefix: const Icon(FIcons.receipt),
                       title: AppText(l10n.orderHistory),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () => context.go('/orders'),
+                      onPress: () => context.go('/orders?tab=history'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.gamepad2),

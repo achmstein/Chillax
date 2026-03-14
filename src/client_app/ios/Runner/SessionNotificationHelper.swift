@@ -137,8 +137,23 @@ class SessionNotificationHelper: NSObject {
                 let locale = args["locale"] as? String ?? "en"
                 let drink1Name = args["drink1Name"] as? String
                 let drink2Name = args["drink2Name"] as? String
+                let accessToken = args["accessToken"] as? String
+                let apiBaseUrl = args["apiBaseUrl"] as? String
+                let sessionId = args["sessionId"] as? Int
+                let roomId = args["roomId"] as? Int
+                let branchId = args["branchId"] as? Int
+                let roomNameEn = args["roomNameEn"] as? String
+                let roomNameAr = args["roomNameAr"] as? String
+                let ordersApiUrl = args["ordersApiUrl"] as? String
+                let drink1OrderPayload = args["drink1OrderPayload"] as? String
+                let drink2OrderPayload = args["drink2OrderPayload"] as? String
                 self.show(roomName: roomName, duration: duration, startTimeMs: startTimeMs, locale: locale,
-                          drink1Name: drink1Name, drink2Name: drink2Name)
+                          drink1Name: drink1Name, drink2Name: drink2Name,
+                          accessToken: accessToken, apiBaseUrl: apiBaseUrl,
+                          sessionId: sessionId, roomId: roomId, branchId: branchId,
+                          roomNameEn: roomNameEn, roomNameAr: roomNameAr,
+                          ordersApiUrl: ordersApiUrl,
+                          drink1OrderPayload: drink1OrderPayload, drink2OrderPayload: drink2OrderPayload)
                 result(nil)
 
             case "dismiss":
@@ -156,7 +171,12 @@ class SessionNotificationHelper: NSObject {
     /// Show or update the session notification.
     /// Uses Live Activities on iOS 16.2+, falls back to regular notification on older versions.
     func show(roomName: String, duration: String, startTimeMs: Int64?, locale: String,
-              drink1Name: String? = nil, drink2Name: String? = nil) {
+              drink1Name: String? = nil, drink2Name: String? = nil,
+              accessToken: String? = nil, apiBaseUrl: String? = nil,
+              sessionId: Int? = nil, roomId: Int? = nil, branchId: Int? = nil,
+              roomNameEn: String? = nil, roomNameAr: String? = nil,
+              ordersApiUrl: String? = nil,
+              drink1OrderPayload: String? = nil, drink2OrderPayload: String? = nil) {
         lastRoomName = roomName
         lastDuration = duration
         lastStartTimeMs = startTimeMs
@@ -166,7 +186,12 @@ class SessionNotificationHelper: NSObject {
 
         if #available(iOS 16.2, *) {
             showLiveActivity(roomName: roomName, startTimeMs: startTimeMs, locale: locale,
-                             drink1Name: drink1Name, drink2Name: drink2Name)
+                             drink1Name: drink1Name, drink2Name: drink2Name,
+                             accessToken: accessToken, apiBaseUrl: apiBaseUrl,
+                             sessionId: sessionId, roomId: roomId, branchId: branchId,
+                             roomNameEn: roomNameEn, roomNameAr: roomNameAr,
+                             ordersApiUrl: ordersApiUrl,
+                             drink1OrderPayload: drink1OrderPayload, drink2OrderPayload: drink2OrderPayload)
         } else {
             showLegacyNotification(roomName: roomName, locale: locale)
         }
@@ -199,7 +224,12 @@ class SessionNotificationHelper: NSObject {
 
     @available(iOS 16.2, *)
     private func showLiveActivity(roomName: String, startTimeMs: Int64?, locale: String,
-                                  drink1Name: String?, drink2Name: String?) {
+                                  drink1Name: String?, drink2Name: String?,
+                                  accessToken: String? = nil, apiBaseUrl: String? = nil,
+                                  sessionId: Int? = nil, roomId: Int? = nil, branchId: Int? = nil,
+                                  roomNameEn: String? = nil, roomNameAr: String? = nil,
+                                  ordersApiUrl: String? = nil,
+                                  drink1OrderPayload: String? = nil, drink2OrderPayload: String? = nil) {
         let startDate: Date
         if let ms = startTimeMs {
             startDate = Date(timeIntervalSince1970: Double(ms) / 1000.0)
@@ -210,7 +240,17 @@ class SessionNotificationHelper: NSObject {
         let state = SessionActivityAttributes.ContentState(
             startTime: startDate,
             drink1Name: drink1Name,
-            drink2Name: drink2Name
+            drink2Name: drink2Name,
+            accessToken: accessToken,
+            apiBaseUrl: apiBaseUrl,
+            sessionId: sessionId,
+            roomId: roomId,
+            branchId: branchId,
+            roomNameEn: roomNameEn,
+            roomNameAr: roomNameAr,
+            ordersApiUrl: ordersApiUrl,
+            drink1OrderPayload: drink1OrderPayload,
+            drink2OrderPayload: drink2OrderPayload
         )
 
         if let activity = currentActivity,
@@ -220,6 +260,9 @@ class SessionNotificationHelper: NSObject {
                 await activity.update(ActivityContent(state: state, staleDate: nil))
             }
         } else {
+            // End any stale activities before starting a new one
+            endAllActivities()
+
             // Start new activity
             let attributes = SessionActivityAttributes(roomName: roomName, locale: locale)
             let content = ActivityContent(state: state, staleDate: nil)
@@ -238,13 +281,27 @@ class SessionNotificationHelper: NSObject {
         }
     }
 
+    /// End all live activities for this app (cleans up stale/orphaned activities)
+    @available(iOS 16.2, *)
+    private func endAllActivities() {
+        for activity in Activity<SessionActivityAttributes>.activities {
+            let state = activity.content.state
+            Task {
+                await activity.end(ActivityContent(state: state, staleDate: nil),
+                                   dismissalPolicy: .immediate)
+            }
+        }
+    }
+
     @available(iOS 16.2, *)
     private func dismissLiveActivity() {
-        guard let activity = currentActivity else { return }
-        let state = activity.content.state
-        Task {
-            await activity.end(ActivityContent(state: state, staleDate: nil),
-                               dismissalPolicy: .immediate)
+        // End all activities, not just currentActivity, to clean up any orphaned ones
+        for activity in Activity<SessionActivityAttributes>.activities {
+            let state = activity.content.state
+            Task {
+                await activity.end(ActivityContent(state: state, staleDate: nil),
+                                   dismissalPolicy: .immediate)
+            }
         }
         currentActivity = nil
     }
