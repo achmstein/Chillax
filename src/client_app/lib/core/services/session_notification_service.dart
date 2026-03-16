@@ -133,10 +133,6 @@ class SessionNotificationService {
         'duration': session.formattedDuration,
         'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
         'locale': locale,
-        if (drinks.isNotEmpty) 'drink1Id': drinks[0].id,
-        if (drinks.isNotEmpty) 'drink1Name': drinks[0].name,
-        if (drinks.length > 1) 'drink2Id': drinks[1].id,
-        if (drinks.length > 1) 'drink2Name': drinks[1].name,
         ...sessionContext,
       });
     } catch (e) {
@@ -151,40 +147,37 @@ class SessionNotificationService {
       if (_cachedDrinks!.isNotEmpty) {
         _cachedSessionId = session.id;
       }
-      final resolved = _cachedDrinks ?? [];
-      _drink1Item = resolved.isNotEmpty ? resolved[0].item : null;
-      _drink2Item = resolved.length > 1 ? resolved[1].item : null;
+    }
 
-      // Pre-compute order payloads for iOS Live Activity intents
-      final drink1Payload = resolved.isNotEmpty
-          ? await _buildDrinkOrderPayload(resolved[0].item, session)
+    final resolved = _cachedDrinks ?? [];
+    _drink1Item = resolved.isNotEmpty ? resolved[0].item : null;
+    _drink2Item = resolved.length > 1 ? resolved[1].item : null;
+
+    // Build payloads and update Live Activity with drink buttons
+    if (resolved.isNotEmpty && _activeSession != null) {
+      final drink1Payload = _drink1Item != null
+          ? await _buildDrinkOrderPayload(_drink1Item!, session)
           : null;
-      final drink2Payload = resolved.length > 1
-          ? await _buildDrinkOrderPayload(resolved[1].item, session)
+      final drink2Payload = _drink2Item != null
+          ? await _buildDrinkOrderPayload(_drink2Item!, session)
           : null;
 
-      // Update notification with drink buttons
-      if (resolved.isNotEmpty && _activeSession != null) {
-        try {
-          await _channel.invokeMethod('show', {
-            'roomName': roomName,
-            'duration': session.formattedDuration,
-            'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
-            'locale': locale,
-            'drink1Id': resolved[0].id,
-            'drink1Name': resolved[0].name,
-            if (resolved.length > 1) 'drink2Id': resolved[1].id,
-            if (resolved.length > 1) 'drink2Name': resolved[1].name,
-            ...sessionContext,
-            'ordersApiUrl': AppConfig.ordersApiUrl,
-            if (drink1Payload != null) 'drink1OrderPayload': drink1Payload,
-            if (drink2Payload != null) 'drink2OrderPayload': drink2Payload,
-          });
-        } catch (_) {}
-      }
-    } else {
-      _drink1Item = drinks.isNotEmpty ? drinks[0].item : null;
-      _drink2Item = drinks.length > 1 ? drinks[1].item : null;
+      try {
+        await _channel.invokeMethod('show', {
+          'roomName': roomName,
+          'duration': session.formattedDuration,
+          'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
+          'locale': locale,
+          'drink1Id': resolved[0].id,
+          'drink1Name': resolved[0].name,
+          if (resolved.length > 1) 'drink2Id': resolved[1].id,
+          if (resolved.length > 1) 'drink2Name': resolved[1].name,
+          ...sessionContext,
+          'ordersApiUrl': AppConfig.ordersApiUrl,
+          if (drink1Payload != null) 'drink1OrderPayload': drink1Payload,
+          if (drink2Payload != null) 'drink2OrderPayload': drink2Payload,
+        });
+      } catch (_) {}
     }
   }
 

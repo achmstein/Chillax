@@ -1,8 +1,31 @@
+import ActivityKit
 import AppIntents
 import Foundation
 
+private let cooldownSeconds: TimeInterval = 30
+
+/// Update the Live Activity's content state with a cooldown timestamp for the given action.
+@available(iOS 17, *)
+private func setCooldown(for actionId: String) {
+    guard let activity = Activity<SessionActivityAttributes>.activities.first else { return }
+    var state = activity.content.state
+    let expiry = Date().addingTimeInterval(cooldownSeconds)
+
+    switch actionId {
+    case "call_waiter": state.waiterCooldownEnd = expiry
+    case "controller": state.controllerCooldownEnd = expiry
+    case "order_drink_1": state.drink1CooldownEnd = expiry
+    case "order_drink_2": state.drink2CooldownEnd = expiry
+    default: break
+    }
+
+    Task {
+        await activity.update(ActivityContent(state: state, staleDate: nil))
+    }
+}
+
 /// Background action intent for Live Activity buttons (iOS 17+).
-/// Sends service requests or drink orders directly via HTTP without opening the app.
+/// Sends service requests directly via HTTP without opening the app.
 @available(iOS 17, *)
 struct SessionActionIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Session Action"
@@ -78,7 +101,13 @@ struct SessionActionIntent: LiveActivityIntent {
         }
         request.httpBody = jsonData
 
-        _ = try? await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+
+        // Show cooldown on success or if already in cooldown (400)
+        if statusCode >= 200 && statusCode < 300 || statusCode == 400 {
+            setCooldown(for: actionId)
+        }
 
         return .result()
     }
@@ -102,13 +131,17 @@ struct SessionDrinkOrderIntent: LiveActivityIntent {
     @Parameter(title: "Branch ID")
     var branchId: Int
 
+    @Parameter(title: "Action ID")
+    var actionId: String
+
     init() {}
 
-    init(accessToken: String, ordersApiUrl: String, orderPayload: String, branchId: Int) {
+    init(accessToken: String, ordersApiUrl: String, orderPayload: String, branchId: Int, actionId: String = "order_drink_1") {
         self.accessToken = accessToken
         self.ordersApiUrl = ordersApiUrl
         self.orderPayload = orderPayload
         self.branchId = branchId
+        self.actionId = actionId
     }
 
     func perform() async throws -> some IntentResult {
@@ -127,7 +160,12 @@ struct SessionDrinkOrderIntent: LiveActivityIntent {
         }
         request.httpBody = jsonData
 
-        _ = try? await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+
+        if statusCode >= 200 && statusCode < 300 {
+            setCooldown(for: actionId)
+        }
 
         return .result()
     }

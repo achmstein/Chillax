@@ -104,14 +104,14 @@ private struct SessionActionsView: View {
                 actionId: "call_waiter",
                 label: isArabic ? "الويتر" : "Waiter",
                 icon: "bell.fill",
-                isServiceRequest: true
+                cooldownEnd: state.waiterCooldownEnd
             )
 
             actionButton(
                 actionId: "controller",
                 label: isArabic ? "دراع" : "Controller",
                 icon: "gamecontroller.fill",
-                isServiceRequest: true
+                cooldownEnd: state.controllerCooldownEnd
             )
 
             if let drink1 = state.drink1Name {
@@ -119,7 +119,8 @@ private struct SessionActionsView: View {
                     actionId: "order_drink_1",
                     label: drink1,
                     icon: "cup.and.saucer.fill",
-                    orderPayload: state.drink1OrderPayload
+                    orderPayload: state.drink1OrderPayload,
+                    cooldownEnd: state.drink1CooldownEnd
                 )
             }
 
@@ -128,7 +129,8 @@ private struct SessionActionsView: View {
                     actionId: "order_drink_2",
                     label: drink2,
                     icon: "mug.fill",
-                    orderPayload: state.drink2OrderPayload
+                    orderPayload: state.drink2OrderPayload,
+                    cooldownEnd: state.drink2CooldownEnd
                 )
             }
         }
@@ -136,8 +138,12 @@ private struct SessionActionsView: View {
     }
 
     @ViewBuilder
-    private func actionButton(actionId: String, label: String, icon: String, isServiceRequest: Bool) -> some View {
-        if #available(iOS 17, *), isServiceRequest,
+    private func actionButton(actionId: String, label: String, icon: String, cooldownEnd: Date?) -> some View {
+        let inCooldown = cooldownEnd != nil && cooldownEnd! > Date()
+
+        if inCooldown {
+            cooldownLabel(icon: icon, cooldownEnd: cooldownEnd!)
+        } else if #available(iOS 17, *),
            let accessToken = state.accessToken,
            let apiBaseUrl = state.apiBaseUrl,
            let sessionId = state.sessionId,
@@ -157,7 +163,7 @@ private struct SessionActionsView: View {
             }
             .buttonStyle(.plain)
         } else {
-            // iOS 16.x or drink orders: deep link — opens app
+            // iOS 16.x: deep link — opens app
             Link(destination: URL(string: "com.chillax.client://action/\(actionId)")!) {
                 actionLabel(label: label, icon: icon)
             }
@@ -165,8 +171,12 @@ private struct SessionActionsView: View {
     }
 
     @ViewBuilder
-    private func drinkButton(actionId: String, label: String, icon: String, orderPayload: String?) -> some View {
-        if #available(iOS 17, *),
+    private func drinkButton(actionId: String, label: String, icon: String, orderPayload: String?, cooldownEnd: Date?) -> some View {
+        let inCooldown = cooldownEnd != nil && cooldownEnd! > Date()
+
+        if inCooldown {
+            cooldownLabel(icon: icon, cooldownEnd: cooldownEnd!)
+        } else if #available(iOS 17, *),
            let accessToken = state.accessToken,
            let ordersApiUrl = state.ordersApiUrl,
            let payload = orderPayload {
@@ -175,13 +185,14 @@ private struct SessionActionsView: View {
                 accessToken: accessToken,
                 ordersApiUrl: ordersApiUrl,
                 orderPayload: payload,
-                branchId: state.branchId ?? 0
+                branchId: state.branchId ?? 0,
+                actionId: actionId
             )) {
                 actionLabel(label: label, icon: icon)
             }
             .buttonStyle(.plain)
         } else {
-            // Fallback: deep link — opens app
+            // iOS 16.x or payload not ready: deep link — opens app
             Link(destination: URL(string: "com.chillax.client://action/\(actionId)")!) {
                 actionLabel(label: label, icon: icon)
             }
@@ -201,5 +212,20 @@ private struct SessionActionsView: View {
         .background(Color.white.opacity(0.15))
         .cornerRadius(8)
         .foregroundColor(.white)
+    }
+
+    private func cooldownLabel(icon: String, cooldownEnd: Date) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "checkmark")
+                .font(.caption2)
+            Text(cooldownEnd, style: .timer)
+                .font(.caption)
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.green.opacity(0.3))
+        .cornerRadius(8)
+        .foregroundColor(.green)
     }
 }
