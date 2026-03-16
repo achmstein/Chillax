@@ -6,6 +6,8 @@ WORKDIR /src
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
 COPY ["src/Branch.API/Branch.API.csproj", "Branch.API/"]
+COPY ["src/EventBus/EventBus.csproj", "EventBus/"]
+COPY ["src/EventBusRabbitMQ/EventBusRabbitMQ.csproj", "EventBusRabbitMQ/"]
 COPY ["src/Chillax.ServiceDefaults/Chillax.ServiceDefaults.csproj", "Chillax.ServiceDefaults/"]
 COPY ["src/Shared/", "Shared/"]
 
@@ -14,6 +16,8 @@ RUN dotnet restore "Branch.API/Branch.API.csproj"
 
 # Copy source code
 COPY ["src/Branch.API/", "Branch.API/"]
+COPY ["src/EventBus/", "EventBus/"]
+COPY ["src/EventBusRabbitMQ/", "EventBusRabbitMQ/"]
 COPY ["src/Chillax.ServiceDefaults/", "Chillax.ServiceDefaults/"]
 
 # Build
