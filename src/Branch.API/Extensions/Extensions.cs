@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using Chillax.Branch.API.IntegrationEvents;
+
 namespace Chillax.Branch.API.Extensions;
 
 public static class Extensions
@@ -10,5 +13,14 @@ public static class Extensions
         });
 
         builder.Services.AddMigration<BranchContext, BranchContextSeed>();
+
+        builder.AddRabbitMqEventBus("eventbus")
+            .ConfigureJsonOptions(options =>
+                options.TypeInfoResolverChain.Add(BranchIntegrationEventContext.Default));
     }
+}
+
+[JsonSerializable(typeof(BranchSettingsChangedIntegrationEvent))]
+public partial class BranchIntegrationEventContext : JsonSerializerContext
+{
 }

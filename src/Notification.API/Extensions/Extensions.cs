@@ -37,10 +37,12 @@ public static class Extensions
             .AddSubscription<SessionStartedIntegrationEvent, SessionStartedIntegrationEventHandler>()
             .AddSubscription<SessionEndedIntegrationEvent, SessionEndedIntegrationEventHandler>()
             .AddSubscription<SessionMemberJoinedIntegrationEvent, SessionMemberJoinedIntegrationEventHandler>()
-            .AddSubscription<OrderStatusChangedToConfirmedIntegrationEvent, OrderConfirmedIntegrationEventHandler>();
+            .AddSubscription<OrderStatusChangedToConfirmedIntegrationEvent, OrderConfirmedIntegrationEventHandler>()
+            .AddSubscription<BranchSettingsChangedIntegrationEvent, BranchSettingsChangedIntegrationEventHandler>();
     }
 }
 
+[JsonSerializable(typeof(BranchSettingsChangedIntegrationEvent))]
 [JsonSerializable(typeof(RoomBecameAvailableIntegrationEvent))]
 [JsonSerializable(typeof(OrderStatusChangedToSubmittedIntegrationEvent))]
 [JsonSerializable(typeof(ServiceRequestCreatedIntegrationEvent))]

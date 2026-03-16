@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../cart/models/cart_item.dart';
 import '../../cart/services/cart_service.dart';
 import '../../menu/models/menu_item.dart';
@@ -262,17 +263,23 @@ class OrdersState {
 class OrdersNotifier extends Notifier<OrdersState> {
   static const _pageSize = 10;
 
-  /// Get the current business session start time.
-  /// Business hours: 5 PM to 5 AM (or later on holidays).
-  /// If now >= 5 PM → session started today at 5 PM.
-  /// If now < 5 PM → session started yesterday at 5 PM.
-  static DateTime getSessionStart() {
+  /// Get the current business session start time based on the branch's configured hours.
+  /// Overnight shift (e.g. 17:00→05:00): if now >= 17 → today at 17; if now < 17 → yesterday at 17.
+  /// Same-day shift (e.g. 08:00→16:00): always today at 08.
+  DateTime getSessionStart() {
+    final branch = ref.read(branchProvider).selectedBranch;
+    final startHour = branch?.dayStartHour ?? 17;
+    final isOvernight = branch?.isOvernightShift ?? true;
     final now = DateTime.now();
-    if (now.hour >= 17) {
-      return DateTime(now.year, now.month, now.day, 17);
+    if (isOvernight) {
+      if (now.hour >= startHour) {
+        return DateTime(now.year, now.month, now.day, startHour);
+      } else {
+        final yesterday = now.subtract(const Duration(days: 1));
+        return DateTime(yesterday.year, yesterday.month, yesterday.day, startHour);
+      }
     } else {
-      final yesterday = now.subtract(const Duration(days: 1));
-      return DateTime(yesterday.year, yesterday.month, yesterday.day, 17);
+      return DateTime(now.year, now.month, now.day, startHour);
     }
   }
 
@@ -294,10 +301,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
     try {
       final service = ref.read(orderRepositoryProvider);
+      final fromDate = state.showingToday ? getSessionStart() : null;
       final result = await service.getOrders(
         pageIndex: 0,
         pageSize: _pageSize,
-        fromDate: state.showingToday ? getSessionStart() : null,
+        fromDate: fromDate,
       );
 
       state = state.copyWith(

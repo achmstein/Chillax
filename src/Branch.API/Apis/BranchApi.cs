@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Security.Claims;
+using Chillax.Branch.API.IntegrationEvents;
 using Chillax.Branch.API.Model;
+using Chillax.EventBus.Abstractions;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Chillax.Branch.API.Apis;
@@ -36,6 +38,12 @@ public static class BranchApi
             .WithTags("Branches")
             .RequireAuthorization("Owner");
 
+        api.MapPatch("/{id:int}/settings", UpdateBranchSettings)
+            .WithName("UpdateBranchSettings")
+            .WithSummary("Update branch operational settings (ordering, reservations)")
+            .WithTags("Branches")
+            .RequireAuthorization("Admin");
+
         // Admin branch assignment
         api.MapGet("/admin/{adminUserId}", GetBranchesByAdmin)
             .WithName("GetBranchesByAdmin")
@@ -64,7 +72,7 @@ public static class BranchApi
             .AsNoTracking()
             .Where(b => b.IsActive)
             .OrderBy(b => b.DisplayOrder)
-            .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder))
+            .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder, b.DayStartTime.ToString("HH:mm"), b.DayEndTime.ToString("HH:mm"), b.IsOrderingEnabled, b.IsReservationsEnabled))
             .ToListAsync();
 
         return TypedResults.Ok(branches);
@@ -75,7 +83,7 @@ public static class BranchApi
         var branches = await context.Branches
             .AsNoTracking()
             .OrderBy(b => b.DisplayOrder)
-            .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder))
+            .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder, b.DayStartTime.ToString("HH:mm"), b.DayEndTime.ToString("HH:mm"), b.IsOrderingEnabled, b.IsReservationsEnabled))
             .ToListAsync();
 
         return TypedResults.Ok(branches);
@@ -91,18 +99,23 @@ public static class BranchApi
             Address = request.Address,
             Phone = request.Phone,
             IsActive = true,
-            DisplayOrder = request.DisplayOrder
+            DisplayOrder = request.DisplayOrder,
+            DayStartTime = request.DayStartTime != null ? TimeOnly.Parse(request.DayStartTime) : new TimeOnly(17, 0),
+            DayEndTime = request.DayEndTime != null ? TimeOnly.Parse(request.DayEndTime) : new TimeOnly(5, 0),
+            IsOrderingEnabled = request.IsOrderingEnabled,
+            IsReservationsEnabled = request.IsReservationsEnabled
         };
 
         context.Branches.Add(branch);
         await context.SaveChangesAsync();
 
-        var response = new BranchResponse(branch.Id, branch.Name, branch.Address, branch.Phone, branch.IsActive, branch.DisplayOrder);
+        var response = new BranchResponse(branch.Id, branch.Name, branch.Address, branch.Phone, branch.IsActive, branch.DisplayOrder, branch.DayStartTime.ToString("HH:mm"), branch.DayEndTime.ToString("HH:mm"), branch.IsOrderingEnabled, branch.IsReservationsEnabled);
         return TypedResults.Created($"/api/branches/{branch.Id}", response);
     }
 
     public static async Task<Results<Ok<BranchResponse>, NotFound>> UpdateBranch(
         BranchContext context,
+        IEventBus eventBus,
         [Description("The branch ID")] int id,
         UpdateBranchRequest request)
     {
@@ -115,10 +128,17 @@ public static class BranchApi
         branch.Phone = request.Phone;
         branch.IsActive = request.IsActive;
         branch.DisplayOrder = request.DisplayOrder;
+        if (request.DayStartTime != null) branch.DayStartTime = TimeOnly.Parse(request.DayStartTime);
+        if (request.DayEndTime != null) branch.DayEndTime = TimeOnly.Parse(request.DayEndTime);
+        if (request.IsOrderingEnabled != null) branch.IsOrderingEnabled = request.IsOrderingEnabled.Value;
+        if (request.IsReservationsEnabled != null) branch.IsReservationsEnabled = request.IsReservationsEnabled.Value;
 
         await context.SaveChangesAsync();
 
-        var response = new BranchResponse(branch.Id, branch.Name, branch.Address, branch.Phone, branch.IsActive, branch.DisplayOrder);
+        await eventBus.PublishAsync(new BranchSettingsChangedIntegrationEvent(
+            branch.Id, branch.IsOrderingEnabled, branch.IsReservationsEnabled));
+
+        var response = new BranchResponse(branch.Id, branch.Name, branch.Address, branch.Phone, branch.IsActive, branch.DisplayOrder, branch.DayStartTime.ToString("HH:mm"), branch.DayEndTime.ToString("HH:mm"), branch.IsOrderingEnabled, branch.IsReservationsEnabled);
         return TypedResults.Ok(response);
     }
 
@@ -134,7 +154,7 @@ public static class BranchApi
             var allBranches = await context.Branches
                 .AsNoTracking()
                 .OrderBy(b => b.DisplayOrder)
-                .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder))
+                .Select(b => new BranchResponse(b.Id, b.Name, b.Address, b.Phone, b.IsActive, b.DisplayOrder, b.DayStartTime.ToString("HH:mm"), b.DayEndTime.ToString("HH:mm"), b.IsOrderingEnabled, b.IsReservationsEnabled))
                 .ToListAsync();
 
             return TypedResults.Ok(allBranches);
@@ -146,10 +166,32 @@ public static class BranchApi
             .Include(a => a.Branch)
             .Where(a => a.Branch.IsActive)
             .OrderBy(a => a.Branch.DisplayOrder)
-            .Select(a => new BranchResponse(a.Branch.Id, a.Branch.Name, a.Branch.Address, a.Branch.Phone, a.Branch.IsActive, a.Branch.DisplayOrder))
+            .Select(a => new BranchResponse(a.Branch.Id, a.Branch.Name, a.Branch.Address, a.Branch.Phone, a.Branch.IsActive, a.Branch.DisplayOrder, a.Branch.DayStartTime.ToString("HH:mm"), a.Branch.DayEndTime.ToString("HH:mm"), a.Branch.IsOrderingEnabled, a.Branch.IsReservationsEnabled))
             .ToListAsync();
 
         return TypedResults.Ok(branches);
+    }
+
+    public static async Task<Results<Ok<BranchResponse>, NotFound>> UpdateBranchSettings(
+        BranchContext context,
+        IEventBus eventBus,
+        [Description("The branch ID")] int id,
+        UpdateBranchSettingsRequest request)
+    {
+        var branch = await context.Branches.FindAsync(id);
+        if (branch == null)
+            return TypedResults.NotFound();
+
+        if (request.IsOrderingEnabled != null) branch.IsOrderingEnabled = request.IsOrderingEnabled.Value;
+        if (request.IsReservationsEnabled != null) branch.IsReservationsEnabled = request.IsReservationsEnabled.Value;
+
+        await context.SaveChangesAsync();
+
+        await eventBus.PublishAsync(new BranchSettingsChangedIntegrationEvent(
+            branch.Id, branch.IsOrderingEnabled, branch.IsReservationsEnabled));
+
+        var response = new BranchResponse(branch.Id, branch.Name, branch.Address, branch.Phone, branch.IsActive, branch.DisplayOrder, branch.DayStartTime.ToString("HH:mm"), branch.DayEndTime.ToString("HH:mm"), branch.IsOrderingEnabled, branch.IsReservationsEnabled);
+        return TypedResults.Ok(response);
     }
 
     public static async Task<Results<Created, Conflict<string>, NotFound>> AssignAdmin(
@@ -195,10 +237,12 @@ public static class BranchApi
     }
 }
 
-public record BranchResponse(int Id, LocalizedText Name, LocalizedText? Address, string? Phone, bool IsActive, int DisplayOrder);
+public record BranchResponse(int Id, LocalizedText Name, LocalizedText? Address, string? Phone, bool IsActive, int DisplayOrder, string DayStartTime, string DayEndTime, bool IsOrderingEnabled, bool IsReservationsEnabled);
 
-public record CreateBranchRequest(LocalizedText Name, LocalizedText? Address, string? Phone, int DisplayOrder = 0);
+public record CreateBranchRequest(LocalizedText Name, LocalizedText? Address, string? Phone, int DisplayOrder = 0, string? DayStartTime = null, string? DayEndTime = null, bool IsOrderingEnabled = true, bool IsReservationsEnabled = true);
 
-public record UpdateBranchRequest(LocalizedText Name, LocalizedText? Address, string? Phone, bool IsActive, int DisplayOrder);
+public record UpdateBranchRequest(LocalizedText Name, LocalizedText? Address, string? Phone, bool IsActive, int DisplayOrder, string? DayStartTime = null, string? DayEndTime = null, bool? IsOrderingEnabled = null, bool? IsReservationsEnabled = null);
+
+public record UpdateBranchSettingsRequest(bool? IsOrderingEnabled = null, bool? IsReservationsEnabled = null);
 
 public record AssignAdminRequest(string AdminUserId);

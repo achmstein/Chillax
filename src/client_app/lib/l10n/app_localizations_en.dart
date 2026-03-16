@@ -955,4 +955,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get completeYourInfo => 'Complete Your Info';
+
+  @override
+  String get orderingUnavailable => 'Ordering is currently unavailable';
+
+  @override
+  String get reservationsUnavailable =>
+      'Reservations are currently unavailable';
 }

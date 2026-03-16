@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/models/branch.dart';
 import '../../../core/models/localized_text.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/services/branch_service.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/toast_helpers.dart';
@@ -68,9 +70,16 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
     }
   }
 
+  bool get _isOwner => ref.read(isOwnerProvider);
+
   Branch? get _branch {
-    final state = ref.watch(branchesManagementProvider);
-    return state.branches.where((b) => b.id == widget.branchId).firstOrNull;
+    // Try management provider first (owners have all branches loaded)
+    final mgmtState = ref.watch(branchesManagementProvider);
+    final fromMgmt = mgmtState.branches.where((b) => b.id == widget.branchId).firstOrNull;
+    if (fromMgmt != null) return fromMgmt;
+    // Fall back to admin's branch provider (admins see their assigned branches)
+    final branchState = ref.watch(branchProvider);
+    return branchState.branches.where((b) => b.id == widget.branchId).firstOrNull;
   }
 
   Future<void> _assignAdmin() async {
@@ -195,6 +204,14 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final branch = _branch;
 
+    void goBack() {
+      if (_isOwner) {
+        context.go('/branches');
+      } else {
+        context.go('/orders');
+      }
+    }
+
     if (branch == null) {
       return Scaffold(
         backgroundColor: theme.colors.background,
@@ -207,7 +224,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(FIcons.arrowLeft),
-                      onPressed: () => context.go('/branches'),
+                      onPressed: goBack,
                     ),
                   ],
                 ),
@@ -232,7 +249,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(FIcons.arrowLeft),
-                    onPressed: () => context.go('/branches'),
+                    onPressed: goBack,
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -242,20 +259,21 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(FIcons.pencil, size: 20),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        useRootNavigator: true,
-                        backgroundColor: Colors.transparent,
-                        barrierColor: Colors.black.withValues(alpha: 0.5),
-                        builder: (context) => BranchFormSheet(branch: branch),
-                      );
-                    },
-                    tooltip: l10n.editBranch,
-                  ),
+                  if (_isOwner)
+                    IconButton(
+                      icon: const Icon(FIcons.pencil, size: 20),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useRootNavigator: true,
+                          backgroundColor: Colors.transparent,
+                          barrierColor: Colors.black.withValues(alpha: 0.5),
+                          builder: (context) => BranchFormSheet(branch: branch),
+                        );
+                      },
+                      tooltip: l10n.editBranch,
+                    ),
                 ],
               ),
             ),
@@ -289,15 +307,44 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                             subtitle: AppText(branch.phone!),
                           ),
                         FTile(
+                          prefix: const Icon(FIcons.clock),
+                          title: AppText(l10n.businessHours),
+                          subtitle: AppText('${branch.dayStartTime} - ${branch.dayEndTime}'),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Operational status
+                    FTileGroup(
+                      label: AppText(l10n.status),
+                      children: [
+                        FTile(
                           prefix: Icon(
                             branch.isActive ? FIcons.circleCheck : FIcons.circleX,
                             color: branch.isActive ? Colors.green : theme.colors.mutedForeground,
                           ),
                           title: AppText(branch.isActive ? l10n.active : l10n.inactive),
                         ),
+                        FTile(
+                          prefix: Icon(
+                            FIcons.shoppingCart,
+                            color: branch.isOrderingEnabled ? Colors.green : theme.colors.mutedForeground,
+                          ),
+                          title: AppText(branch.isOrderingEnabled ? l10n.orderingEnabled : l10n.orderingDisabled),
+                        ),
+                        FTile(
+                          prefix: Icon(
+                            FIcons.gamepad2,
+                            color: branch.isReservationsEnabled ? Colors.green : theme.colors.mutedForeground,
+                          ),
+                          title: AppText(branch.isReservationsEnabled ? l10n.reservationsEnabled : l10n.reservationsDisabled),
+                        ),
                       ],
                     ),
 
+                    if (_isOwner) ...[
                     const SizedBox(height: 24),
 
                     // Assigned admins
@@ -341,6 +388,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                             admin: admin,
                             onRemove: admin.isOwner ? null : () => _removeAdmin(admin),
                           ))),
+                    ], // end if (_isOwner)
                   ],
                 ),
               ),

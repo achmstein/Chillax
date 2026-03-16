@@ -107,6 +107,11 @@ class BranchNotifier extends Notifier<BranchState> {
     await _loadBranches();
   }
 
+  /// Re-fetch branch data without showing a loading spinner.
+  Future<void> refreshSilently() async {
+    await _loadBranches();
+  }
+
   Future<void> _saveBranchId(int branchId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_branchKey, branchId);

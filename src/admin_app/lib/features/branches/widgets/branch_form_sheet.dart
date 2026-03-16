@@ -29,6 +29,10 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
   late final TextEditingController _phoneController;
   late final TextEditingController _displayOrderController;
   late bool _isActive;
+  late TimeOfDay _dayStartTime;
+  late TimeOfDay _dayEndTime;
+  late bool _isOrderingEnabled;
+  late bool _isReservationsEnabled;
   bool _isSaving = false;
 
   @override
@@ -42,6 +46,19 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
     _phoneController = TextEditingController(text: branch?.phone ?? '');
     _displayOrderController = TextEditingController(text: (branch?.displayOrder ?? 0).toString());
     _isActive = branch?.isActive ?? true;
+    _dayStartTime = _parseTime(branch?.dayStartTime ?? '17:00');
+    _dayEndTime = _parseTime(branch?.dayEndTime ?? '05:00');
+    _isOrderingEnabled = branch?.isOrderingEnabled ?? true;
+    _isReservationsEnabled = branch?.isReservationsEnabled ?? true;
+  }
+
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  String _formatTime(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -70,6 +87,10 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
       'phone': _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
       'isActive': _isActive,
       'displayOrder': int.tryParse(_displayOrderController.text.trim()) ?? 0,
+      'dayStartTime': _formatTime(_dayStartTime),
+      'dayEndTime': _formatTime(_dayEndTime),
+      'isOrderingEnabled': _isOrderingEnabled,
+      'isReservationsEnabled': _isReservationsEnabled,
     };
 
     final notifier = ref.read(branchesManagementProvider.notifier);
@@ -206,9 +227,87 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
                       ),
                     ),
 
-                    // Active toggle (edit only)
+                    const SizedBox(height: 16),
+
+                    // Business hours
+                    AppText(
+                      l10n.businessHours,
+                      style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: _dayStartTime,
+                              );
+                              if (picked != null) setState(() => _dayStartTime = picked);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: theme.colors.border),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(FIcons.clock, size: 16, color: theme.colors.mutedForeground),
+                                  const SizedBox(width: 8),
+                                  AppText(
+                                    '${l10n.dayStartTime}: ${_dayStartTime.format(context)}',
+                                    style: theme.typography.sm,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: _dayEndTime,
+                              );
+                              if (picked != null) setState(() => _dayEndTime = picked);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: theme.colors.border),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(FIcons.clock, size: 16, color: theme.colors.mutedForeground),
+                                  const SizedBox(width: 8),
+                                  AppText(
+                                    '${l10n.dayEndTime}: ${_dayEndTime.format(context)}',
+                                    style: theme.typography.sm,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Status toggles
+                    AppText(
+                      l10n.status,
+                      style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Active toggle
                     if (widget.isEditing) ...[
-                      const SizedBox(height: 16),
                       Row(
                         children: [
                           Icon(
@@ -228,7 +327,52 @@ class _BranchFormSheetState extends ConsumerState<BranchFormSheet> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
                     ],
+
+                    // Ordering toggle
+                    Row(
+                      children: [
+                        Icon(
+                          FIcons.shoppingCart,
+                          color: _isOrderingEnabled ? Colors.green : theme.colors.mutedForeground,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: AppText(
+                            _isOrderingEnabled ? l10n.orderingEnabled : l10n.orderingDisabled,
+                            style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        FSwitch(
+                          value: _isOrderingEnabled,
+                          onChange: (v) => setState(() => _isOrderingEnabled = v),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Reservations toggle
+                    Row(
+                      children: [
+                        Icon(
+                          FIcons.gamepad2,
+                          color: _isReservationsEnabled ? Colors.green : theme.colors.mutedForeground,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: AppText(
+                            _isReservationsEnabled ? l10n.reservationsEnabled : l10n.reservationsDisabled,
+                            style: theme.typography.sm.copyWith(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        FSwitch(
+                          value: _isReservationsEnabled,
+                          onChange: (v) => setState(() => _isReservationsEnabled = v),
+                        ),
+                      ],
+                    ),
 
                     const SizedBox(height: 24),
                   ],

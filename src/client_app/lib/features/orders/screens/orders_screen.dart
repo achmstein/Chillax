@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/localized_text.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
@@ -279,18 +280,23 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
     final groups = <String, _ShiftGroup>{};
     final now = DateTime.now();
     final dateFormat = DateFormat('EEEE, MMM d', locale.languageCode);
+    final branch = ref.read(branchProvider).selectedBranch;
+    final startHour = branch?.dayStartHour ?? 17;
+    final isOvernight = branch?.isOvernightShift ?? true;
 
     for (final order in orders) {
-      final shiftDate = order.date.hour < 17
+      // For overnight shifts, orders before startHour belong to the previous day's shift.
+      // For same-day shifts, all orders belong to the same calendar day.
+      final shiftDate = isOvernight && order.date.hour < startHour
           ? DateTime(order.date.year, order.date.month, order.date.day - 1)
           : DateTime(order.date.year, order.date.month, order.date.day);
 
       final key = '${shiftDate.year}-${shiftDate.month}-${shiftDate.day}';
 
       if (!groups.containsKey(key)) {
-        final todayShift = now.hour >= 17
-            ? DateTime(now.year, now.month, now.day)
-            : DateTime(now.year, now.month, now.day - 1);
+        final todayShift = isOvernight && now.hour < startHour
+            ? DateTime(now.year, now.month, now.day - 1)
+            : DateTime(now.year, now.month, now.day);
         final yesterdayShift = todayShift.subtract(const Duration(days: 1));
 
         String label;

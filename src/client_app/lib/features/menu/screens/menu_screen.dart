@@ -149,6 +149,8 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     final cart = ref.watch(cartProvider);
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
+    final branchState = ref.watch(branchProvider);
+    final isOrderingEnabled = branchState.selectedBranch?.isOrderingEnabled ?? true;
 
     return Column(
       children: [
@@ -162,6 +164,26 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
             ),
           ],
         ),
+
+        // Ordering disabled banner
+        if (!isOrderingEnabled)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: colors.destructive.withValues(alpha: 0.1),
+            child: Row(
+              children: [
+                Icon(FIcons.circleAlert, size: 16, color: colors.destructive),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: AppText(
+                    l10n.orderingUnavailable,
+                    style: TextStyle(fontSize: 13, color: colors.destructive),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
         // Content
         Expanded(
@@ -766,11 +788,12 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
     final isFavorite = favoritesState.favoriteIds.contains(widget.item.id);
     final item = widget.item;
     final locale = widget.locale;
+    final isOrderingEnabled = ref.watch(branchProvider).selectedBranch?.isOrderingEnabled ?? true;
 
     return GestureDetector(
-      onTap: () => _showCustomizationSheet(context, ref),
-      onLongPressStart: _startFastOrder,
-      onLongPressEnd: _endFastOrder,
+      onTap: isOrderingEnabled ? () => _showCustomizationSheet(context, ref) : null,
+      onLongPressStart: isOrderingEnabled ? _startFastOrder : null,
+      onLongPressEnd: isOrderingEnabled ? _endFastOrder : null,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: widget.isLast

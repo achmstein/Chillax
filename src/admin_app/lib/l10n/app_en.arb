@@ -613,5 +613,13 @@
   "assignedBranches": "Assigned Branches",
   "noBranchesAssigned": "No branches assigned",
   "assignBranch": "Assign Branch",
-  "copiedToClipboard": "Copied to clipboard"
+  "copiedToClipboard": "Copied to clipboard",
+
+  "businessHours": "Business Hours",
+  "dayStartTime": "Start",
+  "dayEndTime": "End",
+  "orderingEnabled": "Ordering Enabled",
+  "orderingDisabled": "Ordering Disabled",
+  "reservationsEnabled": "Reservations Enabled",
+  "reservationsDisabled": "Reservations Disabled"
 }

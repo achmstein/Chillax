@@ -331,5 +331,8 @@
   "invalidPhone": "دخل رقم موبايل صحيح (01xxxxxxxxx).",
 
   "profileRequiredMessage": "هنحفظ بياناتك ومش هنسألك تاني",
-  "completeYourInfo": "كمّل بياناتك"
+  "completeYourInfo": "كمّل بياناتك",
+
+  "orderingUnavailable": "الطلبات مش متاحة دلوقتي",
+  "reservationsUnavailable": "الحجوزات مش متاحة دلوقتي"
 }

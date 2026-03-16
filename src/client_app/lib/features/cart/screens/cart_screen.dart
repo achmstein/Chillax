@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
@@ -140,6 +141,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final checkoutState = ref.watch(checkoutProvider);
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
+    final isOrderingEnabled = ref.watch(branchProvider).selectedBranch?.isOrderingEnabled ?? true;
 
     return FScaffold(
       child: SafeArea(
@@ -254,12 +256,30 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     _buildTotalSection(cart.totalPrice, colors),
                                     const SizedBox(height: 16),
 
+                                    // Ordering disabled message
+                                    if (!isOrderingEnabled)
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 8),
+                                        child: Row(
+                                          children: [
+                                            Icon(FIcons.circleAlert, size: 16, color: colors.destructive),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: AppText(
+                                                l10n.orderingUnavailable,
+                                                style: TextStyle(fontSize: 13, color: colors.destructive),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
                                     // Checkout button
                                     SafeArea(
                                       child: SizedBox(
                                         width: double.infinity,
                                         child: ElevatedButton(
-                                          onPressed: checkoutState.isLoading
+                                          onPressed: checkoutState.isLoading || !isOrderingEnabled
                                               ? null
                                               : () => _handleCheckout(cart),
                                           style: ElevatedButton.styleFrom(

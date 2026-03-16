@@ -1387,4 +1387,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get copiedToClipboard => 'تم النسخ';
+
+  @override
+  String get businessHours => 'ساعات العمل';
+
+  @override
+  String get dayStartTime => 'البداية';
+
+  @override
+  String get dayEndTime => 'النهاية';
+
+  @override
+  String get orderingEnabled => 'الطلبات مفعّلة';
+
+  @override
+  String get orderingDisabled => 'الطلبات متوقفة';
+
+  @override
+  String get reservationsEnabled => 'الحجوزات مفعّلة';
+
+  @override
+  String get reservationsDisabled => 'الحجوزات متوقفة';
 }

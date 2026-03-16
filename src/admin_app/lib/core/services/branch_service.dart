@@ -7,6 +7,7 @@ abstract class BranchRepository {
   Future<List<Branch>> getAdminBranches(String adminUserId);
   Future<Branch> createBranch(Map<String, dynamic> data);
   Future<Branch> updateBranch(int id, Map<String, dynamic> data);
+  Future<Branch> updateBranchSettings(int id, Map<String, dynamic> data);
   Future<void> assignAdmin(int branchId, String adminUserId);
   Future<void> removeAdmin(int branchId, String adminUserId);
 }
@@ -41,6 +42,12 @@ class ApiBranchRepository implements BranchRepository {
   @override
   Future<Branch> updateBranch(int id, Map<String, dynamic> data) async {
     final response = await _apiClient.put<Map<String, dynamic>>('$id', data: data);
+    return Branch.fromJson(response.data!);
+  }
+
+  @override
+  Future<Branch> updateBranchSettings(int id, Map<String, dynamic> data) async {
+    final response = await _apiClient.patch<Map<String, dynamic>>('$id/settings', data: data);
     return Branch.fromJson(response.data!);
   }
 

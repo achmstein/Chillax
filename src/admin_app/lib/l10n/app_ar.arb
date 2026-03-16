@@ -473,5 +473,13 @@
   "assignedBranches": "الفروع المعينة",
   "noBranchesAssigned": "مفيش فروع معينة",
   "assignBranch": "تعيين فرع",
-  "copiedToClipboard": "تم النسخ"
+  "copiedToClipboard": "تم النسخ",
+
+  "businessHours": "ساعات العمل",
+  "dayStartTime": "البداية",
+  "dayEndTime": "النهاية",
+  "orderingEnabled": "الطلبات مفعّلة",
+  "orderingDisabled": "الطلبات متوقفة",
+  "reservationsEnabled": "الحجوزات مفعّلة",
+  "reservationsDisabled": "الحجوزات متوقفة"
 }

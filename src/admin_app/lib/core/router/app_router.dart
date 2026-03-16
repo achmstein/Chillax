@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../auth/auth_service.dart';
+import '../providers/branch_provider.dart';
 import '../widgets/admin_scaffold.dart';
 import '../../features/orders/screens/orders_screen.dart';
 import '../../features/orders/screens/order_history_screen.dart';
@@ -330,6 +331,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
             ],
+          ),
+          GoRoute(
+            path: '/branch',
+            redirect: (context, state) {
+              final branchId = ref.read(selectedBranchIdProvider);
+              if (branchId != null) return '/branches/$branchId';
+              return '/orders';
+            },
           ),
         ],
       ),

@@ -100,6 +100,11 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
         ref.read(serviceRequestsProvider.notifier).loadRequests();
       }),
     );
+    _signalRSubscriptions.add(
+      signalR.onBranchSettingsChanged.listen((_) {
+        ref.read(branchProvider.notifier).refresh();
+      }),
+    );
   }
 
   void _setupFCMHandlers() {

@@ -103,6 +103,7 @@ var accountsApi = builder.AddProject<Projects.Accounts_API>("accounts-api")
 
 var branchApi = builder.AddProject<Projects.Branch_API>("branch-api")
     .WithReference(branchDb).WaitFor(branchDb)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
     .WithReference(keycloak)
     .WithEnvironment("Identity__Url", keycloakRealmUrl)
     .WithEnvironment("Keycloak__Realm", "chillax");

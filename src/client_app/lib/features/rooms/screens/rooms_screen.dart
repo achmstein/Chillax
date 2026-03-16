@@ -119,6 +119,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
     final roomsAsync = ref.watch(roomsProvider(branchId));
     final sessionsAsync = ref.watch(mySessionsProvider);
     final l10n = AppLocalizations.of(context)!;
+    final isReservationsEnabled = ref.watch(branchProvider).selectedBranch?.isReservationsEnabled ?? true;
 
     // Determine if user has an active session
     final hasActiveSession = sessionsAsync.whenOrNull(
@@ -141,6 +142,26 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
                 ),
             ],
           ),
+
+          // Reservations disabled banner
+          if (!isReservationsEnabled)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: colors.destructive.withValues(alpha: 0.1),
+              child: Row(
+                children: [
+                  Icon(FIcons.circleAlert, size: 16, color: colors.destructive),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: AppText(
+                      l10n.reservationsUnavailable,
+                      style: TextStyle(fontSize: 13, color: colors.destructive),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Content
           Expanded(
@@ -260,7 +281,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
             children: [
               RoomListItem(
                 room: room,
-                canReserve: reservedSession == null,
+                canReserve: reservedSession == null && (ref.read(branchProvider).selectedBranch?.isReservationsEnabled ?? true),
               ),
               if (currentIndex < rooms.length - 1)
                 Divider(

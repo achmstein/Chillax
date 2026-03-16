@@ -1394,4 +1394,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get businessHours => 'Business Hours';
+
+  @override
+  String get dayStartTime => 'Start';
+
+  @override
+  String get dayEndTime => 'End';
+
+  @override
+  String get orderingEnabled => 'Ordering Enabled';
+
+  @override
+  String get orderingDisabled => 'Ordering Disabled';
+
+  @override
+  String get reservationsEnabled => 'Reservations Enabled';
+
+  @override
+  String get reservationsDisabled => 'Reservations Disabled';
 }

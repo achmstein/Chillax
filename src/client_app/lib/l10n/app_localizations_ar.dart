@@ -940,4 +940,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get completeYourInfo => 'كمّل بياناتك';
+
+  @override
+  String get orderingUnavailable => 'الطلبات مش متاحة دلوقتي';
+
+  @override
+  String get reservationsUnavailable => 'الحجوزات مش متاحة دلوقتي';
 }

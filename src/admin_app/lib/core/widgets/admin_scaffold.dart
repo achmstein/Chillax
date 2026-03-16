@@ -56,6 +56,7 @@ List<NavItem> getSecondaryNavItems({required bool isOwner}) => [
   NavItem(route: '/customers', labelBuilder: (l10n) => l10n.customers, icon: Icons.people_outline),
   if (isOwner) NavItem(route: '/admins', labelBuilder: (l10n) => l10n.adminsManagement, icon: Icons.admin_panel_settings_outlined),
   if (isOwner) NavItem(route: '/branches', labelBuilder: (l10n) => l10n.branches, icon: Icons.store_outlined),
+  if (!isOwner) NavItem(route: '/branch', labelBuilder: (l10n) => l10n.branchDetails, icon: Icons.store_outlined),
   NavItem(route: '/profile', labelBuilder: (l10n) => l10n.profile, icon: Icons.person_outline),
 ];
 

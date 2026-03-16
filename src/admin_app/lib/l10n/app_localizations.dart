@@ -2719,6 +2719,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copied to clipboard'**
   String get copiedToClipboard;
+
+  /// No description provided for @businessHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Business Hours'**
+  String get businessHours;
+
+  /// No description provided for @dayStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get dayStartTime;
+
+  /// No description provided for @dayEndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get dayEndTime;
+
+  /// No description provided for @orderingEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordering Enabled'**
+  String get orderingEnabled;
+
+  /// No description provided for @orderingDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordering Disabled'**
+  String get orderingDisabled;
+
+  /// No description provided for @reservationsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservations Enabled'**
+  String get reservationsEnabled;
+
+  /// No description provided for @reservationsDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservations Disabled'**
+  String get reservationsDisabled;
 }
 
 class _AppLocalizationsDelegate

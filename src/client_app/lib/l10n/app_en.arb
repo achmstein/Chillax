@@ -474,5 +474,8 @@
   "invalidPhone": "Please enter a valid phone number (01xxxxxxxxx).",
 
   "profileRequiredMessage": "We'll save your info so you won't need to enter it again",
-  "completeYourInfo": "Complete Your Info"
+  "completeYourInfo": "Complete Your Info",
+
+  "orderingUnavailable": "Ordering is currently unavailable",
+  "reservationsUnavailable": "Reservations are currently unavailable"
 }

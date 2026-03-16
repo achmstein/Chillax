@@ -1825,6 +1825,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Complete Your Info'**
   String get completeYourInfo;
+
+  /// No description provided for @orderingUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordering is currently unavailable'**
+  String get orderingUnavailable;
+
+  /// No description provided for @reservationsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservations are currently unavailable'**
+  String get reservationsUnavailable;
 }
 
 class _AppLocalizationsDelegate

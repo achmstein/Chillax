@@ -15,10 +15,12 @@ class SignalRService {
   final _roomStatusChanged = StreamController<Map<String, dynamic>>.broadcast();
   final _orderStatusChanged = StreamController<Map<String, dynamic>>.broadcast();
   final _serviceRequestCreated = StreamController<Map<String, dynamic>>.broadcast();
+  final _branchSettingsChanged = StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<Map<String, dynamic>> get onRoomStatusChanged => _roomStatusChanged.stream;
   Stream<Map<String, dynamic>> get onOrderStatusChanged => _orderStatusChanged.stream;
   Stream<Map<String, dynamic>> get onServiceRequestCreated => _serviceRequestCreated.stream;
+  Stream<Map<String, dynamic>> get onBranchSettingsChanged => _branchSettingsChanged.stream;
 
   SignalRService(this._ref);
 
@@ -73,6 +75,17 @@ class SignalRService {
             _serviceRequestCreated.add(data);
           } else if (data is Map) {
             _serviceRequestCreated.add(Map<String, dynamic>.from(data));
+          }
+        }
+      });
+
+      _hubConnection!.on('BranchSettingsChanged', (arguments) {
+        if (arguments != null && arguments.isNotEmpty) {
+          final data = arguments[0];
+          if (data is Map<String, dynamic>) {
+            _branchSettingsChanged.add(data);
+          } else if (data is Map) {
+            _branchSettingsChanged.add(Map<String, dynamic>.from(data));
           }
         }
       });
@@ -139,6 +152,7 @@ class SignalRService {
     _roomStatusChanged.close();
     _orderStatusChanged.close();
     _serviceRequestCreated.close();
+    _branchSettingsChanged.close();
   }
 }
 

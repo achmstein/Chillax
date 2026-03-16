@@ -88,6 +88,7 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
     if (state == AppLifecycleState.resumed && _wasAuthenticated) {
       ref.read(signalRServiceProvider).reconnectIfNeeded();
       ref.read(mySessionsProvider.notifier).refresh();
+      ref.read(branchProvider.notifier).refreshSilently();
       final branchId = ref.read(selectedBranchIdProvider);
       if (branchId != null) ref.invalidate(roomsProvider(branchId));
       _reregisterNotificationsIfEnabled();
@@ -187,7 +188,12 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
     _signalRSubscriptions.add(
       signalR.onOrderStatusChanged.listen((_) {
         ref.read(ordersProvider.notifier).refresh();
-      }), 
+      }),
+    );
+    _signalRSubscriptions.add(
+      signalR.onBranchSettingsChanged.listen((_) {
+        ref.read(branchProvider.notifier).refreshSilently();
+      }),
     );
   }
 

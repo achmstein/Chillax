@@ -104,6 +104,18 @@ class BranchNotifier extends Notifier<BranchState> {
     ref.read(authServiceProvider.notifier).reregisterNotifications();
   }
 
+  Future<bool> updateBranchSettings(int branchId, Map<String, dynamic> data) async {
+    try {
+      final repo = ref.read(branchRepositoryProvider);
+      await repo.updateBranchSettings(branchId, data);
+      await loadBranches();
+      return true;
+    } catch (e) {
+      debugPrint('Failed to update branch settings: $e');
+      return false;
+    }
+  }
+
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true);
     await loadBranches();
