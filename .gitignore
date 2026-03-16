@@ -13,6 +13,9 @@ deploy-artifacts/
 # Firebase credentials
 firebase-credentials.json
 
+# SSH keys
+*.key
+
 # User-specific files
 *.rsuser
 *.suo
