@@ -1,24 +1,24 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Chillax.AppHost/Chillax.AppHost.csproj" />
+    <Project Path="src/Accounts.API/Accounts.API.csproj" />
+    <Project Path="src/Accounts.Domain/Accounts.Domain.csproj" />
+    <Project Path="src/Accounts.Infrastructure/Accounts.Infrastructure.csproj" />
+    <Project Path="src/Branch.API/Branch.API.csproj" />
     <Project Path="src/Catalog.API/Catalog.API.csproj" />
+    <Project Path="src/Chillax.AppHost/Chillax.AppHost.csproj" />
     <Project Path="src/Chillax.ServiceDefaults/Chillax.ServiceDefaults.csproj" />
     <Project Path="src/EventBus/EventBus.csproj" />
     <Project Path="src/EventBusRabbitMQ/EventBusRabbitMQ.csproj" />
+    <Project Path="src/Identity.API/Identity.API.csproj" />
     <Project Path="src/IntegrationEventLogEF/IntegrationEventLogEF.csproj" />
+    <Project Path="src/Loyalty.API/Loyalty.API.csproj" />
+    <Project Path="src/Notification.API/Notification.API.csproj" />
     <Project Path="src/Ordering.API/Ordering.API.csproj" />
     <Project Path="src/Ordering.Domain/Ordering.Domain.csproj" />
     <Project Path="src/Ordering.Infrastructure/Ordering.Infrastructure.csproj" />
     <Project Path="src/Rooms.API/Rooms.API.csproj" />
     <Project Path="src/Rooms.Domain/Rooms.Domain.csproj" />
     <Project Path="src/Rooms.Infrastructure/Rooms.Infrastructure.csproj" />
-    <Project Path="src/Identity.API/Identity.API.csproj" />
-    <Project Path="src/Loyalty.API/Loyalty.API.csproj" />
-    <Project Path="src/Notification.API/Notification.API.csproj" />
-    <Project Path="src/Accounts.API/Accounts.API.csproj" />
-    <Project Path="src/Accounts.Domain/Accounts.Domain.csproj" />
-    <Project Path="src/Accounts.Infrastructure/Accounts.Infrastructure.csproj" />
-    <Project Path="src/Branch.API/Branch.API.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Catalog.FunctionalTests/Catalog.FunctionalTests.csproj" />
