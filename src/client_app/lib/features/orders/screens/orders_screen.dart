@@ -14,9 +14,7 @@ import '../widgets/rating_dialog.dart';
 import '../widgets/rating_widget.dart';
 
 class OrdersScreen extends ConsumerStatefulWidget {
-  final String? initialTab;
-
-  const OrdersScreen({super.key, this.initialTab});
+  const OrdersScreen({super.key});
 
   @override
   ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
@@ -31,13 +29,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // If navigated with ?tab=history, switch to history
-      if (widget.initialTab == 'history') {
-        final notifier = ref.read(ordersProvider.notifier);
-        if (ref.read(ordersProvider).showingToday) {
-          notifier.toggleView();
-        }
-      }
       _refreshIfPendingOrders();
     });
   }
@@ -78,9 +69,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
         FHeader(title: AppText(l10n.orders, style: TextStyle(fontSize: 18))),
         Expanded(
           child: FTabs(
-            control: FTabControl.managed(
-              initial: widget.initialTab == 'history' ? 1 : 0,
-            ),
+            control: FTabControl.managed(initial: 0),
             onPress: (index) {
               final current = ref.read(ordersProvider).showingToday;
               if ((index == 0) != current) {
@@ -93,7 +82,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
                 child: Expanded(child: _buildTabContent(true)),
               ),
               FTabEntry(
-                label: Text(l10n.orderHistory),
+                label: Text(l10n.previousOrders),
                 child: Expanded(child: _buildTabContent(false)),
               ),
             ],
@@ -174,7 +163,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
                   ),
                   const SizedBox(height: 8),
                   AppText(
-                    isToday ? l10n.orderFromMenuToStart : l10n.orderHistoryWillAppearHere,
+                    isToday ? l10n.orderFromMenuToStart : l10n.previousOrdersWillAppearHere,
                     style: TextStyle(color: colors.mutedForeground),
                   ),
                 ],

@@ -75,6 +75,7 @@ var roomsApi = builder.AddProject<Projects.Rooms_API>("rooms-api")
 
 var identityApi = builder.AddProject<Projects.Identity_API>("identity-api")
     .WithReference(keycloak).WaitFor(keycloak)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
     .WithHttpHealthCheck("/health")
     .WithEnvironment("Identity__Url", keycloakRealmUrl)
     .WithEnvironment("Keycloak__Realm", "chillax")
@@ -97,6 +98,7 @@ var notificationApi = builder.AddProject<Projects.Notification_API>("notificatio
 
 var accountsApi = builder.AddProject<Projects.Accounts_API>("accounts-api")
     .WithReference(accountsDb).WaitFor(accountsDb)
+    .WithReference(rabbitMq).WaitFor(rabbitMq)
     .WithReference(keycloak)
     .WithEnvironment("Identity__Url", keycloakRealmUrl)
     .WithEnvironment("Keycloak__Realm", "chillax");

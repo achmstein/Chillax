@@ -83,6 +83,58 @@ class Room {
   }
 }
 
+/// Session member model
+class SessionMember {
+  final String customerId;
+  final String? customerName;
+  final DateTime joinedAt;
+  final String role;
+
+  SessionMember({
+    required this.customerId,
+    this.customerName,
+    required this.joinedAt,
+    required this.role,
+  });
+
+  bool get isOwner => role == 'Owner';
+
+  factory SessionMember.fromJson(Map<String, dynamic> json) {
+    return SessionMember(
+      customerId: json['customerId'] as String,
+      customerName: json['customerName'] as String?,
+      joinedAt: DateTime.parse(json['joinedAt'] as String),
+      role: json['role'] as String? ?? 'Member',
+    );
+  }
+}
+
+/// Session segment model (single/multi billing periods)
+class SessionSegment {
+  final String playerMode;
+  final double hourlyRate;
+  final DateTime startTime;
+  final DateTime? endTime;
+
+  SessionSegment({
+    required this.playerMode,
+    required this.hourlyRate,
+    required this.startTime,
+    this.endTime,
+  });
+
+  factory SessionSegment.fromJson(Map<String, dynamic> json) {
+    return SessionSegment(
+      playerMode: json['playerMode'] as String? ?? 'Single',
+      hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
+      startTime: DateTime.parse(json['startTime'] as String),
+      endTime: json['endTime'] != null
+          ? DateTime.parse(json['endTime'] as String)
+          : null,
+    );
+  }
+}
+
 /// Room session/reservation model
 class RoomSession {
   final int id;
@@ -98,6 +150,8 @@ class RoomSession {
   final String? notes;
   final String? currentPlayerMode;
   final String? customerId;
+  final List<SessionMember> members;
+  final List<SessionSegment> segments;
 
   RoomSession({
     required this.id,
@@ -113,6 +167,8 @@ class RoomSession {
     this.notes,
     this.currentPlayerMode,
     this.customerId,
+    this.members = const [],
+    this.segments = const [],
   });
 
   /// When the reservation was created
@@ -154,6 +210,14 @@ class RoomSession {
       notes: json['notes'] as String?,
       currentPlayerMode: json['currentPlayerMode'] as String?,
       customerId: json['customerId'] as String?,
+      members: (json['members'] as List<dynamic>?)
+              ?.map((e) => SessionMember.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      segments: (json['segments'] as List<dynamic>?)
+              ?.map((e) => SessionSegment.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }

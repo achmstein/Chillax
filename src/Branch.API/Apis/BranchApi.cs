@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Security.Claims;
 using Chillax.Branch.API.IntegrationEvents;
 using Chillax.Branch.API.Model;
@@ -159,7 +159,7 @@ public static class BranchApi
 
             return TypedResults.Ok(allBranches);
         }
-
+        
         var branches = await context.AdminBranchAssignments
             .AsNoTracking()
             .Where(a => a.AdminUserId == adminUserId)

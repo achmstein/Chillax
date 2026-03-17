@@ -43,7 +43,7 @@ class NavItem {
 /// Main navigation items (shown in bottom nav on mobile)
 List<NavItem> mainNavItems = [
   NavItem(route: '/orders', labelBuilder: (l10n) => l10n.orders, icon: Icons.receipt_long_outlined),
-  NavItem(route: '/rooms', labelBuilder: (l10n) => l10n.rooms, icon: Icons.videogame_asset_outlined),
+  NavItem(route: '/rooms', labelBuilder: (l10n) => l10n.rooms, icon: FIcons.gamepad2),
   NavItem(route: '/service-requests', labelBuilder: (l10n) => l10n.requests, icon: Icons.notifications_outlined),
   NavItem(route: '/accounts', labelBuilder: (l10n) => l10n.accounts, icon: Icons.account_balance_wallet_outlined),
 ];

@@ -215,7 +215,7 @@ class _RoomStatusSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     if (rooms.isEmpty) {
       return EmptyState(
-        icon: Icons.videogame_asset_off,
+        icon: FIcons.gamepad2,
         title: l10n.noRoomsConfigured,
         subtitle: l10n.addRoomToGetStarted,
       );
@@ -340,7 +340,7 @@ class _RoomTileState extends State<_RoomTile> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                Icons.videogame_asset,
+                FIcons.gamepad2,
                 size: 28,
                 color: _getStatusColor(theme),
               ),

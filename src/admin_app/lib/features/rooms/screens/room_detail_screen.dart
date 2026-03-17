@@ -79,6 +79,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
       backgroundColor: theme.colors.background,
       resizeToAvoidBottomInset: false,
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
             // Header
@@ -553,31 +554,32 @@ class _CurrentStateSection extends StatelessWidget {
 
             // Members list
             if (session!.members.isNotEmpty) ...[
-              Padding(
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
+                child: Row(
                   children: session!.members.map((member) {
-                    return GestureDetector(
-                      onTap: () => context.push('/customers/${member.customerId}'),
-                      child: Chip(
-                        avatar: Icon(
-                          member.isOwner ? Icons.star : Icons.person,
-                          size: 16,
-                          color: member.isOwner ? Colors.amber : theme.colors.mutedForeground,
+                    return Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      child: GestureDetector(
+                        onTap: () => context.push('/customers/${member.customerId}'),
+                        child: Chip(
+                          avatar: Icon(
+                            member.isOwner ? Icons.star : Icons.person,
+                            size: 16,
+                            color: member.isOwner ? Colors.amber : theme.colors.mutedForeground,
+                          ),
+                          label: AppText(
+                            member.customerName ?? member.customerId,
+                            style: theme.typography.sm,
+                          ),
+                          deleteIcon: member.isOwner ? null : const Icon(Icons.close, size: 16),
+                          onDeleted: member.isOwner || onRemoveMember == null
+                              ? null
+                              : () => onRemoveMember!(member.customerId),
+                          visualDensity: VisualDensity.compact,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        label: AppText(
-                          member.customerName ?? member.customerId,
-                          style: theme.typography.sm,
-                        ),
-                        deleteIcon: member.isOwner ? null : const Icon(Icons.close, size: 16),
-                        onDeleted: member.isOwner || onRemoveMember == null
-                            ? null
-                            : () => onRemoveMember!(member.customerId),
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     );
                   }).toList(),
@@ -1174,7 +1176,7 @@ class _HistorySection extends StatelessWidget {
                       color: theme.colors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(Icons.videogame_asset, size: 22, color: theme.colors.primary),
+                    child: Icon(FIcons.gamepad2, size: 22, color: theme.colors.primary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

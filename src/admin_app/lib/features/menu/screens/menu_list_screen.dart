@@ -20,6 +20,10 @@ class MenuListScreen extends ConsumerStatefulWidget {
 }
 
 class _MenuListScreenState extends ConsumerState<MenuListScreen> {
+  bool _isSearching = false;
+  String _searchQuery = '';
+  final _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +34,25 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
         ref.read(menuProvider.notifier).loadMenu();
       }
     });
+
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<MenuItem> _applySearch(List<MenuItem> items) {
+    if (_searchQuery.isEmpty) return items;
+    final query = _searchQuery.toLowerCase();
+    return items.where((item) {
+      return (item.name.en?.toLowerCase().contains(query) ?? false) ||
+          (item.name.ar?.toLowerCase().contains(query) ?? false);
+    }).toList();
   }
 
   @override
@@ -37,6 +60,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
     final state = ref.watch(menuProvider);
     final l10n = AppLocalizations.of(context)!;
     final theme = context.theme;
+    final displayItems = _applySearch(state.filteredItems);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,6 +114,17 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                     tooltip: l10n.reorder,
                   ),
                 IconButton(
+                  icon: Icon(_isSearching ? Icons.search_off : Icons.search, size: 22),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = !_isSearching;
+                      if (!_isSearching) {
+                        _searchController.clear();
+                      }
+                    });
+                  },
+                ),
+                IconButton(
                   icon: const Icon(Icons.category, size: 22),
                   onPressed: () => context.go('/categories'),
                   tooltip: l10n.categories,
@@ -137,14 +172,24 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
             ),
           ),
 
-        const SizedBox(height: 8),
+        // Search input
+        if (_isSearching)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: FTextField(
+              control: FTextFieldControl.managed(controller: _searchController),
+              hint: l10n.searchByName,
+            ),
+          )
+        else
+          const SizedBox(height: 8),
 
         // Content - List view like rooms
         Expanded(
           child: DelayedShimmer(
             isLoading: state.isLoading && state.items.isEmpty,
             shimmer: const ShimmerLoadingList(),
-            child: state.filteredItems.isEmpty
+            child: displayItems.isEmpty
                 ? EmptyState(
                     icon: Icons.restaurant_menu_outlined,
                     title: l10n.noItemsFound,
@@ -152,7 +197,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                 : state.isReorderingItems
                     ? ReorderableListView.builder(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: state.filteredItems.length,
+                        itemCount: displayItems.length,
                         onReorder: ref.read(menuProvider.notifier).reorderItems,
                         proxyDecorator: (child, index, animation) {
                           return Material(
@@ -164,7 +209,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                           );
                         },
                         itemBuilder: (context, index) {
-                          final item = state.filteredItems[index];
+                          final item = displayItems[index];
                           return _ReorderMenuItemTile(
                             key: ValueKey(item.id),
                             item: item,
@@ -177,9 +222,9 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                         onRefresh: () => ref.read(menuProvider.notifier).loadMenu(),
                         child: ListView.builder(
                           padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: state.filteredItems.length,
+                          itemCount: displayItems.length,
                           itemBuilder: (context, index) {
-                            final item = state.filteredItems[index];
+                            final item = displayItems[index];
                             return _MenuItemTile(
                               item: item,
                               onToggleAvailability: (value) {
@@ -394,23 +439,61 @@ class _MenuItemTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppText(
-                      item.name.localized(context),
-                      style: theme.typography.base.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: AppText(
+                            item.name.localized(context),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (item.isPopular) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: AppText(
+                              l10n.popular,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         AppText(
-                          l10n.priceFormat(item.price.toStringAsFixed(0)),
-                          style: theme.typography.sm.copyWith(
+                          l10n.priceFormat(item.effectivePrice.toStringAsFixed(0)),
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: item.isOnOffer ? Colors.green : null,
                           ),
                         ),
+                        if (item.isOnOffer && item.offerPrice != null) ...[
+                          const SizedBox(width: 6),
+                          AppText(
+                            l10n.priceFormat(item.price.toStringAsFixed(0)),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: theme.colors.mutedForeground,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
                         const SizedBox(width: 8),
                         AppText(
                           '• ${item.catalogTypeName.localized(context)}',

@@ -1,5 +1,8 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Chillax.EventBus.Abstractions;
+using Chillax.Identity.API.IntegrationEvents;
 using Chillax.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +15,11 @@ builder.Services.AddHttpClient("KeycloakAdmin", client =>
 {
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });
+
+// Add RabbitMQ event bus for publishing profile update events
+builder.AddRabbitMqEventBus("eventbus")
+    .ConfigureJsonOptions(options =>
+        options.TypeInfoResolverChain.Add(IdentityIntegrationEventContext.Default));
 
 var app = builder.Build();
 
@@ -584,7 +592,7 @@ app.MapPost("/api/identity/update-email", async (UpdateEmailRequest request, Htt
 }).RequireAuthorization();
 
 // Update name endpoint (authenticated user)
-app.MapPost("/api/identity/update-name", async (UpdateNameRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+app.MapPost("/api/identity/update-name", async (UpdateNameRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config, IEventBus eventBus) =>
 {
     var userId = httpContext.User.GetUserId();
     if (string.IsNullOrEmpty(userId))
@@ -637,6 +645,7 @@ app.MapPost("/api/identity/update-name", async (UpdateNameRequest request, HttpC
 
     if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
     {
+        await eventBus.PublishAsync(new UserProfileUpdatedIntegrationEvent(userId, request.NewName!));
         return Results.Ok(new { message = "Name updated successfully" });
     }
 
@@ -650,7 +659,7 @@ app.MapPost("/api/identity/update-name", async (UpdateNameRequest request, HttpC
 }).RequireAuthorization();
 
 // Update profile (name + phone) - used from settings
-app.MapPost("/api/identity/update-profile", async (UpdateProfileRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+app.MapPost("/api/identity/update-profile", async (UpdateProfileRequest request, HttpContext httpContext, IHttpClientFactory httpClientFactory, IConfiguration config, IEventBus eventBus) =>
 {
     var userId = httpContext.User.GetUserId();
     if (string.IsNullOrEmpty(userId))
@@ -734,6 +743,11 @@ app.MapPost("/api/identity/update-profile", async (UpdateProfileRequest request,
 
     if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
     {
+        var displayName = string.IsNullOrEmpty(lastName) ? firstName : $"{firstName} {lastName}";
+        if (!string.IsNullOrWhiteSpace(displayName))
+        {
+            await eventBus.PublishAsync(new UserProfileUpdatedIntegrationEvent(userId, displayName));
+        }
         return Results.Ok(new { message = "Profile updated successfully" });
     }
 
@@ -742,7 +756,7 @@ app.MapPost("/api/identity/update-profile", async (UpdateProfileRequest request,
 }).RequireAuthorization();
 
 // Admin: Update customer profile (name + phone) endpoint
-app.MapPut("/api/identity/users/{userId}/profile", async (string userId, UpdateProfileRequest request, IHttpClientFactory httpClientFactory, IConfiguration config) =>
+app.MapPut("/api/identity/users/{userId}/profile", async (string userId, UpdateProfileRequest request, IHttpClientFactory httpClientFactory, IConfiguration config, IEventBus eventBus) =>
 {
     if (string.IsNullOrWhiteSpace(request.Name))
     {
@@ -819,6 +833,8 @@ app.MapPut("/api/identity/users/{userId}/profile", async (string userId, UpdateP
 
     if (updateResponse.IsSuccessStatusCode || updateResponse.StatusCode == System.Net.HttpStatusCode.NoContent)
     {
+        var displayName = string.IsNullOrWhiteSpace(lastName) ? firstName : $"{firstName} {lastName}";
+        await eventBus.PublishAsync(new UserProfileUpdatedIntegrationEvent(userId, displayName));
         return Results.Ok(new { message = "Profile updated successfully" });
     }
 
@@ -1117,4 +1133,10 @@ class KeycloakRole
 {
     public string? Id { get; set; }
     public string? Name { get; set; }
+}
+
+// JSON serialization context for integration events
+[JsonSerializable(typeof(UserProfileUpdatedIntegrationEvent))]
+partial class IdentityIntegrationEventContext : JsonSerializerContext
+{
 }

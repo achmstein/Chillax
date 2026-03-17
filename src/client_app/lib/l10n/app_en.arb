@@ -121,7 +121,7 @@
   "failedToLoadOrders": "Failed to load orders",
   "pullDownToRetry": "Pull down to retry",
   "noOrdersYet": "No orders yet",
-  "orderHistoryWillAppearHere": "Your order history will appear here",
+  "previousOrdersWillAppearHere": "Your order history will appear here",
   "orderNumber": "Order #{id}",
   "@orderNumber": {
     "placeholders": {
@@ -205,8 +205,9 @@
     }
   },
 
-  "orderHistory": "Order History",
-  "sessionHistory": "Session History",
+  "previousOrders": "Previous Orders",
+  "sessions": "Sessions",
+  "previousSessions": "Previous Sessions",
   "favorites": "Favorites",
   "helpAndSupport": "Help & Support",
   "about": "About",
@@ -477,5 +478,27 @@
   "completeYourInfo": "Complete Your Info",
 
   "orderingUnavailable": "Ordering is currently unavailable",
-  "reservationsUnavailable": "Reservations are currently unavailable"
+  "reservationsUnavailable": "Reservations are currently unavailable",
+
+  "todaysSessions": "Today's Sessions",
+  "noSessionsToday": "No sessions today",
+
+  "hoursShort": "{count}h",
+  "@hoursShort": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "minutesShort": "{count}m",
+  "@minutesShort": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "secondsShort": "{count}s",
+  "@secondsShort": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

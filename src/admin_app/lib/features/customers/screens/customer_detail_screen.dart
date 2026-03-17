@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
@@ -224,12 +225,22 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (customer?.phoneNumber != null && customer!.phoneNumber!.isNotEmpty)
-                  AppText(
-                    customer.phoneNumber!,
-                    style: theme.typography.xs.copyWith(
-                      color: theme.colors.mutedForeground,
+                  GestureDetector(
+                    onTap: () => launchUrl(Uri.parse('tel:${customer.phoneNumber}')),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(FIcons.phone, size: 12, color: theme.colors.primary),
+                        const SizedBox(width: 4),
+                        AppText(
+                          customer.phoneNumber!,
+                          style: theme.typography.xs.copyWith(
+                            color: theme.colors.primary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 if (customer?.email != null)
                   AppText(

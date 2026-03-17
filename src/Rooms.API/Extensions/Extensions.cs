@@ -38,6 +38,7 @@ public static class Extensions
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssemblyContaining(typeof(Program));
+            cfg.LicenseKey = builder.Configuration["MediatR:LicenseKey"];
         });
 
         // Register repositories

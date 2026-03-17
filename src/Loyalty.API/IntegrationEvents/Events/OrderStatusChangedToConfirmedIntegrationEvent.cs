@@ -7,6 +7,7 @@ namespace Chillax.Loyalty.API.IntegrationEvents.Events;
 public record OrderStatusChangedToConfirmedIntegrationEvent : IntegrationEvent
 {
     public int OrderId { get; init; }
+    public string BuyerName { get; init; } = default!;
     public string BuyerIdentityGuid { get; init; } = default!;
     public decimal OrderTotal { get; init; }
     public int PointsToRedeem { get; init; }

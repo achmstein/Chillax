@@ -94,7 +94,10 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
               color: theme.colors.primary,
               backgroundColor: theme.colors.background,
               onRefresh: () => ref.read(loyaltyProvider.notifier).loadAll(),
-              child: ListView(
+              child: MediaQuery.removePadding(
+                context: context,
+                removeBottom: true,
+                child: ListView(
                 padding: kScreenPadding,
                 children: [
                   // Stats
@@ -137,6 +140,7 @@ class _LoyaltyScreenState extends ConsumerState<LoyaltyScreen> {
                     ),
                 ],
               ),
+            ),
             ),
           ),
         ),

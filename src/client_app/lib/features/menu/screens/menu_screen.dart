@@ -212,10 +212,11 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
               // Filter items based on search
               final filteredItems = _filterItemsWithLocale(groupedItems, locale);
 
-              // Collect items on offer from all categories
+              // Collect items on offer from all categories (deduplicate since popular items appear in multiple categories)
+              final seenIds = <int>{};
               final offerItems = filteredItems.values
                   .expand((items) => items)
-                  .where((item) => item.isOnOffer)
+                  .where((item) => item.isOnOffer && seenIds.add(item.id))
                   .toList();
 
               // Compute layout state from data

@@ -96,7 +96,7 @@
   "failedToLoadOrders": "الطلبات مش بتحمل",
   "pullDownToRetry": "اسحب لتحت تجرب تاني",
   "noOrdersYet": "مفيش طلبات لسه",
-  "orderHistoryWillAppearHere": "طلباتك هتظهر هنا",
+  "previousOrdersWillAppearHere": "طلباتك هتظهر هنا",
   "orderNumber": "طلب #{id}",
   "noItems": "مفيش حاجات",
   "yourRating": "تقييمك: ",
@@ -149,8 +149,9 @@
   "singlePlayerRate": "سنجل: {rate} ج.م./ساعة",
   "multiPlayerRate": "مالتي: {rate} ج.م./ساعة",
 
-  "orderHistory": "طلباتي السابقة",
-  "sessionHistory": "حجوزاتي السابقة",
+  "previousOrders": "طلباتي السابقة",
+  "sessions": "الحجوزات",
+  "previousSessions": "حجوزاتي السابقة",
   "favorites": "المفضلة",
   "helpAndSupport": "المساعدة",
   "about": "عن التطبيق",
@@ -334,5 +335,12 @@
   "completeYourInfo": "كمّل بياناتك",
 
   "orderingUnavailable": "الطلبات مش متاحة دلوقتي",
-  "reservationsUnavailable": "الحجوزات مش متاحة دلوقتي"
+  "reservationsUnavailable": "الحجوزات مش متاحة دلوقتي",
+
+  "todaysSessions": "حجوزات النهارده",
+  "noSessionsToday": "مفيش حجوزات النهارده",
+
+  "hoursShort": "{count}س",
+  "minutesShort": "{count}د",
+  "secondsShort": "{count}ث"
 }

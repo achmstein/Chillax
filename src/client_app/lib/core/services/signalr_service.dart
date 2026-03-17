@@ -43,7 +43,7 @@ class SignalRService {
               },
             ),
           )
-          .withAutomaticReconnect(retryDelays: [2000, 5000, 10000, 20000])
+          .withAutomaticReconnect(retryDelays: [2000, 5000, 10000, 20000, 30000, 60000])
           .build();
 
       // Register event handlers
@@ -127,11 +127,15 @@ class SignalRService {
 
   /// Reconnect if the connection was lost (e.g. after app resumed from background)
   Future<void> reconnectIfNeeded() async {
-    if (_hubConnection == null) return;
-    if (_hubConnection!.state == HubConnectionState.Connected) return;
     if (_isConnecting) return;
+    if (_hubConnection == null) {
+      await connect();
+      return;
+    }
+    if (_hubConnection!.state == HubConnectionState.Connected) return;
 
     // Connection is dead — tear down and reconnect fresh
+    try { await _hubConnection?.stop(); } catch (_) {}
     _hubConnection = null;
     await connect();
   }

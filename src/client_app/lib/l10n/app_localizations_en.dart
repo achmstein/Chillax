@@ -275,7 +275,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noOrdersYet => 'No orders yet';
 
   @override
-  String get orderHistoryWillAppearHere =>
+  String get previousOrdersWillAppearHere =>
       'Your order history will appear here';
 
   @override
@@ -440,10 +440,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get orderHistory => 'Order History';
+  String get previousOrders => 'Previous Orders';
 
   @override
-  String get sessionHistory => 'Session History';
+  String get sessions => 'Sessions';
+
+  @override
+  String get previousSessions => 'Previous Sessions';
 
   @override
   String get favorites => 'Favorites';
@@ -962,4 +965,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reservationsUnavailable =>
       'Reservations are currently unavailable';
+
+  @override
+  String get todaysSessions => 'Today\'s Sessions';
+
+  @override
+  String get noSessionsToday => 'No sessions today';
+
+  @override
+  String hoursShort(int count) {
+    return '${count}h';
+  }
+
+  @override
+  String minutesShort(int count) {
+    return '${count}m';
+  }
+
+  @override
+  String secondsShort(int count) {
+    return '${count}s';
+  }
 }

@@ -143,8 +143,10 @@ class OrderHistoryNotifier extends Notifier<OrderHistoryState> {
 
   @override
   OrderHistoryState build() {
+    ref.watch(selectedBranchIdProvider);
     _repository = ref.read(orderRepositoryProvider);
-    return const OrderHistoryState();
+    Future.microtask(() => loadOrderHistory());
+    return const OrderHistoryState(isLoading: true);
   }
 
   Future<void> loadOrderHistory({bool loadMore = false}) async {

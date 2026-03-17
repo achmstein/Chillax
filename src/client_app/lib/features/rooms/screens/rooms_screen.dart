@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'qr_scan_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/localized_text.dart';
@@ -135,11 +136,17 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> with WidgetsBindingOb
           FHeader(
             title: AppText(l10n.rooms, style: TextStyle(fontSize: 18)),
             suffixes: [
-              if (!hasActiveSession)
+              FHeaderAction(
+                icon: const Icon(FIcons.history, size: 20),
+                onPress: () => context.push('/sessions'),
+              ),
+              if (!hasActiveSession) ...[
+                const SizedBox(width: 6),
                 FHeaderAction(
                   icon: const Icon(Icons.qr_code_scanner, size: 20),
                   onPress: _openQrScanner,
                 ),
+              ],
             ],
           ),
 
@@ -708,7 +715,7 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
               if (_isInCooldown) ...[
                 // Show countdown
                 AppText(
-                  '${widget.cooldownSeconds}s',
+                  AppLocalizations.of(context)!.secondsShort(widget.cooldownSeconds),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

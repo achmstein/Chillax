@@ -6,7 +6,7 @@ private let cooldownSeconds: TimeInterval = 30
 
 /// Update the Live Activity's content state with a cooldown timestamp for the given action.
 @available(iOS 17, *)
-private func setCooldown(for actionId: String) {
+private func setCooldown(for actionId: String) async {
     guard let activity = Activity<SessionActivityAttributes>.activities.first else { return }
     var state = activity.content.state
     let expiry = Date().addingTimeInterval(cooldownSeconds)
@@ -19,9 +19,7 @@ private func setCooldown(for actionId: String) {
     default: break
     }
 
-    Task {
-        await activity.update(ActivityContent(state: state, staleDate: nil))
-    }
+    await activity.update(ActivityContent(state: state, staleDate: nil))
 }
 
 /// Background action intent for Live Activity buttons (iOS 17+).
@@ -106,7 +104,7 @@ struct SessionActionIntent: LiveActivityIntent {
 
         // Show cooldown on success or if already in cooldown (400)
         if statusCode >= 200 && statusCode < 300 || statusCode == 400 {
-            setCooldown(for: actionId)
+            await setCooldown(for: actionId)
         }
 
         return .result()
@@ -164,7 +162,7 @@ struct SessionDrinkOrderIntent: LiveActivityIntent {
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
 
         if statusCode >= 200 && statusCode < 300 {
-            setCooldown(for: actionId)
+            await setCooldown(for: actionId)
         }
 
         return .result()

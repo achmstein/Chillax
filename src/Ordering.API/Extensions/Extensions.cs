@@ -39,6 +39,8 @@ internal static class Extensions
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(ValidatorBehavior<,>));
             cfg.AddOpenBehavior(typeof(TransactionBehavior<,>));
+
+            cfg.LicenseKey = builder.Configuration["MediatR:LicenseKey"];
         });
 
         // Register the command validators for the validator behavior (validators based on FluentValidation library)

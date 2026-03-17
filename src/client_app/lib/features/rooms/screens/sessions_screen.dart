@@ -3,26 +3,59 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/models/localized_text.dart';
+import '../../../core/providers/branch_provider.dart';
+import '../../../core/providers/locale_provider.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/room.dart';
 import '../services/room_service.dart';
 
-/// Screen showing user's session history
-class SessionsScreen extends ConsumerWidget {
+/// Screen showing user's sessions with Today / Previous tabs
+class SessionsScreen extends ConsumerStatefulWidget {
   const SessionsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SessionsScreen> createState() => _SessionsScreenState();
+}
+
+class _SessionsScreenState extends ConsumerState<SessionsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(mySessionsProvider.notifier).refresh();
+  }
+
+  DateTime _getSessionStart() {
+    final branch = ref.read(branchProvider).selectedBranch;
+    final startHour = branch?.dayStartHour ?? 17;
+    final isOvernight = branch?.isOvernightShift ?? true;
+    final now = DateTime.now();
+    if (isOvernight) {
+      if (now.hour >= startHour) {
+        return DateTime(now.year, now.month, now.day, startHour);
+      } else {
+        final yesterday = now.subtract(const Duration(days: 1));
+        return DateTime(yesterday.year, yesterday.month, yesterday.day, startHour);
+      }
+    } else {
+      return DateTime(now.year, now.month, now.day, startHour);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final sessionsAsync = ref.watch(mySessionsProvider);
+    final currentUserId = ref.watch(authServiceProvider).userId;
     final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
 
     return FScaffold(
       child: SafeArea(
         child: Column(
           children: [
-            // Header with back button
+            // Header
             Container(
               padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
               child: Row(
@@ -33,57 +66,43 @@ class SessionsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final l10n = AppLocalizations.of(context)!;
-                        return AppText(
-                          l10n.sessionHistory,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                        );
-                      },
+                    child: AppText(
+                      l10n.sessions,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // Sessions list
+            // Tabs
             Expanded(
-              child: sessionsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) {
-                  final l10n = AppLocalizations.of(context)!;
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
-                        const SizedBox(height: 16),
-                        AppText(l10n.failedToLoadSessions, style: TextStyle(color: colors.foreground)),
-                        const SizedBox(height: 16),
-                        FButton(
-                          onPress: () => ref.read(mySessionsProvider.notifier).refresh(),
-                          child: AppText(l10n.retry),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                data: (sessions) => sessions.isEmpty
-                    ? _buildEmptyState(context, colors)
-                    : RefreshIndicator(
-                        color: colors.primary,
-                        backgroundColor: colors.background,
+              child: FTabs(
+                control: FTabControl.managed(initial: 0),
+                children: [
+                  FTabEntry(
+                    label: Text(l10n.todaysSessions),
+                    child: Expanded(
+                      child: _TodaySessionsList(
+                        sessionsAsync: sessionsAsync,
+                        currentUserId: currentUserId,
+                        colors: colors,
+                        sessionStart: _getSessionStart(),
                         onRefresh: () => ref.read(mySessionsProvider.notifier).refresh(),
-                        child: ListView.separated(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: sessions.length,
-                          separatorBuilder: (context, _) => Divider(height: 1, color: context.theme.colors.border),
-                          itemBuilder: (context, index) {
-                            return SessionTile(session: sessions[index]);
-                          },
-                        ),
                       ),
+                    ),
+                  ),
+                  FTabEntry(
+                    label: Text(l10n.previousSessions),
+                    child: Expanded(
+                      child: _HistorySessionsList(
+                        sessionsAsync: sessionsAsync,
+                        currentUserId: currentUserId,
+                        onRefresh: () => ref.read(mySessionsProvider.notifier).refresh(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -91,44 +110,259 @@ class SessionsScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildEmptyState(BuildContext context, dynamic colors) {
+// ════════════════════════════════════════════════════════════════════
+// Today's Sessions — flat list, time only
+// ════════════════════════════════════════════════════════════════════
+
+class _TodaySessionsList extends StatelessWidget {
+  final AsyncValue<List<RoomSession>> sessionsAsync;
+  final String? currentUserId;
+  final dynamic colors;
+  final DateTime sessionStart;
+  final Future<void> Function() onRefresh;
+
+  const _TodaySessionsList({
+    required this.sessionsAsync,
+    required this.currentUserId,
+    required this.colors,
+    required this.sessionStart,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    return sessionsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => _buildError(l10n),
+      data: (allSessions) {
+        final sessions = allSessions.where((s) {
+          final time = s.actualStartTime ?? s.createdAt;
+          return time.isAfter(sessionStart);
+        }).toList();
+
+        if (sessions.isEmpty) {
+          return _buildEmpty(l10n.noSessionsToday, l10n.reserveRoomToStart);
+        }
+
+        return RefreshIndicator(
+          color: colors.primary,
+          backgroundColor: colors.background,
+          onRefresh: onRefresh,
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: sessions.length,
+            separatorBuilder: (_, __) => Divider(height: 1, color: colors.border),
+            itemBuilder: (context, index) => SessionTile(
+              session: sessions[index],
+              currentUserId: currentUserId,
+              showTimeOnly: true,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildError(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            FIcons.gamepad2,
-            size: 80,
-            color: colors.mutedForeground,
-          ),
+          Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
           const SizedBox(height: 16),
-          AppText(
-            l10n.noSessionsYet,
-            style: TextStyle(
-              fontSize: 18,
-              color: colors.foreground,
-            ),
-          ),
+          AppText(l10n.failedToLoadSessions, style: TextStyle(color: colors.foreground)),
+          const SizedBox(height: 16),
+          FButton(onPress: onRefresh, child: AppText(l10n.retry)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmpty(String message, String subtitle) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(FIcons.gamepad2, size: 80, color: colors.mutedForeground),
+          const SizedBox(height: 16),
+          AppText(message, style: TextStyle(fontSize: 18, color: colors.foreground)),
           const SizedBox(height: 8),
-          AppText(
-            l10n.reserveRoomToStart,
-            style: TextStyle(
-              color: colors.mutedForeground,
-            ),
-          ),
+          AppText(subtitle, style: TextStyle(color: colors.mutedForeground)),
         ],
       ),
     );
   }
 }
 
-/// Session tile
+// ════════════════════════════════════════════════════════════════════
+// Previous Sessions — grouped by shift date
+// ════════════════════════════════════════════════════════════════════
+
+class _HistorySessionsList extends ConsumerWidget {
+  final AsyncValue<List<RoomSession>> sessionsAsync;
+  final String? currentUserId;
+  final Future<void> Function() onRefresh;
+
+  const _HistorySessionsList({
+    required this.sessionsAsync,
+    required this.currentUserId,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.theme.colors;
+    final l10n = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
+
+    return sessionsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(FIcons.circleAlert, size: 48, color: colors.mutedForeground),
+            const SizedBox(height: 16),
+            AppText(l10n.failedToLoadSessions, style: TextStyle(color: colors.foreground)),
+            const SizedBox(height: 16),
+            FButton(onPress: onRefresh, child: AppText(l10n.retry)),
+          ],
+        ),
+      ),
+      data: (sessions) {
+        if (sessions.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(FIcons.gamepad2, size: 80, color: colors.mutedForeground),
+                const SizedBox(height: 16),
+                AppText(l10n.noSessionsYet, style: TextStyle(fontSize: 18, color: colors.foreground)),
+                const SizedBox(height: 8),
+                AppText(l10n.reserveRoomToStart, style: TextStyle(color: colors.mutedForeground)),
+              ],
+            ),
+          );
+        }
+
+        final groups = _groupByShift(sessions, locale, l10n, ref);
+
+        return RefreshIndicator(
+          color: colors.primary,
+          backgroundColor: colors.background,
+          onRefresh: onRefresh,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              for (final group in groups) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: AppText(
+                      group.label,
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.mutedForeground),
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: SessionTile(
+                            session: group.sessions[index],
+                            currentUserId: currentUserId,
+                            showTimeOnly: true,
+                          ),
+                        ),
+                        if (index < group.sessions.length - 1)
+                          Divider(height: 1, color: colors.border, indent: 16, endIndent: 16),
+                      ],
+                    ),
+                    childCount: group.sessions.length,
+                  ),
+                ),
+              ],
+              const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  List<_ShiftGroup> _groupByShift(
+    List<RoomSession> sessions,
+    Locale locale,
+    AppLocalizations l10n,
+    WidgetRef ref,
+  ) {
+    final groups = <String, _ShiftGroup>{};
+    final now = DateTime.now();
+    final dateFormat = DateFormat('EEEE, MMM d', locale.languageCode);
+    final branch = ref.read(branchProvider).selectedBranch;
+    final startHour = branch?.dayStartHour ?? 17;
+    final isOvernight = branch?.isOvernightShift ?? true;
+
+    for (final session in sessions) {
+      final sessionTime = session.actualStartTime ?? session.createdAt;
+      final shiftDate = isOvernight && sessionTime.hour < startHour
+          ? DateTime(sessionTime.year, sessionTime.month, sessionTime.day - 1)
+          : DateTime(sessionTime.year, sessionTime.month, sessionTime.day);
+
+      final key = '${shiftDate.year}-${shiftDate.month}-${shiftDate.day}';
+
+      if (!groups.containsKey(key)) {
+        final todayShift = isOvernight && now.hour < startHour
+            ? DateTime(now.year, now.month, now.day - 1)
+            : DateTime(now.year, now.month, now.day);
+        final yesterdayShift = todayShift.subtract(const Duration(days: 1));
+
+        String label;
+        if (_sameDay(shiftDate, todayShift)) {
+          label = l10n.today;
+        } else if (_sameDay(shiftDate, yesterdayShift)) {
+          label = l10n.yesterday;
+        } else {
+          label = dateFormat.format(shiftDate);
+        }
+        groups[key] = _ShiftGroup(label: label, sessions: []);
+      }
+      groups[key]!.sessions.add(session);
+    }
+    return groups.values.toList();
+  }
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+class _ShiftGroup {
+  final String label;
+  final List<RoomSession> sessions;
+  _ShiftGroup({required this.label, required this.sessions});
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Session Tile
+// ════════════════════════════════════════════════════════════════════
+
 class SessionTile extends StatefulWidget {
   final RoomSession session;
+  final String? currentUserId;
+  final bool showTimeOnly;
 
-  const SessionTile({super.key, required this.session});
+  const SessionTile({
+    super.key,
+    required this.session,
+    this.currentUserId,
+    this.showTimeOnly = false,
+  });
 
   @override
   State<SessionTile> createState() => _SessionTileState();
@@ -155,19 +389,44 @@ class _SessionTileState extends State<SessionTile> {
     });
   }
 
+  String _localizedMode(String mode, AppLocalizations l10n) {
+    switch (mode) {
+      case 'Single':
+        return l10n.playerModeSingle;
+      case 'Multi':
+        return l10n.playerModeMulti;
+      default:
+        return mode;
+    }
+  }
+
+  String _segmentDuration(SessionSegment segment, AppLocalizations l10n) {
+    final end = segment.endTime ?? DateTime.now();
+    final d = end.difference(segment.startTime);
+    final h = d.inHours;
+    final m = d.inMinutes % 60;
+    if (h > 0) return '${l10n.hoursShort(h)} ${l10n.minutesShort(m)}';
+    return l10n.minutesShort(m);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.theme.colors;
     final session = widget.session;
     final locale = Localizations.localeOf(context).languageCode;
-    final dateFormat = DateFormat('MMM d, yyyy h:mm a', locale);
+    final l10n = AppLocalizations.of(context)!;
+    final timeFormat = DateFormat('h:mm a', locale);
+
+    final otherMembers = session.members
+        .where((m) => m.customerId != widget.currentUserId)
+        .toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          // Header: room name + status badge
           Row(
             children: [
               Icon(FIcons.gamepad2, size: 20, color: colors.foreground),
@@ -182,42 +441,144 @@ class _SessionTileState extends State<SessionTile> {
                   ),
                 ),
               ),
-              _buildStatusBadge(widget.session.status),
+              _buildStatusBadge(session.status),
             ],
           ),
           const SizedBox(height: 8),
 
-          // Times
+          // Time + duration row
           Row(
             children: [
-              Icon(FIcons.calendar, size: 14, color: colors.mutedForeground),
+              Icon(FIcons.clock, size: 14, color: colors.mutedForeground),
               const SizedBox(width: 4),
               AppText(
-                dateFormat.format(session.reservationTime),
+                timeFormat.format(session.reservationTime),
                 style: TextStyle(color: colors.mutedForeground, fontSize: 13),
               ),
+              if (session.duration != null) ...[
+                const SizedBox(width: 12),
+                Icon(FIcons.timer, size: 14, color: colors.mutedForeground),
+                const SizedBox(width: 4),
+                AppText(
+                  session.formattedDuration,
+                  style: TextStyle(color: colors.mutedForeground, fontSize: 13),
+                ),
+              ],
             ],
           ),
 
-          if (session.duration != null) ...[
-            const SizedBox(height: 4),
-            Builder(
-              builder: (context) {
-                final l10n = AppLocalizations.of(context)!;
-                return Row(
+          // Segments timeline
+          if (session.segments.length > 1) ...[
+            const SizedBox(height: 8),
+            ...session.segments.asMap().entries.map((entry) {
+              final i = entry.key;
+              final segment = entry.value;
+              final isLast = i == session.segments.length - 1;
+              final isSingle = segment.playerMode == 'Single';
+
+              return IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(FIcons.timer, size: 14, color: colors.mutedForeground),
-                    const SizedBox(width: 4),
-                    AppText(
-                      l10n.durationLabel(session.formattedDuration),
-                      style: TextStyle(color: colors.mutedForeground, fontSize: 13),
+                    // Timeline track
+                    SizedBox(
+                      width: 24,
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isSingle ? colors.primary : Colors.orange,
+                            ),
+                          ),
+                          if (!isLast)
+                            Expanded(
+                              child: Container(
+                                width: 1.5,
+                                color: colors.border,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Segment info
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: isLast ? 0 : 6),
+                        child: Row(
+                          children: [
+                            AppText(
+                              _localizedMode(segment.playerMode, l10n),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: isSingle ? colors.primary : Colors.orange,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            AppText(
+                              '${timeFormat.format(segment.startTime)} · ${_segmentDuration(segment, l10n)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colors.mutedForeground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
-                );
-              },
+                ),
+              );
+            }),
+          ] else if (session.segments.length == 1) ...[
+            // Single segment — just show mode badge inline
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: session.segments.first.playerMode == 'Single'
+                        ? colors.primary.withValues(alpha: 0.1)
+                        : Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: AppText(
+                    _localizedMode(session.segments.first.playerMode, l10n),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: session.segments.first.playerMode == 'Single'
+                          ? colors.primary
+                          : Colors.orange,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
 
+          // Other members
+          if (otherMembers.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(FIcons.users, size: 14, color: colors.mutedForeground),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: AppText(
+                    otherMembers.map((m) => m.customerName ?? '?').join(', '),
+                    style: TextStyle(color: colors.mutedForeground, fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

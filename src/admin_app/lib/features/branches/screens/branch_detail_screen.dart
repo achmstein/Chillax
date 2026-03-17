@@ -12,7 +12,6 @@ import '../../../core/widgets/toast_helpers.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../admins/models/admin_user.dart';
 import '../../admins/services/admins_service.dart';
-import '../providers/branches_provider.dart';
 import '../widgets/branch_form_sheet.dart';
 
 class BranchDetailScreen extends ConsumerStatefulWidget {
@@ -73,11 +72,6 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
   bool get _isOwner => ref.read(isOwnerProvider);
 
   Branch? get _branch {
-    // Try management provider first (owners have all branches loaded)
-    final mgmtState = ref.watch(branchesManagementProvider);
-    final fromMgmt = mgmtState.branches.where((b) => b.id == widget.branchId).firstOrNull;
-    if (fromMgmt != null) return fromMgmt;
-    // Fall back to admin's branch provider (admins see their assigned branches)
     final branchState = ref.watch(branchProvider);
     return branchState.branches.where((b) => b.id == widget.branchId).firstOrNull;
   }
@@ -152,9 +146,12 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
     );
 
     if (selected != null) {
-      final success = await ref
-          .read(branchesManagementProvider.notifier)
-          .assignAdmin(widget.branchId, selected.id);
+      bool success = false;
+      try {
+        final repo = ref.read(branchRepositoryProvider);
+        await repo.assignAdmin(widget.branchId, selected.id);
+        success = true;
+      } catch (_) {}
       if (success && mounted) {
         final l10n = AppLocalizations.of(context)!;
         showSuccessToast(context, l10n.adminAssigned);
@@ -188,9 +185,12 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
     );
 
     if (confirmed == true) {
-      final success = await ref
-          .read(branchesManagementProvider.notifier)
-          .removeAdmin(widget.branchId, admin.id);
+      bool success = false;
+      try {
+        final repo = ref.read(branchRepositoryProvider);
+        await repo.removeAdmin(widget.branchId, admin.id);
+        success = true;
+      } catch (_) {}
       if (success && mounted) {
         showSuccessToast(context, l10n.adminRemoved);
         _loadAdmins();
@@ -280,7 +280,12 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
 
             // Body
             Expanded(
-              child: SingleChildScrollView(
+              child: RefreshIndicator(
+                color: theme.colors.primary,
+                backgroundColor: theme.colors.background,
+                onRefresh: () => ref.read(branchProvider.notifier).refresh(),
+                child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,6 +396,7 @@ class _BranchDetailScreenState extends ConsumerState<BranchDetailScreen> {
                     ], // end if (_isOwner)
                   ],
                 ),
+              ),
               ),
             ),
           ],

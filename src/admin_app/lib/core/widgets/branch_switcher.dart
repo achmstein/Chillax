@@ -76,10 +76,8 @@ class BranchSwitcher extends ConsumerWidget {
       branch.id,
       {'isOrderingEnabled': newValue},
     );
-    if (context.mounted) {
-      if (success) {
-        showSuccessToast(context, newValue ? l10n.orderingEnabled : l10n.orderingDisabled);
-      }
+    if (context.mounted && success) {
+      showSuccessToast(context, newValue ? l10n.orderingEnabled : l10n.orderingDisabled);
     }
   }
 
@@ -90,10 +88,8 @@ class BranchSwitcher extends ConsumerWidget {
       branch.id,
       {'isReservationsEnabled': newValue},
     );
-    if (context.mounted) {
-      if (success) {
-        showSuccessToast(context, newValue ? l10n.reservationsEnabled : l10n.reservationsDisabled);
-      }
+    if (context.mounted && success) {
+      showSuccessToast(context, newValue ? l10n.reservationsEnabled : l10n.reservationsDisabled);
     }
   }
 

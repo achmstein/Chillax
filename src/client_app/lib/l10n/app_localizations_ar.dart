@@ -272,7 +272,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noOrdersYet => 'مفيش طلبات لسه';
 
   @override
-  String get orderHistoryWillAppearHere => 'طلباتك هتظهر هنا';
+  String get previousOrdersWillAppearHere => 'طلباتك هتظهر هنا';
 
   @override
   String orderNumber(String id) {
@@ -432,10 +432,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get orderHistory => 'طلباتي السابقة';
+  String get previousOrders => 'طلباتي السابقة';
 
   @override
-  String get sessionHistory => 'حجوزاتي السابقة';
+  String get sessions => 'الحجوزات';
+
+  @override
+  String get previousSessions => 'حجوزاتي السابقة';
 
   @override
   String get favorites => 'المفضلة';
@@ -946,4 +949,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reservationsUnavailable => 'الحجوزات مش متاحة دلوقتي';
+
+  @override
+  String get todaysSessions => 'حجوزات النهارده';
+
+  @override
+  String get noSessionsToday => 'مفيش حجوزات النهارده';
+
+  @override
+  String hoursShort(int count) {
+    return '$countس';
+  }
+
+  @override
+  String minutesShort(int count) {
+    return '$countد';
+  }
+
+  @override
+  String secondsShort(int count) {
+    return '$countث';
+  }
 }

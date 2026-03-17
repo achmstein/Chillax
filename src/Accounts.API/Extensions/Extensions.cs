@@ -1,4 +1,7 @@
-﻿using Chillax.Accounts.API.Application.Queries;
+﻿using System.Text.Json.Serialization;
+using Chillax.Accounts.API.Application.Queries;
+using Chillax.Accounts.API.IntegrationEvents.Events;
+using Chillax.Accounts.API.IntegrationEvents.EventHandling;
 using Chillax.Accounts.Domain.AggregatesModel.CustomerAccountAggregate;
 using Chillax.Accounts.Infrastructure;
 using Chillax.Accounts.Infrastructure.Repositories;
@@ -29,9 +32,20 @@ public static class Extensions
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssemblyContaining(typeof(Program));
+            cfg.LicenseKey = builder.Configuration["MediatR:LicenseKey"];
         });
 
         builder.Services.AddScoped<ICustomerAccountRepository, CustomerAccountRepository>();
         builder.Services.AddScoped<IAccountQueries, AccountQueries>();
+
+        builder.AddRabbitMqEventBus("eventbus")
+            .ConfigureJsonOptions(options =>
+                options.TypeInfoResolverChain.Add(AccountsIntegrationEventContext.Default))
+            .AddSubscription<UserProfileUpdatedIntegrationEvent, UserProfileUpdatedIntegrationEventHandler>();
     }
+}
+
+[JsonSerializable(typeof(UserProfileUpdatedIntegrationEvent))]
+partial class AccountsIntegrationEventContext : JsonSerializerContext
+{
 }

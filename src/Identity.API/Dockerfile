@@ -6,6 +6,8 @@ WORKDIR /src
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
 COPY ["src/Identity.API/Identity.API.csproj", "Identity.API/"]
+COPY ["src/EventBus/EventBus.csproj", "EventBus/"]
+COPY ["src/EventBusRabbitMQ/EventBusRabbitMQ.csproj", "EventBusRabbitMQ/"]
 COPY ["src/Chillax.ServiceDefaults/Chillax.ServiceDefaults.csproj", "Chillax.ServiceDefaults/"]
 
 # Restore dependencies
@@ -13,6 +15,8 @@ RUN dotnet restore "Identity.API/Identity.API.csproj"
 
 # Copy source code
 COPY ["src/Identity.API/", "Identity.API/"]
+COPY ["src/EventBus/", "EventBus/"]
+COPY ["src/EventBusRabbitMQ/", "EventBusRabbitMQ/"]
 COPY ["src/Chillax.ServiceDefaults/", "Chillax.ServiceDefaults/"]
 
 # Build

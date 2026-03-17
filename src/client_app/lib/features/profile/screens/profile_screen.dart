@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/providers/branch_provider.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/balance_card.dart';
@@ -138,13 +139,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     FTile(
                       prefix: const Icon(FIcons.receipt),
-                      title: AppText(l10n.orderHistory),
+                      title: AppText(l10n.orders),
                       suffix: const Icon(FIcons.chevronRight),
-                      onPress: () => context.go('/orders?tab=history'),
+                      onPress: () => context.go('/orders'),
                     ),
                     FTile(
                       prefix: const Icon(FIcons.gamepad2),
-                      title: AppText(l10n.sessionHistory),
+                      title: AppText(l10n.sessions),
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.push('/sessions'),
                     ),
@@ -167,12 +168,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       suffix: const Icon(FIcons.chevronRight),
                       onPress: () => context.push('/settings'),
                     ),
-                    FTile(
-                      prefix: const Icon(FIcons.phone),
-                      title: AppText(l10n.callUs),
-                      suffix: const Icon(FIcons.chevronRight),
-                      onPress: () => launchUrl(Uri.parse('tel:01004698469')),
-                    ),
+                    if (ref.watch(branchProvider).selectedBranch?.phone != null)
+                      FTile(
+                        prefix: const Icon(FIcons.phone),
+                        title: AppText(l10n.callUs),
+                        suffix: const Icon(FIcons.chevronRight),
+                        onPress: () => launchUrl(Uri.parse('tel:${ref.read(branchProvider).selectedBranch!.phone}')),
+                      ),
                     FTile(
                       prefix: const Icon(FIcons.info),
                       title: AppText(l10n.about),
@@ -287,11 +289,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 }
 
 /// Bottom sheet for Help & Support
-class _HelpSupportSheet extends StatelessWidget {
+class _HelpSupportSheet extends ConsumerWidget {
   const _HelpSupportSheet();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
 
@@ -356,7 +358,7 @@ class _HelpSupportSheet extends StatelessWidget {
                   const SizedBox(height: 16),
                   _ContactRow(
                     icon: FIcons.phone,
-                    text: l10n.supportPhone,
+                    text: ref.read(branchProvider).selectedBranch?.phone ?? l10n.supportPhone,
                     colors: colors,
                     forceLtr: true,
                   ),

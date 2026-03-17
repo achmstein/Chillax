@@ -201,7 +201,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
                 ),
                 const SizedBox(height: 16),
                 // Details
-                _DetailRow(icon: Icons.videogame_asset_outlined, label: l10n.room, value: request.roomName.localized(context)),
+                _DetailRow(icon: FIcons.gamepad2, label: l10n.room, value: request.roomName.localized(context)),
                 const SizedBox(height: 8),
                 _DetailRow(icon: Icons.person_outline, label: l10n.customer, value: request.userName),
                 const SizedBox(height: 8),
@@ -248,7 +248,7 @@ class _ServiceRequestsScreenState extends ConsumerState<ServiceRequestsScreen> {
         color = theme.colors.primary;
         break;
       case ServiceRequestType.controllerChange:
-        icon = Icons.gamepad;
+        icon = FIcons.gamepad2;
         color = const Color(0xFF9333EA);
         break;
       case ServiceRequestType.receiptToPay:
@@ -469,7 +469,7 @@ class _RequestTile extends StatelessWidget {
         color = theme.colors.primary;
         break;
       case ServiceRequestType.controllerChange:
-        icon = Icons.gamepad;
+        icon = FIcons.gamepad2;
         color = const Color(0xFF9333EA);
         break;
       case ServiceRequestType.receiptToPay:

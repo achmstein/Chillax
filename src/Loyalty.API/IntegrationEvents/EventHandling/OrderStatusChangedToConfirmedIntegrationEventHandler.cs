@@ -36,6 +36,12 @@ public class OrderStatusChangedToConfirmedIntegrationEventHandler(
             return;
         }
 
+        // Keep display name in sync (handles Apple hidden email → real name updates)
+        if (!string.IsNullOrEmpty(@event.BuyerName) && account.UserDisplayName != @event.BuyerName)
+        {
+            account.UserDisplayName = @event.BuyerName;
+        }
+
         // Redeem points if any (do this first, before awarding new points)
         if (@event.PointsToRedeem > 0)
         {

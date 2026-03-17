@@ -122,26 +122,9 @@ class SessionNotificationService {
       if (session.roomName.ar != null) 'roomNameAr': session.roomName.ar,
     };
 
-    // Show notification immediately with just room name + timer
+    // Resolve drinks before showing so everything is ready in one shot
     final needsDrinks = _cachedSessionId != session.id ||
         (_cachedDrinks?.isEmpty ?? true);
-    final drinks = _cachedDrinks ?? [];
-
-    try {
-      await _channel.invokeMethod('show', {
-        'roomName': roomName,
-        'duration': session.formattedDuration,
-        'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
-        'locale': locale,
-        ...sessionContext,
-      });
-    } catch (e) {
-      debugPrint('Failed to show session notification: $e');
-    }
-
-    _startPeriodicUpdate(locale);
-
-    // Resolve drinks in the background, then update notification with them
     if (needsDrinks) {
       _cachedDrinks = await _resolveFavoriteDrinks(locale);
       if (_cachedDrinks!.isNotEmpty) {
@@ -153,32 +136,35 @@ class SessionNotificationService {
     _drink1Item = resolved.isNotEmpty ? resolved[0].item : null;
     _drink2Item = resolved.length > 1 ? resolved[1].item : null;
 
-    // Build payloads and update Live Activity with drink buttons
-    if (resolved.isNotEmpty && _activeSession != null) {
-      final drink1Payload = _drink1Item != null
-          ? await _buildDrinkOrderPayload(_drink1Item!, session)
-          : null;
-      final drink2Payload = _drink2Item != null
-          ? await _buildDrinkOrderPayload(_drink2Item!, session)
-          : null;
+    // Build drink order payloads
+    final drink1Payload = _drink1Item != null
+        ? await _buildDrinkOrderPayload(_drink1Item!, session)
+        : null;
+    final drink2Payload = _drink2Item != null
+        ? await _buildDrinkOrderPayload(_drink2Item!, session)
+        : null;
 
-      try {
-        await _channel.invokeMethod('show', {
-          'roomName': roomName,
-          'duration': session.formattedDuration,
-          'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
-          'locale': locale,
-          'drink1Id': resolved[0].id,
-          'drink1Name': resolved[0].name,
-          if (resolved.length > 1) 'drink2Id': resolved[1].id,
-          if (resolved.length > 1) 'drink2Name': resolved[1].name,
-          ...sessionContext,
-          'ordersApiUrl': AppConfig.ordersApiUrl,
-          if (drink1Payload != null) 'drink1OrderPayload': drink1Payload,
-          if (drink2Payload != null) 'drink2OrderPayload': drink2Payload,
-        });
-      } catch (_) {}
+    // Show notification with everything ready
+    try {
+      await _channel.invokeMethod('show', {
+        'roomName': roomName,
+        'duration': session.formattedDuration,
+        'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
+        'locale': locale,
+        ...sessionContext,
+        if (resolved.isNotEmpty) 'drink1Id': resolved[0].id,
+        if (resolved.isNotEmpty) 'drink1Name': resolved[0].name,
+        if (resolved.length > 1) 'drink2Id': resolved[1].id,
+        if (resolved.length > 1) 'drink2Name': resolved[1].name,
+        if (resolved.isNotEmpty) 'ordersApiUrl': AppConfig.ordersApiUrl,
+        if (drink1Payload != null) 'drink1OrderPayload': drink1Payload,
+        if (drink2Payload != null) 'drink2OrderPayload': drink2Payload,
+      });
+    } catch (e) {
+      debugPrint('Failed to show session notification: $e');
     }
+
+    _startPeriodicUpdate(locale);
   }
 
   Future<void> dismissNotification() async {

@@ -590,11 +590,11 @@ abstract class AppLocalizations {
   /// **'No orders yet'**
   String get noOrdersYet;
 
-  /// No description provided for @orderHistoryWillAppearHere.
+  /// No description provided for @previousOrdersWillAppearHere.
   ///
   /// In en, this message translates to:
   /// **'Your order history will appear here'**
-  String get orderHistoryWillAppearHere;
+  String get previousOrdersWillAppearHere;
 
   /// No description provided for @orderNumber.
   ///
@@ -884,17 +884,23 @@ abstract class AppLocalizations {
   /// **'Multi: £{rate}/hr'**
   String multiPlayerRate(String rate);
 
-  /// No description provided for @orderHistory.
+  /// No description provided for @previousOrders.
   ///
   /// In en, this message translates to:
   /// **'Order History'**
-  String get orderHistory;
+  String get previousOrders;
 
-  /// No description provided for @sessionHistory.
+  /// No description provided for @sessions.
   ///
   /// In en, this message translates to:
-  /// **'Session History'**
-  String get sessionHistory;
+  /// **'Sessions'**
+  String get sessions;
+
+  /// No description provided for @previousSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Sessions'**
+  String get previousSessions;
 
   /// No description provided for @favorites.
   ///
@@ -1837,6 +1843,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reservations are currently unavailable'**
   String get reservationsUnavailable;
+
+  /// No description provided for @todaysSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Sessions'**
+  String get todaysSessions;
+
+  /// No description provided for @noSessionsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'No sessions today'**
+  String get noSessionsToday;
+
+  /// No description provided for @hoursShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h'**
+  String hoursShort(int count);
+
+  /// No description provided for @minutesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m'**
+  String minutesShort(int count);
+
+  /// No description provided for @secondsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}s'**
+  String secondsShort(int count);
 }
 
 class _AppLocalizationsDelegate
