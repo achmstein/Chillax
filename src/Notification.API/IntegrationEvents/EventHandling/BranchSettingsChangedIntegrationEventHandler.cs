@@ -21,8 +21,7 @@ public class BranchSettingsChangedIntegrationEventHandler(
             isReservationsEnabled = @event.IsReservationsEnabled
         };
 
-        // Broadcast to all connected clients (customers in rooms group + admins)
-        await hubContext.Clients.Group("rooms").SendAsync("BranchSettingsChanged", data);
-        await hubContext.Clients.Group("admin").SendAsync("BranchSettingsChanged", data);
+        // Broadcast to all connected clients
+        await hubContext.Clients.All.SendAsync("BranchSettingsChanged", data);
     }
 }

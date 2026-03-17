@@ -171,6 +171,8 @@ class _HistoryOrderTile extends StatelessWidget {
                 children: [
                   Row(
                     children: [
+                      _buildStatusDot(order.status),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: AppText(
                           order.userName ?? l10n.orderNumber(order.id),
@@ -187,9 +189,7 @@ class _HistoryOrderTile extends StatelessWidget {
                             color: Colors.amber,
                           )),
                         ),
-                        const SizedBox(width: 8),
                       ],
-                      _buildStatusDot(order.status),
                     ],
                   ),
                   const SizedBox(height: 4),
