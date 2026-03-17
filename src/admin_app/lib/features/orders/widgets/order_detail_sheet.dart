@@ -82,6 +82,8 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
             padding: const EdgeInsets.only(left: 16, right: 16, top: 2, bottom: 8),
             child: Row(
               children: [
+                _buildStatusDot(widget.order.status),
+                const SizedBox(width: 8),
                 Expanded(
                   child: AppText(
                     l10n.orderNumber(order.id),
@@ -110,9 +112,6 @@ class _OrderDetailSheetState extends ConsumerState<OrderDetailSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status
-                  _buildStatusDot(widget.order.status),
-
                   // Rating
                   if (order.rating != null) ...[
                     const SizedBox(height: 12),
