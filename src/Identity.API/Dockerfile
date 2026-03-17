@@ -18,6 +18,7 @@ COPY ["src/Identity.API/", "Identity.API/"]
 COPY ["src/EventBus/", "EventBus/"]
 COPY ["src/EventBusRabbitMQ/", "EventBusRabbitMQ/"]
 COPY ["src/Chillax.ServiceDefaults/", "Chillax.ServiceDefaults/"]
+COPY ["src/Shared/", "Shared/"]
 
 # Build
 WORKDIR /src/Identity.API
