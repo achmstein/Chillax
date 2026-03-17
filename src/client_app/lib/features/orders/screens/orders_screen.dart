@@ -29,10 +29,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Reset to today's view so tab 0 (initial) matches the data
-      if (!ref.read(ordersProvider).showingToday) {
-        ref.read(ordersProvider.notifier).toggleView();
-      }
       _refreshIfPendingOrders();
     });
   }
@@ -73,7 +69,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
         FHeader(title: AppText(l10n.orders, style: TextStyle(fontSize: 18))),
         Expanded(
           child: FTabs(
-            control: FTabControl.managed(initial: 0),
+            control: FTabControl.managed(
+              initial: ref.read(ordersProvider).showingToday ? 0 : 1,
+            ),
             onPress: (index) {
               final current = ref.read(ordersProvider).showingToday;
               if ((index == 0) != current) {

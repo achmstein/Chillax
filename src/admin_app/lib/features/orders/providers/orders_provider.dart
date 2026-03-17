@@ -150,7 +150,7 @@ class OrderHistoryNotifier extends Notifier<OrderHistoryState> {
   }
 
   Future<void> loadOrderHistory({bool loadMore = false}) async {
-    if (state.isLoading) return;
+    if (loadMore && state.isLoading) return;
 
     final page = loadMore ? state.currentPage + 1 : 0;
     state = state.copyWith(isLoading: true, error: null);

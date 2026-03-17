@@ -237,7 +237,7 @@ class SessionNotificationHelper: NSObject {
             startDate = Date()
         }
 
-        let state = SessionActivityAttributes.ContentState(
+        var state = SessionActivityAttributes.ContentState(
             startTime: startDate,
             drink1Name: drink1Name,
             drink2Name: drink2Name,
@@ -255,6 +255,14 @@ class SessionNotificationHelper: NSObject {
 
         if let activity = currentActivity,
            activity.activityState == .active {
+            // Preserve active cooldowns from the existing state
+            let existing = activity.content.state
+            let now = Date()
+            if let cd = existing.waiterCooldownEnd, cd > now { state.waiterCooldownEnd = cd }
+            if let cd = existing.controllerCooldownEnd, cd > now { state.controllerCooldownEnd = cd }
+            if let cd = existing.drink1CooldownEnd, cd > now { state.drink1CooldownEnd = cd }
+            if let cd = existing.drink2CooldownEnd, cd > now { state.drink2CooldownEnd = cd }
+
             // Update existing activity
             Task {
                 await activity.update(ActivityContent(state: state, staleDate: nil))

@@ -183,16 +183,19 @@ class _ChillaxAppState extends ConsumerState<ChillaxApp>
         if (branchId != null) ref.invalidate(roomsProvider(branchId));
         ref.read(mySessionsProvider.notifier).refresh();
         ref.invalidate(roomAvailabilitySubscriptionProvider);
+        WidgetsBinding.instance.ensureVisualUpdate();
       }),
     );
     _signalRSubscriptions.add(
       signalR.onOrderStatusChanged.listen((_) {
         ref.read(ordersProvider.notifier).refresh();
+        WidgetsBinding.instance.ensureVisualUpdate();
       }),
     );
     _signalRSubscriptions.add(
-      signalR.onBranchSettingsChanged.listen((_) {
-        ref.read(branchProvider.notifier).refreshSilently();
+      signalR.onBranchSettingsChanged.listen((_) async {
+        await ref.read(branchProvider.notifier).refreshSilently();
+        WidgetsBinding.instance.ensureVisualUpdate();
       }),
     );
   }

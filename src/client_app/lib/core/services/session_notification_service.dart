@@ -89,6 +89,8 @@ class SessionNotificationService {
           .firstOrNull;
 
       if (active != null) {
+        // Skip if we're already showing for this exact session
+        if (_activeSession?.id == active.id) return;
         final lang = _ref.read(localeProvider).languageCode;
         _showForSession(active, lang);
       } else {
@@ -122,49 +124,70 @@ class SessionNotificationService {
       if (session.roomName.ar != null) 'roomNameAr': session.roomName.ar,
     };
 
-    // Resolve drinks before showing so everything is ready in one shot
-    final needsDrinks = _cachedSessionId != session.id ||
-        (_cachedDrinks?.isEmpty ?? true);
-    if (needsDrinks) {
-      _cachedDrinks = await _resolveFavoriteDrinks(locale);
-      if (_cachedDrinks!.isNotEmpty) {
-        _cachedSessionId = session.id;
-      }
-    }
-
-    final resolved = _cachedDrinks ?? [];
-    _drink1Item = resolved.isNotEmpty ? resolved[0].item : null;
-    _drink2Item = resolved.length > 1 ? resolved[1].item : null;
-
-    // Build drink order payloads
-    final drink1Payload = _drink1Item != null
-        ? await _buildDrinkOrderPayload(_drink1Item!, session)
-        : null;
-    final drink2Payload = _drink2Item != null
-        ? await _buildDrinkOrderPayload(_drink2Item!, session)
-        : null;
-
-    // Show notification with everything ready
+    // Show Live Activity immediately with basic info (room + timer + waiter/controller)
     try {
+      final cached = _cachedDrinks ?? [];
       await _channel.invokeMethod('show', {
         'roomName': roomName,
         'duration': session.formattedDuration,
         'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
         'locale': locale,
         ...sessionContext,
-        if (resolved.isNotEmpty) 'drink1Id': resolved[0].id,
-        if (resolved.isNotEmpty) 'drink1Name': resolved[0].name,
-        if (resolved.length > 1) 'drink2Id': resolved[1].id,
-        if (resolved.length > 1) 'drink2Name': resolved[1].name,
-        if (resolved.isNotEmpty) 'ordersApiUrl': AppConfig.ordersApiUrl,
-        if (drink1Payload != null) 'drink1OrderPayload': drink1Payload,
-        if (drink2Payload != null) 'drink2OrderPayload': drink2Payload,
+        // Include cached drinks if available from a previous resolve
+        if (cached.isNotEmpty) 'drink1Id': cached[0].id,
+        if (cached.isNotEmpty) 'drink1Name': cached[0].name,
+        if (cached.length > 1) 'drink2Id': cached[1].id,
+        if (cached.length > 1) 'drink2Name': cached[1].name,
+        if (cached.isNotEmpty) 'ordersApiUrl': AppConfig.ordersApiUrl,
+        if (_drink1Item != null) 'drink1OrderPayload': await _buildDrinkOrderPayload(_drink1Item!, session),
+        if (_drink2Item != null) 'drink2OrderPayload': await _buildDrinkOrderPayload(_drink2Item!, session),
       });
     } catch (e) {
       debugPrint('Failed to show session notification: $e');
     }
 
     _startPeriodicUpdate(locale);
+
+    // Resolve drinks in the background, then update the Live Activity with drink buttons
+    final needsDrinks = _cachedSessionId != session.id ||
+        (_cachedDrinks?.isEmpty ?? true);
+    if (needsDrinks) {
+      _resolveFavoriteDrinks(locale).then((drinks) async {
+        _cachedDrinks = drinks;
+        _cachedSessionId = session.id;
+        _drink1Item = drinks.isNotEmpty ? drinks[0].item : null;
+        _drink2Item = drinks.length > 1 ? drinks[1].item : null;
+
+        if (drinks.isEmpty) return;
+
+        // Build payloads and update the Live Activity with drink info
+        final drink1Payload = _drink1Item != null
+            ? await _buildDrinkOrderPayload(_drink1Item!, session)
+            : null;
+        final drink2Payload = _drink2Item != null
+            ? await _buildDrinkOrderPayload(_drink2Item!, session)
+            : null;
+
+        try {
+          await _channel.invokeMethod('show', {
+            'roomName': roomName,
+            'duration': session.formattedDuration,
+            'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
+            'locale': locale,
+            ...sessionContext,
+            'drink1Id': drinks[0].id,
+            'drink1Name': drinks[0].name,
+            if (drinks.length > 1) 'drink2Id': drinks[1].id,
+            if (drinks.length > 1) 'drink2Name': drinks[1].name,
+            'ordersApiUrl': AppConfig.ordersApiUrl,
+            if (drink1Payload != null) 'drink1OrderPayload': drink1Payload,
+            if (drink2Payload != null) 'drink2OrderPayload': drink2Payload,
+          });
+        } catch (e) {
+          debugPrint('Failed to update notification with drinks: $e');
+        }
+      });
+    }
   }
 
   Future<void> dismissNotification() async {

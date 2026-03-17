@@ -218,7 +218,7 @@ private struct SessionActionsView: View {
         HStack(spacing: 4) {
             Image(systemName: "checkmark")
                 .font(.caption2)
-            Text(cooldownEnd, style: .timer)
+            Text(cooldownEnd, style: .relative)
                 .font(.caption)
                 .monospacedDigit()
         }

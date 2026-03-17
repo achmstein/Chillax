@@ -24,10 +24,9 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(orderHistoryProvider.notifier).loadOrderHistory();
-    });
     _scrollController.addListener(_onScroll);
+    // Refresh data each time the screen is opened to pick up status changes
+    Future(() => ref.read(orderHistoryProvider.notifier).loadOrderHistory());
   }
 
   @override
