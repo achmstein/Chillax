@@ -887,7 +887,7 @@ abstract class AppLocalizations {
   /// No description provided for @previousOrders.
   ///
   /// In en, this message translates to:
-  /// **'Order History'**
+  /// **'Previous Orders'**
   String get previousOrders;
 
   /// No description provided for @sessions.
