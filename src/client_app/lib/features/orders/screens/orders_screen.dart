@@ -180,7 +180,8 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
   Widget _buildTodayView(OrdersState state) {
     final colors = context.theme.colors;
     final l10n = AppLocalizations.of(context)!;
-    final totalSpent = state.orders.fold<double>(0, (s, o) => s + o.total - o.loyaltyDiscount);
+    final confirmedOrders = state.orders.where((o) => o.status == OrderStatus.confirmed);
+    final totalSpent = confirmedOrders.fold<double>(0, (s, o) => s + o.total - o.loyaltyDiscount);
 
     return RefreshIndicator(
       color: colors.primary,
