@@ -14,8 +14,6 @@ private func setCooldown(for actionId: String) async {
     switch actionId {
     case "call_waiter": state.waiterCooldownEnd = expiry
     case "controller": state.controllerCooldownEnd = expiry
-    case "order_drink_1": state.drink1CooldownEnd = expiry
-    case "order_drink_2": state.drink2CooldownEnd = expiry
     default: break
     }
 
@@ -103,65 +101,7 @@ struct SessionActionIntent: LiveActivityIntent {
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
 
         // Show cooldown on success or if already in cooldown (400)
-        if statusCode >= 200 && statusCode < 300 || statusCode == 400 {
-            await setCooldown(for: actionId)
-        }
-
-        return .result()
-    }
-}
-
-/// Background intent for ordering drinks from Live Activity (iOS 17+).
-/// Sends a pre-computed order payload directly via HTTP without opening the app.
-@available(iOS 17, *)
-struct SessionDrinkOrderIntent: LiveActivityIntent {
-    static var title: LocalizedStringResource = "Order Drink"
-
-    @Parameter(title: "Access Token")
-    var accessToken: String
-
-    @Parameter(title: "Orders API URL")
-    var ordersApiUrl: String
-
-    @Parameter(title: "Order Payload JSON")
-    var orderPayload: String
-
-    @Parameter(title: "Branch ID")
-    var branchId: Int
-
-    @Parameter(title: "Action ID")
-    var actionId: String
-
-    init() {}
-
-    init(accessToken: String, ordersApiUrl: String, orderPayload: String, branchId: Int, actionId: String = "order_drink_1") {
-        self.accessToken = accessToken
-        self.ordersApiUrl = ordersApiUrl
-        self.orderPayload = orderPayload
-        self.branchId = branchId
-        self.actionId = actionId
-    }
-
-    func perform() async throws -> some IntentResult {
-        guard let url = URL(string: ordersApiUrl),
-              let jsonData = orderPayload.data(using: .utf8) else {
-            return .result()
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(UUID().uuidString, forHTTPHeaderField: "x-requestid")
-        if branchId != 0 {
-            request.setValue("\(branchId)", forHTTPHeaderField: "X-Branch-Id")
-        }
-        request.httpBody = jsonData
-
-        let (_, response) = try await URLSession.shared.data(for: request)
-        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-
-        if statusCode >= 200 && statusCode < 300 {
+        if (statusCode >= 200 && statusCode < 300) || statusCode == 400 {
             await setCooldown(for: actionId)
         }
 

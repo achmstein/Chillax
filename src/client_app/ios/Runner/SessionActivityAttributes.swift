@@ -21,14 +21,9 @@ struct SessionActivityAttributes: ActivityAttributes {
         var branchId: Int?
         var roomNameEn: String?
         var roomNameAr: String?
-        var ordersApiUrl: String?
-        var drink1OrderPayload: String?
-        var drink2OrderPayload: String?
 
         // Cooldown timestamps — set after a button is tapped
         var waiterCooldownEnd: Date?
         var controllerCooldownEnd: Date?
-        var drink1CooldownEnd: Date?
-        var drink2CooldownEnd: Date?
     }
 }

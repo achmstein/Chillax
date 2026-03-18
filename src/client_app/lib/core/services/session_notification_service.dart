@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:dio/dio.dart';
@@ -7,13 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 
 import '../auth/auth_service.dart';
 import '../config/app_config.dart';
 import '../providers/branch_provider.dart';
 import '../providers/locale_provider.dart';
-import '../../features/cart/models/cart_item.dart';
+import '../router/app_router.dart';
 import '../../features/menu/models/menu_item.dart';
 import '../../features/menu/services/menu_service.dart';
 import '../../features/orders/services/order_service.dart';
@@ -134,13 +132,8 @@ class SessionNotificationService {
         'locale': locale,
         ...sessionContext,
         // Include cached drinks if available from a previous resolve
-        if (cached.isNotEmpty) 'drink1Id': cached[0].id,
         if (cached.isNotEmpty) 'drink1Name': cached[0].name,
-        if (cached.length > 1) 'drink2Id': cached[1].id,
         if (cached.length > 1) 'drink2Name': cached[1].name,
-        if (cached.isNotEmpty) 'ordersApiUrl': AppConfig.ordersApiUrl,
-        if (_drink1Item != null) 'drink1OrderPayload': await _buildDrinkOrderPayload(_drink1Item!, session),
-        if (_drink2Item != null) 'drink2OrderPayload': await _buildDrinkOrderPayload(_drink2Item!, session),
       });
     } catch (e) {
       debugPrint('Failed to show session notification: $e');
@@ -160,14 +153,6 @@ class SessionNotificationService {
 
         if (drinks.isEmpty) return;
 
-        // Build payloads and update the Live Activity with drink info
-        final drink1Payload = _drink1Item != null
-            ? await _buildDrinkOrderPayload(_drink1Item!, session)
-            : null;
-        final drink2Payload = _drink2Item != null
-            ? await _buildDrinkOrderPayload(_drink2Item!, session)
-            : null;
-
         try {
           await _channel.invokeMethod('show', {
             'roomName': roomName,
@@ -175,13 +160,8 @@ class SessionNotificationService {
             'startTimeMs': session.actualStartTime?.millisecondsSinceEpoch,
             'locale': locale,
             ...sessionContext,
-            'drink1Id': drinks[0].id,
             'drink1Name': drinks[0].name,
-            if (drinks.length > 1) 'drink2Id': drinks[1].id,
             if (drinks.length > 1) 'drink2Name': drinks[1].name,
-            'ordersApiUrl': AppConfig.ordersApiUrl,
-            if (drink1Payload != null) 'drink1OrderPayload': drink1Payload,
-            if (drink2Payload != null) 'drink2OrderPayload': drink2Payload,
           });
         } catch (e) {
           debugPrint('Failed to update notification with drinks: $e');
@@ -330,92 +310,9 @@ class SessionNotificationService {
       );
 
       _ref.read(ordersProvider.notifier).refresh();
+      _ref.read(routerProvider).go('/orders');
     } catch (e) {
       debugPrint('Failed to submit drink order from notification: $e');
-    }
-  }
-
-  /// Build a JSON string for the order API payload so iOS intents can send it directly.
-  Future<String?> _buildDrinkOrderPayload(MenuItem item, RoomSession session) async {
-    try {
-      final authState = _ref.read(authServiceProvider);
-      if (!authState.isAuthenticated) return null;
-
-      final menuRepo = _ref.read(menuRepositoryProvider);
-      final preference = await menuRepo.getUserPreference(item.id);
-
-      // Replicate submitFastOrder logic to build the cart item
-      final selectedOptions = <int, List<int>>{};
-
-      for (final customization in item.customizations) {
-        final defaults = customization.options
-            .where((o) => o.isDefault)
-            .map((o) => o.id)
-            .toList();
-        if (defaults.isNotEmpty) {
-          selectedOptions[customization.id] = defaults;
-        } else if (customization.isRequired && customization.options.isNotEmpty) {
-          selectedOptions[customization.id] = [customization.options.first.id];
-        }
-      }
-
-      if (preference != null) {
-        final savedByCustomization = <int, List<int>>{};
-        for (final option in preference.selectedOptions) {
-          savedByCustomization
-              .putIfAbsent(option.customizationId, () => [])
-              .add(option.optionId);
-        }
-        for (final customization in item.customizations) {
-          final savedOpts = savedByCustomization[customization.id];
-          if (savedOpts != null && savedOpts.isNotEmpty) {
-            final validOptions = savedOpts
-                .where((optionId) =>
-                    customization.options.any((o) => o.id == optionId))
-                .toList();
-            if (validOptions.isNotEmpty) {
-              selectedOptions[customization.id] = validOptions;
-            }
-          }
-        }
-        for (final customization in item.customizations) {
-          if (customization.isRequired) {
-            final selected = selectedOptions[customization.id] ?? [];
-            if (selected.isEmpty && customization.options.isNotEmpty) {
-              selectedOptions[customization.id] = [customization.options.first.id];
-            }
-          }
-        }
-      }
-
-      final selectedCustomizations = <SelectedCustomization>[];
-      for (final customization in item.customizations) {
-        final optionIds = selectedOptions[customization.id] ?? [];
-        for (final optionId in optionIds) {
-          final option = customization.options.firstWhere((o) => o.id == optionId);
-          selectedCustomizations.add(SelectedCustomization(
-            customizationId: customization.id,
-            customizationName: customization.name,
-            optionId: option.id,
-            optionName: option.name,
-            priceAdjustment: option.priceAdjustment,
-          ));
-        }
-      }
-
-      final cartItem = CartItem.fromMenuItem(item, customizations: selectedCustomizations);
-
-      return jsonEncode({
-        'userId': authState.userId ?? '',
-        'userName': authState.name ?? '',
-        'roomName': session.roomName.toJson(),
-        'pointsToRedeem': 0,
-        'loyaltyDiscount': 0,
-        'items': [cartItem.toJson()],
-      });
-    } catch (e) {
-      debugPrint('Failed to build drink order payload: $e');
-      return null;
     }
   }
 

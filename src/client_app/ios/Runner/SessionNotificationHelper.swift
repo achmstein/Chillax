@@ -144,16 +144,11 @@ class SessionNotificationHelper: NSObject {
                 let branchId = args["branchId"] as? Int
                 let roomNameEn = args["roomNameEn"] as? String
                 let roomNameAr = args["roomNameAr"] as? String
-                let ordersApiUrl = args["ordersApiUrl"] as? String
-                let drink1OrderPayload = args["drink1OrderPayload"] as? String
-                let drink2OrderPayload = args["drink2OrderPayload"] as? String
                 self.show(roomName: roomName, duration: duration, startTimeMs: startTimeMs, locale: locale,
                           drink1Name: drink1Name, drink2Name: drink2Name,
                           accessToken: accessToken, apiBaseUrl: apiBaseUrl,
                           sessionId: sessionId, roomId: roomId, branchId: branchId,
-                          roomNameEn: roomNameEn, roomNameAr: roomNameAr,
-                          ordersApiUrl: ordersApiUrl,
-                          drink1OrderPayload: drink1OrderPayload, drink2OrderPayload: drink2OrderPayload)
+                          roomNameEn: roomNameEn, roomNameAr: roomNameAr)
                 result(nil)
 
             case "dismiss":
@@ -174,9 +169,7 @@ class SessionNotificationHelper: NSObject {
               drink1Name: String? = nil, drink2Name: String? = nil,
               accessToken: String? = nil, apiBaseUrl: String? = nil,
               sessionId: Int? = nil, roomId: Int? = nil, branchId: Int? = nil,
-              roomNameEn: String? = nil, roomNameAr: String? = nil,
-              ordersApiUrl: String? = nil,
-              drink1OrderPayload: String? = nil, drink2OrderPayload: String? = nil) {
+              roomNameEn: String? = nil, roomNameAr: String? = nil) {
         lastRoomName = roomName
         lastDuration = duration
         lastStartTimeMs = startTimeMs
@@ -189,9 +182,7 @@ class SessionNotificationHelper: NSObject {
                              drink1Name: drink1Name, drink2Name: drink2Name,
                              accessToken: accessToken, apiBaseUrl: apiBaseUrl,
                              sessionId: sessionId, roomId: roomId, branchId: branchId,
-                             roomNameEn: roomNameEn, roomNameAr: roomNameAr,
-                             ordersApiUrl: ordersApiUrl,
-                             drink1OrderPayload: drink1OrderPayload, drink2OrderPayload: drink2OrderPayload)
+                             roomNameEn: roomNameEn, roomNameAr: roomNameAr)
         } else {
             showLegacyNotification(roomName: roomName, locale: locale)
         }
@@ -227,9 +218,7 @@ class SessionNotificationHelper: NSObject {
                                   drink1Name: String?, drink2Name: String?,
                                   accessToken: String? = nil, apiBaseUrl: String? = nil,
                                   sessionId: Int? = nil, roomId: Int? = nil, branchId: Int? = nil,
-                                  roomNameEn: String? = nil, roomNameAr: String? = nil,
-                                  ordersApiUrl: String? = nil,
-                                  drink1OrderPayload: String? = nil, drink2OrderPayload: String? = nil) {
+                                  roomNameEn: String? = nil, roomNameAr: String? = nil) {
         let startDate: Date
         if let ms = startTimeMs {
             startDate = Date(timeIntervalSince1970: Double(ms) / 1000.0)
@@ -247,10 +236,7 @@ class SessionNotificationHelper: NSObject {
             roomId: roomId,
             branchId: branchId,
             roomNameEn: roomNameEn,
-            roomNameAr: roomNameAr,
-            ordersApiUrl: ordersApiUrl,
-            drink1OrderPayload: drink1OrderPayload,
-            drink2OrderPayload: drink2OrderPayload
+            roomNameAr: roomNameAr
         )
 
         if let activity = currentActivity,
@@ -260,8 +246,6 @@ class SessionNotificationHelper: NSObject {
             let now = Date()
             if let cd = existing.waiterCooldownEnd, cd > now { state.waiterCooldownEnd = cd }
             if let cd = existing.controllerCooldownEnd, cd > now { state.controllerCooldownEnd = cd }
-            if let cd = existing.drink1CooldownEnd, cd > now { state.drink1CooldownEnd = cd }
-            if let cd = existing.drink2CooldownEnd, cd > now { state.drink2CooldownEnd = cd }
 
             // Update existing activity
             Task {

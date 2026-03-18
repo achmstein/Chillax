@@ -115,22 +115,18 @@ private struct SessionActionsView: View {
             )
 
             if let drink1 = state.drink1Name {
-                drinkButton(
+                deepLinkButton(
                     actionId: "order_drink_1",
                     label: drink1,
-                    icon: "cup.and.saucer.fill",
-                    orderPayload: state.drink1OrderPayload,
-                    cooldownEnd: state.drink1CooldownEnd
+                    icon: "cup.and.saucer.fill"
                 )
             }
 
             if let drink2 = state.drink2Name {
-                drinkButton(
+                deepLinkButton(
                     actionId: "order_drink_2",
                     label: drink2,
-                    icon: "mug.fill",
-                    orderPayload: state.drink2OrderPayload,
-                    cooldownEnd: state.drink2CooldownEnd
+                    icon: "mug.fill"
                 )
             }
         }
@@ -170,32 +166,9 @@ private struct SessionActionsView: View {
         }
     }
 
-    @ViewBuilder
-    private func drinkButton(actionId: String, label: String, icon: String, orderPayload: String?, cooldownEnd: Date?) -> some View {
-        let inCooldown = cooldownEnd != nil && cooldownEnd! > Date()
-
-        if inCooldown {
-            cooldownLabel(icon: icon, cooldownEnd: cooldownEnd!)
-        } else if #available(iOS 17, *),
-           let accessToken = state.accessToken,
-           let ordersApiUrl = state.ordersApiUrl,
-           let payload = orderPayload {
-            // iOS 17+: background intent — no app launch
-            Button(intent: SessionDrinkOrderIntent(
-                accessToken: accessToken,
-                ordersApiUrl: ordersApiUrl,
-                orderPayload: payload,
-                branchId: state.branchId ?? 0,
-                actionId: actionId
-            )) {
-                actionLabel(label: label, icon: icon)
-            }
-            .buttonStyle(.plain)
-        } else {
-            // iOS 16.x or payload not ready: deep link — opens app
-            Link(destination: URL(string: "com.chillax.client://action/\(actionId)")!) {
-                actionLabel(label: label, icon: icon)
-            }
+    private func deepLinkButton(actionId: String, label: String, icon: String) -> some View {
+        Link(destination: URL(string: "com.chillax.client://action/\(actionId)")!) {
+            actionLabel(label: label, icon: icon)
         }
     }
 

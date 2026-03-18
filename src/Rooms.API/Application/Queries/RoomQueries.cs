@@ -159,7 +159,7 @@ public class RoomQueries : IRoomQueries
                 JoinedAt = m.JoinedAt,
                 Role = m.Role.ToString()
             }).ToList() ?? new(),
-            Segments = reservation.SessionSegments?.Select(s => new SessionSegmentViewModel
+            Segments = reservation.SessionSegments?.OrderBy(s => s.StartTime).Select(s => new SessionSegmentViewModel
             {
                 PlayerMode = s.PlayerMode.ToString(),
                 HourlyRate = s.HourlyRate,
