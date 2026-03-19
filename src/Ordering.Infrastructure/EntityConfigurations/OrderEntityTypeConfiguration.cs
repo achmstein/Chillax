@@ -35,6 +35,12 @@ class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
             .IsRequired()
             .HasDefaultValue(1);
 
+        orderConfiguration.Property(o => o.ReminderCount)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        orderConfiguration.Property(o => o.LastReminderSentAt);
+
         orderConfiguration.HasIndex(o => o.BranchId);
         orderConfiguration.HasIndex(o => o.OrderStatus);
         orderConfiguration.HasIndex(o => o.OrderDate);

@@ -2761,6 +2761,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reservations Disabled'**
   String get reservationsDisabled;
+
+  /// No description provided for @batteryOptimizationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Notifications Reliable'**
+  String get batteryOptimizationTitle;
+
+  /// No description provided for @batteryOptimizationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery optimization can block order notifications when the app is in the background.\n\nTo make sure you never miss an order, please disable battery optimization for this app.'**
+  String get batteryOptimizationBody;
+
+  /// No description provided for @disableNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Now'**
+  String get disableNow;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @dontShowAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show again'**
+  String get dontShowAgain;
+
+  /// No description provided for @orderWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} Waiting'**
+  String orderWaiting(String orderId);
+
+  /// No description provided for @orderNotConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} Not Confirmed!'**
+  String orderNotConfirmed(String orderId);
+
+  /// No description provided for @orderWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Order from {buyerName} has been waiting {minutes} minutes.'**
+  String orderWaitingBody(String buyerName, String minutes);
+
+  /// No description provided for @viewOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'View Orders'**
+  String get viewOrders;
+
+  /// No description provided for @dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dismiss;
 }
 
 class _AppLocalizationsDelegate

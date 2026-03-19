@@ -184,6 +184,63 @@ public class FcmService : IFcmService
         }
     }
 
+    public async Task<int> SendBatchDataWithApnsAlertAsync(IEnumerable<string> fcmTokens, string title, string body, Dictionary<string, string> data)
+    {
+        var tokenList = fcmTokens.ToList();
+        if (tokenList.Count == 0)
+        {
+            return 0;
+        }
+
+        if (!_isInitialized)
+        {
+            _logger.LogInformation("Simulating batch FCM data+APNs messages to {Count} tokens: {Title} - {Body}",
+                tokenList.Count, title, body);
+            return tokenList.Count;
+        }
+
+        try
+        {
+            var messages = tokenList.Select(token => new Message
+            {
+                Token = token,
+                // No top-level Notification — Android gets data-only so native code controls display
+                Data = data,
+                Android = new AndroidConfig
+                {
+                    Priority = Priority.High
+                },
+                Apns = new ApnsConfig
+                {
+                    Headers = new Dictionary<string, string>
+                    {
+                        { "apns-priority", "10" }
+                    },
+                    Aps = new Aps
+                    {
+                        Sound = "default",
+                        ContentAvailable = true,
+                        Alert = new ApsAlert
+                        {
+                            Title = title,
+                            Body = body
+                        }
+                    }
+                }
+            }).ToList();
+
+            var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+            _logger.LogInformation("Batch FCM data+APNs messages sent: {Success}/{Total} successful",
+                response.SuccessCount, tokenList.Count);
+            return response.SuccessCount;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send batch FCM data+APNs messages");
+            return 0;
+        }
+    }
+
     public async Task<int> SendBatchDataMessagesAsync(IEnumerable<string> fcmTokens, Dictionary<string, string> data)
     {
         var tokenList = fcmTokens.ToList();

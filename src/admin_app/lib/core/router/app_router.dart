@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app.dart' show rootNavigatorKey;
 import '../auth/auth_service.dart';
 import '../providers/branch_provider.dart';
 import '../widgets/admin_scaffold.dart';
@@ -84,6 +85,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(() => authNotifier.dispose());
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     refreshListenable: authNotifier,
     initialLocation: '/splash',
     redirect: (context, state) {

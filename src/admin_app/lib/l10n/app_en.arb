@@ -621,5 +621,33 @@
   "orderingEnabled": "Ordering Enabled",
   "orderingDisabled": "Ordering Disabled",
   "reservationsEnabled": "Reservations Enabled",
-  "reservationsDisabled": "Reservations Disabled"
+  "reservationsDisabled": "Reservations Disabled",
+
+  "batteryOptimizationTitle": "Keep Notifications Reliable",
+  "batteryOptimizationBody": "Battery optimization can block order notifications when the app is in the background.\n\nTo make sure you never miss an order, please disable battery optimization for this app.",
+  "disableNow": "Disable Now",
+  "later": "Later",
+  "dontShowAgain": "Don't show again",
+
+  "orderWaiting": "Order #{orderId} Waiting",
+  "@orderWaiting": {
+    "placeholders": {
+      "orderId": { "type": "String" }
+    }
+  },
+  "orderNotConfirmed": "Order #{orderId} Not Confirmed!",
+  "@orderNotConfirmed": {
+    "placeholders": {
+      "orderId": { "type": "String" }
+    }
+  },
+  "orderWaitingBody": "Order from {buyerName} has been waiting {minutes} minutes.",
+  "@orderWaitingBody": {
+    "placeholders": {
+      "buyerName": { "type": "String" },
+      "minutes": { "type": "String" }
+    }
+  },
+  "viewOrders": "View Orders",
+  "dismiss": "Dismiss"
 }

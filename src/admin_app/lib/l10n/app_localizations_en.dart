@@ -1415,4 +1415,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reservationsDisabled => 'Reservations Disabled';
+
+  @override
+  String get batteryOptimizationTitle => 'Keep Notifications Reliable';
+
+  @override
+  String get batteryOptimizationBody =>
+      'Battery optimization can block order notifications when the app is in the background.\n\nTo make sure you never miss an order, please disable battery optimization for this app.';
+
+  @override
+  String get disableNow => 'Disable Now';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get dontShowAgain => 'Don\'t show again';
+
+  @override
+  String orderWaiting(String orderId) {
+    return 'Order #$orderId Waiting';
+  }
+
+  @override
+  String orderNotConfirmed(String orderId) {
+    return 'Order #$orderId Not Confirmed!';
+  }
+
+  @override
+  String orderWaitingBody(String buyerName, String minutes) {
+    return 'Order from $buyerName has been waiting $minutes minutes.';
+  }
+
+  @override
+  String get viewOrders => 'View Orders';
+
+  @override
+  String get dismiss => 'Dismiss';
 }

@@ -6,16 +6,21 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'core/widgets/app_text.dart';
 import 'core/providers/branch_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/services/signalr_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/auth/auth_service.dart';
+import 'core/services/battery_optimization_service.dart';
 import 'features/service_requests/providers/service_requests_provider.dart';
 import 'features/orders/providers/orders_provider.dart';
 import 'features/rooms/providers/rooms_provider.dart';
 import 'l10n/app_localizations.dart';
+
+/// Global navigator key for showing dialogs from FCM handlers
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 class ChillaxAdminApp extends ConsumerStatefulWidget {
   const ChillaxAdminApp({super.key});
@@ -59,6 +64,12 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
       authService.refreshToken();
       authService.reregisterNotifications();
       ref.read(signalRServiceProvider).reconnectIfNeeded();
+
+      // Re-check battery optimization on resume (user may have said "Later"
+      // or just came back from system settings after disabling it)
+      if (ref.read(authServiceProvider).isAuthenticated) {
+        _checkBatteryOptimization();
+      }
     }
   }
 
@@ -77,7 +88,52 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
       }
       _connectSignalR();
       ref.read(branchProvider.notifier).loadBranches();
+
+      // Check battery optimization after a short delay (let UI settle)
+      Future.delayed(const Duration(seconds: 2), _checkBatteryOptimization);
     }
+  }
+
+  Future<void> _checkBatteryOptimization() async {
+    final shouldShow = await BatteryOptimizationService.shouldShowPrompt();
+    if (!shouldShow) return;
+
+    final navigatorContext = rootNavigatorKey.currentContext;
+    if (navigatorContext == null || !navigatorContext.mounted) return;
+
+    final l10n = AppLocalizations.of(navigatorContext)!;
+
+    showAdaptiveDialog(
+      context: navigatorContext,
+      barrierDismissible: false,
+      builder: (context) => FDialog(
+        direction: Axis.vertical,
+        title: AppText(l10n.batteryOptimizationTitle),
+        body: AppText(l10n.batteryOptimizationBody),
+        actions: [
+          FButton(
+            onPress: () async {
+              Navigator.of(context).pop();
+              await BatteryOptimizationService.requestIgnoreBatteryOptimizations();
+            },
+            child: AppText(l10n.disableNow),
+          ),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(context).pop(),
+            child: AppText(l10n.later),
+          ),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () async {
+              await BatteryOptimizationService.dismissPromptPermanently();
+              if (context.mounted) Navigator.of(context).pop();
+            },
+            child: AppText(l10n.dontShowAgain),
+          ),
+        ],
+      ),
+    );
   }
 
   void _connectSignalR() {
@@ -138,7 +194,7 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
     final type = message.data['type'];
     final route = switch (type) {
       'service_request' => '/service-requests',
-      'new_order' => '/orders',
+      'new_order' || 'order_reminder' => '/orders',
       'new_reservation' => '/rooms',
       _ => null,
     };
@@ -159,12 +215,91 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
         // Refresh orders list
         ref.read(ordersProvider.notifier).loadOrders();
         break;
+      case 'order_reminder':
+        // Refresh orders list
+        ref.read(ordersProvider.notifier).loadOrders();
+        // Show in-app alert dialog for reminders (foreground only)
+        _showOrderReminderAlert(message.data);
+        break;
       case 'new_reservation':
         // Refresh rooms list
         ref.read(roomsProvider.notifier).loadRooms();
         break;
       default:
         debugPrint('Unknown FCM message type: $type');
+    }
+  }
+
+  void _showOrderReminderAlert(Map<String, dynamic> data) {
+    final navigatorContext = rootNavigatorKey.currentContext;
+    if (navigatorContext == null) return;
+
+    final reminderCount = int.tryParse(data['reminderCount']?.toString() ?? '') ?? 1;
+    final orderId = data['orderId'] ?? '';
+    final buyerName = data['buyerName'] ?? 'Customer';
+    final minutesPending = data['minutesPending'] ?? '?';
+    final isUrgent = reminderCount >= 3;
+
+    final l10n = AppLocalizations.of(navigatorContext);
+    if (l10n == null) return;
+
+    if (isUrgent) {
+      // Urgent: Material AlertDialog with red background (FDialog doesn't support custom bg)
+      showDialog(
+        context: navigatorContext,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF7F1D1D), // red-900
+          icon: const Icon(Icons.warning_amber_rounded, size: 48, color: Colors.amber),
+          title: Text(
+            l10n.orderNotConfirmed(orderId),
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          content: Text(
+            l10n.orderWaitingBody(buyerName, minutesPending),
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop();
+                ref.read(routerProvider).go('/orders');
+              },
+              child: Text(l10n.viewOrders),
+            ),
+          ],
+          actionsAlignment: MainAxisAlignment.center,
+        ),
+      );
+    } else {
+      // Non-urgent: Forui dialog
+      showAdaptiveDialog(
+        context: navigatorContext,
+        builder: (context) => FDialog(
+          direction: Axis.horizontal,
+          title: AppText(l10n.orderWaiting(orderId)),
+          body: AppText(l10n.orderWaitingBody(buyerName, minutesPending)),
+          actions: [
+            FButton(
+              variant: FButtonVariant.outline,
+              onPress: () => Navigator.of(context, rootNavigator: true).pop(),
+              child: AppText(l10n.dismiss),
+            ),
+            FButton(
+              onPress: () {
+                Navigator.of(context, rootNavigator: true).pop();
+                ref.read(routerProvider).go('/orders');
+              },
+              child: AppText(l10n.viewOrders),
+            ),
+          ],
+        ),
+      );
     }
   }
 

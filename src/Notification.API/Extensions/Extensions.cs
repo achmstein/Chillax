@@ -38,7 +38,8 @@ public static class Extensions
             .AddSubscription<SessionEndedIntegrationEvent, SessionEndedIntegrationEventHandler>()
             .AddSubscription<SessionMemberJoinedIntegrationEvent, SessionMemberJoinedIntegrationEventHandler>()
             .AddSubscription<OrderStatusChangedToConfirmedIntegrationEvent, OrderConfirmedIntegrationEventHandler>()
-            .AddSubscription<BranchSettingsChangedIntegrationEvent, BranchSettingsChangedIntegrationEventHandler>();
+            .AddSubscription<BranchSettingsChangedIntegrationEvent, BranchSettingsChangedIntegrationEventHandler>()
+            .AddSubscription<OrderReminderIntegrationEvent, OrderReminderIntegrationEventHandler>();
     }
 }
 
@@ -53,6 +54,7 @@ public static class Extensions
 [JsonSerializable(typeof(SessionEndedIntegrationEvent))]
 [JsonSerializable(typeof(SessionMemberJoinedIntegrationEvent))]
 [JsonSerializable(typeof(OrderStatusChangedToConfirmedIntegrationEvent))]
+[JsonSerializable(typeof(OrderReminderIntegrationEvent))]
 public partial class NotificationIntegrationEventContext : JsonSerializerContext
 {
 }

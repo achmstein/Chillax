@@ -1408,4 +1408,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reservationsDisabled => 'الحجوزات متوقفة';
+
+  @override
+  String get batteryOptimizationTitle => 'خلي الإشعارات توصلك';
+
+  @override
+  String get batteryOptimizationBody =>
+      'توفير البطارية ممكن يمنع إشعارات الأوردرات لما التطبيق في الخلفية.\n\nعشان ماتفوتكش أي أوردر، الغي توفير البطارية للتطبيق ده.';
+
+  @override
+  String get disableNow => 'الغي دلوقتي';
+
+  @override
+  String get later => 'بعدين';
+
+  @override
+  String get dontShowAgain => 'ماتظهرش تاني';
+
+  @override
+  String orderWaiting(String orderId) {
+    return 'أوردر #$orderId مستني';
+  }
+
+  @override
+  String orderNotConfirmed(String orderId) {
+    return 'أوردر #$orderId ماتأكدش!';
+  }
+
+  @override
+  String orderWaitingBody(String buyerName, String minutes) {
+    return 'أوردر من $buyerName مستني من $minutes دقيقة.';
+  }
+
+  @override
+  String get viewOrders => 'شوف الطلبات';
+
+  @override
+  String get dismiss => 'تمام';
 }

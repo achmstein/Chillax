@@ -481,5 +481,17 @@
   "orderingEnabled": "الطلبات مفعّلة",
   "orderingDisabled": "الطلبات متوقفة",
   "reservationsEnabled": "الحجوزات مفعّلة",
-  "reservationsDisabled": "الحجوزات متوقفة"
+  "reservationsDisabled": "الحجوزات متوقفة",
+
+  "batteryOptimizationTitle": "خلي الإشعارات توصلك",
+  "batteryOptimizationBody": "توفير البطارية ممكن يمنع إشعارات الأوردرات لما التطبيق في الخلفية.\n\nعشان ماتفوتكش أي أوردر، الغي توفير البطارية للتطبيق ده.",
+  "disableNow": "الغي دلوقتي",
+  "later": "بعدين",
+  "dontShowAgain": "ماتظهرش تاني",
+
+  "orderWaiting": "أوردر #{orderId} مستني",
+  "orderNotConfirmed": "أوردر #{orderId} ماتأكدش!",
+  "orderWaitingBody": "أوردر من {buyerName} مستني من {minutes} دقيقة.",
+  "viewOrders": "شوف الطلبات",
+  "dismiss": "تمام"
 }

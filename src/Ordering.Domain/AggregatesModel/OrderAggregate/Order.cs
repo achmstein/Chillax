@@ -60,6 +60,16 @@ public class Order
     /// </summary>
     public OrderRating? Rating { get; private set; }
 
+    /// <summary>
+    /// Number of reminder notifications sent for this order while pending
+    /// </summary>
+    public int ReminderCount { get; private set; }
+
+    /// <summary>
+    /// When the last reminder notification was sent (null if none sent)
+    /// </summary>
+    public DateTime? LastReminderSentAt { get; private set; }
+
     public static Order NewDraft()
     {
         var order = new Order
@@ -190,6 +200,15 @@ public class Order
     {
         var orderStartedDomainEvent = new OrderStartedDomainEvent(this, userId, userName);
         this.AddDomainEvent(orderStartedDomainEvent);
+    }
+
+    /// <summary>
+    /// Record that a reminder notification was sent for this pending order
+    /// </summary>
+    public void RecordReminderSent()
+    {
+        ReminderCount++;
+        LastReminderSentAt = DateTime.UtcNow;
     }
 
     public decimal GetTotal() => _orderItems.Sum(o => o.Units * o.UnitPrice);

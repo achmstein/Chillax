@@ -80,4 +80,17 @@ public static class NotificationMessages
     public static LocalizedText YourReservationCancelledBody(LocalizedText roomName, string lang) =>
         new($"Your reservation for {roomName.GetText("en")} has been cancelled",
             $"حجزك في {roomName.GetText("ar")} اتلغى");
+
+    // Order Reminders (escalating urgency for admins)
+    public static LocalizedText OrderReminderTitle(int reminderCount) => reminderCount switch
+    {
+        <= 1 => new("New order pending", "أوردر جديد مستني"),
+        2 => new("Order still pending", "الأوردر لسه مستني"),
+        3 => new("Order needs attention", "الأوردر محتاج تأكيد"),
+        _ => new("Order not confirmed", "الأوردر ماتأكدش")
+    };
+
+    public static LocalizedText OrderReminderBody(int orderId, string buyerName, int minutesPending) =>
+        new($"Order #{orderId} from {buyerName} has been waiting {minutesPending} min",
+            $"أوردر #{orderId} من {buyerName} مستني من {minutesPending} دقيقة");
 }
