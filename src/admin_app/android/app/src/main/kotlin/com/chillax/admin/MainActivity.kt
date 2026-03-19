@@ -15,7 +15,7 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     companion object {
-        private const val CHANNEL = "com.chillax.admin/battery"
+        private const val CHANNEL = "com.chillax.admin/permissions"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +35,13 @@ class MainActivity : FlutterActivity() {
                     requestIgnoreBatteryOptimizations()
                     result.success(null)
                 }
+                "canUseFullScreenIntent" -> {
+                    result.success(canUseFullScreenIntent())
+                }
+                "requestFullScreenIntentPermission" -> {
+                    requestFullScreenIntentPermission()
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }
@@ -49,6 +56,21 @@ class MainActivity : FlutterActivity() {
     private fun requestIgnoreBatteryOptimizations() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:$packageName")
+            }
+            startActivity(intent)
+        }
+    }
+
+    private fun canUseFullScreenIntent(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return true // Pre-Android 14: auto-granted
+        val nm = getSystemService(NotificationManager::class.java)
+        return nm.canUseFullScreenIntent()
+    }
+
+    private fun requestFullScreenIntentPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
                 data = Uri.parse("package:$packageName")
             }
             startActivity(intent)

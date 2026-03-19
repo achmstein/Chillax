@@ -649,5 +649,9 @@
     }
   },
   "viewOrders": "View Orders",
-  "dismiss": "Dismiss"
+  "dismiss": "Dismiss",
+
+  "fullScreenIntentTitle": "Allow Urgent Order Alerts",
+  "fullScreenIntentBody": "To show urgent order reminders over the lock screen (like a phone call), please allow full-screen notifications for this app.",
+  "allowNow": "Allow Now"
 }

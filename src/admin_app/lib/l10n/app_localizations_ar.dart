@@ -1445,4 +1445,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dismiss => 'تمام';
+
+  @override
+  String get fullScreenIntentTitle => 'اسمح بتنبيهات الطلبات المستعجلة';
+
+  @override
+  String get fullScreenIntentBody =>
+      'عشان تنبيهات الطلبات المستعجلة تظهر على شاشة القفل (زي المكالمة)، اسمح بالإشعارات على الشاشة الكاملة للتطبيق ده.';
+
+  @override
+  String get allowNow => 'اسمح دلوقتي';
 }

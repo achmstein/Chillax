@@ -65,10 +65,10 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
       authService.reregisterNotifications();
       ref.read(signalRServiceProvider).reconnectIfNeeded();
 
-      // Re-check battery optimization on resume (user may have said "Later"
-      // or just came back from system settings after disabling it)
+      // Re-check permissions on resume (user may have said "Later"
+      // or just came back from system settings)
       if (ref.read(authServiceProvider).isAuthenticated) {
-        _checkBatteryOptimization();
+        _checkPermissions();
       }
     }
   }
@@ -89,15 +89,25 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
       _connectSignalR();
       ref.read(branchProvider.notifier).loadBranches();
 
-      // Check battery optimization after a short delay (let UI settle)
-      Future.delayed(const Duration(seconds: 2), _checkBatteryOptimization);
+      // Check permissions after a short delay (let UI settle)
+      Future.delayed(const Duration(seconds: 2), _checkPermissions);
     }
   }
 
-  Future<void> _checkBatteryOptimization() async {
-    final shouldShow = await BatteryOptimizationService.shouldShowPrompt();
-    if (!shouldShow) return;
+  Future<void> _checkPermissions() async {
+    // Check battery optimization first
+    if (await BatteryOptimizationService.shouldShowBatteryPrompt()) {
+      await _showBatteryOptimizationPrompt();
+      return; // Show one prompt at a time, check the other on next resume
+    }
 
+    // Then check full-screen intent permission (Android 14+)
+    if (await BatteryOptimizationService.shouldShowFullScreenPrompt()) {
+      _showFullScreenIntentPrompt();
+    }
+  }
+
+  Future<void> _showBatteryOptimizationPrompt() async {
     final navigatorContext = rootNavigatorKey.currentContext;
     if (navigatorContext == null || !navigatorContext.mounted) return;
 
@@ -113,21 +123,60 @@ class _ChillaxAdminAppState extends ConsumerState<ChillaxAdminApp> with WidgetsB
         actions: [
           FButton(
             onPress: () async {
-              Navigator.of(context).pop();
+              Navigator.of(context, rootNavigator: true).pop();
               await BatteryOptimizationService.requestIgnoreBatteryOptimizations();
             },
             child: AppText(l10n.disableNow),
           ),
           FButton(
             variant: FButtonVariant.outline,
-            onPress: () => Navigator.of(context).pop(),
+            onPress: () => Navigator.of(context, rootNavigator: true).pop(),
             child: AppText(l10n.later),
           ),
           FButton(
             variant: FButtonVariant.outline,
             onPress: () async {
-              await BatteryOptimizationService.dismissPromptPermanently();
-              if (context.mounted) Navigator.of(context).pop();
+              await BatteryOptimizationService.dismissBatteryPromptPermanently();
+              if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+            },
+            child: AppText(l10n.dontShowAgain),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullScreenIntentPrompt() {
+    final navigatorContext = rootNavigatorKey.currentContext;
+    if (navigatorContext == null || !navigatorContext.mounted) return;
+
+    final l10n = AppLocalizations.of(navigatorContext)!;
+
+    showAdaptiveDialog(
+      context: navigatorContext,
+      barrierDismissible: false,
+      builder: (context) => FDialog(
+        direction: Axis.vertical,
+        title: AppText(l10n.fullScreenIntentTitle),
+        body: AppText(l10n.fullScreenIntentBody),
+        actions: [
+          FButton(
+            onPress: () async {
+              Navigator.of(context, rootNavigator: true).pop();
+              await BatteryOptimizationService.requestFullScreenIntentPermission();
+            },
+            child: AppText(l10n.allowNow),
+          ),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(context, rootNavigator: true).pop(),
+            child: AppText(l10n.later),
+          ),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () async {
+              await BatteryOptimizationService.dismissFullScreenPromptPermanently();
+              if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
             },
             child: AppText(l10n.dontShowAgain),
           ),

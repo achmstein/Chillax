@@ -2821,6 +2821,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dismiss'**
   String get dismiss;
+
+  /// No description provided for @fullScreenIntentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Urgent Order Alerts'**
+  String get fullScreenIntentTitle;
+
+  /// No description provided for @fullScreenIntentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To show urgent order reminders over the lock screen (like a phone call), please allow full-screen notifications for this app.'**
+  String get fullScreenIntentBody;
+
+  /// No description provided for @allowNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Now'**
+  String get allowNow;
 }
 
 class _AppLocalizationsDelegate

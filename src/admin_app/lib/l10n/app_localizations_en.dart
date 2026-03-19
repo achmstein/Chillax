@@ -1452,4 +1452,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dismiss => 'Dismiss';
+
+  @override
+  String get fullScreenIntentTitle => 'Allow Urgent Order Alerts';
+
+  @override
+  String get fullScreenIntentBody =>
+      'To show urgent order reminders over the lock screen (like a phone call), please allow full-screen notifications for this app.';
+
+  @override
+  String get allowNow => 'Allow Now';
 }

@@ -493,5 +493,9 @@
   "orderNotConfirmed": "أوردر #{orderId} ماتأكدش!",
   "orderWaitingBody": "أوردر من {buyerName} مستني من {minutes} دقيقة.",
   "viewOrders": "شوف الطلبات",
-  "dismiss": "تمام"
+  "dismiss": "تمام",
+
+  "fullScreenIntentTitle": "اسمح بتنبيهات الطلبات المستعجلة",
+  "fullScreenIntentBody": "عشان تنبيهات الطلبات المستعجلة تظهر على شاشة القفل (زي المكالمة)، اسمح بالإشعارات على الشاشة الكاملة للتطبيق ده.",
+  "allowNow": "اسمح دلوقتي"
 }
