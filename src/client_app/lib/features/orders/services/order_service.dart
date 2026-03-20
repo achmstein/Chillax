@@ -20,6 +20,7 @@ abstract class OrderRepository {
     required List<CartItem> items,
     required String userId,
     required String userName,
+    required String requestId,
     Map<String, dynamic>? roomName,
     String? customerNote,
     int pointsToRedeem,
@@ -85,6 +86,7 @@ class ApiOrderRepository implements OrderRepository {
     required List<CartItem> items,
     required String userId,
     required String userName,
+    required String requestId,
     Map<String, dynamic>? roomName,
     String? customerNote,
     int pointsToRedeem = 0,
@@ -101,7 +103,7 @@ class ApiOrderRepository implements OrderRepository {
         'loyaltyDiscount': loyaltyDiscount,
         'items': items.map((item) => item.toJson()).toList(),
       },
-      headers: {'x-requestid': _uuid.v4()},
+      headers: {'x-requestid': requestId},
     );
     // Success if no exception thrown - API returns 200 OK with empty body
   }
@@ -185,6 +187,7 @@ class ApiOrderRepository implements OrderRepository {
       items: [cartItem],
       userId: userId,
       userName: userName,
+      requestId: _uuid.v4(),
       roomName: roomName,
     );
   }
@@ -417,7 +420,7 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
     return const CheckoutState();
   }
 
-  /// Submit order
+  /// Submit order — guarded against duplicate calls
   Future<bool> submitOrder({
     required List<CartItem> items,
     Map<String, dynamic>? roomName,
@@ -425,13 +428,16 @@ class CheckoutNotifier extends Notifier<CheckoutState> {
     int pointsToRedeem = 0,
     double loyaltyDiscount = 0,
   }) async {
+    if (state.isLoading) return false; // Prevent duplicate submissions
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      final requestId = _uuid.v4();
       await _orderService.createOrder(
         items: items,
         userId: _authState.userId ?? '',
         userName: _authState.name ?? 'Guest',
+        requestId: requestId,
         roomName: roomName,
         customerNote: customerNote,
         pointsToRedeem: pointsToRedeem,
