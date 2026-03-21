@@ -18,6 +18,7 @@ public class NotificationContext(DbContextOptions<NotificationContext> options) 
             entity.Property(e => e.Type).IsRequired();
             entity.Property(e => e.PreferredLanguage).HasMaxLength(5).HasDefaultValue("en");
             entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
 
             // Index for efficient lookups by user
             entity.HasIndex(e => e.UserId);

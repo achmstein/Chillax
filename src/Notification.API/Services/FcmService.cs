@@ -62,6 +62,23 @@ public class FcmService : IFcmService
         return null;
     }
 
+    /// <summary>
+    /// Extract unregistered tokens from a SendEachResponse so callers can clean them up.
+    /// </summary>
+    private static List<string> GetUnregisteredTokens(BatchResponse response, List<string> tokens)
+    {
+        var unregistered = new List<string>();
+        for (var i = 0; i < response.Responses.Count; i++)
+        {
+            var sendResponse = response.Responses[i];
+            if (sendResponse.Exception?.MessagingErrorCode == MessagingErrorCode.Unregistered)
+            {
+                unregistered.Add(tokens[i]);
+            }
+        }
+        return unregistered;
+    }
+
     public async Task<bool> SendNotificationAsync(string fcmToken, string title, string body, Dictionary<string, string>? data = null)
     {
         if (!_isInitialized)
@@ -122,19 +139,17 @@ public class FcmService : IFcmService
         }
     }
 
-    public async Task<int> SendBatchNotificationsAsync(IEnumerable<string> fcmTokens, string title, string body, Dictionary<string, string>? data = null)
+    public async Task<BatchSendResult> SendBatchNotificationsAsync(IEnumerable<string> fcmTokens, string title, string body, Dictionary<string, string>? data = null)
     {
         var tokenList = fcmTokens.ToList();
         if (tokenList.Count == 0)
-        {
-            return 0;
-        }
+            return new BatchSendResult(0, []);
 
         if (!_isInitialized)
         {
             _logger.LogInformation("Simulating batch FCM notifications to {Count} tokens: {Title} - {Body}",
                 tokenList.Count, title, body);
-            return tokenList.Count;
+            return new BatchSendResult(tokenList.Count, []);
         }
 
         try
@@ -148,7 +163,6 @@ public class FcmService : IFcmService
                     Body = body
                 },
                 Data = data,
-                // High priority for instant delivery
                 Android = new AndroidConfig
                 {
                     Priority = Priority.High,
@@ -173,30 +187,34 @@ public class FcmService : IFcmService
             }).ToList();
 
             var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+            var unregistered = GetUnregisteredTokens(response, tokenList);
+
+            if (unregistered.Count > 0)
+                _logger.LogWarning("Found {Count} unregistered FCM tokens during batch send", unregistered.Count);
+
             _logger.LogInformation("Batch FCM notifications sent: {Success}/{Total} successful",
                 response.SuccessCount, tokenList.Count);
-            return response.SuccessCount;
+
+            return new BatchSendResult(response.SuccessCount, unregistered);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send batch FCM notifications");
-            return 0;
+            return new BatchSendResult(0, []);
         }
     }
 
-    public async Task<int> SendBatchDataWithApnsAlertAsync(IEnumerable<string> fcmTokens, string title, string body, Dictionary<string, string> data)
+    public async Task<BatchSendResult> SendBatchDataWithApnsAlertAsync(IEnumerable<string> fcmTokens, string title, string body, Dictionary<string, string> data)
     {
         var tokenList = fcmTokens.ToList();
         if (tokenList.Count == 0)
-        {
-            return 0;
-        }
+            return new BatchSendResult(0, []);
 
         if (!_isInitialized)
         {
             _logger.LogInformation("Simulating batch FCM data+APNs messages to {Count} tokens: {Title} - {Body}",
                 tokenList.Count, title, body);
-            return tokenList.Count;
+            return new BatchSendResult(tokenList.Count, []);
         }
 
         try
@@ -204,7 +222,6 @@ public class FcmService : IFcmService
             var messages = tokenList.Select(token => new Message
             {
                 Token = token,
-                // No top-level Notification — Android gets data-only so native code controls display
                 Data = data,
                 Android = new AndroidConfig
                 {
@@ -230,30 +247,34 @@ public class FcmService : IFcmService
             }).ToList();
 
             var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+            var unregistered = GetUnregisteredTokens(response, tokenList);
+
+            if (unregistered.Count > 0)
+                _logger.LogWarning("Found {Count} unregistered FCM tokens during data+APNs batch send", unregistered.Count);
+
             _logger.LogInformation("Batch FCM data+APNs messages sent: {Success}/{Total} successful",
                 response.SuccessCount, tokenList.Count);
-            return response.SuccessCount;
+
+            return new BatchSendResult(response.SuccessCount, unregistered);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send batch FCM data+APNs messages");
-            return 0;
+            return new BatchSendResult(0, []);
         }
     }
 
-    public async Task<int> SendBatchDataMessagesAsync(IEnumerable<string> fcmTokens, Dictionary<string, string> data)
+    public async Task<BatchSendResult> SendBatchDataMessagesAsync(IEnumerable<string> fcmTokens, Dictionary<string, string> data)
     {
         var tokenList = fcmTokens.ToList();
         if (tokenList.Count == 0)
-        {
-            return 0;
-        }
+            return new BatchSendResult(0, []);
 
         if (!_isInitialized)
         {
             _logger.LogInformation("Simulating batch FCM data messages to {Count} tokens: {Data}",
                 tokenList.Count, string.Join(", ", data.Select(d => $"{d.Key}={d.Value}")));
-            return tokenList.Count;
+            return new BatchSendResult(tokenList.Count, []);
         }
 
         try
@@ -280,14 +301,20 @@ public class FcmService : IFcmService
             }).ToList();
 
             var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+            var unregistered = GetUnregisteredTokens(response, tokenList);
+
+            if (unregistered.Count > 0)
+                _logger.LogWarning("Found {Count} unregistered FCM tokens during data batch send", unregistered.Count);
+
             _logger.LogInformation("Batch FCM data messages sent: {Success}/{Total} successful",
                 response.SuccessCount, tokenList.Count);
-            return response.SuccessCount;
+
+            return new BatchSendResult(response.SuccessCount, unregistered);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send batch FCM data messages");
-            return 0;
+            return new BatchSendResult(0, []);
         }
     }
 }

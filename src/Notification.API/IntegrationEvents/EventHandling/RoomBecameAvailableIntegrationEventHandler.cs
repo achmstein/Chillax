@@ -38,7 +38,7 @@ public class RoomBecameAvailableIntegrationEventHandler(
                 var title = NotificationMessages.RoomAvailableTitle.GetText(lang);
                 var body = NotificationMessages.RoomAvailableBody(@event.RoomName, lang).GetText(lang);
 
-                var successCount = await fcmService.SendBatchNotificationsAsync(
+                var result = await fcmService.SendBatchNotificationsAsync(
                     tokens,
                     title,
                     body,
@@ -49,9 +49,9 @@ public class RoomBecameAvailableIntegrationEventHandler(
                         { "roomName", @event.RoomName.GetText(lang) }
                     });
 
-                totalSuccess += successCount;
+                totalSuccess += result.SuccessCount;
                 logger.LogInformation("Sent {SuccessCount}/{TotalCount} notifications in {Lang}",
-                    successCount, tokens.Count, lang);
+                    result.SuccessCount, tokens.Count, lang);
             }
 
             logger.LogInformation("Sent {SuccessCount}/{TotalCount} total notifications successfully",

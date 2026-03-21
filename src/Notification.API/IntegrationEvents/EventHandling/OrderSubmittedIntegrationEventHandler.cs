@@ -35,6 +35,7 @@ public class OrderSubmittedIntegrationEventHandler(
 
         var buyerName = @event.BuyerName ?? "Customer";
         var totalSuccess = 0;
+        var allUnregisteredTokens = new List<string>();
 
         // Group by language and send localized notifications
         foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
@@ -44,7 +45,7 @@ public class OrderSubmittedIntegrationEventHandler(
             var title = NotificationMessages.NewOrderTitle.GetText(lang);
             var body = NotificationMessages.NewOrderBody(@event.OrderId, buyerName).GetText(lang);
 
-            var successCount = await fcmService.SendBatchNotificationsAsync(
+            var result = await fcmService.SendBatchNotificationsAsync(
                 tokens,
                 title,
                 body,
@@ -56,15 +57,25 @@ public class OrderSubmittedIntegrationEventHandler(
                     { "buyerId", @event.BuyerIdentityGuid ?? "" }
                 });
 
-            totalSuccess += successCount;
+            totalSuccess += result.SuccessCount;
+            allUnregisteredTokens.AddRange(result.UnregisteredTokens);
             logger.LogInformation("Sent {SuccessCount}/{TotalCount} notifications in {Lang}",
-                successCount, tokens.Count, lang);
+                result.SuccessCount, tokens.Count, lang);
+        }
+
+        // Clean up subscriptions with invalid/expired FCM tokens
+        if (allUnregisteredTokens.Count > 0)
+        {
+            var staleSubscriptions = subscriptions
+                .Where(s => allUnregisteredTokens.Contains(s.FcmToken))
+                .ToList();
+            context.Subscriptions.RemoveRange(staleSubscriptions);
+            await context.SaveChangesAsync();
+            logger.LogWarning("Removed {Count} subscriptions with unregistered FCM tokens", staleSubscriptions.Count);
         }
 
         logger.LogInformation("Sent {SuccessCount}/{TotalCount} admin notifications successfully",
             totalSuccess, subscriptions.Count);
-
-        // Note: Admin subscriptions are persistent - do NOT delete them
 
         // Broadcast via SignalR to admin group and the buyer's personal group
         await hubContext.Clients.Group("admin").SendAsync("OrderStatusChanged", new

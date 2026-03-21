@@ -34,6 +34,7 @@ public class OrderReminderIntegrationEventHandler(
 
         var buyerName = @event.BuyerName ?? "Customer";
         var totalSuccess = 0;
+        var allUnregisteredTokens = new List<string>();
 
         // Group by language and send localized notifications
         foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
@@ -57,12 +58,24 @@ public class OrderReminderIntegrationEventHandler(
             // Send as data-only to Android (native code builds the notification
             // with custom sound/full-screen intent based on reminderCount).
             // iOS gets APNs alert since data-only is silent on iOS.
-            var successCount = await fcmService.SendBatchDataWithApnsAlertAsync(
+            var result = await fcmService.SendBatchDataWithApnsAlertAsync(
                 tokens, title, body, data);
 
-            totalSuccess += successCount;
+            totalSuccess += result.SuccessCount;
+            allUnregisteredTokens.AddRange(result.UnregisteredTokens);
             logger.LogInformation("Sent {SuccessCount}/{TotalCount} reminder notifications in {Lang}",
-                successCount, tokens.Count, lang);
+                result.SuccessCount, tokens.Count, lang);
+        }
+
+        // Clean up subscriptions with invalid/expired FCM tokens
+        if (allUnregisteredTokens.Count > 0)
+        {
+            var staleSubscriptions = subscriptions
+                .Where(s => allUnregisteredTokens.Contains(s.FcmToken))
+                .ToList();
+            context.Subscriptions.RemoveRange(staleSubscriptions);
+            await context.SaveChangesAsync();
+            logger.LogWarning("Removed {Count} subscriptions with unregistered FCM tokens", staleSubscriptions.Count);
         }
 
         logger.LogInformation("Sent {SuccessCount}/{TotalCount} admin reminder notifications for order {OrderId}",

@@ -30,6 +30,8 @@ public class SessionMemberJoinedIntegrationEventHandler(
         var startTimeMs = @event.ActualStartTime?.ToUniversalTime()
             .Subtract(DateTime.UnixEpoch).TotalMilliseconds.ToString("0") ?? "";
 
+        var allUnregisteredTokens = new List<string>();
+
         foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
         {
             var lang = group.Key;
@@ -49,9 +51,20 @@ public class SessionMemberJoinedIntegrationEventHandler(
                 { "playerMode", @event.PlayerMode ?? "Single" }
             };
 
-            var successCount = await fcmService.SendBatchDataMessagesAsync(tokens, data);
+            var result = await fcmService.SendBatchDataMessagesAsync(tokens, data);
+            allUnregisteredTokens.AddRange(result.UnregisteredTokens);
             logger.LogInformation("Sent {SuccessCount}/{TotalCount} session started FCM to joining member {MemberId} in {Lang}",
-                successCount, tokens.Count, @event.MemberUserId, lang);
+                result.SuccessCount, tokens.Count, @event.MemberUserId, lang);
+        }
+
+        if (allUnregisteredTokens.Count > 0)
+        {
+            var staleSubscriptions = subscriptions
+                .Where(s => allUnregisteredTokens.Contains(s.FcmToken))
+                .ToList();
+            context.Subscriptions.RemoveRange(staleSubscriptions);
+            await context.SaveChangesAsync();
+            logger.LogWarning("Removed {Count} subscriptions with unregistered FCM tokens", staleSubscriptions.Count);
         }
     }
 }

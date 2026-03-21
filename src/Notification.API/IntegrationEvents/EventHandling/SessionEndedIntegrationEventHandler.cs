@@ -49,9 +49,19 @@ public class SessionEndedIntegrationEventHandler(
         };
 
         var tokens = subscriptions.Select(s => s.FcmToken).ToList();
-        var successCount = await fcmService.SendBatchDataMessagesAsync(tokens, data);
+        var result = await fcmService.SendBatchDataMessagesAsync(tokens, data);
 
         logger.LogInformation("Sent {SuccessCount}/{TotalCount} session ended FCM notifications",
-            successCount, tokens.Count);
+            result.SuccessCount, tokens.Count);
+
+        if (result.UnregisteredTokens.Count > 0)
+        {
+            var staleSubscriptions = subscriptions
+                .Where(s => result.UnregisteredTokens.Contains(s.FcmToken))
+                .ToList();
+            context.Subscriptions.RemoveRange(staleSubscriptions);
+            await context.SaveChangesAsync();
+            logger.LogWarning("Removed {Count} subscriptions with unregistered FCM tokens", staleSubscriptions.Count);
+        }
     }
 }

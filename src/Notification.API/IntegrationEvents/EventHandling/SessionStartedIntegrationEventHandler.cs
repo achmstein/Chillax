@@ -56,6 +56,8 @@ public class SessionStartedIntegrationEventHandler(
         var startTimeMs = @event.ActualStartTime?.ToUniversalTime()
             .Subtract(DateTime.UnixEpoch).TotalMilliseconds.ToString("0") ?? "";
 
+        var allUnregisteredTokens = new List<string>();
+
         foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
         {
             var lang = group.Key;
@@ -75,9 +77,20 @@ public class SessionStartedIntegrationEventHandler(
                 { "playerMode", @event.PlayerMode ?? "Single" }
             };
 
-            var successCount = await fcmService.SendBatchDataMessagesAsync(tokens, data);
+            var result = await fcmService.SendBatchDataMessagesAsync(tokens, data);
+            allUnregisteredTokens.AddRange(result.UnregisteredTokens);
             logger.LogInformation("Sent {SuccessCount}/{TotalCount} session started FCM to user {UserId} in {Lang}",
-                successCount, tokens.Count, userId, lang);
+                result.SuccessCount, tokens.Count, userId, lang);
+        }
+
+        if (allUnregisteredTokens.Count > 0)
+        {
+            var staleSubscriptions = subscriptions
+                .Where(s => allUnregisteredTokens.Contains(s.FcmToken))
+                .ToList();
+            context.Subscriptions.RemoveRange(staleSubscriptions);
+            await context.SaveChangesAsync();
+            logger.LogWarning("Removed {Count} subscriptions with unregistered FCM tokens", staleSubscriptions.Count);
         }
     }
 }

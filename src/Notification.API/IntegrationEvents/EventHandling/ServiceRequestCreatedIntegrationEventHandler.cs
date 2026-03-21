@@ -33,6 +33,7 @@ public class ServiceRequestCreatedIntegrationEventHandler(
         }
 
         var totalSuccess = 0;
+        var allUnregisteredTokens = new List<string>();
 
         // Group by language and send localized notifications
         foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
@@ -41,7 +42,7 @@ public class ServiceRequestCreatedIntegrationEventHandler(
             var tokens = group.Select(s => s.FcmToken).ToList();
             var (title, body) = GetLocalizedNotificationContent(@event, lang);
 
-            var successCount = await fcmService.SendBatchNotificationsAsync(
+            var result = await fcmService.SendBatchNotificationsAsync(
                 tokens,
                 title,
                 body,
@@ -54,10 +55,21 @@ public class ServiceRequestCreatedIntegrationEventHandler(
                     { "roomName", @event.RoomName.GetText(lang) }
                 });
 
-            totalSuccess += successCount;
+            totalSuccess += result.SuccessCount;
+            allUnregisteredTokens.AddRange(result.UnregisteredTokens);
             logger.LogInformation(
                 "Sent {SuccessCount}/{TotalCount} service request notifications in {Lang} for {RequestType} in {RoomName}",
-                successCount, tokens.Count, lang, @event.RequestType, @event.RoomName.En);
+                result.SuccessCount, tokens.Count, lang, @event.RequestType, @event.RoomName.En);
+        }
+
+        if (allUnregisteredTokens.Count > 0)
+        {
+            var staleSubscriptions = subscriptions
+                .Where(s => allUnregisteredTokens.Contains(s.FcmToken))
+                .ToList();
+            context.Subscriptions.RemoveRange(staleSubscriptions);
+            await context.SaveChangesAsync();
+            logger.LogWarning("Removed {Count} subscriptions with unregistered FCM tokens", staleSubscriptions.Count);
         }
 
         logger.LogInformation(

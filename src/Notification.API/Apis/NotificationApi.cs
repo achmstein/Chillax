@@ -162,27 +162,12 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token, language, and branch if changed
-            var changed = false;
-            if (existing.FcmToken != request.FcmToken)
-            {
-                existing.FcmToken = request.FcmToken;
-                changed = true;
-            }
-            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
-            {
-                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
-                changed = true;
-            }
-            if (existing.BranchId != request.BranchId)
-            {
-                existing.BranchId = request.BranchId;
-                changed = true;
-            }
-            if (changed)
-            {
-                await context.SaveChangesAsync();
-            }
+            // Always update token, language, branch, and timestamp
+            existing.FcmToken = request.FcmToken;
+            existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+            existing.BranchId = request.BranchId;
+            existing.UpdatedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
             return TypedResults.Conflict("Already subscribed to room availability notifications");
         }
 
@@ -257,27 +242,12 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token, language, and branch if changed
-            var changed = false;
-            if (existing.FcmToken != request.FcmToken)
-            {
-                existing.FcmToken = request.FcmToken;
-                changed = true;
-            }
-            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
-            {
-                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
-                changed = true;
-            }
-            if (existing.BranchId != request.BranchId)
-            {
-                existing.BranchId = request.BranchId;
-                changed = true;
-            }
-            if (changed)
-            {
-                await context.SaveChangesAsync();
-            }
+            // Always update token, language, branch, and timestamp
+            existing.FcmToken = request.FcmToken;
+            existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+            existing.BranchId = request.BranchId;
+            existing.UpdatedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
         }
 
@@ -333,27 +303,12 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            // Update FCM token, language, and branch if changed
-            var changed = false;
-            if (existing.FcmToken != request.FcmToken)
-            {
-                existing.FcmToken = request.FcmToken;
-                changed = true;
-            }
-            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
-            {
-                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
-                changed = true;
-            }
-            if (existing.BranchId != request.BranchId)
-            {
-                existing.BranchId = request.BranchId;
-                changed = true;
-            }
-            if (changed)
-            {
-                await context.SaveChangesAsync();
-            }
+            // Always update token, language, branch, and timestamp
+            existing.FcmToken = request.FcmToken;
+            existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+            existing.BranchId = request.BranchId;
+            existing.UpdatedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
         }
 
@@ -408,21 +363,11 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            var changed = false;
-            if (existing.FcmToken != request.FcmToken)
-            {
-                existing.FcmToken = request.FcmToken;
-                changed = true;
-            }
-            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
-            {
-                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
-                changed = true;
-            }
-            if (changed)
-            {
-                await context.SaveChangesAsync();
-            }
+            // Always update token, language, and timestamp
+            existing.FcmToken = request.FcmToken;
+            existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+            existing.UpdatedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
         }
 
@@ -476,21 +421,11 @@ public static class NotificationApi
 
         if (existing != null)
         {
-            var changed = false;
-            if (existing.FcmToken != request.FcmToken)
-            {
-                existing.FcmToken = request.FcmToken;
-                changed = true;
-            }
-            if (existing.PreferredLanguage != (request.PreferredLanguage ?? "en"))
-            {
-                existing.PreferredLanguage = request.PreferredLanguage ?? "en";
-                changed = true;
-            }
-            if (changed)
-            {
-                await context.SaveChangesAsync();
-            }
+            // Always update token, language, and timestamp
+            existing.FcmToken = request.FcmToken;
+            existing.PreferredLanguage = request.PreferredLanguage ?? "en";
+            existing.UpdatedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
             return TypedResults.Ok(new SubscriptionResponse(existing.Id, existing.Type, existing.CreatedAt));
         }
 

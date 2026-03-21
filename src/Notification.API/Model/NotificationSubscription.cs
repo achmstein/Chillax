@@ -9,6 +9,7 @@ public class NotificationSubscription
     public int? BranchId { get; set; }
     public string PreferredLanguage { get; set; } = "en";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public enum SubscriptionType

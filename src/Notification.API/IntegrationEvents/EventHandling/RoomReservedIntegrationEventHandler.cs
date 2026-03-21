@@ -35,6 +35,7 @@ public class RoomReservedIntegrationEventHandler(
 
         var customerDisplay = @event.CustomerName ?? "Customer";
         var totalSuccess = 0;
+        var allUnregisteredTokens = new List<string>();
 
         // Group by language and send localized notifications
         foreach (var group in subscriptions.GroupBy(s => s.PreferredLanguage))
@@ -44,7 +45,7 @@ public class RoomReservedIntegrationEventHandler(
             var title = NotificationMessages.NewReservationTitle.GetText(lang);
             var body = NotificationMessages.NewReservationBody(customerDisplay, @event.RoomName, lang).GetText(lang);
 
-            var successCount = await fcmService.SendBatchNotificationsAsync(
+            var result = await fcmService.SendBatchNotificationsAsync(
                 tokens,
                 title,
                 body,
@@ -58,9 +59,20 @@ public class RoomReservedIntegrationEventHandler(
                     { "customerId", @event.CustomerId ?? "" }
                 });
 
-            totalSuccess += successCount;
+            totalSuccess += result.SuccessCount;
+            allUnregisteredTokens.AddRange(result.UnregisteredTokens);
             logger.LogInformation("Sent {SuccessCount}/{TotalCount} notifications in {Lang}",
-                successCount, tokens.Count, lang);
+                result.SuccessCount, tokens.Count, lang);
+        }
+
+        if (allUnregisteredTokens.Count > 0)
+        {
+            var staleSubscriptions = subscriptions
+                .Where(s => allUnregisteredTokens.Contains(s.FcmToken))
+                .ToList();
+            context.Subscriptions.RemoveRange(staleSubscriptions);
+            await context.SaveChangesAsync();
+            logger.LogWarning("Removed {Count} subscriptions with unregistered FCM tokens", staleSubscriptions.Count);
         }
 
         logger.LogInformation("Sent {SuccessCount}/{TotalCount} admin reservation notifications successfully",
