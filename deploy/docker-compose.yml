@@ -184,6 +184,8 @@ services:
       ConnectionStrings__eventbus: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
       Identity__Url: http://keycloak:8080/realms/chillax
       Keycloak__Realm: chillax
+    volumes:
+      - ./firebase-credentials.json:/app/firebase-credentials.json:ro
     depends_on:
       postgres:
         condition: service_healthy
