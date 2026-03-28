@@ -96,6 +96,8 @@ class AuthService extends Notifier<AuthState> {
   static const _refreshTokenKey = 'refresh_token';
   static const _idTokenKey = 'id_token';
   static const _isSocialLoginKey = 'is_social_login';
+  static const _nameKey = 'profile_name';
+  static const _phoneKey = 'profile_phone';
 
   /// Token endpoint URL
   String get _tokenEndpoint => '${AppConfig.identityUrl}/protocol/openid-connect/token';
@@ -124,6 +126,10 @@ class AuthService extends Notifier<AuthState> {
           idToken: idToken,
         );
 
+        // Restore cached profile immediately so it's available offline
+        final cachedName = await _storage.read(key: _nameKey);
+        final cachedPhone = await _storage.read(key: _phoneKey);
+
         final refreshed = await this.refreshToken();
         debugPrint('Auth init - token refresh result: $refreshed');
         if (refreshed) {
@@ -132,9 +138,11 @@ class AuthService extends Notifier<AuthState> {
             isInitializing: false,
             isAuthenticated: true,
             isSocialLogin: isSocial == 'true',
+            name: cachedName,
+            phoneNumber: cachedPhone,
           );
 
-          // Load profile (name + phone) in background
+          // Load fresh profile in background (will update cache)
           _loadProfile();
 
           return;
@@ -151,6 +159,8 @@ class AuthService extends Notifier<AuthState> {
             isInitializing: false,
             isAuthenticated: true,
             isSocialLogin: isSocial == 'true',
+            name: cachedName,
+            phoneNumber: cachedPhone,
           );
 
           _loadProfile();
@@ -186,10 +196,14 @@ class AuthService extends Notifier<AuthState> {
         final data = response.data;
         final name = (data['name'] as String?)?.trim();
         final phone = data['phoneNumber'] as String?;
+        final effectiveName = (name != null && name.isNotEmpty) ? name : state.name;
         state = state.copyWith(
-          name: (name != null && name.isNotEmpty) ? name : state.name,
+          name: effectiveName,
           phoneNumber: phone,
         );
+        // Cache for offline access
+        if (effectiveName != null) _storage.write(key: _nameKey, value: effectiveName);
+        if (phone != null) _storage.write(key: _phoneKey, value: phone);
         debugPrint('Profile loaded - name: $name, phone: $phone');
       }
     }).catchError((e) {
@@ -200,6 +214,8 @@ class AuthService extends Notifier<AuthState> {
   /// Update the cached profile in auth state (called after profile_gate saves).
   void setProfile(String name, String phoneNumber) {
     state = state.copyWith(name: name, phoneNumber: phoneNumber);
+    _storage.write(key: _nameKey, value: name);
+    _storage.write(key: _phoneKey, value: phoneNumber);
   }
 
   /// Sign in with username and password using Resource Owner Password Credentials grant
@@ -593,6 +609,8 @@ class AuthService extends Notifier<AuthState> {
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _idTokenKey);
     await _storage.delete(key: _isSocialLoginKey);
+    await _storage.delete(key: _nameKey);
+    await _storage.delete(key: _phoneKey);
 
     state = const AuthState(isInitializing: false);
   }
