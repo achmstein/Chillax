@@ -412,7 +412,7 @@ class _ItemCustomizationSheetState
                 onPressed: _canAddToCart ? _addToCart : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _canAddToCart ? context.theme.colors.primary : Colors.grey,
-                  foregroundColor: Colors.white,
+                  foregroundColor: context.theme.colors.primaryForeground,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: const StadiumBorder(),
                 ),
