@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../l10n/app_localizations.dart';
@@ -191,25 +190,25 @@ class _FavoriteItemTile extends ConsumerWidget {
                             imageUrl: item.pictureUri!,
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
-                              color: AppTheme.backgroundColor,
+                              color: context.theme.colors.background,
                               child: Center(
                                 child: SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: AppTheme.primaryColor,
+                                    color: context.theme.colors.primary,
                                   ),
                                 ),
                               ),
                             ),
                             errorWidget: (context, url, error) => Container(
-                              color: AppTheme.backgroundColor,
+                              color: context.theme.colors.background,
                               child: const Icon(FIcons.utensils, size: 24),
                             ),
                           )
                         : Container(
-                            color: AppTheme.backgroundColor,
+                            color: colors.background,
                             child: const Icon(FIcons.utensils, size: 24),
                           ),
                   ),
@@ -382,7 +381,7 @@ class _QuantityStepper extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               child: Icon(
                 quantity == 1 ? FIcons.trash2 : FIcons.minus,
-                color: quantity == 1 ? AppTheme.errorColor : colors.primary,
+                color: quantity == 1 ? colors.destructive : colors.primary,
                 size: 18,
               ),
             ),

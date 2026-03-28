@@ -622,7 +622,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       showFToast(
         context: context,
         title: Text(error ?? l10n.failedToPlaceOrder),
-        icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+        icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
       );
     }
   }

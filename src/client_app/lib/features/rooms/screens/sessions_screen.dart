@@ -310,7 +310,7 @@ class _HistorySessionsList extends ConsumerWidget {
     final isOvernight = branch?.isOvernightShift ?? true;
 
     for (final session in sessions) {
-      final sessionTime = session.actualStartTime ?? session.createdAt;
+      final sessionTime = (session.actualStartTime ?? session.createdAt).toLocal();
       final shiftDate = isOvernight && sessionTime.hour < startHour
           ? DateTime(sessionTime.year, sessionTime.month, sessionTime.day - 1)
           : DateTime(sessionTime.year, sessionTime.month, sessionTime.day);
@@ -452,7 +452,7 @@ class _SessionTileState extends State<SessionTile> {
               Icon(FIcons.clock, size: 14, color: colors.mutedForeground),
               const SizedBox(width: 4),
               AppText(
-                timeFormat.format(session.reservationTime),
+                timeFormat.format(session.reservationTime.toLocal()),
                 style: TextStyle(color: colors.mutedForeground, fontSize: 13),
               ),
               if (session.duration != null) ...[
@@ -519,7 +519,7 @@ class _SessionTileState extends State<SessionTile> {
                             ),
                             const SizedBox(width: 8),
                             AppText(
-                              '${timeFormat.format(segment.startTime)} · ${_segmentDuration(segment, l10n)}',
+                              '${timeFormat.format(segment.startTime.toLocal())} · ${_segmentDuration(segment, l10n)}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: colors.mutedForeground,

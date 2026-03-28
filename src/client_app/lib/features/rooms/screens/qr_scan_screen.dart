@@ -95,7 +95,7 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
     showFToast(
       context: context,
       title: Text(l10n.invalidQrCode),
-      icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+      icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
     );
   }
 
@@ -127,7 +127,7 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
         showFToast(
           context: context,
           title: Text(l10n.failedToJoinSession),
-          icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+          icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
         );
         _resumeScanning();
       }
@@ -268,7 +268,7 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
         showFToast(
           context: context,
           title: Text(l10n.failedToReserveRoom),
-          icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+          icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
         );
       }
     }

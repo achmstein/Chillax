@@ -773,7 +773,7 @@ class _MenuItemTileState extends ConsumerState<MenuItemTile> {
         showFToast(
           context: context,
           title: Text(l10n.failedToPlaceOrder),
-          icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+          icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
         );
       }
     }
@@ -1555,7 +1555,7 @@ class _QuantityStepper extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 child: Icon(
                   quantity == 1 ? FIcons.trash2 : FIcons.minus,
-                  color: quantity == 1 ? AppTheme.errorColor : colors.primary,
+                  color: quantity == 1 ? context.theme.colors.destructive : colors.primary,
                   size: 18,
                 ),
               ),

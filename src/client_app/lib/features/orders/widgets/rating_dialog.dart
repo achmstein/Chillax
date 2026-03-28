@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../l10n/app_localizations.dart';
 import '../services/order_service.dart';
@@ -202,7 +201,7 @@ class _RatingDialogState extends State<RatingDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.errorColor.withValues(alpha: 0.1),
+                    color: colors.destructive.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -210,14 +209,14 @@ class _RatingDialogState extends State<RatingDialog> {
                       Icon(
                         FIcons.circleAlert,
                         size: 18,
-                        color: AppTheme.errorColor,
+                        color: colors.destructive,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: AppText(
                           _errorMessage!,
                           style: TextStyle(
-                            color: AppTheme.errorColor,
+                            color: colors.destructive,
                             fontSize: 13,
                           ),
                         ),

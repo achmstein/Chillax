@@ -326,7 +326,7 @@ class _TransactionTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isEarned
                     ? AppTheme.successColor.withValues(alpha: 0.1)
-                    : AppTheme.errorColor.withValues(alpha: 0.1),
+                    : colors.destructive.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: AppText(
@@ -335,7 +335,7 @@ class _TransactionTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isEarned ? AppTheme.successColor : AppTheme.errorColor,
+                  color: isEarned ? AppTheme.successColor : colors.destructive,
                 ),
               ),
             ),

@@ -279,9 +279,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with WidgetsBinding
     for (final order in orders) {
       // For overnight shifts, orders before startHour belong to the previous day's shift.
       // For same-day shifts, all orders belong to the same calendar day.
-      final shiftDate = isOvernight && order.date.hour < startHour
-          ? DateTime(order.date.year, order.date.month, order.date.day - 1)
-          : DateTime(order.date.year, order.date.month, order.date.day);
+      final localDate = order.date.toLocal();
+      final shiftDate = isOvernight && localDate.hour < startHour
+          ? DateTime(localDate.year, localDate.month, localDate.day - 1)
+          : DateTime(localDate.year, localDate.month, localDate.day);
 
       final key = '${shiftDate.year}-${shiftDate.month}-${shiftDate.day}';
 
@@ -344,7 +345,7 @@ class _OrderTile extends ConsumerWidget {
               _StatusDot(status: order.status),
               const SizedBox(width: 8),
               AppText(
-                timeFormat.format(order.date),
+                timeFormat.format(order.date.toLocal()),
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colors.foreground),
               ),
               if (order.roomName != null) ...[
@@ -390,7 +391,7 @@ class _OrderTile extends ConsumerWidget {
             ),
             error: (_, __) => AppText(
               l10n.failedToLoadDetails,
-              style: TextStyle(color: AppTheme.errorColor, fontSize: 13),
+              style: TextStyle(color: colors.destructive, fontSize: 13),
             ),
             data: (details) => _buildDetails(context, ref, details, colors, locale, l10n),
           ),
@@ -486,7 +487,7 @@ class _StatusDot extends StatelessWidget {
       OrderStatus.awaitingValidation => Colors.orange,
       OrderStatus.submitted => Colors.orange,
       OrderStatus.confirmed => AppTheme.successColor,
-      OrderStatus.cancelled => AppTheme.errorColor,
+      OrderStatus.cancelled => context.theme.colors.destructive,
     };
 
     return Container(

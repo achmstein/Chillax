@@ -4,7 +4,6 @@ import 'package:forui/forui.dart';
 import '../models/branch.dart';
 import '../models/localized_text.dart';
 import '../providers/branch_provider.dart';
-import '../theme/app_theme.dart';
 import '../../features/rooms/models/room.dart';
 import '../../features/rooms/services/room_service.dart';
 import '../../l10n/app_localizations.dart';
@@ -79,7 +78,7 @@ class BranchSwitcher extends ConsumerWidget {
       showFToast(
         context: context,
         title: Text(l10n.cannotSwitchBranchDuringSession),
-        icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+        icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
       );
       return;
     }

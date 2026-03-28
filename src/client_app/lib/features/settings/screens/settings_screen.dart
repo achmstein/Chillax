@@ -62,7 +62,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       children: [
                         FTile(
                           title: AppText(l10n.orderStatusUpdates),
-                          subtitle: AppText(l10n.orderStatusUpdatesDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          subtitle: AppText(l10n.orderStatusUpdatesDescription, style: TextStyle(color: context.theme.colors.mutedForeground, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.orderStatusUpdates,
                             onChange: (value) {
@@ -74,7 +74,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         FTile(
                           title: AppText(l10n.promotionsAndOffers),
-                          subtitle: AppText(l10n.promotionsDescription, style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          subtitle: AppText(l10n.promotionsDescription, style: TextStyle(color: context.theme.colors.mutedForeground, fontSize: 12)),
                           suffix: FSwitch(
                             value: settingsState.preferences.promotionsAndOffers,
                             onChange: (value) {
@@ -133,9 +133,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               onPress: () => _showChangePasswordSheet(context, ref),
                             ),
                           FTile(
-                            prefix: Icon(FIcons.trash2, color: AppTheme.errorColor),
-                            title: AppText(l10n.deleteAccount, style: TextStyle(color: AppTheme.errorColor)),
-                            suffix: Icon(FIcons.chevronRight, color: AppTheme.errorColor),
+                            prefix: Icon(FIcons.trash2, color: context.theme.colors.destructive),
+                            title: AppText(l10n.deleteAccount, style: TextStyle(color: context.theme.colors.destructive)),
+                            suffix: Icon(FIcons.chevronRight, color: context.theme.colors.destructive),
                             onPress: () => _showDeleteAccountDialog(context, ref),
                           ),
                         ],
@@ -168,7 +168,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: AppTheme.textSecondary,
+        color: context.theme.colors.mutedForeground,
       ),
     );
   }
@@ -299,7 +299,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 showFToast(
                   context: context,
                   title: AppText(l10n.failedToDeleteAccount),
-                  icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+                  icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
                 );
               }
             },

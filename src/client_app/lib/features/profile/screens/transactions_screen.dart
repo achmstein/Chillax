@@ -304,7 +304,7 @@ class _TransactionTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: isCharge
-                    ? AppTheme.errorColor.withValues(alpha: 0.1)
+                    ? colors.destructive.withValues(alpha: 0.1)
                     : AppTheme.successColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
@@ -314,7 +314,7 @@ class _TransactionTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isCharge ? AppTheme.errorColor : AppTheme.successColor,
+                  color: isCharge ? colors.destructive : AppTheme.successColor,
                 ),
               ),
             ),

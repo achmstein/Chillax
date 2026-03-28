@@ -381,14 +381,14 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppTheme.primaryColor,
-                    AppTheme.primaryColor.withValues(alpha: 0.8),
+                    context.theme.colors.primary,
+                    context.theme.colors.primary.withValues(alpha: 0.8),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    color: context.theme.colors.primary.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -587,7 +587,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
         showFToast(
           context: context,
           title: Text(errorMessage),
-          icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+          icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
         );
       }
     }
@@ -647,7 +647,7 @@ class _ActiveSessionViewState extends ConsumerState<_ActiveSessionView> {
                   showFToast(
                     context: context,
                     title: Text(l10n.failedToLeaveSession),
-                    icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+                    icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
                   );
                 }
               }
@@ -895,7 +895,7 @@ class _ReservedSessionBanner extends ConsumerWidget {
           showFToast(
             context: context,
             title: Text(l10n.failedToCancelReservation),
-            icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+            icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
           );
         }
       }
@@ -916,13 +916,13 @@ class NotifyMeBanner extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+        color: context.theme.colors.foreground.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+        border: Border.all(color: context.theme.colors.foreground.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(FIcons.bell, size: 24, color: AppTheme.primaryColor),
+          Icon(FIcons.bell, size: 24, color: context.theme.colors.foreground),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -939,7 +939,7 @@ class NotifyMeBanner extends ConsumerWidget {
                 AppText(
                   l10n.getNotifiedWhenAvailable,
                   style: TextStyle(
-                    color: AppTheme.textSecondary,
+                    color: context.theme.colors.mutedForeground,
                     fontSize: 12,
                   ),
                 ),
@@ -955,7 +955,7 @@ class NotifyMeBanner extends ConsumerWidget {
             ),
             error: (_, st) => IconButton(
               onPressed: () => ref.invalidate(roomAvailabilitySubscriptionProvider),
-              icon: Icon(FIcons.refreshCw, color: AppTheme.errorColor),
+              icon: Icon(FIcons.refreshCw, color: context.theme.colors.destructive),
             ),
             data: (isSubscribed) => FSwitch(
               value: isSubscribed,
@@ -972,7 +972,7 @@ class NotifyMeBanner extends ConsumerWidget {
                       title: Text(success ? l10n.youWillBeNotified : l10n.failedToSubscribe),
                       icon: Icon(
                         success ? FIcons.bell : FIcons.circleX,
-                        color: success ? AppTheme.successColor : AppTheme.errorColor,
+                        color: success ? AppTheme.successColor : context.theme.colors.destructive,
                       ),
                     );
                   }
@@ -983,7 +983,7 @@ class NotifyMeBanner extends ConsumerWidget {
                     showFToast(
                       context: context,
                       title: Text(l10n.unsubscribedFromNotifications),
-                      icon: Icon(FIcons.check, color: AppTheme.textMuted),
+                      icon: Icon(FIcons.check, color: context.theme.colors.mutedForeground),
                     );
                   }
                 }
@@ -1114,7 +1114,7 @@ class RoomListItem extends ConsumerWidget {
       case RoomDisplayStatus.available:
         return canReserve ? AppTheme.successColor : colors.mutedForeground;
       case RoomDisplayStatus.occupied:
-        return AppTheme.errorColor;
+        return colors.destructive;
       case RoomDisplayStatus.reserved:
         return AppTheme.warningColor;
       case RoomDisplayStatus.maintenance:
@@ -1366,7 +1366,7 @@ class _ReservationSheetState extends ConsumerState<ReservationSheet> {
       showFToast(
         context: context,
         title: Text(l10n.failedToReserveRoom),
-        icon: Icon(FIcons.circleX, color: AppTheme.errorColor),
+        icon: Icon(FIcons.circleX, color: context.theme.colors.destructive),
       );
     }
   }

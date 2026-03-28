@@ -403,7 +403,7 @@ class _ItemCustomizationSheetState
             decoration: BoxDecoration(
               color: colors.background,
               border: Border(
-                top: BorderSide(color: AppTheme.textMuted.withValues(alpha: 0.2)),
+                top: BorderSide(color: context.theme.colors.mutedForeground.withValues(alpha: 0.2)),
               ),
             ),
             child: SizedBox(
@@ -411,7 +411,7 @@ class _ItemCustomizationSheetState
               child: ElevatedButton(
                 onPressed: _canAddToCart ? _addToCart : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _canAddToCart ? AppTheme.primaryColor : Colors.grey,
+                  backgroundColor: _canAddToCart ? context.theme.colors.primary : Colors.grey,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: const StadiumBorder(),

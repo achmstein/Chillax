@@ -32,6 +32,10 @@ public class ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler
             buyer = new Buyer(domainEvent.UserId, domainEvent.UserName);
             _buyerRepository.Add(buyer);
         }
+        else if (buyer!.Name != domainEvent.UserName)
+        {
+            buyer.UpdateName(domainEvent.UserName);
+        }
 
         await _buyerRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
 
