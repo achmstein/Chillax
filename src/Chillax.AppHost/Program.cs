@@ -125,7 +125,19 @@ ConfigureApiService(orderingApi, "ordering");
 ConfigureApiService(roomsApi, "rooms");
 ConfigureApiService(identityApi, "identity");
 ConfigureApiService(loyaltyApi, "loyalty");
-ConfigureApiService(notificationApi, "notification");
+notificationApi.PublishAsDockerComposeService((resource, service) =>
+{
+    service.Image = $"{ImageRegistry}-notification:latest";
+    service.Restart = "unless-stopped";
+    service.AddVolume(new Aspire.Hosting.Docker.Resources.ServiceNodes.Volume
+    {
+        Name = "firebase-credentials",
+        Type = "bind",
+        Source = "./firebase-credentials.json",
+        Target = "/app/firebase-credentials.json",
+        ReadOnly = true,
+    });
+});
 ConfigureApiService(accountsApi, "accounts");
 ConfigureApiService(branchApi, "branch");
 
